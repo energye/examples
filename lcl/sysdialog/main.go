@@ -29,7 +29,6 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	defer mainForm.EnableAlign()
 
 	mainForm.SetCaption("Hello")
-	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.EnabledMaximize(false)
 	mainForm.SetWidth(100)
 	mainForm.SetHeight(100)
@@ -37,6 +36,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("show")
 		mainForm.SetWidth(300)
 		mainForm.SetHeight(500)
+		mainForm.SetPosition(types.PoScreenCenter)
 	})
 
 	dlgOpen := lcl.NewOpenDialog(mainForm)
