@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/cef/process"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tools"
 	"github.com/energye/lcl/types"
@@ -31,6 +31,7 @@ func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.GlobalInit(nil, nil)
 	app := cef.NewCefApplication()
+	app.SetEnableGPU(true)
 	cef.SetGlobalCEFApp(app)
 	if tools.IsDarwin() {
 		app.SetUseMockKeyChain(true)

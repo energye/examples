@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/cef/process"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/tools"
 	"os"
 	"path/filepath"
