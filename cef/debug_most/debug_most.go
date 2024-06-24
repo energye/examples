@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
@@ -32,6 +33,7 @@ func main() {
 	cef.GlobalInit(nil, nil)
 	app := cef.NewCefApplication()
 	app.SetEnableGPU(true)
+	v8context.Context(app)
 	cef.SetGlobalCEFApp(app)
 	if tools.IsDarwin() {
 		app.SetUseMockKeyChain(true)
@@ -176,9 +178,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("headerMap size:", headerMap.GetSize())
 		fmt.Println("headerMap size:", headerMap.GetSize())
 		for i := 0; i < int(headerMap.GetSize()); i++ {
-			key := headerMap.GetKey(uint32(i))
-			val := headerMap.GetValue(uint32(i))
-			fmt.Println("  key:", key, "val:", val)
+			_ = headerMap.GetKey(uint32(i))
+			_ = headerMap.GetValue(uint32(i))
+			//fmt.Println("  key:", key, "val:", val)
 		}
 		//callback.Cont()
 	})
