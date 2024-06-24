@@ -10,6 +10,7 @@ import (
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tools"
+	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 	"os"
@@ -26,7 +27,9 @@ type BrowserWindow struct {
 	ChildForm    lcl.IForm
 }
 
-var BW BrowserWindow
+var (
+	BW BrowserWindow
+)
 
 func main() {
 	//全局初始化 每个应用都必须调用的
@@ -81,7 +84,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.ScreenCenter()
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
-	m.chromium.SetDefaultUrl("https://www.baidu.com")
+	//m.chromium.SetDefaultUrl("https://www.baidu.com")
+	assetsHtml := filepath.Join(exec.CurrentDir, "cef", "debug_most", "assets", "index.html")
+	m.chromium.SetDefaultUrl(assetsHtml)
 	if tools.IsWindows() {
 		m.windowParent = cef.NewCEFWindowParent(m)
 	} else {
@@ -175,7 +180,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cef.TCefReturnValue) {
 		fmt.Println("SetOnBeforeResourceLoad")
 		headerMap := request.GetHeaderMap()
-		fmt.Println("headerMap size:", headerMap.GetSize())
 		fmt.Println("headerMap size:", headerMap.GetSize())
 		for i := 0; i < int(headerMap.GetSize()); i++ {
 			_ = headerMap.GetKey(uint32(i))

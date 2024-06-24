@@ -13,6 +13,12 @@ func Context(app cef.ICefApplication) {
 	app.SetOnContextCreated(func(browser cef.ICefBrowser, frame cef.ICefFrame, context cef.ICefv8Context) {
 		onHandler = cef.NewV8Handler()
 		onHandler.SetOnExecute(func(name string, object cef.ICefv8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefv8Value, exception string, result bool) {
+			fmt.Println("OnExecute name:", name)
+			for i := 0; i < arguments.Size(); i++ {
+				val := arguments.Get(i)
+				fmt.Println("\tvalue:", val.GetStringValue())
+			}
+			arguments.Free()
 			return
 		})
 		fmt.Println("onHandler:", onHandler.Instance())
