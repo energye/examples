@@ -85,6 +85,11 @@ func Context(app cef.ICefApplication) {
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 		fmt.Println("data:", string(messageDataBytes))
 		// 调用JS回调函数
-		onCallback.ExecuteFunctionWithContext(frame.GetV8Context(), nil, nil)
+		callFuncArgs := make([]cef.ICefV8Value, 4)
+		callFuncArgs[0] = cef.V8ValueRef.NewString("参数数据")
+		callFuncArgs[1] = cef.V8ValueRef.NewBool(true)
+		callFuncArgs[2] = cef.V8ValueRef.NewInt(9999)
+		callFuncArgs[3] = cef.V8ValueRef.NewDouble(100.99)
+		onCallback.ExecuteFunctionWithContext(frame.GetV8Context(), nil, callFuncArgs)
 	})
 }

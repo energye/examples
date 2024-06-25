@@ -5,9 +5,9 @@
     <title>debug</title>
     <script type="application/javascript">
         (function () {
-            ipc.on("on-name", function (data) {
+            ipc.on("on-name", function (str, bool, int, float) {
                 let msg = document.getElementById("msg")
-                msg.innerText += data
+                msg.innerHTML += "str: " + str + " bool: " + bool + " int: " + int + " float: " + float+"<br>"
             });
         })()
 
@@ -20,14 +20,12 @@
 <p>
 <h1>debug</h1>
 </p>
-<div id="msg">
-
-</div>
 <p>
     <a href="index.html">index.html</a>
 </p>
 <p>
     <button onclick="ipcEmit()">emit</button>
 </p>
+<div id="msg"></div>
 </body>
 </html>
