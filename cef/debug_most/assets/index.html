@@ -5,11 +5,14 @@
     <title>debug</title>
     <script type="application/javascript">
         (function () {
-            ipc.on("on-name", "杨红岩", "age", 28);
+            ipc.on("on-name", function (data) {
+                let msg = document.getElementById("msg")
+                msg.innerText += data
+            });
         })()
 
         function ipcEmit() {
-            ipc.emit("emit-name", ["杨红岩", "age", 28]);
+            ipc.emit("emit-name", ["杨红岩", "age", Math.random()]);
         }
     </script>
 </head>
@@ -17,6 +20,9 @@
 <p>
 <h1>debug</h1>
 </p>
+<div id="msg">
+
+</div>
 <p>
     <a href="index.html">index.html</a>
 </p>

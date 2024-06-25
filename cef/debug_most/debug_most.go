@@ -190,12 +190,20 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//callback.Cont()
 	})
 	m.chromium.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
-		fmt.Println("主进程:")
+		fmt.Println("主进程 name:", message.GetName())
 		binArgs := message.GetArgumentList().GetBinary(0)
 		fmt.Println("size:", binArgs.GetSize())
 		messageDataBytes := make([]byte, int(binArgs.GetSize()))
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 		fmt.Println("data:", string(messageDataBytes))
+
+		dataBytes := []byte("OK收到: " + string(messageDataBytes))
+		processMessage := cef.ProcessMessageRef.New("send-render")
+		messageArgumentList := processMessage.GetArgumentList()
+		dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
+		messageArgumentList.SetBinary(0, dataBin)
+		frame.SendProcessMessage(cef.PID_BROWSER, processMessage)
+		messageArgumentList.Clear()
 	})
 }
 
