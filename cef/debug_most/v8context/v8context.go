@@ -16,7 +16,11 @@ func Context(app cef.ICefApplication) {
 			fmt.Println("OnExecute name:", name)
 			for i := 0; i < arguments.Size(); i++ {
 				val := arguments.Get(i)
-				fmt.Println("\tvalue:", val.GetStringValue())
+				if val.IsString() {
+					fmt.Println("\tvalue:", val.GetStringValue())
+				} else if val.IsInt() {
+					fmt.Println("\tvalue:", val.GetStringValue())
+				}
 			}
 			arguments.Free()
 			return
