@@ -90,6 +90,15 @@ func Context(app cef.ICefApplication) {
 		callFuncArgs[1] = cef.V8ValueRef.NewBool(true)
 		callFuncArgs[2] = cef.V8ValueRef.NewInt(9999)
 		callFuncArgs[3] = cef.V8ValueRef.NewDouble(100.99)
-		onCallback.ExecuteFunctionWithContext(frame.GetV8Context(), nil, callFuncArgs)
+		v8ctx := frame.GetV8Context()
+		if v8ctx.Enter() {
+			ret := onCallback.ExecuteFunctionWithContext(frame.GetV8Context(), nil, callFuncArgs)
+			if ret.IsValid() {
+				if ret.IsString() {
+					fmt.Println("ret-value:", ret.GetStringValue())
+				}
+			}
+			v8ctx.Exit()
+		}
 	})
 }
