@@ -15,6 +15,7 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"os"
 	"path/filepath"
+	"unsafe"
 )
 
 type BrowserWindow struct {
@@ -187,6 +188,14 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			//fmt.Println("  key:", key, "val:", val)
 		}
 		//callback.Cont()
+	})
+	m.chromium.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
+		fmt.Println("主进程:")
+		binArgs := message.GetArgumentList().GetBinary(0)
+		fmt.Println("size:", binArgs.GetSize())
+		messageDataBytes := make([]byte, int(binArgs.GetSize()))
+		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
+		fmt.Println("data:", string(messageDataBytes))
 	})
 }
 

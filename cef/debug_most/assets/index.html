@@ -5,12 +5,23 @@
     <title>debug</title>
     <script type="application/javascript">
         (function () {
-            ipc.on("name", "杨红岩", "age", "28");
+            ipc.on("on-name", "杨红岩", "age", 28);
         })()
+
+        function ipcEmit() {
+            ipc.emit("emit-name", ["杨红岩", "age", 28]);
+        }
     </script>
 </head>
 <body>
+<p>
 <h1>debug</h1>
-<a href="index.html">index.html</a>
+</p>
+<p>
+    <a href="index.html">index.html</a>
+</p>
+<p>
+    <button onclick="ipcEmit()">emit</button>
+</p>
 </body>
 </html>
