@@ -34,8 +34,15 @@ func Context(app cef.ICefApplication) {
 		emitHandler.SetOnExecute(func(name string, object cef.ICefV8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefV8Value, exception string, result bool) {
 			fmt.Println("ipc.emit Execute name:", name)
 			v8ctx := cef.V8ContextRef.Current()
-			frame := v8ctx.GetFrame()
-			fmt.Println("frameId:", frame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
+			ctxFrame := v8ctx.GetFrame()
+			defer func() {
+				object.FreeAndNil()
+				ctxFrame.FreeAndNil()
+				v8ctx.FreeAndNil()
+				arguments.Free()
+			}()
+			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
+			return
 			// 发送消息
 			var buf bytes.Buffer
 			for i := 0; i < arguments.Size(); i++ {
@@ -57,17 +64,16 @@ func Context(app cef.ICefApplication) {
 						} else if arg.IsDouble() {
 							buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
 						}
+						arg.FreeAndNil()
 					}
 				}
+				val.FreeAndNil()
 			}
-			dataBytes := buf.Bytes()
-			processMessage := cef.ProcessMessageRef.New("send-browser")
-			messageArgumentList := processMessage.GetArgumentList()
-			dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
-			messageArgumentList.SetBinary(0, dataBin)
-			frame.SendProcessMessage(cef.PID_RENDERER, processMessage)
-			messageArgumentList.Clear()
+			//dataBytes := buf.Bytes()
+			//SendBrowserMessage(ctxFrame, "send-browser-message", dataBytes)
 			arguments.Free()
+			object.FreeAndNil()
+			v8ctx.FreeAndNil()
 			return
 		})
 		ipc = cef.V8ValueRef.NewObject(nil, nil)
@@ -79,7 +85,8 @@ func Context(app cef.ICefApplication) {
 	})
 	app.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("渲染进程 name:", message.GetName())
-		binArgs := message.GetArgumentList().GetBinary(0)
+		args := message.GetArgumentList()
+		binArgs := args.GetBinary(0)
 		fmt.Println("size:", binArgs.GetSize())
 		messageDataBytes := make([]byte, int(binArgs.GetSize()))
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
@@ -90,15 +97,30 @@ func Context(app cef.ICefApplication) {
 		callFuncArgs[1] = cef.V8ValueRef.NewBool(true)
 		callFuncArgs[2] = cef.V8ValueRef.NewInt(9999)
 		callFuncArgs[3] = cef.V8ValueRef.NewDouble(100.99)
+		// 获取当前frame v8context
 		v8ctx := frame.GetV8Context()
+		// 进入上下文
 		if v8ctx.Enter() {
+			// 执行 ipc.on 回调函数
 			ret := onCallback.ExecuteFunctionWithContext(frame.GetV8Context(), nil, callFuncArgs)
-			if ret.IsValid() {
+			if ret != nil && ret.IsValid() {
 				if ret.IsString() {
 					fmt.Println("ret-value:", ret.GetStringValue())
+					//SendBrowserMessage(frame, "jsreturn", []byte(ret.GetStringValue()))
 				}
+				ret.Free()
 			}
 			v8ctx.Exit()
 		}
+		args.Clear()
 	})
+}
+
+func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
+	processMessage := cef.ProcessMessageRef.New(name)
+	messageArgumentList := processMessage.GetArgumentList()
+	dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&data[0])), uint32(len(data)))
+	messageArgumentList.SetBinary(0, dataBin)
+	frame.SendProcessMessage(cef.PID_RENDERER, processMessage)
+	messageArgumentList.Clear()
 }

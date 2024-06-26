@@ -7,14 +7,27 @@
         (function () {
             ipc.on("on-name", function (str, bool, int, float) {
                 let msg = document.getElementById("msg")
-                let data = "str: " + str + " bool: " + bool + " int: " + int + " float: " + float+"<br>"
-                msg.innerHTML += data
+                let data = "str: " + str + " bool: " + bool + " int: " + int + " float: " + float +  " " + Math.random()
+                msg.innerHTML = data
                 return data
             });
         })()
 
         function ipcEmit() {
             ipc.emit("emit-name", ["杨红岩", "age", Math.random()]);
+        }
+
+        let set = null;
+
+        function autoIpcEmit() {
+            if (set == null) {
+                set = setInterval(function () {
+                    ipc.emit("emit-name", ["杨红岩", "age", Math.random()]);
+                }, 0)
+            } else {
+                clearInterval(set)
+                set = null
+            }
         }
     </script>
 </head>
@@ -27,6 +40,7 @@
 </p>
 <p>
     <button onclick="ipcEmit()">emit</button>
+    <button onclick="autoIpcEmit()">auto emit</button>
 </p>
 <div id="msg"></div>
 </body>

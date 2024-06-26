@@ -87,6 +87,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium = cef.NewChromium(m)
 	//m.chromium.SetDefaultUrl("https://www.baidu.com")
 	assetsHtml := filepath.Join(exec.CurrentDir, "cef", "debug_most", "assets", "index.html")
+	assetsHtml = "D:\\gopath\\src\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
 	m.chromium.SetDefaultUrl(assetsHtml)
 	if tools.IsWindows() {
 		m.windowParent = cef.NewCEFWindowParent(m)
@@ -189,21 +190,26 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		}
 		//callback.Cont()
 	})
+	var ()
 	m.chromium.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("主进程 name:", message.GetName())
-		binArgs := message.GetArgumentList().GetBinary(0)
-		fmt.Println("size:", binArgs.GetSize())
-		messageDataBytes := make([]byte, int(binArgs.GetSize()))
-		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
-		fmt.Println("data:", string(messageDataBytes))
+		if message.GetName() == "jsreturn" {
 
-		dataBytes := []byte("OK收到: " + string(messageDataBytes))
-		processMessage := cef.ProcessMessageRef.New("send-render")
-		messageArgumentList := processMessage.GetArgumentList()
-		dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
-		messageArgumentList.SetBinary(0, dataBin)
-		frame.SendProcessMessage(cef.PID_BROWSER, processMessage)
-		messageArgumentList.Clear()
+		} else {
+			binArgs := message.GetArgumentList().GetBinary(0)
+			fmt.Println("size:", binArgs.GetSize())
+			messageDataBytes := make([]byte, int(binArgs.GetSize()))
+			binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
+			fmt.Println("data:", string(messageDataBytes))
+
+			dataBytes := []byte("OK收到: " + string(messageDataBytes))
+			processMessage := cef.ProcessMessageRef.New("send-render")
+			messageArgumentList := processMessage.GetArgumentList()
+			dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
+			messageArgumentList.SetBinary(0, dataBin)
+			frame.SendProcessMessage(cef.PID_BROWSER, processMessage)
+			messageArgumentList.Clear()
+		}
 	})
 }
 
