@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -122,6 +123,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnClose(m.chromiumClose)
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	m.chromium.SetOnBeforeClose(m.chromiumBeforeClose)
+
+	// 上下文菜单
+	contextmenu.ContextMenu(m.chromium)
+
 	m.chromium.SetOnLoadingProgressChange(func(sender cef.IObject, browser cef.ICefBrowser, progress float64) {
 		fmt.Println("OnLoadingProgressChange:", progress)
 	})
@@ -173,12 +178,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//*aHandled = true
 	})
 
-	m.chromium.SetOnBeforeContextMenu(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, model cef.ICefMenuModel) {
-		fmt.Println("SetOnBeforeContextMenu")
-	})
-	m.chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cef.MenuId, eventFlags uint32, result *bool) {
-		fmt.Println("SetOnContextMenuCommand")
-	})
 	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cef.TCefReturnValue) {
 		fmt.Println("SetOnBeforeResourceLoad")
 		headerMap := request.GetHeaderMap()
@@ -190,7 +189,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		}
 		//callback.Cont()
 	})
-	var ()
 	m.chromium.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("主进程 name:", message.GetName())
 		defer message.FreeAndNil()
