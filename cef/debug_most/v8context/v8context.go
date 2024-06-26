@@ -46,7 +46,7 @@ func Context(app cef.ICefApplication) {
 			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
 			// 发送消息
 			var buf bytes.Buffer
-			for i := 0; i < arguments.Size(); i++ {
+			for i := 1; i < arguments.Size(); i++ {
 				val := arguments.Get(i)
 				if val.IsString() {
 					buf.WriteString(val.GetStringValue())
@@ -123,10 +123,16 @@ func Context(app cef.ICefApplication) {
 func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	processMessage := cef.ProcessMessageRef.New(name)
 	messageArgumentList := processMessage.GetArgumentList()
-	dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&data[0])), uint32(len(data)))
+	var dataPtr = uintptr(0)
+	if len(data) > 0 {
+		dataPtr = uintptr(unsafe.Pointer(&data[0]))
+	}
+	dataBin := cef.BinaryValueRef.New(dataPtr, uint32(len(data)))
 	messageArgumentList.SetBinary(0, dataBin)
 	frame.SendProcessMessage(cef.PID_RENDERER, processMessage)
-	dataBin.FreeAndNil()
+	if dataBin != nil {
+		dataBin.FreeAndNil()
+	}
 	messageArgumentList.Clear()
 	messageArgumentList.FreeAndNil()
 	processMessage.FreeAndNil()
