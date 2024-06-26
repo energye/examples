@@ -35,10 +35,12 @@ func Context(app cef.ICefApplication) {
 			fmt.Println("ipc.emit Execute name:", name)
 			v8ctx := cef.V8ContextRef.Current()
 			ctxFrame := v8ctx.GetFrame()
+			emitName := arguments.Get(0)
 			defer func() {
 				object.FreeAndNil()
 				ctxFrame.FreeAndNil()
 				v8ctx.FreeAndNil()
+				emitName.FreeAndNil()
 				arguments.Free()
 			}()
 			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
@@ -69,7 +71,7 @@ func Context(app cef.ICefApplication) {
 				val.FreeAndNil()
 			}
 			dataBytes := buf.Bytes()
-			SendBrowserMessage(ctxFrame, "send-browser-message", dataBytes)
+			SendBrowserMessage(ctxFrame, emitName.GetStringValue(), dataBytes)
 			return
 		})
 		ipc = cef.V8ValueRef.NewObject(nil, nil)

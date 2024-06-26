@@ -33,6 +33,10 @@
                 set = null
             }
         }
+
+        function cookieVisited() {
+            ipc.emit("cookieVisited")
+        }
     </script>
 </head>
 <body>
@@ -41,10 +45,14 @@
 </p>
 <p>
     <a href="index.html">index.html</a>
+    <a href="https://www.baidu.com">baidu</a>
 </p>
 <p>
     <button onclick="ipcEmit()">emit</button>
     <button onclick="autoIpcEmit()">auto emit</button>
+</p>
+<p>
+    <button onclick="cookieVisited()">cookie visited</button>
 </p>
 <div id="msg"></div>
 </body>

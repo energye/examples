@@ -38,7 +38,7 @@ func ContextMenu(chromium cef.IChromium) {
 	}
 	chromium.SetOnBeforeContextMenu(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, model cef.ICefMenuModel) {
 		fmt.Println("OnBeforeContextMenu")
-		model.Clear()
+		model.AddSeparator()
 		menuId01 = cef.MENU_ID_USER_FIRST + 1
 		menuId01 = nextCommandId(true)
 		model.AddItem(menuId01, "菜单一 html 文字变红色")

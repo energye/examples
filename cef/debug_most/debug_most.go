@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
+	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -126,6 +127,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	// 上下文菜单
 	contextmenu.ContextMenu(m.chromium)
+	// cookie
+	cookie.Cookie(m.chromium)
 
 	m.chromium.SetOnLoadingProgressChange(func(sender cef.IObject, browser cef.ICefBrowser, progress float64) {
 		fmt.Println("OnLoadingProgressChange:", progress)
@@ -194,6 +197,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		defer message.FreeAndNil()
 		if message.GetName() == "jsreturn" {
 
+		} else if message.GetName() == "cookieVisited" {
+			cookie.CookieVisited(m.chromium)
 		} else {
 			args := message.GetArgumentList()
 			binArgs := args.GetBinary(0)
