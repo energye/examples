@@ -7,7 +7,7 @@
         (function () {
             ipc.on("on-name", function (str, bool, int, float) {
                 let msg = document.getElementById("msg")
-                let data = "str: " + str + " bool: " + bool + " int: " + int + " float: " + float +  " " + Math.random()
+                let data = "str: " + str + " bool: " + bool + " int: " + int + " float: " + float + " " + Math.random()
                 msg.innerHTML = data
                 return data
             });
@@ -18,11 +18,15 @@
         }
 
         let set = null;
+        let count = 0;
 
         function autoIpcEmit() {
             if (set == null) {
+                let msg = document.getElementById("msg")
                 set = setInterval(function () {
-                    ipc.emit("emit-name", ["杨红岩", "age", Math.random()]);
+                    ipc.emit("emit-name", ["杨红岩", "age", Math.random() + count]);
+                    count++
+                    msg.innerText = count
                 }, 0)
             } else {
                 clearInterval(set)
