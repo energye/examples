@@ -8,6 +8,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
@@ -74,6 +75,9 @@ func main() {
 			fmt.Println("Release")
 			app.Free()
 		})
+		exception.SetOnException(func(funcName, message string) {
+			fmt.Println("OnException:", funcName, message)
+		})
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
@@ -139,6 +143,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
 		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
+		manager.FreeAndNil()
 	})
 
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
