@@ -129,13 +129,18 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	contextmenu.ContextMenu(m.chromium)
 	// cookie
 	cookie.Cookie(m.chromium)
-
 	m.chromium.SetOnLoadingProgressChange(func(sender cef.IObject, browser cef.ICefBrowser, progress float64) {
 		fmt.Println("OnLoadingProgressChange:", progress)
 	})
 	m.chromium.SetOnLoadStart(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cef.TCefTransitionType) {
 		fmt.Println("OnLoadStart:", frame.GetUrl())
 	})
+	m.chromium.SetOnLoadEnd(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
+		requestCtx := browser.GetHost().GetRequestContext()
+		manager := requestCtx.GetCookieManager(nil)
+		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsChromiumEvents(), 0))
+	})
+
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")
 		lcl.RunOnMainThreadAsync(func(id uint32) {
