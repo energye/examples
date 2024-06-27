@@ -199,6 +199,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 		} else if message.GetName() == "cookieVisited" {
 			cookie.CookieVisited(m.chromium)
+		} else if message.GetName() == "cookieDelete" {
+			cookie.DeleteCookie(m.chromium)
+		} else if message.GetName() == "setCookie" {
+			cookie.SetCookie(m.chromium)
 		} else {
 			args := message.GetArgumentList()
 			binArgs := args.GetBinary(0)

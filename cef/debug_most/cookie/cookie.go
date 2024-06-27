@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/energye/cef/cef"
 	"github.com/energye/lcl/lcl"
+	"time"
 )
 
 func Cookie(chromium cef.IChromium) {
@@ -31,4 +32,29 @@ func Cookie(chromium cef.IChromium) {
 func CookieVisited(chromium cef.IChromium) {
 	chromium.VisitURLCookies("https://www.baidu.com", true, 1)
 	chromium.VisitAllCookies(1)
+}
+
+func DeleteCookie(chromium cef.IChromium) {
+	chromium.DeleteCookies("", "", false)
+}
+
+func SetCookie(chromium cef.IChromium) {
+	cookie := cef.TCookie{
+		Name:       "example_cookie_name",
+		Value:      "111",
+		Domain:     "",
+		Path:       "/",
+		Creation:   cef.DateTimeToDTime(time.Now()),
+		LastAccess: cef.DateTimeToDTime(time.Now()),
+		Expires:    cef.DateTimeToDTime(time.Now()),
+		Secure:     true,
+		Httponly:   true,
+		HasExpires: true,
+		SameSite:   cef.CEF_COOKIE_SAME_SITE_UNSPECIFIED,
+		Priority:   cef.CEF_COOKIE_PRIORITY_MEDIUM,
+	}
+	chromium.SetCookie("https://www.example.com", false, 1, cookie)
+	chromium.SetCookie("https://www.example.com", false, 2, cookie)
+	chromium.SetCookie("https://www.baidu.com", false, 3, cookie)
+
 }
