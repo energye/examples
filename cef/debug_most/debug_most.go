@@ -138,7 +138,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnLoadEnd(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
-		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsChromiumEvents(), 0))
+		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
 	})
 
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
