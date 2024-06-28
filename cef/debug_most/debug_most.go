@@ -38,6 +38,9 @@ var (
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.GlobalInit(nil, nil)
+	exception.SetOnException(func(funcName, message string) {
+		fmt.Println("OnException funcName:", funcName, "message:", message)
+	})
 	app := cef.NewCefApplication()
 	app.SetEnableGPU(true)
 	v8context.Context(app)
@@ -74,9 +77,6 @@ func main() {
 		api.SetReleaseCallback(func() {
 			fmt.Println("Release")
 			app.Free()
-		})
-		exception.SetOnException(func(funcName, message string) {
-			fmt.Println("OnException:", funcName, message)
 		})
 		// LCL窗口
 		lcl.Application.Initialize()
