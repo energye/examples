@@ -6,6 +6,7 @@ import (
 	"github.com/energye/assetserve"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
@@ -26,6 +27,9 @@ var resources embed.FS
 func main() {
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
+	exception.SetOnException(func(funcName, message string) {
+		fmt.Println("ERROR funcName:", funcName, "message:", message)
+	})
 	// GlobalWebView2Loader
 	load = wv.GlobalWebView2Loader(nil)
 	liblcl := libname.LibName
