@@ -39,7 +39,7 @@ func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.GlobalInit(nil, nil)
 	exception.SetOnException(func(funcName, message string) {
-		fmt.Println("OnException funcName:", funcName, "message:", message)
+		fmt.Println("ERROR funcName:", funcName, "message:", message)
 	})
 	app := cef.NewCefApplication()
 	app.SetEnableGPU(true)
