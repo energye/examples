@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/domvisitor"
 	"github.com/energye/lcl/process"
 	"strconv"
 	"unsafe"
@@ -44,34 +45,39 @@ func Context(app cef.ICefApplication) {
 				arguments.Free()
 			}()
 			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
-			// 发送消息
-			var buf bytes.Buffer
-			for i := 1; i < arguments.Size(); i++ {
-				val := arguments.Get(i)
-				if val.IsString() {
-					buf.WriteString(val.GetStringValue())
-				} else if val.IsInt() {
-					buf.WriteString(strconv.Itoa(int(val.GetIntValue())))
-				} else if val.IsArray() {
-					lenh := int(val.GetArrayLength())
-					for i := 0; i < lenh; i++ {
-						arg := val.GetValueByIndex(int32(i))
-						if arg.IsString() {
-							buf.WriteString(arg.GetStringValue())
-						} else if arg.IsInt() {
-							buf.WriteString(strconv.Itoa(int(arg.GetIntValue())))
-						} else if arg.IsUInt() {
-							buf.WriteString(strconv.Itoa(int(arg.GetUIntValue())))
-						} else if arg.IsDouble() {
-							buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
+			eventName := emitName.GetStringValue()
+			if eventName == "domVisitor" {
+				domvisitor.DomVisitor()
+			} else {
+				// 发送消息
+				var buf bytes.Buffer
+				for i := 1; i < arguments.Size(); i++ {
+					val := arguments.Get(i)
+					if val.IsString() {
+						buf.WriteString(val.GetStringValue())
+					} else if val.IsInt() {
+						buf.WriteString(strconv.Itoa(int(val.GetIntValue())))
+					} else if val.IsArray() {
+						lenh := int(val.GetArrayLength())
+						for i := 0; i < lenh; i++ {
+							arg := val.GetValueByIndex(int32(i))
+							if arg.IsString() {
+								buf.WriteString(arg.GetStringValue())
+							} else if arg.IsInt() {
+								buf.WriteString(strconv.Itoa(int(arg.GetIntValue())))
+							} else if arg.IsUInt() {
+								buf.WriteString(strconv.Itoa(int(arg.GetUIntValue())))
+							} else if arg.IsDouble() {
+								buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
+							}
+							arg.FreeAndNil()
 						}
-						arg.FreeAndNil()
 					}
+					val.FreeAndNil()
 				}
-				val.FreeAndNil()
+				dataBytes := buf.Bytes()
+				SendBrowserMessage(ctxFrame, eventName, dataBytes)
 			}
-			dataBytes := buf.Bytes()
-			SendBrowserMessage(ctxFrame, emitName.GetStringValue(), dataBytes)
 			return
 		})
 		ipc = cef.V8ValueRef.NewObject(nil, nil)

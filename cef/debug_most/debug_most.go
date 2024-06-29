@@ -213,6 +213,14 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			cookie.DeleteCookie(m.chromium)
 		} else if message.GetName() == "setCookie" {
 			cookie.SetCookie(m.chromium)
+		} else if message.GetName() == "showDevtools" {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				point := cef.TPoint{
+					X: 100,
+					Y: 100,
+				}
+				m.chromium.ShowDevToolsForIWinControl(&point, nil)
+			})
 		} else {
 			args := message.GetArgumentList()
 			binArgs := args.GetBinary(0)
