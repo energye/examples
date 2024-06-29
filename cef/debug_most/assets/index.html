@@ -56,6 +56,11 @@
         function executeDevToolsMethod() {
             ipc.emit("executeDevToolsMethod")
         }
+
+        function executeJavaScript() {
+            ipc.emit("executeJavaScript")
+        }
+
     </script>
 </head>
 <body>
@@ -65,6 +70,7 @@
 <p>
     <a href="index.html">index.html</a>
     <a href="https://www.baidu.com">baidu</a>
+    <a href="fs://energy/index.html">scheme fs://energy/index.html</a>
 </p>
 <p>
     <button onclick="ipcEmit()">emit</button>
@@ -77,6 +83,7 @@
     <button onclick="showDevtools()">show devtools</button>
     <button onclick="domVisitor()">dom visitor</button>
     <button onclick="executeDevToolsMethod()">execute DevTools Method</button>
+    <button onclick="executeJavaScript()">execute JavaScript</button>
 </p>
 <p>
     download: <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">energy-windows-64.zip</a>

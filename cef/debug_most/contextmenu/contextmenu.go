@@ -27,6 +27,7 @@ func ContextMenu(chromium cef.IChromium) {
 		menuIdRadio202     cef.MenuId
 		menuIdRadio203     cef.MenuId
 		radioDefault2Check cef.MenuId
+		refresh            cef.MenuId
 	)
 	nextMenuId := cef.MENU_ID_USER_FIRST
 	var nextCommandId = func(reset ...bool) cef.MenuId {
@@ -96,6 +97,8 @@ func ContextMenu(chromium cef.IChromium) {
 			radioDefault2Check = menuIdRadio201
 		}
 		model.SetChecked(radioDefault2Check, true)
+		refresh = nextCommandId()
+		model.AddItem(refresh, "刷新")
 	})
 	chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cef.MenuId, eventFlags uint32, result *bool) {
 		fmt.Println("OnContextMenuCommand commandId:", commandId)
@@ -112,6 +115,8 @@ func ContextMenu(chromium cef.IChromium) {
 			radioDefault1Check = commandId
 		case menuIdRadio201, menuIdRadio202, menuIdRadio203:
 			radioDefault2Check = commandId
+		case refresh:
+			chromium.ReloadIgnoreCache()
 		}
 	})
 }

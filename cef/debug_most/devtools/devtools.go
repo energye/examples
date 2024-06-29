@@ -46,3 +46,8 @@ func ExecuteDevToolsMethod(chromium cef.IChromium) {
 	fmt.Println("ExecuteDevToolsMethod - result messageId:", gId)
 	dict.FreeAndNil()
 }
+
+func ExecuteJavaScript(chromium cef.IChromium) {
+	var jsCode = `document.body.style.background="#999999";`
+	chromium.ExecuteJavaScript(jsCode, "", "", 0)
+}

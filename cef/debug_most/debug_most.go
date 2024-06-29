@@ -6,6 +6,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
+	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -70,6 +71,9 @@ func main() {
 		app.SetResourcesDirPath(frameworkDir)
 		app.SetLocalesDirPath(filepath.Join(frameworkDir, "locales"))
 	}
+	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+		scheme.ApplicationOnRegCustomSchemes(registrar)
+	})
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	fmt.Println("mainStart:", mainStart, process.Args.ProcessType())
@@ -161,6 +165,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			m.mainWindowId = browser.GetIdentifier()
 		}
 		m.windowParent.UpdateSize()
+		scheme.ChromiumAfterCreated(browser)
 	})
 	m.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
 		userGesture, isRedirect bool, result *bool) {
@@ -245,6 +250,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			devtools.ShowDevtools(m.chromium)
 		} else if message.GetName() == "executeDevToolsMethod" {
 			devtools.ExecuteDevToolsMethod(m.chromium)
+		} else if message.GetName() == "executeJavaScript" {
+			devtools.ExecuteJavaScript(m.chromium)
 		} else {
 			args := message.GetArgumentList()
 			binArgs := args.GetBinary(0)
