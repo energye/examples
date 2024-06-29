@@ -52,6 +52,10 @@
         function domVisitor() {
             ipc.emit("domVisitor")
         }
+
+        function executeDevToolsMethod() {
+            ipc.emit("executeDevToolsMethod")
+        }
     </script>
 </head>
 <body>
@@ -72,6 +76,7 @@
     <button onclick="setCookie()">cookie set</button>
     <button onclick="showDevtools()">show devtools</button>
     <button onclick="domVisitor()">dom visitor</button>
+    <button onclick="executeDevToolsMethod()">execute DevTools Method</button>
 </p>
 <p>
     download: <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">energy-windows-64.zip</a>

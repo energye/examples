@@ -5,6 +5,7 @@ import (
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
+	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -135,6 +136,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	contextmenu.ContextMenu(m.chromium)
 	// cookie
 	cookie.Cookie(m.chromium)
+	// devtools
+	devtools.DevTools(m.chromium)
+
 	m.chromium.SetOnLoadingProgressChange(func(sender cef.IObject, browser cef.ICefBrowser, progress float64) {
 		fmt.Println("OnLoadingProgressChange:", progress)
 	})
@@ -238,13 +242,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		} else if message.GetName() == "setCookie" {
 			cookie.SetCookie(m.chromium)
 		} else if message.GetName() == "showDevtools" {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				point := cef.TPoint{
-					X: 100,
-					Y: 100,
-				}
-				m.chromium.ShowDevToolsForIWinControl(&point, nil)
-			})
+			devtools.ShowDevtools(m.chromium)
+		} else if message.GetName() == "executeDevToolsMethod" {
+			devtools.ExecuteDevToolsMethod(m.chromium)
 		} else {
 			args := message.GetArgumentList()
 			binArgs := args.GetBinary(0)
