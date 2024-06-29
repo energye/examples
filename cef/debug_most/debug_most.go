@@ -88,6 +88,8 @@ func main() {
 }
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
+	m.SetWidth(1024)
+	m.SetHeight(768)
 	m.ScreenCenter()
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
@@ -145,7 +147,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
 		manager.FreeAndNil()
 	})
-
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")
 		lcl.RunOnMainThreadAsync(func(id uint32) {
@@ -162,7 +163,25 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnBeforeBrowser")
 		m.windowParent.UpdateSize()
 	})
-
+	m.chromium.SetOnDragEnter(func(sender cef.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cef.TCefDragOperations, outResult *bool) {
+		if mask&cef.DRAG_OPERATION_LINK == cef.DRAG_OPERATION_LINK {
+			var fileNameList cef.IStrings
+			fmt.Println("SetOnDragEnter", mask&cef.DRAG_OPERATION_LINK, dragData.IsLink(), dragData.IsFile(), "GetFileName:", dragData.GetFileName(),
+				"GetFileNames:", dragData.GetFileNames(&fileNameList))
+			if fileNameList != nil {
+				count := int(fileNameList.Count())
+				fileNames := make([]string, count, count)
+				for i := 0; i < count; i++ {
+					fileNames[i] = fileNameList.Strings(int32(i))
+				}
+				fileNameList.Free()
+				fmt.Println("count:", count, "fileNames:", fileNames)
+			}
+			*outResult = false
+		} else {
+			*outResult = true
+		}
+	})
 	m.chromium.SetOnBeforePopup(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, beforePopup cef.TBeforePopup, popupFeatures cef.TCefPopupFeatures,
 		windowInfo *cef.TCefWindowInfo, settings *cef.TCefBrowserSettings) (
 		client cef.ICefClient, extraInfo cef.ICefDictionaryValue, noJavascriptAccess, result bool) {
@@ -189,6 +208,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnRenderCompMsg(func(sender lcl.IObject, message *types.TMessage, lResult *types.LRESULT, aHandled *bool) {
 		//fmt.Println("SetOnRenderCompMsg", *lResult, *aHandled)
 		//*aHandled = true
+	})
+
+	m.chromium.SetOnDownloadUpdated(func(sender cef.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
+		fmt.Println("DownloadUpdated frameId", browser.GetMainFrame().GetIdentifier(), "Id:", downloadItem.GetId(), "originalUrl:", downloadItem.GetOriginalUrl(), "url:", downloadItem.GetUrl())
+		fmt.Println("\t", downloadItem.GetTotalBytes(), "/", downloadItem.GetReceivedBytes(), "speed:", downloadItem.GetCurrentSpeed(), "fullPath:", downloadItem.GetFullPath())
 	})
 
 	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cef.TCefReturnValue) {
