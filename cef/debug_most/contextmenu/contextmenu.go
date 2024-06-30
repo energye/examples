@@ -98,7 +98,7 @@ func ContextMenu(chromium cef.IChromium) {
 		}
 		model.SetChecked(radioDefault2Check, true)
 		refresh = nextCommandId()
-		model.AddItem(refresh, "刷新")
+		model.AddItem(refresh, "强制刷新")
 	})
 	chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cef.MenuId, eventFlags uint32, result *bool) {
 		fmt.Println("OnContextMenuCommand commandId:", commandId)
