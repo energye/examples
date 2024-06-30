@@ -126,7 +126,47 @@ func Context(app cef.ICefApplication) {
 	})
 
 	app.SetOnWebKitInitialized(func() {
-		//cef.RegisterExtension()
+		fmt.Println("SetOnWebKitInitialized")
+		var myparamValue string
+		v8Handler := cef.NewV8Handler()
+		v8Handler.SetOnExecute(func(name string, object cef.ICefV8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefV8Value, exception string, result bool) {
+			fmt.Println("v8Handler.Execute", name)
+			if name == "GetMyParam" {
+				result = true
+				retVal = cef.V8ValueRef.NewString(myparamValue)
+			} else if name == "SetMyParam" {
+				if arguments.Size() > 0 {
+					newValue := arguments.Get(0)
+					fmt.Println("value is string:", newValue.IsString())
+					fmt.Println("value:", newValue.GetStringValue())
+					myparamValue = newValue.GetStringValue()
+					newValue.FreeAndNil()
+				}
+				result = true
+			}
+			object.FreeAndNil()
+			arguments.Free()
+			return
+		})
+		//注册js
+		var jsCode = `
+            let test;
+            if (!test) {
+                test = {};
+            }
+            (function () {
+                test.__defineGetter__('myparam', function () {
+                    native function GetMyParam();
+                    return GetMyParam();
+                });
+                test.__defineSetter__('myparam', function (b) {
+                    native function SetMyParam();
+                    if (b) SetMyParam(b);
+                });
+            })();
+`
+		// 注册JS 和v8处理器
+		cef.RegisterExtension("v8/test", jsCode, v8Handler.AsInterface())
 	})
 }
 

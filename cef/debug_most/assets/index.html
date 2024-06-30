@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>debug</title>
     <style>
-        a {
+        a, button {
             margin: 10px;
         }
     </style>
@@ -66,6 +66,12 @@
             ipc.emit("executeJavaScript")
         }
 
+        function webkit() {
+            let msg = document.getElementById("msg")
+            msg.innerText = test.myparam
+            test.myparam = new Date().getTime().toString()
+        }
+
     </script>
 </head>
 <body>
@@ -89,9 +95,12 @@
     <button onclick="domVisitor()">dom visitor</button>
     <button onclick="executeDevToolsMethod()">execute DevTools Method</button>
     <button onclick="executeJavaScript()">execute JavaScript</button>
+    <br>
+    <button onclick="webkit()">webkit RegisterExtension</button>
 </p>
 <p>
-    <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">download: energy-windows-64.zip</a>
+    <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">download:
+        energy-windows-64.zip</a>
     <a href="http://chrome.360.cn/html5_labs/demos/dnd/">drag-file: to drag-file url</a>
 </p>
 <p>
