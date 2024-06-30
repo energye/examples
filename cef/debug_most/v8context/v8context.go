@@ -124,6 +124,10 @@ func Context(app cef.ICefApplication) {
 			v8ctx.Exit()
 		}
 	})
+
+	app.SetOnWebKitInitialized(func() {
+		//cef.RegisterExtension()
+	})
 }
 
 func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
