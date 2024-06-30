@@ -7,6 +7,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/scheme"
+	"github.com/energye/examples/cef/debug_most/utils"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -100,7 +101,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium = cef.NewChromium(m)
 	//m.chromium.SetDefaultUrl("https://www.baidu.com")
 	assetsHtml := filepath.Join(exec.CurrentDir, "cef", "debug_most", "assets", "index.html")
-	assetsHtml = "D:\\gopath\\src\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+	assetsHtml = filepath.Join(utils.RootPath(), "assets\\index.html")
 	m.chromium.SetDefaultUrl(assetsHtml)
 	if tools.IsWindows() {
 		m.windowParent = cef.NewCEFWindowParent(m)

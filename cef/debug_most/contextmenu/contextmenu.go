@@ -3,6 +3,7 @@ package contextmenu
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types/colors"
 )
@@ -28,6 +29,7 @@ func ContextMenu(chromium cef.IChromium) {
 		menuIdRadio203     cef.MenuId
 		radioDefault2Check cef.MenuId
 		refresh            cef.MenuId
+		devtoolsId         cef.MenuId
 	)
 	nextMenuId := cef.MENU_ID_USER_FIRST
 	var nextCommandId = func(reset ...bool) cef.MenuId {
@@ -99,6 +101,8 @@ func ContextMenu(chromium cef.IChromium) {
 		model.SetChecked(radioDefault2Check, true)
 		refresh = nextCommandId()
 		model.AddItem(refresh, "强制刷新")
+		devtoolsId = nextCommandId()
+		model.AddItem(devtoolsId, "开发者工具")
 	})
 	chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cef.MenuId, eventFlags uint32, result *bool) {
 		fmt.Println("OnContextMenuCommand commandId:", commandId)
@@ -117,6 +121,8 @@ func ContextMenu(chromium cef.IChromium) {
 			radioDefault2Check = commandId
 		case refresh:
 			chromium.ReloadIgnoreCache()
+		case devtoolsId:
+			devtools.ShowDevtools(chromium)
 		}
 	})
 }

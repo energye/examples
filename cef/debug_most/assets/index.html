@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>debug</title>
+    <style>
+        a {
+            margin: 10px;
+        }
+    </style>
     <script type="application/javascript">
         let count = 0;
         (function () {
             ipc.on("on-name", function (str, bool, int, float) {
                 let msg = document.getElementById("msg")
                 let data = "str: " + str + " bool: " + bool + " int: " + int + " float: " + float + " " + Math.random()
-                msg.innerHTML =  count  + " : " + data
+                msg.innerHTML = count + " : " + data
                 return data
             });
         })()
@@ -70,7 +75,7 @@
 <p>
     <a href="index.html">index.html</a>
     <a href="https://www.baidu.com">baidu</a>
-    <a href="fs://energy/index.html">scheme fs://energy/index.html</a>
+    <a href="fs://energy">scheme fs://energy</a>
 </p>
 <p>
     <button onclick="ipcEmit()">emit</button>
@@ -86,8 +91,8 @@
     <button onclick="executeJavaScript()">execute JavaScript</button>
 </p>
 <p>
-    download: <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">energy-windows-64.zip</a>
-    drag-file: <a href="http://chrome.360.cn/html5_labs/demos/dnd/">to drag-file url</a>
+    <a href="https://gitee.com/energye/assets/releases/download/cli/energy-windows-64.zip">download: energy-windows-64.zip</a>
+    <a href="http://chrome.360.cn/html5_labs/demos/dnd/">drag-file: to drag-file url</a>
 </p>
 <p>
 
