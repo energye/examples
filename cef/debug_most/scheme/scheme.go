@@ -35,6 +35,7 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 	fmt.Println("scheme -> OnAfterCreated")
 	handlerFactory := cef.NewSchemeHandlerFactory(0)
 	handlerFactory.SetOnNew(func(browser cef.ICefBrowser, frame cef.ICefFrame, schemeName string, request cef.ICefRequest) (result cef.ICefResourceHandler) {
+		fmt.Println("scheme -> handlerFactory -> SetOnNew schemeName:", schemeName, "url:", request.GetUrl())
 		reqUrl, err := url.Parse(request.GetUrl())
 		if err != nil {
 			return nil
@@ -42,7 +43,6 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 		if reqUrl.Scheme != SchemeName {
 			return nil
 		}
-		fmt.Println("scheme -> handlerFactory -> SetOnNew schemeName:", schemeName)
 		var (
 			statusCode   int32 = 404
 			statusText         = "Not Found"
@@ -50,26 +50,6 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 			responseData []byte
 			start        int
 		)
-		resourceHandler := cef.NewResourceHandler(browser, frame, schemeName, request)
-		resourceHandler.SetOnProcessRequest(func(request cef.ICefRequest, callback cef.ICefCallback, outResult *bool) {
-			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnProcessRequest")
-			responseData, err = ioutil.ReadFile(filepath.Join(utils.RootPath(), "assets\\scheme.html"))
-			if err == nil {
-				callback.Cont()
-				*outResult = true
-				statusCode = 200
-				statusText = "OK"
-				start = 0
-			}
-			fmt.Println("\tresponseData size:", len(responseData))
-		})
-		resourceHandler.SetOnGetResponseHeaders(func(response cef.ICefResponse, outResponseLength *int64, outRedirectUrl *string) {
-			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnGetResponseHeaders")
-			response.SetStatus(statusCode)
-			response.SetStatusText(statusText)
-			response.SetMimeType(mimeType)
-			*outResponseLength = int64(len(responseData))
-		})
 		var readData = func(dataOut uintptr, bytesToRead int32, bytesRead *int32) bool {
 			dataSize := len(responseData)
 			if start < dataSize {
@@ -107,6 +87,27 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 			}
 			return false
 		}
+		resourceHandler := cef.NewResourceHandler(browser, frame, schemeName, request)
+		resourceHandler.SetOnProcessRequest(func(request cef.ICefRequest, callback cef.ICefCallback, outResult *bool) {
+			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnProcessRequest")
+			responseData, err = ioutil.ReadFile(filepath.Join(utils.RootPath(), "assets\\scheme.html"))
+			if err == nil {
+				statusCode = 200
+				statusText = "OK"
+				start = 0
+			}
+			fmt.Println("\tresponseData size:", len(responseData))
+			*outResult = true
+			callback.Cont()
+		})
+		resourceHandler.SetOnGetResponseHeaders(func(response cef.ICefResponse, outResponseLength *int64, outRedirectUrl *string) {
+			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnGetResponseHeaders")
+			fmt.Println("\tstatusCode:", statusCode, "statusText:", statusText, "mimeType:", mimeType, "size:", len(responseData))
+			response.SetStatus(statusCode)
+			response.SetStatusText(statusText)
+			response.SetMimeType(mimeType)
+			*outResponseLength = int64(len(responseData))
+		})
 		//resourceHandler.SetOnRead(func(dataOut uintptr, bytesToRead int32, bytesRead *int32, callback cef.ICefResourceReadCallback, outResult *bool) {
 		//	fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnRead")
 		//	*outResult = readData(dataOut, bytesToRead, bytesRead)
@@ -124,5 +125,4 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 		return resourceHandler.AsInterface()
 	})
 	browser.GetHost().GetRequestContext().RegisterSchemeHandlerFactory(SchemeName, DomainName, handlerFactory.AsInterface())
-	handlerFactory.Free()
 }
