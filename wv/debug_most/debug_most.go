@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	_ "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
@@ -23,14 +24,17 @@ var MainForm TMainForm
 var load wv.IWVLoader
 var scheme = "myscheme"
 
-//go:embed resources
-var resources embed.FS
+//go:embed assets
+var assets embed.FS
 
 func main() {
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
+	exception.SetOnException(func(funcName, message string) {
+		fmt.Println("ERROR funcName:", funcName, "message:", message)
+	})
 	// GlobalWebView2Loader
-	load = wv.GlobalWebView2Loader(nil)
+	load = wv.GlobalWebView2Loader()
 	liblcl := libname.LibName
 	webView2Loader, _ := filepath.Split(liblcl)
 	webView2Loader = filepath.Join(webView2Loader, "WebView2Loader.dll")
@@ -52,10 +56,6 @@ func main() {
 	})
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
-
-	lcl.Application.SetOnException(func(sender lcl.IObject, e lcl.IException) {
-		fmt.Println("底层库异常:", e.ToString())
-	})
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.CreateForm(&MainForm)
@@ -155,7 +155,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
 		fmt.Println("回调函数 WVBrowser => 内置exe读取 index.html ")
-		data, _ := resources.ReadFile("resources/index.html")
+		data, _ := assets.ReadFile("assets/index.html")
 		stream := lcl.NewMemoryStream()
 		stream.LoadFromBytes(data)
 		fmt.Println("回调函数 WVBrowser => stream", stream.Size())

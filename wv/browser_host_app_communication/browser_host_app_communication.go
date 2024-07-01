@@ -31,7 +31,7 @@ func main() {
 		fmt.Println("ERROR funcName:", funcName, "message:", message)
 	})
 	// GlobalWebView2Loader
-	load = wv.GlobalWebView2Loader(nil)
+	load = wv.GlobalWebView2Loader()
 	liblcl := libname.LibName
 	webView2Loader, _ := filepath.Split(liblcl)
 	webView2Loader = filepath.Join(webView2Loader, "WebView2Loader.dll")
