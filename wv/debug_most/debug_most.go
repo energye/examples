@@ -4,6 +4,9 @@ import (
 	"embed"
 	"fmt"
 	_ "github.com/energye/examples/syso"
+	"github.com/energye/examples/wv/debug_most/contextmenu"
+	"github.com/energye/examples/wv/debug_most/scheme"
+	"github.com/energye/examples/wv/debug_most/utils"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
@@ -22,12 +25,12 @@ type TMainForm struct {
 
 var MainForm TMainForm
 var load wv.IWVLoader
-var scheme = "myscheme"
 
 //go:embed assets
 var assets embed.FS
 
 func main() {
+	utils.Assets = assets
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
 	exception.SetOnException(func(funcName, message string) {
@@ -42,18 +45,10 @@ func main() {
 	fmt.Println("liblcl.dll目录:", liblcl)
 	fmt.Println("WebView2Loader.dll目录:", webView2Loader)
 	fmt.Println("用户缓存目录:", filepath.Join(exec.CurrentDir, "EnergyCache"))
-	fmt.Println("自定义URL协议头:", scheme)
+	fmt.Println("自定义URL协议头:", scheme.SchemeName)
 	load.SetUserDataFolder(filepath.Join(exec.CurrentDir, "EnergyCache"))
 	load.SetLoaderDllPath(webView2Loader)
-	load.SetOnGetCustomSchemes(func(sender wv.IObject, customSchemes *wv.TWVCustomSchemeInfoArray) {
-		fmt.Println("回调函数 WebView2Loader => SetOnGetCustomSchemes size:", len(*customSchemes))
-		*customSchemes = append(*customSchemes, &wv.TWVCustomSchemeInfo{
-			SchemeName:            scheme,
-			TreatAsSecure:         true,
-			AllowedDomains:        "https://*.baidu.com,https://*.yanghy.cn",
-			HasAuthorityComponent: true,
-		})
-	})
+	scheme.LoaderOnCustomSchemes(load)
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
 	lcl.Application.Initialize()
@@ -88,10 +83,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.browser.SetDefaultURL("https://www.baidu.com")
 	m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
+	contextmenu.Contextmenu(m, m.browser)
 	m.browser.SetOnAfterCreated(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
 		m.windowParent.UpdateSize()
-		m.browser.AddWebResourceRequestedFilter(scheme+"*", wv.COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL)
+		scheme.AddWebResourceRequestedFilter(m.browser)
 	})
 	var navBtns = func(aIsNavigating bool) {
 		back.SetEnabled(m.browser.CanGoBack())
@@ -123,17 +119,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnContentLoading(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContentLoadingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnContentLoading")
 	})
-	m.browser.SetOnContextMenuRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContextMenuRequestedEventArgs) {
-		webView = wv.NewCoreWebView2(webView)
-		args = wv.NewCoreWebView2ContextMenuRequestedEventArgs(args)
-		menuItems := wv.NewCoreWebView2ContextMenuItemCollection(args.MenuItems())
-		contextMenuTarge := wv.NewCoreWebView2ContextMenuTarget(args.ContextMenuTarget())
-		fmt.Println("回调函数 WVBrowser => SetOnContextMenuRequested:", menuItems.Count(), contextMenuTarge.PageUri(), webView.BrowserProcessID(), webView.FrameId())
-		fmt.Println("回调函数 WVBrowser => SelectedCommandId:", args.SelectedCommandId())
-		menuItems.Free()
-		contextMenuTarge.Free()
-		args.Free()
-	})
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
@@ -146,9 +131,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		args.Free()
 		frame.Free()
 		webView.Free()
-	})
-	m.browser.SetOnGetCustomSchemes(func(sender wv.IObject, customSchemes wv.TWVCustomSchemeInfoArray) {
-		fmt.Println("回调函数 WVBrowser => SetOnGetCustomSchemes size:", len(customSchemes))
 	})
 
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
