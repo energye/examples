@@ -13,7 +13,7 @@ import (
 
 func main() {
 	//全局初始化 每个应用都必须调用的
-	cef.GlobalInit(nil, nil)
+	cef.Init(nil, nil)
 	app := cef.NewCefApplication()
 	cef.SetGlobalCEFApp(app)
 	// CEF message loop
