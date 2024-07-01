@@ -46,7 +46,7 @@ func main() {
 	load.SetUserDataFolder(filepath.Join(exec.CurrentDir, "EnergyCache"))
 	load.SetLoaderDllPath(webView2Loader)
 	load.SetOnGetCustomSchemes(func(sender wv.IObject, customSchemes *wv.TWVCustomSchemeInfoArray) {
-		fmt.Println("回调函数 WebView2Loader => SetOnGetCustomSchemes")
+		fmt.Println("回调函数 WebView2Loader => SetOnGetCustomSchemes size:", len(*customSchemes))
 		*customSchemes = append(*customSchemes, &wv.TWVCustomSchemeInfo{
 			SchemeName:            scheme,
 			TreatAsSecure:         true,
@@ -112,7 +112,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
-		fmt.Println(args.WebMessageAsString())
+		fmt.Println("\tdata string:", args.WebMessageAsString(), "json:", args.WebMessageAsJson())
+
 		args.Free()
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
@@ -147,8 +148,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		webView.Free()
 	})
 	m.browser.SetOnGetCustomSchemes(func(sender wv.IObject, customSchemes wv.TWVCustomSchemeInfoArray) {
-		fmt.Println("回调函数 WVBrowser => SetOnGetCustomSchemes")
+		fmt.Println("回调函数 WVBrowser => SetOnGetCustomSchemes size:", len(customSchemes))
 	})
+
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
 		args = wv.NewCoreWebView2WebResourceRequestedEventArgs(args)
 		request := wv.NewCoreWebView2WebResourceRequestRef(args.Request())
