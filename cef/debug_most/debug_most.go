@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/application"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/utils"
-	"github.com/energye/examples/cef/debug_most/v8context"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
@@ -19,7 +18,6 @@ import (
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
-	"os"
 	"path/filepath"
 	"unsafe"
 )
@@ -36,20 +34,14 @@ type BrowserWindow struct {
 
 var (
 	BW   BrowserWindow
-	help string
+	help string //= "true" // go build -ldflags="-X main.help=true"
 )
 
 func main() {
-	fmt.Println("help--sub-process:", help)
+	fmt.Println("help-sub-process:", help)
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	exception.SetOnException(func(funcName, message string) {
-		fmt.Println("ERROR funcName:", funcName, "message:", message)
-	})
-	app := cef.NewCefApplication()
-	app.SetEnableGPU(true)
-	v8context.Context(app)
-	cef.SetGlobalCEFApp(app)
+	app := application.NewApplication()
 	if tools.IsDarwin() {
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
@@ -67,16 +59,11 @@ func main() {
 			return
 		}
 	} else { // MacOS不需要设置CEF框架目录，它是一个固定的目录结构
-		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
-		// 指定 CEF Framework
-		frameworkDir := os.Getenv("ENERGY_HOME")
-		app.SetFrameworkDirPath(frameworkDir)
-		app.SetResourcesDirPath(frameworkDir)
-		app.SetLocalesDirPath(filepath.Join(frameworkDir, "locales"))
+		if help == "true" {
+			subexe := filepath.Join(utils.RootPath(), "helper", "helper.exe")
+			app.SetBrowserSubprocessPath(subexe)
+		}
 	}
-	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-		scheme.ApplicationOnRegCustomSchemes(registrar)
-	})
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	fmt.Println("mainStart:", mainStart, process.Args.ProcessType())

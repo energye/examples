@@ -1,15 +1,16 @@
 package main
 
-import "github.com/energye/energy/v3/cef"
+import (
+	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/application"
+)
 
 func main() {
 	//全局配置初始化
-	cef.GlobalInit(nil, nil)
+	cef.Init(nil, nil)
 	//创建Cef应用
-	application := app.GetApplication()
-	// 渲染进程监听IPC事件
-	helperLisIPC()
+	app := application.NewApplication()
 	//启动子进程
-	application.StartSubProcess()
-	application.Free()
+	app.StartSubProcess()
+	app.Free()
 }
