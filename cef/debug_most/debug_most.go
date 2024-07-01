@@ -35,12 +35,14 @@ type BrowserWindow struct {
 }
 
 var (
-	BW BrowserWindow
+	BW   BrowserWindow
+	help string
 )
 
 func main() {
+	fmt.Println("help--sub-process:", help)
 	//全局初始化 每个应用都必须调用的
-	cef.GlobalInit(nil, nil)
+	cef.Init(nil, nil)
 	exception.SetOnException(func(funcName, message string) {
 		fmt.Println("ERROR funcName:", funcName, "message:", message)
 	})
