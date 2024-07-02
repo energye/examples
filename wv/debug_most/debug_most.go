@@ -90,8 +90,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
 		m.windowParent.UpdateSize()
 		scheme.AddWebResourceRequestedFilter(m.browser)
-		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.DesktopIPC))
-		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.DesktopIPC), m.browser)
+		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.IPCJavaScript))
+		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.IPCJavaScript), m.browser)
 	})
 	var navBtns = func(aIsNavigating bool) {
 		back.SetEnabled(m.browser.CanGoBack())
