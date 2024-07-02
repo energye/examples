@@ -84,10 +84,13 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
 	contextmenu.Contextmenu(m, m.browser)
+
 	m.browser.SetOnAfterCreated(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
 		m.windowParent.UpdateSize()
 		scheme.AddWebResourceRequestedFilter(m.browser)
+		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.DesktopIPC))
+		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.DesktopIPC), m.browser)
 	})
 	var navBtns = func(aIsNavigating bool) {
 		back.SetEnabled(m.browser.CanGoBack())
@@ -95,9 +98,15 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		refresh.SetEnabled(!aIsNavigating)
 		stop.SetEnabled(aIsNavigating)
 	}
+	m.browser.SetOnExecuteScriptCompleted(func(sender wv.IObject, errorCode int32, resulIObjectAsJson string, executionID int32) {
+
+	})
 	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
 		navBtns(false)
+		//webView = wv.NewCoreWebView2(webView)
+		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
+		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
 	})
 	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")

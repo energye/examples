@@ -9,11 +9,24 @@
             window.chrome.webview.postMessage(messageData);
             window.chrome.webview.postMessage(document.body.innerHTML);
         }
+
+        ipc.on("test", function (data) {
+            console.log('test-data:', data)
+        })
+
+        function executeAddScript() {
+            ipc.emit('executeAddScript', ['数据数据数据11111', "数据222222", 333333], function (data) {
+
+            });
+        }
     </script>
 </head>
 <body>
 内置到 EXE HTML<br>
 <a href="https://www.baidu.com">百度</a><br>
-<button onclick="sendMessage()">sendMessage</button><input id="messageData" value="SetTitleText value">
+<button onclick="sendMessage()">sendMessage</button>
+<input id="messageData" value="SetTitleText value">
+<br>
+<button onclick="executeAddScript()">execute add script</button>
 </body>
 </html>
