@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/debug_most/contextmenu"
@@ -114,11 +115,18 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		navBtns(true)
 		//args.Free()
 	})
+	type ProcessMessage struct {
+		Name string        `json:"n"`
+		Data []interface{} `json:"d"`
+		Id   int           `json:"i"`
+	}
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
-		fmt.Println("\tdata string:", args.WebMessageAsString(), "json:", args.WebMessageAsJson())
-
+		fmt.Println("\tdata string:", args.WebMessageAsString())
+		var message ProcessMessage
+		_ = json.Unmarshal([]byte(args.WebMessageAsString()), &message)
+		fmt.Println("\tdata string:", message)
 		args.Free()
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
