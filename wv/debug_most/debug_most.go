@@ -126,7 +126,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("\tdata string:", args.WebMessageAsString())
 		var message ProcessMessage
 		_ = json.Unmarshal([]byte(args.WebMessageAsString()), &message)
-		fmt.Println("\tdata string:", message)
+		fmt.Printf("\tmessage: %+v\n ", message)
 		args.Free()
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
