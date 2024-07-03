@@ -150,10 +150,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.browser.DeleteAllCookies()
 		} else if message.Name == "setCookie" {
 			newCookie := m.browser.CreateCookie("mycustomcookie", "123456", "example.com", "/")
-			//cookie = wv.NewCoreWebView2Cookie(cookie)
 			m.browser.AddOrUpdateCookie(newCookie)
-			newCookie.SetInstance(nil)
-			//newCookie.Free()
 		}
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
