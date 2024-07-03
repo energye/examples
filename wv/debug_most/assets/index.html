@@ -10,8 +10,8 @@
             window.chrome.webview.postMessage(document.body.innerHTML);
         }
 
-        ipc.on("test", function (data) {
-            console.log('test-data:', data)
+        ipc.on("test", function (stringdata, bool, float, int) {
+            console.log('test-data:', stringdata, bool, float, int)
         })
 
         function executeAddScript() {

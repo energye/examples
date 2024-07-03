@@ -1,28 +1,6 @@
 // render process send process message
 (function () {
-    // Credit: https://stackoverflow.com/a/2631521
-    let _deeptest = function (s) {
-        var obj = window[s.shift()];
-        while (obj && s.length) obj = obj[s.shift()];
-        return obj;
-    };
-    let windows = _deeptest(["chrome", "webview", "postMessage"]);
-    let mac_linux = _deeptest(["webkit", "messageHandlers", "external", "postMessage"]);
-    if (!windows && !mac_linux) {
-        console.error("Unsupported Platform");
-        return;
-    }
-    if (windows) {
-        window.ProcessMessage = (message) => window.chrome.webview.postMessage(message);
-    }
-    if (mac_linux) {
-        window.ProcessMessage = (message) => window.webkit.messageHandlers.external.postMessage(message);
-    }
-})();
-
-
-// render process receive process message
-(function () {
+    // Listener
     class Listener {
         /**
          * Creates an instance of Listener.
@@ -50,16 +28,17 @@
         }
     }
 
+    // Energy
     class Energy {
         // js ipc.on event listener
         // @key {string} event name
         // @value {function} listener object
         #eventListeners;
-        // js ipc.emit event callbacks
+        // js ipc.emit callbacks
         // @key {number} executionID
         // @value {function} callback
         #jsEmitCallbacks;
-        // callback executionID
+        // js ipc.emit callback executionID, global accumulation
         #executionID;
 
         /**
@@ -74,12 +53,17 @@
 
         /**
          * @param {object} jsonObject
+         * type ProcessMessage struct {
+         * 	Name string        `json:"n"`
+         * 	Data []interface{} `json:"d"`
+         * 	Id   int           `json:"i"`
+         * }
          */
         #notifyListeners(jsonObject) {
-            let eventName = jsonObject.name;
+            let eventName = jsonObject.n;
             const listener = this.#eventListeners[eventName]
             if (listener) {
-                listener.Callback(jsonObject.data);
+                listener.Callback(jsonObject.d);
             }
         };
 
@@ -92,25 +76,11 @@
         }
 
         /**
-         * @param {string} name
-         */
-        getEventListener(name) {
-            return this.#eventListeners[name];
-        }
-
-        /**
          * @param {number} executionID
          * @param {function} callback
          */
         setJSEmitCallback(executionID, callback) {
             this.#jsEmitCallbacks[executionID] = callback;
-        }
-
-        /**
-         * @param {number} executionID
-         */
-        getEnergyEventListener(executionID) {
-            return this.#jsEmitCallbacks[executionID];
         }
 
         /**
@@ -132,7 +102,12 @@
         };
     }
 
+    // IPC
     class IPC {
+        /**
+         * @param {string} name
+         * @param {function} callback
+         */
         on(name, callback) {
             if (name && typeof callback === 'function') {
                 // __energyEventListeners[name] = __energyEventListeners[name] || [];
@@ -141,6 +116,10 @@
             }
         }
 
+        /**
+         * @param {string} name
+         * @param {argument} args
+         */
         emit(name, ...args) {
             if (!name) {
                 throw new Error('ipc.emit call event name is null');
@@ -187,4 +166,33 @@
 
     window.energy = new Energy();
     window.ipc = new IPC();
+
+    let deepTest = function (s) {
+        let obj = window[s.shift()];
+        while (obj && s.length) obj = obj[s.shift()];
+        return obj;
+    };
+    if (deepTest(["chrome", "webview", "postMessage"])) {
+        // webview2
+        let webview = window.chrome.webview;
+        // render process send message => go
+        window.ProcessMessage = (message) => webview.postMessage(message);
+        // render process receive browser process string message
+        webview.addEventListener("message", function (event) {
+            console.log("message:", event.data);
+            window.energy.executeEvent(event.data);
+        });
+        // render process receive browser process buffer message
+        webview.addEventListener("sharedbufferreceived", event => {
+            let buffer = event.getBuffer();
+            let bufferData = new TextDecoder().decode(new Uint8Array(buffer));
+            console.log("buffer:", bufferData);
+        });
+    } else if (deepTest(["webkit", "messageHandlers", "external", "postMessage"])) {
+        // webkit
+        // render process send message => go
+        window.ProcessMessage = (message) => window.webkit.messageHandlers.external.postMessage(message);
+    } else {
+        console.error("Unsupported Platform");
+    }
 })();

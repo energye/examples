@@ -24,6 +24,12 @@ type TMainForm struct {
 	browser      wv.IWVBrowser
 }
 
+type ProcessMessage struct {
+	Name string        `json:"n"`
+	Data []interface{} `json:"d"`
+	Id   int           `json:"i"`
+}
+
 var MainForm TMainForm
 var load wv.IWVLoader
 
@@ -90,8 +96,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
 		m.windowParent.UpdateSize()
 		scheme.AddWebResourceRequestedFilter(m.browser)
+		// 1. 先植入 ipc js
 		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.IPCJavaScript))
 		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.IPCJavaScript), m.browser)
+
 	})
 	var navBtns = func(aIsNavigating bool) {
 		back.SetEnabled(m.browser.CanGoBack())
@@ -108,6 +116,15 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//webView = wv.NewCoreWebView2(webView)
 		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
 		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
+
+		// 2. 使用植入 ipc js
+		message := ProcessMessage{
+			Name: "test",
+			Data: []interface{}{"stringdata", true, 5555.66, 99999},
+			Id:   0,
+		}
+		jsonData, _ := json.Marshal(message)
+		m.browser.PostWebMessageAsString(string(jsonData))
 	})
 	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")
@@ -115,11 +132,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		navBtns(true)
 		//args.Free()
 	})
-	type ProcessMessage struct {
-		Name string        `json:"n"`
-		Data []interface{} `json:"d"`
-		Id   int           `json:"i"`
-	}
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
