@@ -195,8 +195,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnDownloadStarting:", args.ResultFilePath())
 	})
 	var (
-		stream  lcl.IMemoryStream
-		adapter lcl.IStreamAdapter
+		embedAssetsStream  = lcl.NewMemoryStream()
+		embedAssetsAdapter = lcl.NewStreamAdapter(embedAssetsStream, types.SoOwned)
 	)
 	// 自定义协议资源加载
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
@@ -207,14 +207,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			request.Free()
 			args.Free()
 		}()
-		if stream == nil {
-			stream = lcl.NewMemoryStream()
-			adapter = lcl.NewStreamAdapter(stream, types.SoOwned)
-		} else {
-			// 重置 stream
-			stream.SetPosition(0)
-			stream.Clear()
-		}
+		// 重置 stream
+		embedAssetsStream.SetPosition(0)
+		embedAssetsStream.Clear()
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
 		reqUrl, _ := url.Parse(request.URI())
@@ -223,24 +218,22 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		if err != nil {
 			fmt.Println("加载本地资源-error:", err)
 		}
-		stream.LoadFromBytes(data)
-		fmt.Println("回调函数 WVBrowser => stream", stream.Size())
-		fmt.Println("回调函数 WVBrowser => adapter:", adapter.StreamOwnership(), adapter.Stream().Size())
+		embedAssetsStream.LoadFromBytes(data)
+		fmt.Println("回调函数 WVBrowser => stream", embedAssetsStream.Size())
+		fmt.Println("回调函数 WVBrowser => adapter:", embedAssetsAdapter.StreamOwnership(), embedAssetsAdapter.Stream().Size())
 
 		var response wv.ICoreWebView2WebResourceResponse
 		environment := m.browser.CoreWebView2Environment()
 		fmt.Println("回调函数 WVBrowser => Initialized():", environment.Initialized(), environment.BrowserVersionInfo())
-		environment.CreateWebResourceResponse(adapter, 200, "OK", "Content-Type: text/html", &response)
+		environment.CreateWebResourceResponse(embedAssetsAdapter, 200, "OK", "Content-Type: text/html", &response)
 		args.SetResponse(response)
 	})
 
 	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
-		if stream != nil {
-			// 重置 stream
-			stream.Clear()
-			fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted => stream.Clear()")
-		}
+		// 重置 stream
+		embedAssetsStream.Clear()
+		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted => stream.Clear()")
 		navBtns(false)
 		//webView = wv.NewCoreWebView2(webView)
 		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
