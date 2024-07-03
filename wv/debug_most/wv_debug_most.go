@@ -126,10 +126,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
 		defer args.Free()
-		fmt.Println("\tdata string:", args.WebMessageAsString())
 		var message ProcessMessage
 		_ = json.Unmarshal([]byte(args.WebMessageAsString()), &message)
-		fmt.Printf("\tmessage: %+v\n ", message)
+		fmt.Printf("\tmessage: %+v\n", message)
 		if message.Name == "emit-name" {
 			// messageId 不等于0表示有回调函数需要执行
 			// 需要回调一个消息
@@ -141,6 +140,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			}
 		} else if message.Name == "showDevtools" {
 			devtools.OpenDevtools(m.browser)
+		} else if message.Name == "executeDevToolsMethod" {
+			devtools.ExecuteDevToolsMethod(m.browser)
 		}
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {

@@ -61,6 +61,13 @@
         function showDevtools() {
             ipc.emit("showDevtools")
         }
+        function executeDevToolsMethod() {
+            ipc.emit("executeDevToolsMethod")
+        }
+
+        function cookieVisited() {
+            ipc.emit("cookieVisited")
+        }
     </script>
 </head>
 <body>
@@ -75,6 +82,8 @@
 <button onclick="ipcEmit()">emit</button>
 <button onclick="autoIpcEmit()">auto emit</button>
 <button onclick="showDevtools()">show devtools</button>
+<button onclick="executeDevToolsMethod()">execute DevTools Method</button>
+<button onclick="cookieVisited()">cookie visited</button>
 <div id="msg"></div>
 </body>
 </html>
