@@ -16,6 +16,7 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 	"github.com/energye/wv/wv"
+	"net/url"
 	"path/filepath"
 )
 
@@ -87,11 +88,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.windowParent.SetAlign(types.AlClient)
 
 	m.browser = wv.NewWVBrowser(m)
-	m.browser.SetDefaultURL("myscheme://domain/CustomScheme.html")
-	//m.browser.SetDefaultURL("https://www.baidu.com")
+	m.browser.SetDefaultURL("myscheme://domain/index.html")
 	m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
 	contextmenu.Contextmenu(m, m.browser)
+	devtools.DevTools(m.browser)
 
 	m.browser.SetOnAfterCreated(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
@@ -113,28 +114,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnExecuteScriptCompleted(func(sender wv.IObject, errorCode int32, resulIObjectAsJson string, executionID int32) {
 		fmt.Println("回调函数 WVBrowser => SetOnExecuteScriptCompleted errorCode:", errorCode,
 			"executionID:", executionID, "resulIObjectAsJson:", resulIObjectAsJson)
-	})
-	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
-		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
-		navBtns(false)
-		//webView = wv.NewCoreWebView2(webView)
-		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
-		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
-
-		// 2. 使用植入 ipc js
-		message := ProcessMessage{
-			Name: "test",
-			Data: []interface{}{"stringdata", true, 5555.66, 99999},
-			Id:   0,
-		}
-		jsonData, _ := json.Marshal(message)
-		m.browser.PostWebMessageAsString(string(jsonData))
-		//message.Name = "test-return"
-		//jsonData, _ = json.Marshal(message)
-		//`window.wails.EventsNotify('` + template.JSEscapeString(string(payload)) + `');`
-		//jsData := template.JSEscapeString(string(jsonData))
-		//js := `window.energy.executeEvent('` + jsData + `');`
-		//m.browser.ExecuteScript(js, 100)
 	})
 	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")
@@ -174,6 +153,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
+	var (
+		stream  lcl.IMemoryStream
+		adapter lcl.IStreamAdapter
+	)
 	// 自定义协议资源加载
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
 		args = wv.NewCoreWebView2WebResourceRequestedEventArgs(args)
@@ -183,14 +166,25 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			request.Free()
 			args.Free()
 		}()
+		if stream != nil {
+			fmt.Println("stream-position:", stream.Position())
+			stream.Free()
+		}
+		if adapter != nil {
+			fmt.Println("stream-RefCount:", adapter.RefCount())
+			adapter.Free()
+		}
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
 		fmt.Println("回调函数 WVBrowser => 内置exe读取 index.html ")
-		data, _ := assets.ReadFile("assets/index.html")
-		stream := lcl.NewMemoryStream()
+		reqUrl, _ := url.Parse(request.URI())
+		fmt.Println("reqUrl.Path:", reqUrl.Path)
+		data, err := assets.ReadFile("assets" + reqUrl.Path)
+		fmt.Println("加载本地资源:", err)
+		stream = lcl.NewMemoryStream()
 		stream.LoadFromBytes(data)
 		fmt.Println("回调函数 WVBrowser => stream", stream.Size())
-		adapter := lcl.NewStreamAdapter(stream, types.SoOwned)
+		adapter = lcl.NewStreamAdapter(stream, types.SoOwned)
 		fmt.Println("回调函数 WVBrowser => adapter:", adapter.StreamOwnership(), adapter.Stream().Size())
 
 		var response wv.ICoreWebView2WebResourceResponse
@@ -198,6 +192,29 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => Initialized():", environment.Initialized(), environment.BrowserVersionInfo())
 		environment.CreateWebResourceResponse(adapter, 200, "OK", "Content-Type: text/html", &response)
 		args.SetResponse(response)
+	})
+
+	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
+		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
+		navBtns(false)
+		//webView = wv.NewCoreWebView2(webView)
+		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
+		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
+
+		// 2. 使用植入 ipc js
+		message := ProcessMessage{
+			Name: "test",
+			Data: []interface{}{"stringdata", true, 5555.66, 99999},
+			Id:   0,
+		}
+		jsonData, _ := json.Marshal(message)
+		m.browser.PostWebMessageAsString(string(jsonData))
+		//message.Name = "test-return"
+		//jsonData, _ = json.Marshal(message)
+		//`window.wails.EventsNotify('` + template.JSEscapeString(string(payload)) + `');`
+		//jsData := template.JSEscapeString(string(jsonData))
+		//js := `window.energy.executeEvent('` + jsData + `');`
+		//m.browser.ExecuteScript(js, 100)
 	})
 	m.windowParent.SetBrowser(m.browser)
 
@@ -255,12 +272,12 @@ func controlUI(window *TMainForm) (goBack lcl.IButton, goForward lcl.IButton, st
 	addrBox.SetTop(3)                                                          //
 	addrBox.SetWidth(window.Width() - (230))                                   //宽度 减按钮的宽度
 	addrBox.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight)) //设置锚点定位，让宽高自动根据窗口调整大小
-	addrBox.Items().Add("myscheme://domain/CustomScheme.html")
+	addrBox.Items().Add("myscheme://domain/index.html")
 	addrBox.Items().Add("https://gitee.com/energye/energy")
 	addrBox.Items().Add("https://github.com/energye/energy")
 	addrBox.Items().Add("https://www.baidu.com")
 	addrBox.Items().Add("https://energy.yanghy.cn")
-	addrBox.SetText("myscheme://domain/CustomScheme.html")
+	addrBox.SetText("myscheme://domain/index.html")
 
 	goUrl := lcl.NewButton(addrPanel) //设置父组件
 	goUrl.SetParent(addrPanel)
