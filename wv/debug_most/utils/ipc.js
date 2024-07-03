@@ -74,7 +74,7 @@
                 callback = this.#eventListeners[name];
             }
             if (callback) {
-                callback.Callback(message.d);
+                return callback.apply(null, message.d);
             }
         };
 
@@ -83,7 +83,7 @@
          * @param {function} callback
          */
         setEventListener(name, callback) {
-            this.#eventListeners[name] = new Listener(name, callback, -1);
+            this.#eventListeners[name] = callback;
         }
 
         /**
@@ -91,7 +91,7 @@
          * @param {function} callback
          */
         setJSEmitCallback(executionID, callback) {
-            this.#emitCallbacks[executionID] = new Listener('', callback, -1);
+            this.#emitCallbacks[executionID] = callback;
         }
 
         /**
@@ -99,7 +99,10 @@
          */
         executeEvent(messageData) {
             try {
-                this.#notifyListeners(JSON.parse(messageData));
+                const result = this.#notifyListeners(JSON.parse(messageData));
+                if (result) {
+                    return result
+                }
             } catch (e) {
                 throw new Error('Invalid JSON passed to Notify: ' + messageData);
             }
@@ -135,7 +138,7 @@
             } else if (args.length > 2) {
                 throw new Error('Invalid ipc.emit call arguments');
             }
-            let data = null;
+            let data = [];
             let callback = null;
             let executionID = 0;
             if (args.length === 1) {
@@ -163,7 +166,7 @@
             }
             const payload = {
                 n: name, // name
-                d: [].slice.apply(data), // data
+                d:  [].slice.apply(data), // data
                 i: executionID, // executionID
             };
             // call js event
@@ -188,8 +191,9 @@
         window.ProcessMessage = (message) => webview.postMessage(message);
         // render process receive browser process string message
         webview.addEventListener("message", event => {
-            console.log("message:", event.data);
-            window.energy.executeEvent(event.data);
+            console.log("message:", event);
+            const result = window.energy.executeEvent(event.data);
+
         });
         // render process receive browser process buffer message
         webview.addEventListener("sharedbufferreceived", event => {

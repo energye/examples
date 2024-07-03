@@ -2,6 +2,7 @@ package contextmenu
 
 import (
 	"fmt"
+	"github.com/energye/examples/wv/debug_most/devtools"
 	"github.com/energye/examples/wv/debug_most/utils"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -11,7 +12,8 @@ import (
 func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {
 	// 右键菜单退出项ID
 	var (
-		exitItemId int32
+		exitItemId     int32
+		devtoolsItemId int32
 	)
 	// 右键菜单图标
 	menuExit, err := utils.Assets.ReadFile("assets/menu_exit.png")
@@ -33,12 +35,15 @@ func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {
 			exitItemId = tmpMenuItem.CommandId()
 			fmt.Println("tmpMenuItem", tmpMenuItem.Instance(), TempMenuItemItf.Instance())
 			// 设置菜单事件触发对象为delegateEvents, 点击Exit菜单项后，触发 SetOnCustomItemSelected 事件
-			tmpMenuItem.AddAllBrowserEvents(browser) // .AddCustomItemSelectedEvent(delegateEvents)
-			fmt.Println("Initialized", tmpMenuItem.Initialized())
-			//menuItemCollection.InsertValueAtIndex(0, tmpMenuItem.BaseIntf())
+			tmpMenuItem.AddAllBrowserEvents(browser)
 			menuItemCollection.AppendValue(tmpMenuItem.BaseIntf())
-			fmt.Println("exitItemId", exitItemId)
+		}
 
+		if environment.CreateContextMenuItem("DevTools", nil, wv.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &TempMenuItemItf) {
+			tmpMenuItem := wv.NewCoreWebView2ContextMenuItem(TempMenuItemItf)
+			devtoolsItemId = tmpMenuItem.CommandId()
+			tmpMenuItem.AddAllBrowserEvents(browser)
+			menuItemCollection.AppendValue(tmpMenuItem.BaseIntf())
 		}
 
 		webView = wv.NewCoreWebView2(webView)
@@ -62,6 +67,8 @@ func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {
 		if exitItemId == menuItem.CommandId() {
 			menuExitMemory.Free()
 			form.Close()
+		} else if menuItem.CommandId() == devtoolsItemId {
+			devtools.OpenDevtools(browser)
 		}
 		// free
 		menuItem.Free()

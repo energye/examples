@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        a, button {
+            margin: 10px;
+        }
+    </style>
     <script>
         function msg(...args) {
             let msg = document.getElementById("msg")
@@ -23,7 +28,12 @@
 
         ipc.on("test", function (stringdata, bool, float, int) {
             console.log('test-data:', stringdata, bool, float, int)
-            msg(stringdata, bool, float, int)
+            msg("test:",stringdata, bool, float, int)
+        })
+
+        ipc.on("test-return", function (data) {
+            msg("test-return:", data)
+            //return data + " " + new Date().getTime().toString()
         })
 
         function ipcEmit() {
@@ -48,16 +58,22 @@
                 set = null
             }
         }
+        function showDevtools() {
+            ipc.emit("showDevtools")
+        }
     </script>
 </head>
 <body>
-内置到 EXE HTML<br>
+<p>
+<h1>debug</h1>
+</p>
 <a href="https://www.baidu.com">百度</a><br>
 <button onclick="sendMessage()">sendMessage</button>
 <input id="messageData" value="SetTitleText value">
 <br>
 <button onclick="ipcEmit()">emit</button>
 <button onclick="autoIpcEmit()">auto emit</button>
+<button onclick="showDevtools()">show devtools</button>
 <div id="msg"></div>
 </body>
 </html>

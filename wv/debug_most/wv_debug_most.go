@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/debug_most/contextmenu"
+	"github.com/energye/examples/wv/debug_most/devtools"
 	"github.com/energye/examples/wv/debug_most/scheme"
 	"github.com/energye/examples/wv/debug_most/utils"
 	"github.com/energye/lcl/api/exception"
@@ -99,7 +100,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		// 1. 先植入 ipc js
 		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.IPCJavaScript))
 		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.IPCJavaScript), m.browser)
-
+		// 禁用devtools, 不能通过浏览默认方式打开，需要自己手动打开
+		settings := m.browser.CoreWebView2Settings()
+		settings.SetAreDevToolsEnabled(false)
 	})
 	var navBtns = func(aIsNavigating bool) {
 		back.SetEnabled(m.browser.CanGoBack())
@@ -108,7 +111,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		stop.SetEnabled(aIsNavigating)
 	}
 	m.browser.SetOnExecuteScriptCompleted(func(sender wv.IObject, errorCode int32, resulIObjectAsJson string, executionID int32) {
-
+		fmt.Println("回调函数 WVBrowser => SetOnExecuteScriptCompleted errorCode:", errorCode,
+			"executionID:", executionID, "resulIObjectAsJson:", resulIObjectAsJson)
 	})
 	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
@@ -125,13 +129,20 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		jsonData, _ := json.Marshal(message)
 		m.browser.PostWebMessageAsString(string(jsonData))
+		//message.Name = "test-return"
+		//jsonData, _ = json.Marshal(message)
+		//`window.wails.EventsNotify('` + template.JSEscapeString(string(payload)) + `');`
+		//jsData := template.JSEscapeString(string(jsonData))
+		//js := `window.energy.executeEvent('` + jsData + `');`
+		//m.browser.ExecuteScript(js, 100)
 	})
 	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")
 		//args = wv.NewCoreWebView2NavigationStartingEventArgs(args)
+		//defer args.Free()
 		navBtns(true)
-		//args.Free()
 	})
+	// 进程消息
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
@@ -149,6 +160,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				jsonData, _ := json.Marshal(message)
 				m.browser.PostWebMessageAsString(string(jsonData))
 			}
+		} else if message.Name == "showDevtools" {
+			devtools.OpenDevtools(m.browser)
 		}
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
@@ -161,10 +174,15 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
-
+	// 自定义协议资源加载
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
 		args = wv.NewCoreWebView2WebResourceRequestedEventArgs(args)
 		request := wv.NewCoreWebView2WebResourceRequestRef(args.Request())
+		// 需要释放掉
+		defer func() {
+			request.Free()
+			args.Free()
+		}()
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
 		fmt.Println("回调函数 WVBrowser => 内置exe读取 index.html ")
@@ -180,10 +198,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => Initialized():", environment.Initialized(), environment.BrowserVersionInfo())
 		environment.CreateWebResourceResponse(adapter, 200, "OK", "Content-Type: text/html", &response)
 		args.SetResponse(response)
-
-		// 需要释放掉
-		request.Free()
-		args.Free()
 	})
 	m.windowParent.SetBrowser(m.browser)
 
