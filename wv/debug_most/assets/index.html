@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script>
+        function msg(...args) {
+            let msg = document.getElementById("msg")
+            let d = ''
+            for (let i = 0; i < args.length; i++) {
+                d += ' ' + args[i]
+            }
+            msg.innerText = d
+        }
+
+        let count = 0;
+
         function sendMessage() {
             let messageData = document.getElementById("messageData").value;
             window.chrome.webview.postMessage(messageData);
@@ -12,12 +23,30 @@
 
         ipc.on("test", function (stringdata, bool, float, int) {
             console.log('test-data:', stringdata, bool, float, int)
+            msg(stringdata, bool, float, int)
         })
 
-        function executeAddScript() {
-            ipc.emit('executeAddScript', ['数据数据数据11111', "数据222222", 333333], function (data) {
-
+        function ipcEmit() {
+            ipc.emit('emit-name', ["杨红岩", "age", Math.random() + count], function (str1, str2, num3, result) {
+                msg(str1, str2, num3, result)
             });
+            count++
+        }
+
+        let set = null;
+
+        function autoIpcEmit() {
+            if (set == null) {
+                set = setInterval(function () {
+                    ipc.emit("emit-name", ["杨红岩", "age", Math.random() + count], function (str1, str2, num3, result) {
+                        msg(str1, str2, num3, result)
+                    });
+                    count++
+                }, 0)
+            } else {
+                clearInterval(set)
+                set = null
+            }
         }
     </script>
 </head>
@@ -27,6 +56,8 @@
 <button onclick="sendMessage()">sendMessage</button>
 <input id="messageData" value="SetTitleText value">
 <br>
-<button onclick="executeAddScript()">execute add script</button>
+<button onclick="ipcEmit()">emit</button>
+<button onclick="autoIpcEmit()">auto emit</button>
+<div id="msg"></div>
 </body>
 </html>

@@ -32,12 +32,14 @@
     class Energy {
         // js ipc.on event listener
         // @key {string} event name
-        // @value {function} listener object
+        // @value {Listener} listener object
         #eventListeners;
+
         // js ipc.emit callbacks
         // @key {number} executionID
         // @value {function} callback
-        #jsEmitCallbacks;
+        #emitCallbacks;
+
         // js ipc.emit callback executionID, global accumulation
         #executionID;
 
@@ -47,23 +49,32 @@
          */
         constructor() {
             this.#eventListeners = {};
-            this.#jsEmitCallbacks = {};
+            this.#emitCallbacks = {};
             this.#executionID = 0;
         }
 
         /**
-         * @param {object} jsonObject
+         * @param {object} message
          * type ProcessMessage struct {
          * 	Name string        `json:"n"`
          * 	Data []interface{} `json:"d"`
          * 	Id   int           `json:"i"`
          * }
          */
-        #notifyListeners(jsonObject) {
-            let eventName = jsonObject.n;
-            const listener = this.#eventListeners[eventName]
-            if (listener) {
-                listener.Callback(jsonObject.d);
+        #notifyListeners(message) {
+            let id = message.i;
+            let name = message.n;
+            let callback;
+            if (!name && id !== 0) {
+                callback = this.#emitCallbacks[id];
+                if (callback) {
+                    delete this.#emitCallbacks[id];
+                }
+            } else {
+                callback = this.#eventListeners[name];
+            }
+            if (callback) {
+                callback.Callback(message.d);
             }
         };
 
@@ -80,20 +91,18 @@
          * @param {function} callback
          */
         setJSEmitCallback(executionID, callback) {
-            this.#jsEmitCallbacks[executionID] = callback;
+            this.#emitCallbacks[executionID] = new Listener('', callback, -1);
         }
 
         /**
          * @param {string} messageData
          */
         executeEvent(messageData) {
-            let jsonObject;
             try {
-                jsonObject = JSON.parse(messageData);
+                this.#notifyListeners(JSON.parse(messageData));
             } catch (e) {
                 throw new Error('Invalid JSON passed to Notify: ' + messageData);
             }
-            this.#notifyListeners(jsonObject);
         };
 
         nextExecutionID() {
@@ -178,7 +187,7 @@
         // render process send message => go
         window.ProcessMessage = (message) => webview.postMessage(message);
         // render process receive browser process string message
-        webview.addEventListener("message", function (event) {
+        webview.addEventListener("message", event => {
             console.log("message:", event.data);
             window.energy.executeEvent(event.data);
         });

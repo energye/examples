@@ -135,11 +135,21 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
+		defer args.Free()
 		fmt.Println("\tdata string:", args.WebMessageAsString())
 		var message ProcessMessage
 		_ = json.Unmarshal([]byte(args.WebMessageAsString()), &message)
 		fmt.Printf("\tmessage: %+v\n ", message)
-		args.Free()
+		if message.Name == "emit-name" {
+			// messageId 不等于0表示有回调函数需要执行
+			// 需要回调一个消息
+			if message.Id != 0 {
+				message.Name = "" // 不需要事件名
+				message.Data = append(message.Data, "返回值")
+				jsonData, _ := json.Marshal(message)
+				m.browser.PostWebMessageAsString(string(jsonData))
+			}
+		}
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnSourceChanged")
@@ -150,16 +160,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
-	})
-	m.browser.SetOnFrameCreated(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2FrameCreatedEventArgs) {
-		fmt.Println("回调函数 WVBrowser => SetOnFrameCreated")
-		args = wv.NewCoreWebView2FrameCreatedEventArgs(args)
-		webView = wv.NewCoreWebView2(webView)
-		frame := wv.NewCoreWebView2Frame(args.Frame())
-		fmt.Println("回调函数 WVBrowser => SetOnFrameCreated", webView.FrameId(), frame.FrameID())
-		args.Free()
-		frame.Free()
-		webView.Free()
 	})
 
 	m.browser.SetOnWebResourceRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebResourceRequestedEventArgs) {
