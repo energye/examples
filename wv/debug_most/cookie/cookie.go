@@ -13,7 +13,8 @@ func Cookie(browser wv.IWVBrowser) {
 		for i := 0; i < count; i++ {
 			cookie := cookieList.Items(uint32(i))
 			cookie = wv.NewCoreWebView2Cookie(cookie)
-			fmt.Println("count", cookie.Name(), cookie.Domain())
+			fmt.Println("name:", cookie.Name(), "value:", cookie.Value())
+			cookie.Free()
 		}
 	})
 }
