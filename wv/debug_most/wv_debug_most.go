@@ -207,21 +207,24 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			request.Free()
 			args.Free()
 		}()
-		if stream != nil {
-			fmt.Println("stream-position:", stream.Position())
-			stream.Free()
+		if stream == nil {
+			stream = lcl.NewMemoryStream()
+			adapter = lcl.NewStreamAdapter(stream, types.SoOwned)
+		} else {
+			// 重置 stream
+			stream.SetPosition(0)
+			stream.Clear()
 		}
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
-		fmt.Println("回调函数 WVBrowser => 内置exe读取 index.html ")
 		reqUrl, _ := url.Parse(request.URI())
-		fmt.Println("reqUrl.Path:", reqUrl.Path)
+		fmt.Println("回调函数 WVBrowser => 内置exe读取", reqUrl.Path)
 		data, err := assets.ReadFile("assets" + reqUrl.Path)
-		fmt.Println("加载本地资源:", err)
-		stream = lcl.NewMemoryStream()
+		if err != nil {
+			fmt.Println("加载本地资源-error:", err)
+		}
 		stream.LoadFromBytes(data)
 		fmt.Println("回调函数 WVBrowser => stream", stream.Size())
-		adapter = lcl.NewStreamAdapter(stream, types.SoOwned)
 		fmt.Println("回调函数 WVBrowser => adapter:", adapter.StreamOwnership(), adapter.Stream().Size())
 
 		var response wv.ICoreWebView2WebResourceResponse
@@ -233,6 +236,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
+		if stream != nil {
+			// 重置 stream
+			stream.Clear()
+			fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted => stream.Clear()")
+		}
 		navBtns(false)
 		//webView = wv.NewCoreWebView2(webView)
 		//addOk := webView.AddScriptToExecuteOnDocumentCreated("alert(1);", m.browser)
