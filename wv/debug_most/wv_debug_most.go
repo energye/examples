@@ -101,7 +101,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		m.windowParent.UpdateSize()
 		scheme.AddWebResourceRequestedFilter(m.browser)
 		// 1. 先植入 ipc js
-		fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.IPCJavaScript))
+		//fmt.Println("AddScriptToExecuteOnDocumentCreated:", string(utils.IPCJavaScript))
 		m.browser.CoreWebView2().AddScriptToExecuteOnDocumentCreated(string(utils.IPCJavaScript), m.browser)
 		// 禁用devtools, 不能通过浏览默认方式打开，需要自己手动打开
 		settings := m.browser.CoreWebView2Settings()
@@ -119,9 +119,32 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")
-		//args = wv.NewCoreWebView2NavigationStartingEventArgs(args)
-		//defer args.Free()
 		navBtns(true)
+		args = wv.NewCoreWebView2NavigationStartingEventArgs(args)
+		defer args.Free()
+		fmt.Println("url:", args.URI())
+		headers := wv.NewCoreWebView2HttpRequestHeaders(args.RequestHeaders())
+		defer headers.Free()
+		headers.SetHeader("custom-energy", "custom-value")
+		//var headersIter wv.ICoreWebView2HttpHeadersCollectionIterator
+		//headers.GetHeaders(&headersIter)
+		iterator := wv.NewCoreWebView2HttpHeadersCollectionIterator(headers.Iterator())
+		if iterator != nil {
+			defer iterator.Free()
+			var (
+				name  string
+				value string
+			)
+
+			for {
+				iterator.GetCurrentHeader(&name, &value)
+				fmt.Println("\tname:", name, "value:", value)
+				if !iterator.MoveNext() {
+					break
+				}
+			}
+		}
+
 	})
 	// 进程消息
 	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
@@ -163,6 +186,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
+	m.browser.SetOnDownloadStateChanged(func(sender wv.IObject, downloadOperation wv.ICoreWebView2DownloadOperation, downloadID int32) {
+		fmt.Println("SetOnDownloadStateChanged:", downloadOperation.BytesReceived(), "/", downloadOperation.TotalBytesToReceive())
+	})
+	m.browser.SetOnDownloadStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2DownloadStartingEventArgs) {
+		args = wv.NewCoreWebView2DownloadStartingEventArgs(args)
+		defer args.Free()
+		fmt.Println("SetOnDownloadStarting:", args.ResultFilePath())
+	})
 	var (
 		stream  lcl.IMemoryStream
 		adapter lcl.IStreamAdapter
@@ -179,10 +210,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		if stream != nil {
 			fmt.Println("stream-position:", stream.Position())
 			stream.Free()
-		}
-		if adapter != nil {
-			fmt.Println("stream-RefCount:", adapter.RefCount())
-			adapter.Free()
 		}
 		fmt.Println("回调函数 WVBrowser => SetOnWebResourceRequested")
 		fmt.Println("回调函数 WVBrowser => TempURI:", request.URI(), request.Method())
