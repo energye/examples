@@ -68,6 +68,12 @@
         function cookieVisited() {
             ipc.emit("cookieVisited")
         }
+        function cookieDelete() {
+            ipc.emit("cookieDelete")
+        }
+        function setCookie() {
+            ipc.emit("setCookie")
+        }
     </script>
 </head>
 <body>
@@ -84,6 +90,8 @@
 <button onclick="showDevtools()">show devtools</button>
 <button onclick="executeDevToolsMethod()">execute DevTools Method</button>
 <button onclick="cookieVisited()">cookie visited</button>
+<button onclick="cookieDelete()">cookie delete</button>
+<button onclick="setCookie()">cookie set</button>
 <div id="msg"></div>
 </body>
 </html>

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/debug_most/contextmenu"
+	"github.com/energye/examples/wv/debug_most/cookie"
 	"github.com/energye/examples/wv/debug_most/devtools"
 	"github.com/energye/examples/wv/debug_most/scheme"
 	"github.com/energye/examples/wv/debug_most/utils"
@@ -93,6 +94,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
 	contextmenu.Contextmenu(m, m.browser)
 	devtools.DevTools(m.browser)
+	cookie.Cookie(m.browser)
 
 	m.browser.SetOnAfterCreated(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
@@ -142,6 +144,16 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			devtools.OpenDevtools(m.browser)
 		} else if message.Name == "executeDevToolsMethod" {
 			devtools.ExecuteDevToolsMethod(m.browser)
+		} else if message.Name == "cookieVisited" {
+			m.browser.GetCookies("")
+		} else if message.Name == "cookieDelete" {
+			m.browser.DeleteAllCookies()
+		} else if message.Name == "setCookie" {
+			newCookie := m.browser.CreateCookie("mycustomcookie", "123456", "example.com", "/")
+			//cookie = wv.NewCoreWebView2Cookie(cookie)
+			m.browser.AddOrUpdateCookie(newCookie)
+			newCookie.SetInstance(nil)
+			//newCookie.Free()
 		}
 	})
 	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
