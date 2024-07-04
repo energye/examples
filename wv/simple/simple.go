@@ -6,8 +6,11 @@ import (
 )
 
 func main() {
+	wv.Init(nil, nil)
 	app := wv.NewApplication()
-	app.SetOptions(wv.Options{})
+	app.SetOptions(wv.Options{
+		DefaultURL: "https://www.baidu.com",
+	})
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
 		window.SetOnAfterCreated(func(sender lcl.IObject) {
 
