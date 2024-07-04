@@ -2,5 +2,9 @@ package utils
 
 import _ "embed"
 
-//go:embed ipc.js
-var IPCJavaScript []byte
+var (
+	//go:embed ipc.js
+	IPCJavaScript []byte
+	//go:embed browser.js
+	BrowserJavaScript []byte
+)

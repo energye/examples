@@ -1,30 +1,15 @@
 // render process send process message
 (function () {
-    // Listener
-    class Listener {
-        /**
-         * Creates an instance of Listener.
-         * @param {string} eventName
-         * @param {function} callback
-         * @param {number} maxCallbacks
-         * @memberof Listener
-         */
-        constructor(eventName, callback, maxCallbacks) {
-            this.eventName = eventName;
-            // Default of -1 means infinite
-            this.maxCallbacks = maxCallbacks || -1;
-            // Callback invokes the callback with the given data
-            // Returns true if this listener should be destroyed
-            this.Callback = (data) => {
-                callback.apply(null, data);
-                // If maxCallbacks is infinite, return false (do not destroy)
-                if (this.maxCallbacks === -1) {
-                    return false;
-                }
-                // Decrement maxCallbacks. Return true if now 0, otherwise false
-                this.maxCallbacks -= 1;
-                return this.maxCallbacks === 0;
-            };
+    class Browser {
+        #windowId = 0;
+        #frameId = 0;
+
+        getWindowId() {
+            return this.#windowId;
+        }
+
+        getFrameId() {
+            return this.#frameId;
         }
     }
 
@@ -55,11 +40,6 @@
 
         /**
          * @param {object} message
-         * type ProcessMessage struct {
-         * 	Name string        `json:"n"`
-         * 	Data []interface{} `json:"d"`
-         * 	Id   int           `json:"i"`
-         * }
          */
         #notifyListeners(message) {
             let id = message.i;
@@ -74,7 +54,11 @@
                 callback = this.#eventListeners[name];
             }
             if (callback) {
-                return callback.apply(null, message.d);
+                let args = message.d;
+                if (!Array.isArray(args)) {
+                    args = [args]
+                }
+                return callback.apply(null, args);
             }
         };
 
@@ -104,7 +88,7 @@
                     return result
                 }
             } catch (e) {
-                throw new Error('Invalid JSON passed to Notify: ' + messageData);
+                throw new Error(e + ' ' + messageData);
             }
         };
 
@@ -166,7 +150,7 @@
             }
             const payload = {
                 n: name, // name
-                d:  [].slice.apply(data), // data
+                d: [].slice.apply(data), // data
                 i: executionID, // executionID
             };
             // call js event
@@ -193,7 +177,9 @@
         webview.addEventListener("message", event => {
             console.log("message:", event);
             const result = window.energy.executeEvent(event.data);
+            if (result) {
 
+            }
         });
         // render process receive browser process buffer message
         webview.addEventListener("sharedbufferreceived", event => {

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/energye/energy/v3/ipc"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/debug_most/contextmenu"
 	"github.com/energye/examples/wv/debug_most/cookie"
@@ -24,12 +25,6 @@ type TMainForm struct {
 	lcl.TForm
 	windowParent wv.IWVWindowParent
 	browser      wv.IWVBrowser
-}
-
-type ProcessMessage struct {
-	Name string        `json:"n"`
-	Data []interface{} `json:"d"`
-	Id   int           `json:"i"`
 }
 
 var MainForm TMainForm
@@ -67,6 +62,12 @@ func main() {
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
+	ipc.On("ipc-test", func(context ipc.IEvent) {
+		context.Data()
+		context.Result("", "")
+		fmt.Println("go-ipc-test", context.Data())
+	})
+
 	m.SetCaption("Energy3.0 - webview2 simple")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(1024)
@@ -88,14 +89,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.windowParent.SetAlign(types.AlClient)
 
 	m.browser = wv.NewWVBrowser(m)
+	m.windowParent.SetBrowser(m.browser)
 	m.browser.SetDefaultURL("myscheme://domain/index.html")
-	m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
+	//m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
 	contextmenu.Contextmenu(m, m.browser)
 	devtools.DevTools(m.browser)
 	cookie.Cookie(m.browser)
 	scheme.WebResourceRequested(m.browser)
-
 	m.browser.SetOnAfterCreated(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
 		m.windowParent.UpdateSize()
@@ -151,15 +152,20 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
 		defer args.Free()
-		var message ProcessMessage
-		_ = json.Unmarshal([]byte(args.WebMessageAsString()), &message)
+		var message ipc.ProcessMessage
+		err := json.Unmarshal([]byte(args.WebMessageAsString()), &message)
+		if err != nil {
+
+		} else {
+
+		}
 		fmt.Printf("\tmessage: %+v\n", message)
 		if message.Name == "emit-name" {
 			// messageId 不等于0表示有回调函数需要执行
 			// 需要回调一个消息
 			if message.Id != 0 {
 				message.Name = "" // 不需要事件名
-				message.Data = append(message.Data, "返回值")
+				message.Data = "返回值"
 				jsonData, _ := json.Marshal(message)
 				m.browser.PostWebMessageAsString(string(jsonData))
 			}
@@ -206,7 +212,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
 
 		// 2. 使用植入 ipc js
-		message := ProcessMessage{
+		message := ipc.ProcessMessage{
 			Name: "test",
 			Data: []interface{}{"stringdata", true, 5555.66, 99999},
 			Id:   0,
@@ -220,7 +226,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//js := `window.energy.executeEvent('` + jsData + `');`
 		//m.browser.ExecuteScript(js, 100)
 	})
-	m.windowParent.SetBrowser(m.browser)
 
 	m.SetOnShow(func(sender lcl.IObject) {
 		if load.InitializationError() {
