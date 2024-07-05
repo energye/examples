@@ -12,6 +12,8 @@ func main() {
 	app := wv.NewApplication()
 	app.SetOptions(wv.Options{
 		DefaultURL: "https://www.baidu.com",
+		//DisableContextMenu: true,
+		//DisableDevTools: true,
 	})
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
 		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
