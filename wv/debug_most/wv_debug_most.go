@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/energye/energy/v3/ipc"
+	"github.com/energye/energy/v3/ipc/callback"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/debug_most/contextmenu"
 	"github.com/energye/examples/wv/debug_most/cookie"
@@ -61,11 +62,15 @@ func main() {
 	lcl.Application.Run()
 }
 
+type ProcessMessage struct {
+	Name string      `json:"n"`
+	Data interface{} `json:"d"`
+	Id   int         `json:"i"`
+}
+
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	ipc.On("ipc-test", func(context ipc.IEvent) {
-		context.Data()
-		context.Result("", "")
-		fmt.Println("go-ipc-test", context.Data())
+	ipc.On("ipc-test", func(context callback.IEvent) {
+
 	})
 
 	m.SetCaption("Energy3.0 - webview2 simple")
@@ -152,7 +157,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
 		defer args.Free()
-		var message ipc.ProcessMessage
+		var message ProcessMessage
 		err := json.Unmarshal([]byte(args.WebMessageAsString()), &message)
 		if err != nil {
 
@@ -212,7 +217,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//fmt.Println("AddScriptToExecuteOnDocumentCreated OK:", addOk)
 
 		// 2. 使用植入 ipc js
-		message := ipc.ProcessMessage{
+		message := ProcessMessage{
 			Name: "test",
 			Data: []interface{}{"stringdata", true, 5555.66, 99999},
 			Id:   0,
