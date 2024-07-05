@@ -12,7 +12,10 @@ func main() {
 		DefaultURL: "https://www.baidu.com",
 	})
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
-		window.SetOnAfterCreated(func(sender lcl.IObject) {
+		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
+
+		})
+		window.SetOnShow(func(sender lcl.IObject) {
 
 		})
 	})
