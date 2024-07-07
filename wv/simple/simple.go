@@ -17,16 +17,16 @@ func main() {
 	})
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
 		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
-
+			fmt.Println("SetOnBrowserAfterCreated")
 		})
 		window.SetOnShow(func(sender lcl.IObject) {
-
+			fmt.Println("SetOnShow")
 		})
 		window.SetOnClose(func(sender lcl.IObject, action *types.TCloseAction) {
-			fmt.Println("action:", *action)
+			fmt.Println("SetOnClose action:", *action)
 		})
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-			fmt.Println("canClose:", *canClose)
+			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
 	})
 
