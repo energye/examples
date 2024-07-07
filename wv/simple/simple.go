@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/energye/energy/v3/ipc"
+	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -29,6 +31,11 @@ func main() {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
 	})
+
+	ipc.On("test-name", func(event callback.IEvent) {
+
+	})
+	//ipc.RemoveOn("test-name")
 
 	app.Run()
 }
