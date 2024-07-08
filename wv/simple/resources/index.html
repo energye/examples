@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>simple</title>
+    <script>
+        (function () {
+
+        })();
+
+        function writeMsg(...args) {
+            let msg = document.getElementById("msg")
+            let d = ''
+            for (let i = 0; i < args.length; i++) {
+                d += ' ' + args[i]
+            }
+            msg.innerText = d
+        }
+
+
+        function testIPC() {
+            ipc.emit("test-ipc", [1234])
+            ipc.emit("test-ipc", [4321], function (ret1, ret2) {
+                writeMsg('ret1:', ret1, "ret2:", ret2);
+            })
+        }
+    </script>
+</head>
+<body>
+<p>
+<h1>simple</h1>
+</p>
+<p>
+    <button onclick="testIPC()">testIPC</button>
+</p>
+<div id="msg"></div>
+</body>
+</html>
