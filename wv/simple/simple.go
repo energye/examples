@@ -18,6 +18,7 @@ func main() {
 	wv.Init(nil, nil)
 	app := wv.NewApplication()
 	app.SetOptions(wv.Options{
+		Caption: "energy - webview2",
 		//DefaultURL: "https://www.baidu.com",
 		DefaultURL: "http://localhost:22022",
 		//DisableContextMenu: true,
