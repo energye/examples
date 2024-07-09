@@ -40,7 +40,8 @@ func main() {
 
 	ipc.On("test-ipc", func(context callback.IContext) {
 		fmt.Println("context:", context.Data())
-		context.Result("返回", 444)
+		context.Result("返回", context.Data())
+		ipc.Emit("ipcOnName", "数据")
 	})
 	//ipc.RemoveOn("test-name")
 	startAssetsServer()

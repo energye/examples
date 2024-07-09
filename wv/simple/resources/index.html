@@ -14,7 +14,7 @@
             for (let i = 0; i < args.length; i++) {
                 d += ' ' + args[i]
             }
-            msg.innerText = d
+            msg.innerHTML += d + "<br>"
         }
 
 
@@ -24,6 +24,11 @@
                 writeMsg('ret1:', ret1, "ret2:", ret2);
             })
         }
+
+        ipc.on('ipcOnName', function (data1) {
+            writeMsg('data1:', data1);
+            console.log('data1:', data1);
+        })
     </script>
 </head>
 <body>
