@@ -20,9 +20,9 @@
 
         function testIPCEmit() {
             ipc.emit("test-ipc", [1234])
-            // ipc.emit("test-ipc", [4321], function (ret1, ret2) {
-            //     writeMsg('ret1:', ret1, "ret2:", ret2);
-            // })
+            ipc.emit("test-ipc", [4321], function (ret1, ret2) {
+                writeMsg('ret1:', ret1, "ret2:", ret2);
+            })
         }
 
         ipc.on('ipcOnName', function (data1) {
