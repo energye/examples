@@ -25,6 +25,7 @@ func main() {
 		//DisableDevTools: true,
 	})
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
+		//window.ScreenCenter()
 		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
 			fmt.Println("SetOnBrowserAfterCreated")
 		})
