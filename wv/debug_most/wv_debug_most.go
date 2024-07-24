@@ -69,7 +69,7 @@ type ProcessMessage struct {
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	ipc.On("ipc-test", func(context callback.IEvent) {
+	ipc.On("ipc-test", func(context callback.IContext) {
 
 	})
 
