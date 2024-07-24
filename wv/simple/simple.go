@@ -47,6 +47,7 @@ func main() {
 		ipc.Emit("ipcOnName", "数据-带有返回回调函数", func(context callback.IContext) {
 			fmt.Println("ipcOnName data:", context.Data())
 		})
+		fmt.Println("test-ipc end")
 	})
 	//ipc.RemoveOn("test-name")
 	startAssetsServer()
