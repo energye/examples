@@ -15,7 +15,6 @@ import (
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tools"
-	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 	"path/filepath"
@@ -89,8 +88,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
 	//m.chromium.SetDefaultUrl("https://www.baidu.com")
-	assetsHtml := filepath.Join(exec.CurrentDir, "cef", "debug_most", "assets", "index.html")
-	assetsHtml = filepath.Join(utils.RootPath(), "assets\\index.html")
+	assetsHtml := filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
+	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
 	if tools.IsWindows() {
 		m.windowParent = cef.NewCEFWindowParent(m)

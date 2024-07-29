@@ -8,7 +8,9 @@ import (
 	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
+	"path/filepath"
 )
 
 //go:embed resources
@@ -59,6 +61,6 @@ func startAssetsServer() {
 	server.PORT = 22022               //服务端口号
 	server.AssetsFSName = "resources" //必须设置目录名和资源文件夹同名
 	//server.Assets = resources
-	server.LocalAssets = "D:\\gopath\\src\\workspace\\examples\\wv\\simple\\resources"
+	server.LocalAssets = filepath.Join(exec.CurrentDir, "wv", "simple", "resources")
 	go server.StartHttpServer()
 }
