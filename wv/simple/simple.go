@@ -22,7 +22,8 @@ func main() {
 	app.SetOptions(wv.Options{
 		Caption: "energy - webview2",
 		//DefaultURL: "https://www.baidu.com",
-		DefaultURL: "http://localhost:22022",
+		//DefaultURL: "https://ap2.baoleitech.com:2443/bl-viewer-v1/dicompat?hcode=3122401&puid=01J4183BSWGJCPSB60ZX5EETM9&accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGhvdG1haWwuY29tIiwiZGlzcGxheU5hbWUiOiLnrqHnkIblkZgiLCJpYXQiOjE3MjIzMjc0MjMsImV4cCI6MTcyMjM0OTAyM30.RpjkzTQDVb0l6qDtky7tI_4gNOyJoA2kTB7PudDAdzM",
+		DefaultURL: "http://localhost:22022/index.html",
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 	})
@@ -40,6 +41,7 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
+		//window.SetBorderStyleForFormBorderStyle(types.BsNone)
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
