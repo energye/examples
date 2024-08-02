@@ -12,7 +12,6 @@ import (
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
-	wv2 "github.com/energye/wv/wv"
 	"path/filepath"
 )
 
@@ -47,12 +46,10 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
-		window.Browser().SetOnRenderCompMsg(func(sender wv2.IObject, message *types.TMessage, handled bool) {
-			fmt.Println("SetOnRenderCompMsg")
-		})
 		btn := lcl.NewButton(window)
 		btn.SetParent(window)
 		btn.SetCaption("原生按钮")
+		btn.SetBounds(20, 20, 100, 35)
 		btn.SetOnClick(func(sender lcl.IObject) {
 			fmt.Println("SetOnClick")
 		})
