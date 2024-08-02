@@ -8,10 +8,8 @@ import (
 	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/messages"
 	"path/filepath"
 )
 
@@ -53,6 +51,15 @@ func main() {
 		btn.SetOnClick(func(sender lcl.IObject) {
 			fmt.Println("SetOnClick")
 		})
+		//go func() {
+		//	for {
+		//		time.Sleep(time.Second)
+		//		lcl.RunOnMainThreadAsync(func(id uint32) {
+		//			window.SetWidth(window.Width() + 10)
+		//			window.SetHeight(window.Height() + 10)
+		//		})
+		//	}
+		//}()
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
@@ -68,14 +75,12 @@ func main() {
 		fmt.Println(mainWindow.WindowId())
 		mainWindow.Close()
 	})
-	ipc.On("ShowTitleBar", func(context callback.IContext) {
+	ipc.On("Maximize", func(context callback.IContext) {
 		lcl.RunOnMainThreadSync(func() {
-			if win.ReleaseCapture() {
-				if mainWindow.WindowState() == types.WsNormal {
-					win.PostMessage(mainWindow.Handle(), messages.WM_SYSCOMMAND, messages.SC_MAXIMIZE, 0)
-				} else {
-					win.SendMessage(mainWindow.Handle(), messages.WM_SYSCOMMAND, messages.SC_RESTORE, 0)
-				}
+			if mainWindow.WindowState() == types.WsNormal {
+				mainWindow.SetWindowState(types.WsMaximized)
+			} else {
+				mainWindow.SetWindowState(types.WsNormal)
 			}
 		})
 	})

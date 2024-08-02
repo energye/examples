@@ -28,10 +28,9 @@
         function CloseWindow() {
             ipc.emit("CloseWindow")
         }
-        function ShowTitleBar() {
-            ipc.emit("ShowTitleBar")
+        function Maximize() {
+            ipc.emit("Maximize")
         }
-
 
         ipc.on('ipcOnName', function (data1) {
             writeMsg('ipcOnName-data1:', data1);
@@ -39,14 +38,14 @@
         })
     </script>
 </head>
-<body style="background: #4b5db4;">
+<body style="background: #4b5db4;width: 1024px; height: 768px;">
 <p>
 <h1 style="-webkit-app-region:drag;-webkit-user-select: none;border: solid 1px;text-align: center;">drag title bar</h1>
 </p>
 <p>
     <button onclick="testIPCEmit()">testIPCEmit</button>
     <button onclick="CloseWindow()">CloseWindow</button>
-    <button onclick="ShowTitleBar()">ShowTitleBar</button>
+    <button onclick="Maximize()">Maximize</button>
 </p>
 <div id="msg"></div>
 </body>
