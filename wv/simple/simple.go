@@ -8,8 +8,11 @@ import (
 	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/messages"
+	wv2 "github.com/energye/wv/wv"
 	"path/filepath"
 )
 
@@ -26,8 +29,11 @@ func main() {
 		DefaultURL: "http://localhost:22022/index.html",
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
+		Frameless: true,
 	})
+	var mainWindow wv.IBrowserWindow
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
+		mainWindow = window
 		window.ScreenCenter()
 		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
 			fmt.Println("SetOnBrowserAfterCreated")
@@ -41,7 +47,15 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
-		//window.SetBorderStyleForFormBorderStyle(types.BsNone)
+		window.Browser().SetOnRenderCompMsg(func(sender wv2.IObject, message *types.TMessage, handled bool) {
+			fmt.Println("SetOnRenderCompMsg")
+		})
+		btn := lcl.NewButton(window)
+		btn.SetParent(window)
+		btn.SetCaption("原生按钮")
+		btn.SetOnClick(func(sender lcl.IObject) {
+			fmt.Println("SetOnClick")
+		})
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
@@ -52,6 +66,21 @@ func main() {
 			fmt.Println("ipcOnName data:", context.Data())
 		})
 		fmt.Println("test-ipc end")
+	})
+	ipc.On("CloseWindow", func(context callback.IContext) {
+		fmt.Println(mainWindow.WindowId())
+		mainWindow.Close()
+	})
+	ipc.On("ShowTitleBar", func(context callback.IContext) {
+		lcl.RunOnMainThreadSync(func() {
+			if win.ReleaseCapture() {
+				if mainWindow.WindowState() == types.WsNormal {
+					win.PostMessage(mainWindow.Handle(), messages.WM_SYSCOMMAND, messages.SC_MAXIMIZE, 0)
+				} else {
+					win.SendMessage(mainWindow.Handle(), messages.WM_SYSCOMMAND, messages.SC_RESTORE, 0)
+				}
+			}
+		})
 	})
 	//ipc.RemoveOn("test-name")
 	startAssetsServer()
