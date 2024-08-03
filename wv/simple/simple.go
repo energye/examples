@@ -75,14 +75,21 @@ func main() {
 		fmt.Println(mainWindow.WindowId())
 		mainWindow.Close()
 	})
+	ipc.On("Restore", func(context callback.IContext) {
+		mainWindow.Restore()
+	})
+	ipc.On("Minimize", func(context callback.IContext) {
+		mainWindow.Minimize()
+	})
 	ipc.On("Maximize", func(context callback.IContext) {
-		lcl.RunOnMainThreadSync(func() {
-			if mainWindow.WindowState() == types.WsNormal {
-				mainWindow.SetWindowState(types.WsMaximized)
-			} else {
-				mainWindow.SetWindowState(types.WsNormal)
-			}
-		})
+		mainWindow.Maximize()
+	})
+	ipc.On("FullScreen", func(context callback.IContext) {
+		if mainWindow.IsFullScreen() {
+			mainWindow.ExitFullScreen()
+		} else {
+			mainWindow.FullScreen()
+		}
 	})
 	//ipc.RemoveOn("test-name")
 	startAssetsServer()
