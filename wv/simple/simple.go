@@ -26,7 +26,7 @@ func main() {
 		DefaultURL: "http://localhost:22022/index.html",
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
-		Frameless: true,
+		//Frameless: true,
 	})
 	var mainWindow wv.IBrowserWindow
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
