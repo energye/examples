@@ -26,7 +26,7 @@ func main() {
 		DefaultURL: "http://localhost:22022/index.html",
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
-		//Frameless: true,
+		Frameless: true,
 	})
 	var mainWindow wv.IBrowserWindow
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
@@ -60,6 +60,11 @@ func main() {
 		//		})
 		//	}
 		//}()
+		cs := window.Constraints()
+		cs.SetMinWidth(100)
+		cs.SetMinHeight(100)
+		cs.SetMaxWidth(800)
+		cs.SetMaxHeight(600)
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
