@@ -23,7 +23,7 @@ func main() {
 		Caption: "energy - webview2",
 		//DefaultURL: "https://www.baidu.com",
 		//DefaultURL: "https://ap2.baoleitech.com:2443/bl-viewer-v1/dicompat?hcode=3122401&puid=01J4183BSWGJCPSB60ZX5EETM9&accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMiLCJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGhvdG1haWwuY29tIiwiZGlzcGxheU5hbWUiOiLnrqHnkIblkZgiLCJpYXQiOjE3MjIzMjc0MjMsImV4cCI6MTcyMjM0OTAyM30.RpjkzTQDVb0l6qDtky7tI_4gNOyJoA2kTB7PudDAdzM",
-		DefaultURL: "http://localhost:22022/index.html",
+		DefaultURL: "http://localhost:22222/index.html",
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		Frameless: true,
@@ -44,12 +44,16 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
+		var subWindow = &SubForm{}
+		subWindow.IForm = lcl.NewForm(nil)
+		subWindow.SetShowInTaskBar(types.StAlways)
 		btn := lcl.NewButton(window)
 		btn.SetParent(window)
 		btn.SetCaption("原生按钮")
 		btn.SetBounds(20, 20, 100, 35)
 		btn.SetOnClick(func(sender lcl.IObject) {
 			fmt.Println("SetOnClick")
+			subWindow.Show()
 		})
 		//go func() {
 		//	for {
@@ -60,11 +64,12 @@ func main() {
 		//		})
 		//	}
 		//}()
-		cs := window.Constraints()
-		cs.SetMinWidth(100)
-		cs.SetMinHeight(100)
-		cs.SetMaxWidth(800)
-		cs.SetMaxHeight(600)
+		//cs := window.Constraints()
+		//cs.SetMinWidth(100)
+		//cs.SetMinHeight(100)
+		//cs.SetMaxWidth(800)
+		//cs.SetMaxHeight(600)
+
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
@@ -101,9 +106,19 @@ func main() {
 	app.Run()
 }
 
+type SubForm struct {
+	lcl.IForm
+}
+
+func (m *SubForm) FormCreate(sender lcl.IObject) {
+	m.SetBounds(100, 100, 300, 300)
+	m.ScreenCenter()
+	m.SetShowInTaskBar(types.StAlways)
+}
+
 func startAssetsServer() {
 	server := assetserve.NewAssetsHttpServer()
-	server.PORT = 22022               //服务端口号
+	server.PORT = 22222               //服务端口号
 	server.AssetsFSName = "resources" //必须设置目录名和资源文件夹同名
 	//server.Assets = resources
 	server.LocalAssets = filepath.Join(exec.CurrentDir, "wv", "simple", "resources")
