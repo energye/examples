@@ -7,10 +7,13 @@ import (
 	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
+	"math/rand"
 	"path/filepath"
+	"time"
 )
 
 //go:embed resources
@@ -47,23 +50,21 @@ func main() {
 		var subWindow = &SubForm{}
 		subWindow.IForm = lcl.NewForm(nil)
 		subWindow.SetShowInTaskBar(types.StAlways)
+		subWindow.SetBounds(rand.Int31n(300), rand.Int31n(300), 400, 200)
+		subWindow.SetCaption("sub window")
+		subWindow.SetOnShow(func(sender lcl.IObject) {
+			fmt.Println("sub window show")
+		})
+		rand.Seed(time.Now().UnixNano())
 		btn := lcl.NewButton(window)
 		btn.SetParent(window)
 		btn.SetCaption("原生按钮")
-		btn.SetBounds(20, 20, 100, 35)
+		btn.SetBounds(rand.Int31n(70), rand.Int31n(70), 100, 35)
 		btn.SetOnClick(func(sender lcl.IObject) {
 			fmt.Println("SetOnClick")
+			subWindow.SetBounds(rand.Int31n(300), rand.Int31n(300), 400, 200)
 			subWindow.Show()
 		})
-		//go func() {
-		//	for {
-		//		time.Sleep(time.Second)
-		//		lcl.RunOnMainThreadAsync(func(id uint32) {
-		//			window.SetWidth(window.Width() + 10)
-		//			window.SetHeight(window.Height() + 10)
-		//		})
-		//	}
-		//}()
 		//cs := window.Constraints()
 		//cs.SetMinWidth(100)
 		//cs.SetMinHeight(100)
