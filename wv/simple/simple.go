@@ -30,6 +30,12 @@ func main() {
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		Frameless: true,
+		//DisableResize:   true,
+		//DisableMinimize: true,
+		//DisableMaximize: true,
+		DefaultWindowStatus: types.WsFullScreen,
+
+		//DisableWebkitAppRegionDClk: true,
 	})
 	var mainWindow wv.IBrowserWindow
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
@@ -64,6 +70,7 @@ func main() {
 			fmt.Println("SetOnClick")
 			subWindow.SetBounds(rand.Int31n(300), rand.Int31n(300), 400, 200)
 			subWindow.Show()
+			window.SetBorderStyleForFormBorderStyle(types.BsSizeable)
 		})
 		//cs := window.Constraints()
 		//cs.SetMinWidth(100)

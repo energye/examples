@@ -29,6 +29,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 	f.SetCaption("Menu example")
 	f.ScreenCenter()
+	f.SetBorderStyleForFormBorderStyle(types.BsNone)
 
 	// TMainMenu
 	f.mainMenu = lcl.NewMainMenu(f)
