@@ -45,10 +45,8 @@ func main() {
 		//MinHeight: 200,
 		//DisableWebkitAppRegionDClk: true,
 	})
-	var mainWindow wv.IBrowserWindow
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
-		mainWindow = window
-		window.ScreenCenter()
+		window.WorkAreaCenter()
 		window.SetOnBrowserAfterCreated(func(sender lcl.IObject) {
 			fmt.Println("SetOnBrowserAfterCreated")
 		})
@@ -62,7 +60,9 @@ func main() {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
 		window.SetOnNewWindowRequestedEvent(func(sender wv2.IObject, webview wv2.ICoreWebView2, args wv2.ICoreWebView2NewWindowRequestedEventArgs, callback *wv.NewWindowCallback) {
-			callback.SetHandled(true)
+			//callback.SetHandled(true)
+			newWindow := callback.NewWindow()
+			newWindow.WorkAreaCenter()
 		})
 		rand.Seed(time.Now().UnixNano())
 		var newBrowserWindow = wv.NewBrowserWindow(wv.Options{
@@ -102,32 +102,48 @@ func main() {
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
-		fmt.Println("context:", context.Data())
+		fmt.Println("BrowserId:", context.BrowserId(), "context:", context.Data())
 		context.Result("返回", context.Data())
-		ipc.Emit("ipcOnName", "数据")
+		ipc.EmitOptions(&ipc.OptionsEvent{
+			BrowserId: context.BrowserId(),
+			Name:      "ipcOnName",
+			Data:      "数据",
+			Callback: func(context callback.IContext) {
+				fmt.Println("options ipcOnName data:", context.Data())
+			},
+		})
 		ipc.Emit("ipcOnName", "数据-带有返回回调函数", func(context callback.IContext) {
 			fmt.Println("ipcOnName data:", context.Data())
 		})
 		fmt.Println("test-ipc end")
 	})
 	ipc.On("CloseWindow", func(context callback.IContext) {
-		fmt.Println(mainWindow.WindowId())
-		mainWindow.Close()
+		if window := wv.GetBrowserWindow(context.BrowserId()); window != nil {
+			window.Close()
+		}
 	})
 	ipc.On("Restore", func(context callback.IContext) {
-		mainWindow.Restore()
+		if window := wv.GetBrowserWindow(context.BrowserId()); window != nil {
+			window.Restore()
+		}
 	})
 	ipc.On("Minimize", func(context callback.IContext) {
-		mainWindow.Minimize()
+		if window := wv.GetBrowserWindow(context.BrowserId()); window != nil {
+			window.Minimize()
+		}
 	})
 	ipc.On("Maximize", func(context callback.IContext) {
-		mainWindow.Maximize()
+		if window := wv.GetBrowserWindow(context.BrowserId()); window != nil {
+			window.Maximize()
+		}
 	})
 	ipc.On("FullScreen", func(context callback.IContext) {
-		if mainWindow.IsFullScreen() {
-			mainWindow.ExitFullScreen()
-		} else {
-			mainWindow.FullScreen()
+		if window := wv.GetBrowserWindow(context.BrowserId()); window != nil {
+			if window.IsFullScreen() {
+				window.ExitFullScreen()
+			} else {
+				window.FullScreen()
+			}
 		}
 	})
 	//ipc.RemoveOn("test-name")
