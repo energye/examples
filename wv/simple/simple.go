@@ -60,15 +60,20 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
+		rand.Seed(time.Now().UnixNano())
+		var newBrowserWindow = wv.NewBrowserWindow(wv.Options{
+			DefaultURL: "https://www.baidu.com",
+			Caption:    "newBrowserWindow",
+		})
 		var subWindow = &SubForm{}
-		subWindow.IForm = lcl.NewForm(nil)
-		subWindow.SetShowInTaskBar(types.StAlways)
+		subWindow.TForm = *(lcl.NewForm(nil).(*lcl.TForm))
 		subWindow.SetBounds(rand.Int31n(300), rand.Int31n(300), 400, 200)
 		subWindow.SetCaption("sub window")
 		subWindow.SetOnShow(func(sender lcl.IObject) {
 			fmt.Println("sub window show")
 		})
-		rand.Seed(time.Now().UnixNano())
+		subWindow.SetShowInTaskBar(types.StAlways)
+
 		btn := lcl.NewButton(window)
 		btn.SetParent(window)
 		btn.SetCaption("原生按钮")
@@ -76,8 +81,10 @@ func main() {
 		btn.SetOnClick(func(sender lcl.IObject) {
 			fmt.Println("SetOnClick")
 			subWindow.SetBounds(rand.Int31n(300), rand.Int31n(300), 400, 200)
+			if !newBrowserWindow.IsClosing() {
+				newBrowserWindow.Show()
+			}
 			subWindow.Show()
-			window.SetBorderStyleForFormBorderStyle(types.BsSizeable)
 		})
 		//cs := window.Constraints()
 		//cs.SetMinWidth(100)
@@ -122,13 +129,7 @@ func main() {
 }
 
 type SubForm struct {
-	lcl.IForm
-}
-
-func (m *SubForm) FormCreate(sender lcl.IObject) {
-	m.SetBounds(100, 100, 300, 300)
-	m.ScreenCenter()
-	m.SetShowInTaskBar(types.StAlways)
+	lcl.TForm
 }
 
 func startAssetsServer() {
