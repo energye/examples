@@ -40,7 +40,8 @@ func main() {
 		//DisableMinimize: true,
 		//DisableMaximize: true,
 		//DefaultWindowStatus: types.WsFullScreen,
-
+		//MaxWidth:  1024,
+		//MinHeight: 200,
 		//DisableWebkitAppRegionDClk: true,
 	})
 	var mainWindow wv.IBrowserWindow
