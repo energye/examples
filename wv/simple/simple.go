@@ -61,8 +61,14 @@ func main() {
 		})
 		window.SetOnNewWindowRequestedEvent(func(sender wv2.IObject, webview wv2.ICoreWebView2, args wv2.ICoreWebView2NewWindowRequestedEventArgs, callback *wv.NewWindowCallback) {
 			//callback.SetHandled(true)
-			newWindow := callback.NewWindow()
+			newWindow := callback.NewWindow(wv.Options{
+				Frameless: true,
+			})
 			newWindow.WorkAreaCenter()
+			newWindow.SetOnClose(func(sender lcl.IObject, action *types.TCloseAction) {
+				fmt.Println("new window close BrowserId:", newWindow.BrowserId(), "action:", *action)
+				*action = types.CaFree
+			})
 		})
 		rand.Seed(time.Now().UnixNano())
 		var newBrowserWindow = wv.NewBrowserWindow(wv.Options{
