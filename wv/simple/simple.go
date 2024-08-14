@@ -12,6 +12,7 @@ import (
 	"github.com/energye/lcl/rtl/version"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
+	wv2 "github.com/energye/wv/wv"
 	"math/rand"
 	"path/filepath"
 	"time"
@@ -60,6 +61,9 @@ func main() {
 		window.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 			fmt.Println("SetOnCloseQuery canClose:", *canClose)
 		})
+		window.SetOnNewWindowRequestedEvent(func(sender wv2.IObject, webview wv2.ICoreWebView2, args wv2.ICoreWebView2NewWindowRequestedEventArgs, callback *wv.NewWindowCallback) {
+			callback.SetHandled(true)
+		})
 		rand.Seed(time.Now().UnixNano())
 		var newBrowserWindow = wv.NewBrowserWindow(wv.Options{
 			DefaultURL: "https://www.baidu.com",
@@ -92,6 +96,9 @@ func main() {
 		//cs.SetMaxWidth(800)
 		//cs.SetMaxHeight(600)
 
+	})
+	app.SetOnWindowAfterCreate(func(window wv.IBrowserWindow) {
+		fmt.Println("SetOnWindowAfterCreate")
 	})
 
 	ipc.On("test-ipc", func(context callback.IContext) {
