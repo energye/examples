@@ -72,8 +72,10 @@ func main() {
 		})
 		rand.Seed(time.Now().UnixNano())
 		var newBrowserWindow = wv.NewBrowserWindow(wv.Options{
-			DefaultURL: "https://www.baidu.com",
+			//DefaultURL: "https://www.baidu.com",
+			DefaultURL: "http://localhost:22222/index.html",
 			Caption:    "newBrowserWindow",
+			Frameless:  true,
 		})
 		var subWindow = &SubForm{}
 		subWindow.TForm = *(lcl.NewForm(nil).(*lcl.TForm))
