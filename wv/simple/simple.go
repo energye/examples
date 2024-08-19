@@ -34,6 +34,7 @@ func main() {
 		Windows: wv.Windows{
 			ICON: icon,
 		},
+		LocalLoad: &wv.LocalLoad{},
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		//Frameless: true,
