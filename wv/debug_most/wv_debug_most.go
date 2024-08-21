@@ -17,7 +17,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/messages"
 	"github.com/energye/wv/wv"
 	"path/filepath"
 )
@@ -240,13 +239,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				fmt.Println("回调函数 => SetOnShow 初始化成功")
 				m.browser.CreateBrowser(m.windowParent.Handle(), true)
 			}
-		}
-	})
-	m.SetOnWndProc(func(msg *types.TMessage) {
-		m.InheritedWndProc(msg)
-		switch msg.Msg {
-		case messages.WM_SIZE, messages.WM_MOVE:
-			m.browser.NotifyParentWindowPositionChanged()
 		}
 	})
 }
