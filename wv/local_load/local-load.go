@@ -5,14 +5,25 @@ import (
 	"fmt"
 	"github.com/energye/energy/v3/wv"
 	_ "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/rtl/version"
+	wv2 "github.com/energye/wv/wv"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 //go:embed resources
 var resources embed.FS
 
 func main() {
+	go func() {
+		http.ListenAndServe(":8080", nil)
+	}()
+
 	wv.Init(nil, nil)
+	exception.SetOnException(func(funcName, message string) {
+		fmt.Println("error funcName:", funcName, "message:", message)
+	})
 	fmt.Println("version:", version.OSVersion.ToString())
 	app := wv.NewApplication()
 	icon, _ := resources.ReadFile("resources/icon.ico")
@@ -36,7 +47,11 @@ func main() {
 	})
 	app.SetOnWindowAfterCreate(func(window wv.IBrowserWindow) {
 		fmt.Println("SetOnWindowAfterCreate")
+		window.Browser().SetOnNavigationCompleted(func(sender wv2.IObject, webview wv2.ICoreWebView2, args wv2.ICoreWebView2NavigationCompletedEventArgs) {
+			fmt.Println("SetOnNavigationCompleted")
+		})
 	})
 
 	app.Run()
+	fmt.Println("run end")
 }
