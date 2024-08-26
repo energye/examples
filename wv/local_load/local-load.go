@@ -8,7 +8,6 @@ import (
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/rtl/version"
 	"github.com/energye/lcl/tools/exec"
-	wv2 "github.com/energye/wv/wv"
 	"net/http"
 	_ "net/http/pprof"
 	"path/filepath"
@@ -47,13 +46,10 @@ func main() {
 
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
 		window.WorkAreaCenter()
-
+		fmt.Println("SetOnWindowCreate")
 	})
 	app.SetOnWindowAfterCreate(func(window wv.IBrowserWindow) {
 		fmt.Println("SetOnWindowAfterCreate")
-		window.Browser().SetOnNavigationCompleted(func(sender wv2.IObject, webview wv2.ICoreWebView2, args wv2.ICoreWebView2NavigationCompletedEventArgs) {
-			fmt.Println("SetOnNavigationCompleted")
-		})
 	})
 
 	app.Run()
