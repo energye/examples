@@ -7,9 +7,11 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/rtl/version"
+	"github.com/energye/lcl/tools/exec"
 	wv2 "github.com/energye/wv/wv"
 	"net/http"
 	_ "net/http/pprof"
+	"path/filepath"
 )
 
 //go:embed resources
@@ -26,6 +28,7 @@ func main() {
 	})
 	fmt.Println("version:", version.OSVersion.ToString())
 	app := wv.NewApplication()
+	app.SetUserDataFolder(filepath.Join(exec.CurrentDir, "EnergyCache"))
 	icon, _ := resources.ReadFile("resources/icon.ico")
 	app.SetOptions(wv.Options{
 		//Frameless:  true,
@@ -34,13 +37,14 @@ func main() {
 		Windows: wv.Windows{
 			ICON: icon,
 		},
-		LocalLoad: &wv.LocalLoad{
-			Scheme:     "fs",
-			Domain:     "energy",
-			ResRootDir: "resources",
-			FS:         resources,
-		},
 	})
+	app.SetLocalLoad(wv.LocalLoad{
+		Scheme:     "fs",
+		Domain:     "energy",
+		ResRootDir: "resources",
+		FS:         resources,
+	})
+
 	app.SetOnWindowCreate(func(window wv.IBrowserWindow) {
 		window.WorkAreaCenter()
 
