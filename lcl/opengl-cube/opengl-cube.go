@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
