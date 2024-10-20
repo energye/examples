@@ -24,6 +24,7 @@ var Form1 TForm1
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
+	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.SetScaled(true)
 	lcl.Application.CreateForm(&MainForm, &Form1)
 	lcl.Application.Run()

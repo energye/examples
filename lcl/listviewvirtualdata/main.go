@@ -37,6 +37,7 @@ var (
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
+	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.CreateForm(&MainFrom)
 	lcl.Application.Run()
 }

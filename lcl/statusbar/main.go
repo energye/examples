@@ -11,6 +11,7 @@ import (
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
+	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.SetShowHint(true)
 
 	mainForm := lcl.Application.CreateForm()

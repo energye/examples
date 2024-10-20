@@ -44,7 +44,7 @@ func main() {
 
 	lcl.Application.Initialize()
 	lcl.Application.SetOnException(func(sender lcl.IObject, e lcl.IException) {
-		fmt.Println("exception.")
+		fmt.Println("exception:", e.Message())
 	})
 
 	lcl.Application.SetTitle("Hello World! 系统信息：" + version.OSVersion.ToString())

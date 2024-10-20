@@ -13,6 +13,7 @@ import (
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
+	lcl.Application.SetMainFormOnTaskBar(true)
 
 	mainForm := lcl.Application.CreateForm()
 	mainForm.SetWidth(700)

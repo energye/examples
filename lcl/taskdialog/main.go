@@ -18,6 +18,7 @@ var MainForm TMainForm
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
+	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.CreateForm(&MainForm)
 	lcl.Application.Run()
 }
