@@ -1,16 +1,18 @@
 package main
 
 import (
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
 )
 
+func init() {
+	Chdir("lcl/imagebutton")
+}
+
 func main() {
 	inits.Init(nil, nil)
-	path := rtl.ExtractFilePath(lcl.Application.ExeName())
 
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
@@ -30,7 +32,7 @@ func main() {
 
 	btnClose.SetImageCount(4)
 	btnClose.SetAutoSize(true)
-	btnClose.Picture().LoadFromFile(path + "btn_close.png")
+	btnClose.Picture().LoadFromFile("btn_close.png")
 	btnClose.SetLeft(mainForm.ClientWidth() - btnClose.Width() - 3)
 	btnClose.SetHint("关闭")
 
@@ -42,7 +44,7 @@ func main() {
 	btnMax.SetParent(mainForm)
 	btnMax.SetImageCount(4)
 	btnMax.SetAutoSize(true)
-	btnMax.Picture().LoadFromFile(path + "btn_max.png")
+	btnMax.Picture().LoadFromFile("btn_max.png")
 	btnMax.SetLeft(btnClose.Left() - btnMax.Width())
 	btnMax.SetHint("最大化")
 
@@ -50,7 +52,7 @@ func main() {
 	btnMin.SetParent(mainForm)
 	btnMin.SetImageCount(4)
 	btnMin.SetAutoSize(true)
-	btnMin.Picture().LoadFromFile(path + "btn_min.png")
+	btnMin.Picture().LoadFromFile("btn_min.png")
 	btnMin.SetLeft(btnMax.Left() - btnMin.Width())
 	btnMin.SetHint("最小化")
 
@@ -58,7 +60,7 @@ func main() {
 	btnSkin.SetParent(mainForm)
 	btnSkin.SetImageCount(3)
 	btnSkin.SetAutoSize(true)
-	btnSkin.Picture().LoadFromFile(path + "btn_skin.png")
+	btnSkin.Picture().LoadFromFile("btn_skin.png")
 	btnSkin.SetLeft(btnMin.Left() - btnSkin.Width())
 	btnSkin.SetHint("皮肤")
 
@@ -66,7 +68,7 @@ func main() {
 	btnScan.SetParent(mainForm)
 	btnScan.SetImageCount(3)
 	btnScan.SetAutoSize(true)
-	btnScan.Picture().LoadFromFile(path + "btn_scan.png")
+	btnScan.Picture().LoadFromFile("btn_scan.png")
 	btnScan.SetTop((mainForm.ClientHeight() - btnScan.Height()) / 2)
 	btnScan.SetLeft((mainForm.ClientWidth() - btnScan.Width()) / 2)
 	btnScan.SetHint("全盘扫描")

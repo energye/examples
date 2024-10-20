@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -14,6 +14,9 @@ type TMainForm struct {
 
 var mainForm TMainForm
 
+func init() {
+	Chdir("lcl/stdcontrols")
+}
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
@@ -230,7 +233,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	img := lcl.NewImage(mainForm)
 	img.SetBounds(10, top, 167, 97)
 	img.SetParent(mainForm)
-	img.Picture().LoadFromFile("E:\\SWT\\generate-tool\\examples\\lcl\\stdcontrols\\1.jpg")
+	img.Picture().LoadFromFile("1.jpg")
 	img.SetStretch(true)
 	img.SetProportional(true)
 

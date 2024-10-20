@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
@@ -20,6 +20,9 @@ var (
 	points      = make([]TPoint, 0)
 )
 
+func init() {
+	Chdir("lcl/draw")
+}
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()

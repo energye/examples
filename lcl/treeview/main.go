@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
@@ -10,6 +10,9 @@ import (
 	"runtime"
 )
 
+func init() {
+	Chdir("lcl/treeview")
+}
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.SetIconResId(3)

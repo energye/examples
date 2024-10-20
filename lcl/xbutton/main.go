@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -54,4 +54,8 @@ func (f *TForm1) FormCreate(sender lcl.IObject) {
 
 func (f *TForm1) OnButton1Click(object lcl.IObject) {
 	lcl.ShowMessage("Click")
+}
+
+func init() {
+	Chdir("lcl/xbutton")
 }

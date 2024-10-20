@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
@@ -17,6 +17,10 @@ var (
 	mainForm lcl.IForm
 	trayicon lcl.ITrayIcon
 )
+
+func init() {
+	Chdir("lcl/golcl")
+}
 
 func main() {
 	inits.Init(nil, nil)

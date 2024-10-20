@@ -10,11 +10,11 @@ package main
 
 import (
 	"fmt"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
-import _ "github.com/energye/examples/syso"
 
 type TMainForm struct {
 	lcl.TForm
@@ -28,6 +28,9 @@ type TMainForm struct {
 
 var mainForm TMainForm
 
+func init() {
+	Chdir("lcl/clipbrd")
+}
 func main() {
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
