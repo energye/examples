@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"time"
 )
 
 type TMainForm struct {
@@ -277,40 +279,39 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	dtp.SetTimeSeparator(".")
 	dtp.SetHideDateTimeParts(dtp.HideDateTimeParts().Include(types.DtpYear))
 
-	//top += dtp.Height() + 10
-	//
-	//mdtp := lcl.NewMonthCalendar(mainForm)
-	//mdtp.SetParent(mainForm)
-	//mdtp.SetBounds(left, top, 250, 250)
-	//mdtp.SetOnClick(func(lcl.IObject) {
-	//	fmt.Println(mdtp.Date())
-	//})
-	//
-	//top += mdtp.Height() + 10
-	//dtp.SetDateTime(time.Now().Add(time.Hour * 48))
-	//dtp.SetDate(time.Now().AddDate(1, 0, 0))
-	//
-	//fmt.Println("time: ", mdtp.Date(), dtp.DateTime())
-	//
-	//btn = lcl.NewButton(mainForm)
-	//btn.SetParent(mainForm)
-	//btn.SetLeft(left)
-	//btn.SetTop(top)
-	//btn.SetCaption("改变日期")
-	//btn.SetOnClick(func(lcl.IObject) {
-	//	mdtp.SetDate(time.Now().AddDate(7777, 1, 23))
-	//})
-	//
-	//top += btn.Height() + 10
-	//spinedit := lcl.NewSpinEdit(mainForm)
-	//spinedit.SetParent(mainForm)
-	//spinedit.SetLeft(left)
-	//spinedit.SetTop(top)
-	//spinedit.SetWidth(100)
-	//spinedit.SetMaxValue(10000)
-	//spinedit.SetMinValue(50)
-	//spinedit.SetValue(100)
-	//spinedit.SetOnChange(func(sender lcl.IObject) {
-	//	fmt.Println(spinedit.Value())
-	//})
+	top += dtp.Height() + 10
+	mdtp := lcl.NewCalendar(mainForm)
+	mdtp.SetParent(mainForm)
+	mdtp.SetBounds(left, top, 250, 250)
+	mdtp.SetOnClick(func(lcl.IObject) {
+		fmt.Println(mdtp.Date())
+	})
+
+	top += mdtp.Height() + 10
+	dtp.SetDateTime(types.TDateTime(api.DUnixToDateTime(time.Now().Add(time.Hour * 48).Unix())))
+	dtp.SetDate(types.TDate(api.DUnixToDateTime(time.Now().AddDate(1, 0, 0).Unix())))
+
+	fmt.Println("time: ", mdtp.Date(), dtp.DateTime())
+
+	btn = lcl.NewButton(mainForm)
+	btn.SetParent(mainForm)
+	btn.SetLeft(left)
+	btn.SetTop(top)
+	btn.SetCaption("改变日期")
+	btn.SetOnClick(func(lcl.IObject) {
+		mdtp.SetDate("2024/08/22")
+	})
+
+	top += btn.Height() + 10
+	spinedit := lcl.NewSpinEdit(mainForm)
+	spinedit.SetParent(mainForm)
+	spinedit.SetLeft(left)
+	spinedit.SetTop(top)
+	spinedit.SetWidth(100)
+	spinedit.SetMaxValue(10000)
+	spinedit.SetMinValue(50)
+	spinedit.SetValue(100)
+	spinedit.SetOnChange(func(sender lcl.IObject) {
+		fmt.Println(spinedit.Value())
+	})
 }
