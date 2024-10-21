@@ -11,6 +11,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/utils"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
@@ -72,6 +73,9 @@ func main() {
 			fmt.Println("Release")
 			app.Free()
 		})
+		exception.SetOnException(func(funcName, message string) {
+			fmt.Println("Exception func:", funcName, "message:", message)
+		})
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
@@ -87,10 +91,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.ScreenCenter()
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
-	//m.chromium.SetDefaultUrl("https://www.baidu.com")
-	assetsHtml := filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
+	assetsHtml := filepath.Join("file://", utils.RootPath(), "debug_most", "assets", "index.html")
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
+	//m.chromium.SetDefaultUrl("https://www.baidu.com")
 	if tools.IsWindows() {
 		m.windowParent = cef.NewCEFWindowParent(m)
 	} else {
@@ -139,10 +143,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnLoadStart:", frame.GetUrl())
 	})
 	m.chromium.SetOnLoadEnd(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
-		requestCtx := browser.GetHost().GetRequestContext()
-		manager := requestCtx.GetCookieManager(nil)
-		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
-		manager.FreeAndNil()
+		//requestCtx := browser.GetHost().GetRequestContext()
+		//manager := requestCtx.GetCookieManager(nil)
+		//manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
+		//manager.FreeAndNil()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")

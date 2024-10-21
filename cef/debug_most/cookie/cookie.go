@@ -53,8 +53,10 @@ func SetCookie(chromium cef.IChromium) {
 		SameSite:   cef.CEF_COOKIE_SAME_SITE_UNSPECIFIED,
 		Priority:   cef.CEF_COOKIE_PRIORITY_MEDIUM,
 	}
+	fmt.Println("set cookie 1")
 	chromium.SetCookie("https://www.example.com", false, 1, cookie)
+	fmt.Println("set cookie 2")
 	chromium.SetCookie("https://www.example.com", false, 2, cookie)
+	fmt.Println("set cookie 3")
 	chromium.SetCookie("https://www.baidu.com", false, 3, cookie)
-
 }
