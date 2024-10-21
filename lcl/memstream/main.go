@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/examples/lcl/memstream/thread"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
@@ -13,7 +12,7 @@ import (
 )
 
 func main() {
-	fmt.Println("main:currentThreadId:", thread.GetCurrentThreadId())
+	//fmt.Println("main:currentThreadId:", thread.GetCurrentThreadId())
 	inits.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
@@ -46,7 +45,7 @@ func main() {
 
 	// 异步加载，一般来说不要在非主线程中访问UI组件,需要在线程中访问ui组件请使用 lcl.ThreadSync
 	go func() {
-		fmt.Println("main:currentThreadId2:", thread.GetCurrentThreadId())
+		//fmt.Println("main:currentThreadId2:", thread.GetCurrentThreadId())
 		resp, err := http.Get("http://ww2.sinaimg.cn/large/df780e95jw1egxm06uxerj20cs05hjs8.jpg")
 		if err == nil {
 			defer resp.Body.Close()
@@ -64,7 +63,7 @@ func main() {
 					fmt.Println("sync id", id)
 				})
 				lcl.RunOnMainThreadSync(func() {
-					fmt.Println("main:currentThreadId3:", thread.GetCurrentThreadId())
+					//fmt.Println("main:currentThreadId3:", thread.GetCurrentThreadId())
 					//img2.Picture().LoadFromStream(mem)
 					img2.Picture().LoadFromBytes(bs)
 				})

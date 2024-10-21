@@ -6,8 +6,6 @@ import (
 	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"net/http"
-	_ "net/http/pprof"
 )
 
 type TMainForm struct {
@@ -26,8 +24,6 @@ var (
 )
 
 func main() {
-	go http.ListenAndServe("localhost:8080", nil)
-	lcl.DEBUG = true
 	inits.Init(nil, nil)
 	lcl.RunApp(&mainForm, &form1)
 }

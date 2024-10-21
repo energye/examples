@@ -3,9 +3,7 @@ package src
 import (
 	"fmt"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/keys"
 	"github.com/energye/lcl/types/messages"
 )
 
@@ -47,9 +45,9 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	f.SetOnClose(func(sender lcl.IObject, action *types.TCloseAction) {
-		win.UnregisterHotKey(f.Handle(), 1)
+		//win.UnregisterHotKey(f.Handle(), 1)
 	})
-	win.RegisterHotKey(f.Handle(), 1, win.MOD_ALT|win.MOD_CONTROL, keys.VkH)
+	//win.RegisterHotKey(f.Handle(), 1, win.MOD_ALT|win.MOD_CONTROL, keys.VkH)
 	go func() {
 		lcl.RunOnMainThreadSync(func() {
 			fmt.Println("主线程中运行 同步")
