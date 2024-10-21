@@ -91,7 +91,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.ScreenCenter()
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
-	assetsHtml := filepath.Join("file://", utils.RootPath(), "debug_most", "assets", "index.html")
+	var assetsHtml string
+	if tools.IsDarwin() {
+		assetsHtml = filepath.Join("file://", utils.RootPath(), "debug_most", "assets", "index.html")
+	} else {
+		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
+	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
 	//m.chromium.SetDefaultUrl("https://www.baidu.com")
@@ -221,10 +226,13 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnBeforeResourceLoad")
 		headerMap := request.GetHeaderMap()
 		fmt.Println("headerMap size:", headerMap.GetSize())
+		var key, val string
 		for i := 0; i < int(headerMap.GetSize()); i++ {
-			_ = headerMap.GetKey(uint32(i))
-			_ = headerMap.GetValue(uint32(i))
-			//fmt.Println("  key:", key, "val:", val)
+			key = headerMap.GetKey(uint32(i))
+			val = headerMap.GetValue(uint32(i))
+			if key != "" {
+				fmt.Println("  key:", key, "val:", val)
+			}
 		}
 		//callback.Cont()
 	})
