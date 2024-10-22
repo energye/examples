@@ -6,6 +6,8 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wk/wk"
+	"io/ioutil"
+	"unsafe"
 )
 
 type TMainForm struct {
@@ -64,6 +66,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, uriSchemeRequest wk.IWkURISchemeRequest) {
 		fmt.Println("OnURISchemeRequest")
 		fmt.Println("uri:", uriSchemeRequest.Uri())
+		data, _ := ioutil.ReadFile("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/wk/simple/test.html")
+
+		ins := wk.NewWkInputStream1(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
+		uriSchemeRequest.Finish(ins, int64(len(data)), "text/html")
 	})
 	wkContext := wk.WkWebContextRef.Default()
 	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
