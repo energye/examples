@@ -62,17 +62,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, uriSchemeRequest wk.IWkURISchemeRequest) {
+		fmt.Println("OnURISchemeRequest")
 		fmt.Println("uri:", uriSchemeRequest.Uri())
 	})
 	wkContext := wk.WkWebContextRef.Default()
-	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegateEvent())
+	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
 	m.webviewParent.SetWebView(m.webview)
 
 	m.SetOnShow(func(sender lcl.IObject) {
-		m.webview.LoadURL("https://energye.github.io")
+		//m.webview.LoadURL("https://energye.github.io")
+		m.webview.LoadURL("energy://demo.com")
 		// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 		m.SetWidth(1024)
 		m.SetHeight(600)
