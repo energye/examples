@@ -18,6 +18,7 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func main() {
+	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	wk.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
@@ -59,8 +60,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.Close()
 		}
 	})
-	//wkContext := wk.WkWebContextRef.Default()
-	//wkContext.RegisterURIScheme("energy", m.webview)
+	wkContext := wk.WkWebContextRef.Default()
+	wkContext.RegisterURIScheme("energy", m.webview)
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
