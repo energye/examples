@@ -30,6 +30,7 @@ func main() {
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("main create")
 	m.SetCaption("Main")
+	// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 	m.SetWidth(100)
 	m.SetHeight(100)
 
@@ -60,8 +61,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.Close()
 		}
 	})
+	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, uriSchemeRequest wk.IWkURISchemeRequest) {
+		fmt.Println("uri:", uriSchemeRequest.Uri())
+	})
 	wkContext := wk.WkWebContextRef.Default()
-	wkContext.RegisterURIScheme("energy", m.webview)
+	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegateEvent())
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
@@ -69,6 +73,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.SetOnShow(func(sender lcl.IObject) {
 		m.webview.LoadURL("https://energye.github.io")
+		// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 		m.SetWidth(1024)
 		m.SetHeight(600)
 		m.ScreenCenter()
