@@ -13,6 +13,7 @@ import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/logger"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tools"
@@ -38,7 +39,9 @@ var (
 )
 
 func main() {
-	fmt.Println("help-sub-process:", help)
+	logger.SetEnable(true)
+	logger.SetLevel(logger.LDebug)
+	logger.Info("help-sub-process:", help)
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
 	app := application.NewApplication()
@@ -148,10 +151,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnLoadStart:", frame.GetUrl())
 	})
 	m.chromium.SetOnLoadEnd(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
-		//requestCtx := browser.GetHost().GetRequestContext()
-		//manager := requestCtx.GetCookieManager(nil)
-		//manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
-		//manager.FreeAndNil()
+		requestCtx := browser.GetHost().GetRequestContext()
+		manager := requestCtx.GetCookieManager(nil)
+		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
+		manager.FreeAndNil()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")
