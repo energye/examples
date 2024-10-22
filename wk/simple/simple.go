@@ -59,15 +59,15 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.Close()
 		}
 	})
-	wkContext := wk.WkWebContextRef.Default()
-	wkContext.RegisterURIScheme("energy", m.webview)
+	//wkContext := wk.WkWebContextRef.Default()
+	//wkContext.RegisterURIScheme("energy", m.webview)
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
 	m.webviewParent.SetWebView(m.webview)
 
 	m.SetOnShow(func(sender lcl.IObject) {
-		m.webview.LoadURL("https://www.baidu.com")
+		m.webview.LoadURL("https://energye.github.io")
 		m.SetWidth(1024)
 		m.SetHeight(600)
 		m.ScreenCenter()
