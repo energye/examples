@@ -65,11 +65,24 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, uriSchemeRequest wk.IWkURISchemeRequest) {
 		fmt.Println("OnURISchemeRequest")
-		fmt.Println("uri:", uriSchemeRequest.Uri())
+		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method())
 		data, _ := ioutil.ReadFile("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/wk/simple/test.html")
-
 		ins := wk.NewWkInputStream1(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
 		uriSchemeRequest.Finish(ins, int64(len(data)), "text/html")
+		headers := wk.NewWkHeaders(uriSchemeRequest.Headers().Instance())
+		headers.Append("test", "test")
+		headList := headers.List()
+		if headList != nil {
+			fmt.Println("headList:", headList.Count())
+			count := int(headList.Count())
+			for i := 0; i < count; i++ {
+				key := headList.Names(int32(i))
+				val := headList.Values(key)
+				fmt.Println("header name:", key, "value:", val)
+			}
+			headList.Free()
+		}
+		headers.Free()
 	})
 	wkContext := wk.WkWebContextRef.Default()
 	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
