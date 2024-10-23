@@ -97,8 +97,48 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		headers.Free()
 	})
+	var windowState = func(state int) {
+		if state == 0 {
+			m.SetWindowState(types.WsMinimized)
+		} else if m.WindowState() == types.WsMaximized {
+			m.SetWindowState(types.WsNormal)
+		} else {
+			m.SetWindowState(types.WsMaximized)
+		}
+	}
+	m.webview.SetOnProcessMessage(func(sender wk.IObject, jsValue wk.IWkJSValue, processId wk.TWkProcessId) {
+		fmt.Println("OnProcessMessage value-type:", jsValue.ValueType())
+		switch jsValue.ValueType() {
+		case wk.JtString:
+			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.StringValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
+		case wk.JtInteger:
+			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.IntegerValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
+		case wk.JtBoolean:
+			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.BooleanValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
+		}
+		value := jsValue.StringValue()
+		if value == "minimize" {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				windowState(0)
+			})
+		} else if value == "maximize" {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				windowState(1)
+			})
+		} else if value == "close" {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.Close()
+			})
+		} else if value == "startdarg" {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.webview.StartDrag(m)
+			})
+		}
+	})
 	wkContext := wk.WkWebContextRef.Default()
 	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
+	m.webview.RegisterScriptCode(`let test = {"name": "zhangsan"}`)
+	m.webview.RegisterScriptMessageHandler("processMessage")
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
