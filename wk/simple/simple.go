@@ -23,6 +23,9 @@ var MainForm TMainForm
 //go:embed assets
 var resources embed.FS
 
+/**
+Now requires GTK >= 3.24.24 and Glib2.0 >= 2.66
+*/
 func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
