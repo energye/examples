@@ -1,12 +1,13 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"github.com/energye/assetserve"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wk/wk"
-	"io/ioutil"
 	"unsafe"
 )
 
@@ -19,9 +20,13 @@ type TMainForm struct {
 
 var MainForm TMainForm
 
+//go:embed assets
+var resources embed.FS
+
 func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
-	wk.Init(nil, nil)
+	httpServer()
+	wk.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
 	lcl.Application.CreateForm(&MainForm)
@@ -31,6 +36,8 @@ func main() {
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("main create")
+	icod, _ := resources.ReadFile("assets/icon.ico")
+	m.Icon().LoadFromBytes(icod)
 	m.SetCaption("Main")
 	// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 	m.SetWidth(100)
@@ -69,7 +76,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		defer uriSchemeRequest.Free()
 		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method())
 
-		data, _ := ioutil.ReadFile("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/wk/simple/test.html")
+		data, _ := resources.ReadFile("assets/test.html")
 		ins := wk.WkInputStreamRef.New(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
 		uriSchemeRequest.Finish(ins.Data(), int64(len(data)), "text/html")
 		headers := wk.NewWkHeaders(uriSchemeRequest.Headers())
@@ -96,6 +103,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.SetOnShow(func(sender lcl.IObject) {
 		//m.webview.LoadURL("https://energye.github.io")
+		//m.webview.LoadURL("http://localhost:22022/test.html")
 		m.webview.LoadURL("energy://demo.com")
 		// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 		m.SetWidth(1024)
@@ -117,4 +125,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
 
+}
+
+func httpServer() {
+	server := assetserve.NewAssetsHttpServer()
+	server.PORT = 22022
+	server.AssetsFSName = "assets" //必须设置目录名
+	server.Assets = resources
+	go server.StartHttpServer()
 }
