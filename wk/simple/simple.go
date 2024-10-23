@@ -52,7 +52,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webviewParent.SetAlign(types.AlClient)
 
 	m.webview = wk.NewWkWebview(m)
-	m.webview.SetOnContextMenu(func(sender wk.IObject, contextMenu wk.IWkContextMenu, defaultAction wk.WkAction) bool {
+	m.webview.SetOnContextMenu(func(sender wk.IObject, contextMenu wk.WebKitContextMenu, defaultAction wk.PWkAction) bool {
 		fmt.Println("defaultAction:", defaultAction)
 		return false
 	})
@@ -63,13 +63,16 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.Close()
 		}
 	})
-	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, uriSchemeRequest wk.IWkURISchemeRequest) {
+	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, wkURISchemeRequest wk.WebKitURISchemeRequest) {
 		fmt.Println("OnURISchemeRequest")
+		uriSchemeRequest := wk.NewWkURISchemeRequest(wkURISchemeRequest)
+		defer uriSchemeRequest.Free()
 		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method())
+
 		data, _ := ioutil.ReadFile("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/wk/simple/test.html")
-		ins := wk.NewWkInputStream1(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
-		uriSchemeRequest.Finish(ins, int64(len(data)), "text/html")
-		headers := wk.NewWkHeaders(uriSchemeRequest.Headers().Instance())
+		ins := wk.WkInputStreamRef.New(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
+		uriSchemeRequest.Finish(ins.Data(), int64(len(data)), "text/html")
+		headers := wk.NewWkHeaders(uriSchemeRequest.Headers())
 		headers.Append("test", "test")
 		headList := headers.List()
 		if headList != nil {
