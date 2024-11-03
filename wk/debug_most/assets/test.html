@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Test-Title</title>
     <style>
 
         .btn:hover {
@@ -134,8 +134,8 @@
     鼠标左键托拽窗口
 </div>
 <div>
-    <a href="energy://test/index.html">Current-Window</a>
-    <a href="energy://test/index.html" target="_blank">New-Window</a>
+    <a href="energy://demo.com/index.html">Current-index.html</a>
+    <a href="energy://demo.com/index.html" target="_blank">New-index.html</a>
     <button onclick="NewWindow()">Click_New-Window</button>
     <br>
     <a href="https://vjs.zencdn.net/v/oceans.mp4" target="_blank">Play-mp4</a>
@@ -204,5 +204,8 @@
             }
         });
     })()
+    setInterval(function () {
+        document.getElementById("kw").value = new Date().getTime()
+    }, 1000)
 </script>
 </html>

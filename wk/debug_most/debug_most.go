@@ -8,23 +8,33 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wk/wk"
+	"os"
+	"path/filepath"
 	"unsafe"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.IForm
+	url           string
 	webviewParent wk.IWkWebViewParent
 	webview       wk.IWkWebview
 	canClose      bool
+	isMainWindow  bool
 }
 
-var MainForm TMainForm
+var (
+	mainForm  TMainForm
+	wkContext wk.IWkWebContext
+)
 
 //go:embed assets
 var resources embed.FS
 
-/**
+/*
 Now requires GTK >= 3.24.24 and Glib2.0 >= 2.66
+GTK3: dpkg -l | grep libgtk-3-0
+Glib: dpkg -l | grep libglib2.0
+ldd --version
 */
 func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
@@ -32,7 +42,10 @@ func main() {
 	wk.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
-	lcl.Application.CreateForm(&MainForm)
+	mainForm.IForm = &lcl.TForm{}
+	mainForm.url = "energy://demo.com/test.html"
+	mainForm.isMainWindow = true
+	lcl.Application.CreateForm(&mainForm)
 	lcl.Application.Run()
 }
 
@@ -44,6 +57,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 	m.SetWidth(100)
 	m.SetHeight(100)
+	m.SetDoubleBuffered(true)
 
 	mainMenu := lcl.NewMainMenu(m)
 	item := lcl.NewMenuItem(m)
@@ -105,6 +119,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webviewParent = wk.NewWkWebViewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
+	m.webviewParent.SetParentDoubleBuffered(true)
 
 	m.webview = wk.NewWkWebview(m)
 	m.webview.SetOnContextMenu(func(sender wk.IObject, contextMenu wk.WebKitContextMenu, defaultAction wk.PWkAction) bool {
@@ -149,19 +164,25 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnDeleteCookieFinish result:", result, "error:", error_)
 	})
 	m.webview.SetOnLoadChange(func(sender wk.IObject, wkLoadEvent wk.WebKitLoadEvent) {
-		fmt.Println("OnLoadChange wkLoadEvent:", wkLoadEvent)
+		fmt.Println("OnLoadChange wkLoadEvent:", wkLoadEvent, "title:", m.webview.GetTitle())
 		if wkLoadEvent == wk.WEBKIT_LOAD_FINISHED {
 			if cookieManager == nil {
 				cookieManager = m.webview.CookieManager()
 				cookieManager.SetAcceptPolicy(wk.WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS)
 			}
+			title := m.webview.GetTitle()
+			fmt.Println("title:", title)
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.SetCaption(title)
+			})
 		}
 	})
 	m.webview.SetOnWebProcessTerminated(func(sender wk.IObject, reason wk.WebKitWebProcessTerminationReason) {
-		fmt.Println("SetOnWebProcessTerminated reason:", reason)
+		fmt.Println("OnWebProcessTerminated reason:", reason)
 		if reason == wk.WEBKIT_WEB_PROCESS_TERMINATED_BY_API { //  call m.webview.TerminateWebProcess()
-			m.webview.FreeWebview()
-			m.Close()
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.Close()
+			})
 		}
 	})
 	var headers = func(headers wk.PSoupMessageHeaders) {
@@ -190,7 +211,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			fmt.Println("URL:", tempURIRequest.URI())
 			// new window
 			if type_ == wk.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION {
-
+				lcl.RunOnMainThreadAsync(func(id uint32) {
+					window := NewWindow(tempURIRequest.URI())
+					window.Show()
+				})
 			}
 			headers(tempURIRequest.Headers())
 		} else {
@@ -210,9 +234,13 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnURISchemeRequest")
 		uriSchemeRequest := wk.NewWkURISchemeRequest(wkURISchemeRequest)
 		defer uriSchemeRequest.Free()
-		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method())
-
-		data, _ := resources.ReadFile("assets/test.html")
+		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method(), "path:", uriSchemeRequest.Path())
+		path := uriSchemeRequest.Path()
+		if path == "" {
+			path = "index.html"
+		}
+		assetsPath := filepath.Join("assets", path)
+		data, _ := resources.ReadFile(assetsPath)
 		ins := wk.WkInputStreamRef.New(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
 		uriSchemeRequest.Finish(ins.Data(), int64(len(data)), "text/html")
 		headers := wk.NewWkHeaders(uriSchemeRequest.Headers())
@@ -269,8 +297,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			})
 		}
 	})
-	wkContext := wk.WkWebContextRef.Default()
-	wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
+	if wkContext == nil {
+		wkContext = wk.WkWebContextRef.Default()
+		wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
+	}
 	m.webview.EnabledDevtools(true)
 	m.webview.RegisterScriptCode(`let test = {"name": "zhangsan"}`)
 	m.webview.RegisterScriptMessageHandler("processMessage")
@@ -280,9 +310,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webviewParent.SetWebView(m.webview)
 
 	m.SetOnShow(func(sender lcl.IObject) {
+		fmt.Println("OnShow:", m.url)
 		//m.webview.LoadURL("https://energye.github.io")
 		//m.webview.LoadURL("http://localhost:22022/test.html")
-		m.webview.LoadURL("energy://demo.com")
+		m.webview.LoadURL(m.url)
 		// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
 		m.SetWidth(1024)
 		m.SetHeight(600)
@@ -291,18 +322,28 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 		*canClose = m.canClose
+		fmt.Println("OnCloseQuery:", *canClose)
 		if !m.canClose {
 			m.canClose = true
 			m.webview.Stop()
 			m.webview.TerminateWebProcess()
 			//m.webviewParent.FreeChild()
 		}
+		if *canClose && m.isMainWindow {
+			os.Exit(0)
+		}
 	})
 }
 
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
+}
 
+func NewWindow(url string) *TMainForm {
+	var form = &TMainForm{url: url}
+	form.IForm = &lcl.TForm{}
+	lcl.Application.CreateForm(form)
+	return form
 }
 
 func httpServer() {
