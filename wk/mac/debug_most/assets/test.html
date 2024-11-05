@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test-Title</title>
+    <style>
+
+        .btn:hover {
+            background: linear-gradient(217deg, rgba(123, 124, 208, 0.8), rgba(255, 0, 0, 0) 70.71%),
+            linear-gradient(127deg, rgba(255, 221, 0, 0.8), rgba(0, 255, 0, 0) 70.71%),
+            linear-gradient(336deg, rgba(255, 213, 0, 0.8), rgba(0, 0, 255, 0) 70.71%);
+            background-size: 200%;
+            animation: gradientBG 2.4s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .btn {
+            -webkit-user-select: none;
+            display: inline-block;
+            cursor: pointer;
+            /*background: linear-gradient(#e66465, #9198e5);;*/
+            color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 8px #f3f3f3;
+            margin: 10px;
+            overflow: hidden;
+            position: relative;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 14px;
+            user-select: none;
+
+        }
+
+        .btn::before {
+            position: absolute;
+            border-radius: 7px;
+            content: "";
+            inset: -20px;
+            background: linear-gradient(0deg, transparent 1%, rgb(255, 0, 191), #00b7ff, rgba(255, 0, 34, 0.719), transparent 98%);
+            transform-origin: bottom left;
+            z-index: -2;
+            transition: all .4;
+            animation: spin 2.4s linear infinite;
+            transform-origin: 50% 50%;
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            border-radius: 8px;
+            background-color: rgb(41, 41, 41);
+            inset: 3px;
+            z-index: -1;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        input {
+            margin: 10px;
+            -webkit-appearance: none;
+            background-color: #fff;
+            background-image: none;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            box-sizing: border-box;
+            color: #606266;
+            display: inline-block;
+            font-size: inherit;
+            height: 40px;
+            line-height: 40px;
+            outline: none;
+            padding: 0 15px;
+            transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+            width: 350px;
+        }
+
+        p {
+            margin: 10px;
+            -webkit-user-select: none;
+        }
+        a,button{
+            margin: 10px;
+        }
+
+        .dargArea {
+            color: white;
+            font-weight: bold;
+            position: fixed;
+            width: 200px;
+            height: 100px;
+            background: #6375cc;
+            left: 400px;
+            top: 40px;
+            text-align: center;
+            align-items: center;
+            --webkit-app-region: drag;
+            -webkit-user-select: none;
+            cursor: move;
+        }
+    </style>
+</head>
+<body style="border: 1px solid red; overflow: hidden;padding: 0;width: 100vw ; height: 100vh; margin: 0; box-sizing: border-box;-webkit-user-select: none;">
+<p>energy webkit2 测试</p>
+<p>本地加载 html 资源, 自定义协议 "energy" 加载.</p>
+<input id="kw" placeholder="ipc message content">
+<br/>
+<div onclick="Minimize()" class="btn">Minimize-Window</div>
+<div onclick="Maximize()" class="btn">Maximize-Window</div>
+<div onclick="Close()" class="btn">Close-Window</div>
+<br>
+<div onclick="ProcessMessage()" class="btn">IPC-ProcessMessage</div>
+<div class="dargArea">
+    这是 html > div 元素<br>
+    可拖拽“窗口”区域<br>
+    鼠标左键托拽窗口
+</div>
+<div>
+    <a href="energy://demo.com/index.html">Current-index.html</a>
+    <a href="energy://demo.com/index.html" target="_blank">New-index.html</a>
+    <button onclick="NewWindow()">Click_New-Window</button>
+    <br>
+    <a href="https://vjs.zencdn.net/v/oceans.mp4" target="_blank">Play-mp4</a>
+    <a href="https://www.w3schools.com/html/horse.mp3" target="_blank">Play-mp3</a>
+    <br>
+    <video width="400" controls>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        <source src="https://www.w3schools.com/html/mov_bbb.ogg" type="video/ogg">
+        Your browser does not support HTML video.
+    </video>
+</div>
+</body>
+<script type="application/javascript">
+    function ProcessMessage() {
+        console.log('HtmlButton')
+        let kwVal = document.getElementById("kw").value
+        window.webkit.messageHandlers.processMessage.postMessage('ipc-data-message: ' + kwVal+ ' 注入: ' + test.name)
+        window.webkit.messageHandlers.processMessage.postMessage(10001)
+        window.webkit.messageHandlers.processMessage.postMessage(true)
+        window.webkit.messageHandlers.processMessage.postMessage(99999.999)
+    }
+
+    function NewWindow() {
+        window.webkit.messageHandlers.processMessage.postMessage('newwindow')
+    }
+
+    function Minimize() {
+        window.webkit.messageHandlers.processMessage.postMessage('minimize')
+    }
+
+    function Maximize() {
+        window.webkit.messageHandlers.processMessage.postMessage('maximize')
+    }
+
+    function Close() {
+        window.webkit.messageHandlers.processMessage.postMessage('close')
+    }
+
+    (function () {
+        let draging = false
+        document.body.style.background = "rgba(108,132,125,0.8)"
+        window.addEventListener('mousedown', (e) => {
+            let dargPropVal = window.getComputedStyle(e.target).getPropertyValue('--webkit-app-region');
+            if (dargPropVal === 'drag') {
+                if (e.offsetX > e.target.clientWidth || e.offsetY > e.target.clientHeight) {
+                    return;
+                }
+                draging = true;
+                //e.preventDefault()
+                //window.webkit.messageHandlers.processMessage.postMessage('startdarg')
+            } else {
+                draging = false;
+            }
+        });
+        window.addEventListener('mouseup', () => {
+            draging = false;
+        });
+
+        window.addEventListener('mousemove', function (e) {
+            if (draging) {
+                draging = false;
+                let mousePressed = e.buttons !== undefined ? e.buttons : e.which;
+                if (mousePressed > 0) {
+                    window.webkit.messageHandlers.processMessage.postMessage('startdarg')
+                }
+            }
+        });
+    })()
+    setInterval(function () {
+        document.getElementById("kw").value = new Date().getTime()
+    }, 1000)
+</script>
+</html>
