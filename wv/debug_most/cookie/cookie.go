@@ -2,7 +2,7 @@ package cookie
 
 import (
 	"fmt"
-	"github.com/energye/wv/wv"
+	"github.com/energye/wv/windows"
 )
 
 func Cookie(browser wv.IWVBrowser) {

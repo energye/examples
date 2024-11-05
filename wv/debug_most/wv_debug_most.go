@@ -17,7 +17,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
-	"github.com/energye/wv/wv"
+	"github.com/energye/wv/windows"
 	"path/filepath"
 )
 

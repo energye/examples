@@ -2,7 +2,7 @@ package devtools
 
 import (
 	"fmt"
-	"github.com/energye/wv/wv"
+	"github.com/energye/wv/windows"
 )
 
 func OpenDevtools(browser wv.IWVBrowser) {

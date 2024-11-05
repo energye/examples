@@ -12,7 +12,7 @@ import (
 	"github.com/energye/lcl/rtl/version"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
-	wv2 "github.com/energye/wv/wv"
+	wv2 "github.com/energye/wv/windows"
 	"math/rand"
 	"path/filepath"
 	"time"

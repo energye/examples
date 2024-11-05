@@ -13,7 +13,7 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"github.com/energye/lcl/types/messages"
-	"github.com/energye/wv/wv"
+	"github.com/energye/wv/windows"
 	"path/filepath"
 	"unsafe"
 )

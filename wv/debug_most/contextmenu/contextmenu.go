@@ -6,7 +6,7 @@ import (
 	"github.com/energye/examples/wv/debug_most/utils"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"github.com/energye/wv/wv"
+	"github.com/energye/wv/windows"
 )
 
 func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {

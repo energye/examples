@@ -7,7 +7,7 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"github.com/energye/wk/linux"
+	wv "github.com/energye/wv/linux"
 	"os"
 	"path/filepath"
 	"unsafe"
@@ -16,15 +16,15 @@ import (
 type TMainForm struct {
 	lcl.IForm
 	url           string
-	webviewParent wk.IWkWebViewParent
-	webview       wk.IWkWebview
+	webviewParent wv.IWkWebViewParent
+	webview       wv.IWkWebview
 	canClose      bool
 	isMainWindow  bool
 }
 
 var (
 	mainForm  TMainForm
-	wkContext wk.IWkWebContext
+	wkContext wv.IWkWebContext
 )
 
 //go:embed assets
@@ -39,7 +39,7 @@ ldd --version
 func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
-	wk.Init(nil, resources)
+	wv.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
 	mainForm.IForm = &lcl.TForm{}
@@ -70,7 +70,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("sub-click")
 	})
 
-	var cookieManager wk.IWkCookieManager
+	var cookieManager wv.IWkCookieManager
 
 	CookieManage := lcl.NewMenuItem(m)
 	CookieManage.SetCaption("CookieManage")
@@ -88,7 +88,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	CookieManage.Add(addCookie)
 	addCookie.SetOnClick(func(sender lcl.IObject) {
 		if cookieManager != nil {
-			cookie := wk.WkCookieRef.NewCookie("webkit2-custom-cookie-key", "value-data-energy-custom-cookie", "www.baidu.com", "/", 100000)
+			cookie := wv.WkCookieRef.NewCookie("webkit2-custom-cookie-key", "value-data-energy-custom-cookie", "www.baidu.com", "/", 100000)
 			defer cookie.Free()
 			cookieManager.AddCookie(cookie.Data())
 		}
@@ -109,32 +109,32 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		if cookieManager != nil {
 			cookieManager.DeleteCookiesForDomain("www.baidu.com")
 			// trigger OnDeleteCookieFinish
-			cookie := wk.WkCookieRef.NewCookie("webkit2-custom-cookie-key", "value-data-energy-custom-cookie", "www.baidu.com", "/", 100000)
+			cookie := wv.WkCookieRef.NewCookie("webkit2-custom-cookie-key", "value-data-energy-custom-cookie", "www.baidu.com", "/", 100000)
 			defer cookie.Free()
 			cookieManager.DeleteCookie(cookie.Data())
 		}
 	})
 
 	// webview parent
-	m.webviewParent = wk.NewWkWebViewParent(m)
+	m.webviewParent = wv.NewWkWebViewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
 
-	m.webview = wk.NewWkWebview(m)
-	m.webview.SetOnContextMenu(func(sender wk.IObject, contextMenu wk.WebKitContextMenu, defaultAction wk.PWkAction) bool {
+	m.webview = wv.NewWkWebview(m)
+	m.webview.SetOnContextMenu(func(sender wv.IObject, contextMenu wv.WebKitContextMenu, defaultAction wv.PWkAction) bool {
 		fmt.Println("OnContextMenu defaultAction:", defaultAction)
-		tempContextMenu := wk.NewWkContextMenu(contextMenu)
+		tempContextMenu := wv.NewWkContextMenu(contextMenu)
 		defer tempContextMenu.Free()
-		tempMenuItemSep := wk.WkContextMenuItemRef.NewSeparator()
+		tempMenuItemSep := wv.WkContextMenuItemRef.NewSeparator()
 		defer tempMenuItemSep.Free()
 		tempContextMenu.Append(tempMenuItemSep.Data())
-		tempMenuItemClose := wk.WkContextMenuItemRef.NewFromAction(defaultAction, "关闭", 10001)
+		tempMenuItemClose := wv.WkContextMenuItemRef.NewFromAction(defaultAction, "关闭", 10001)
 		defer tempMenuItemClose.Free()
 		tempContextMenu.Append(tempMenuItemClose.Data())
 		return false
 	})
-	m.webview.SetOnContextMenuCommand(func(sender wk.IObject, menuID int32) {
+	m.webview.SetOnContextMenuCommand(func(sender wv.IObject, menuID int32) {
 		fmt.Println("OnContextMenuCommand menuID:", menuID)
 		if menuID == 10001 {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
@@ -142,33 +142,33 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			})
 		}
 	})
-	m.webview.SetOnGetAcceptPolicyFinish(func(sender wk.IObject, policy wk.WebKitCookieAcceptPolicy, error_ string) {
+	m.webview.SetOnGetAcceptPolicyFinish(func(sender wv.IObject, policy wv.WebKitCookieAcceptPolicy, error_ string) {
 		fmt.Println("OnGetAcceptPolicyFinish policy:", policy)
 	})
-	m.webview.SetOnGetCookiesFinish(func(sender wk.IObject, wkCookieList wk.PList, error_ string) {
+	m.webview.SetOnGetCookiesFinish(func(sender wv.IObject, wkCookieList wv.PList, error_ string) {
 		fmt.Println("OnGetCookiesFinish error_:", error_)
-		tempCookieList := wk.NewWkCookieList(wkCookieList)
+		tempCookieList := wv.NewWkCookieList(wkCookieList)
 		defer tempCookieList.Free()
 		size := tempCookieList.Length()
 		fmt.Println("\tsize:", size)
 		for i := 0; i < int(size); i++ {
-			cookie := wk.NewWkCookie(tempCookieList.GetCookie(int32(i)))
+			cookie := wv.NewWkCookie(tempCookieList.GetCookie(int32(i)))
 			fmt.Println("\t cookie domain:", cookie.Domain())
 			cookie.Free()
 		}
 	})
-	m.webview.SetOnAddCookieFinish(func(sender wk.IObject, result bool, error_ string) {
+	m.webview.SetOnAddCookieFinish(func(sender wv.IObject, result bool, error_ string) {
 		fmt.Println("OnAddCookieFinish result:", result, "error:", error_)
 	})
-	m.webview.SetOnDeleteCookieFinish(func(sender wk.IObject, result bool, error_ string) {
+	m.webview.SetOnDeleteCookieFinish(func(sender wv.IObject, result bool, error_ string) {
 		fmt.Println("OnDeleteCookieFinish result:", result, "error:", error_)
 	})
-	m.webview.SetOnLoadChange(func(sender wk.IObject, wkLoadEvent wk.WebKitLoadEvent) {
+	m.webview.SetOnLoadChange(func(sender wv.IObject, wkLoadEvent wv.WebKitLoadEvent) {
 		fmt.Println("OnLoadChange wkLoadEvent:", wkLoadEvent, "title:", m.webview.GetTitle())
-		if wkLoadEvent == wk.WEBKIT_LOAD_FINISHED {
+		if wkLoadEvent == wv.WEBKIT_LOAD_FINISHED {
 			if cookieManager == nil {
 				cookieManager = m.webview.CookieManager()
-				cookieManager.SetAcceptPolicy(wk.WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS)
+				cookieManager.SetAcceptPolicy(wv.WEBKIT_COOKIE_POLICY_ACCEPT_ALWAYS)
 			}
 			title := m.webview.GetTitle()
 			fmt.Println("title:", title)
@@ -177,16 +177,16 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			})
 		}
 	})
-	m.webview.SetOnWebProcessTerminated(func(sender wk.IObject, reason wk.WebKitWebProcessTerminationReason) {
+	m.webview.SetOnWebProcessTerminated(func(sender wv.IObject, reason wv.WebKitWebProcessTerminationReason) {
 		fmt.Println("OnWebProcessTerminated reason:", reason)
-		if reason == wk.WEBKIT_WEB_PROCESS_TERMINATED_BY_API { //  call m.webview.TerminateWebProcess()
+		if reason == wv.WEBKIT_WEB_PROCESS_TERMINATED_BY_API { //  call m.webview.TerminateWebProcess()
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.Close()
 			})
 		}
 	})
-	var headers = func(headers wk.PSoupMessageHeaders) {
-		tempHeaders := wk.NewWkHeaders(headers)
+	var headers = func(headers wv.PSoupMessageHeaders) {
+		tempHeaders := wv.NewWkHeaders(headers)
 		defer tempHeaders.Free()
 		headerList := tempHeaders.List()
 		if headerList != nil {
@@ -199,18 +199,18 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			}
 		}
 	}
-	m.webview.SetOnDecidePolicy(func(sender wk.IObject, wkDecision wk.WebKitPolicyDecision, type_ wk.WebKitPolicyDecisionType) bool {
+	m.webview.SetOnDecidePolicy(func(sender wv.IObject, wkDecision wv.WebKitPolicyDecision, type_ wv.WebKitPolicyDecisionType) bool {
 		fmt.Println("OnDecidePolicy type_:", type_)
-		tempDecision := wk.NewWkNavigationPolicyDecision(wkDecision)
+		tempDecision := wv.NewWkNavigationPolicyDecision(wkDecision)
 		defer tempDecision.Free()
-		if type_ == wk.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION || type_ == wk.WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION {
-			tempNavigationAction := wk.NewWkNavigationAction(tempDecision.GetNavigationAction())
+		if type_ == wv.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION || type_ == wv.WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION {
+			tempNavigationAction := wv.NewWkNavigationAction(tempDecision.GetNavigationAction())
 			defer tempNavigationAction.Free()
-			tempURIRequest := wk.NewWkURIRequest(tempNavigationAction.GetRequest())
+			tempURIRequest := wv.NewWkURIRequest(tempNavigationAction.GetRequest())
 			defer tempURIRequest.Free()
 			fmt.Println("URL:", tempURIRequest.URI())
 			// new window
-			if type_ == wk.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION {
+			if type_ == wv.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION {
 				lcl.RunOnMainThreadAsync(func(id uint32) {
 					window := NewWindow(tempURIRequest.URI())
 					window.Show()
@@ -218,21 +218,21 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			}
 			headers(tempURIRequest.Headers())
 		} else {
-			tempResponsePolicyDecision := wk.NewWkResponsePolicyDecision(wkDecision)
+			tempResponsePolicyDecision := wv.NewWkResponsePolicyDecision(wkDecision)
 			defer tempResponsePolicyDecision.Free()
-			tempURIRequest := wk.NewWkURIRequest(tempResponsePolicyDecision.GetRequest())
+			tempURIRequest := wv.NewWkURIRequest(tempResponsePolicyDecision.GetRequest())
 			defer tempURIRequest.Free()
 			fmt.Println("URL:", tempURIRequest.URI())
 			headers(tempURIRequest.Headers())
 		}
 		return true
 	})
-	m.webview.SetOnExecuteScriptFinished(func(sender wk.IObject, jsValue wk.IWkJSValue) {
+	m.webview.SetOnExecuteScriptFinished(func(sender wv.IObject, jsValue wv.IWkJSValue) {
 		fmt.Println("OnExecuteScriptFinished")
 	})
-	m.webview.SetOnURISchemeRequest(func(sender wk.IObject, wkURISchemeRequest wk.WebKitURISchemeRequest) {
+	m.webview.SetOnURISchemeRequest(func(sender wv.IObject, wkURISchemeRequest wv.WebKitURISchemeRequest) {
 		fmt.Println("OnURISchemeRequest")
-		uriSchemeRequest := wk.NewWkURISchemeRequest(wkURISchemeRequest)
+		uriSchemeRequest := wv.NewWkURISchemeRequest(wkURISchemeRequest)
 		defer uriSchemeRequest.Free()
 		fmt.Println("uri:", uriSchemeRequest.Uri(), "method:", uriSchemeRequest.Method(), "path:", uriSchemeRequest.Path())
 		path := uriSchemeRequest.Path()
@@ -241,9 +241,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		assetsPath := filepath.Join("assets", path)
 		data, _ := resources.ReadFile(assetsPath)
-		ins := wk.WkInputStreamRef.New(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
+		ins := wv.WkInputStreamRef.New(uintptr(unsafe.Pointer(&data[0])), int64(len(data)))
 		uriSchemeRequest.Finish(ins.Data(), int64(len(data)), "text/html")
-		headers := wk.NewWkHeaders(uriSchemeRequest.Headers())
+		headers := wv.NewWkHeaders(uriSchemeRequest.Headers())
 		headers.Append("test", "test")
 		headList := headers.List()
 		if headList != nil {
@@ -267,14 +267,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.SetWindowState(types.WsMaximized)
 		}
 	}
-	m.webview.SetOnProcessMessage(func(sender wk.IObject, jsValue wk.IWkJSValue, processId wk.TWkProcessId) {
+	m.webview.SetOnProcessMessage(func(sender wv.IObject, jsValue wv.IWkJSValue, processId wv.TWkProcessId) {
 		fmt.Println("OnProcessMessage value-type:", jsValue.ValueType())
 		switch jsValue.ValueType() {
-		case wk.JtString:
+		case wv.JtString:
 			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.StringValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
-		case wk.JtInteger:
+		case wv.JtInteger:
 			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.IntegerValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
-		case wk.JtBoolean:
+		case wv.JtBoolean:
 			fmt.Println("OnProcessMessageEvent 类型: [", jsValue.ValueType(), "] 返回结果: [", jsValue.BooleanValue(), "] JS异常: [", jsValue.ExceptionMessage(), "] processId: [", processId, "]")
 		}
 		value := jsValue.StringValue()
@@ -298,7 +298,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	if wkContext == nil {
-		wkContext = wk.WkWebContextRef.Default()
+		wkContext = wv.WkWebContextRef.Default()
 		wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
 	}
 	m.webview.EnabledDevtools(true)
