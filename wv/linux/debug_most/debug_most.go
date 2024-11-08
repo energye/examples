@@ -16,7 +16,7 @@ import (
 type TMainForm struct {
 	lcl.IForm
 	url           string
-	webviewParent wv.IWkWebViewParent
+	webviewParent wv.IWkWebviewParent
 	webview       wv.IWkWebview
 	canClose      bool
 	isMainWindow  bool
@@ -116,7 +116,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 
 	// webview parent
-	m.webviewParent = wv.NewWkWebViewParent(m)
+	m.webviewParent = wv.NewWkWebviewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
