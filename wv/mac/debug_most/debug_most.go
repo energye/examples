@@ -27,20 +27,13 @@ var (
 //go:embed assets
 var resources embed.FS
 
-/*
-Now requires GTK >= 3.24.24 and Glib2.0 >= 2.66
-GTK3: dpkg -l | grep libgtk-3-0
-Glib: dpkg -l | grep libglib2.0
-ldd --version
-*/
 func main() {
-	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
 	wv.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
 	mainForm.IForm = &lcl.TForm{}
-	mainForm.url = "energy://demo.com/test.html"
+	mainForm.url = "file:///Users/yanghy/app/github.com/workspace/lib/wk/webkit2_mac/demo/test.html"
 	mainForm.isMainWindow = true
 	lcl.Application.CreateForm(&mainForm)
 	lcl.Application.Run()
@@ -51,52 +44,23 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	icod, _ := resources.ReadFile("assets/icon.ico")
 	m.Icon().LoadFromBytes(icod)
 	m.SetCaption("Main")
-	// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
-	m.SetWidth(100)
-	m.SetHeight(100)
+	m.SetWidth(1024)
+	m.SetHeight(768)
 	m.SetDoubleBuffered(true)
 
-	mainMenu := lcl.NewMainMenu(m)
-	item := lcl.NewMenuItem(m)
-	item.SetCaption("文件(&F)")
-	mainMenu.Items().Add(item)
-	subItem := lcl.NewMenuItem(m)
-	subItem.SetCaption("sub")
-	item.Add(subItem)
-	subItem.SetOnClick(func(sender lcl.IObject) {
-		fmt.Println("sub-click")
-	})
-
-	CookieManage := lcl.NewMenuItem(m)
-	CookieManage.SetCaption("CookieManage")
-	mainMenu.Items().Add(CookieManage)
-	getAcceptPolicy := lcl.NewMenuItem(m)
-	getAcceptPolicy.SetCaption("GetAcceptPolicy")
-	CookieManage.Add(getAcceptPolicy)
-	getAcceptPolicy.SetOnClick(func(sender lcl.IObject) {
-	})
-	addCookie := lcl.NewMenuItem(m)
-	addCookie.SetCaption("AddCookie")
-	CookieManage.Add(addCookie)
-	addCookie.SetOnClick(func(sender lcl.IObject) {
-	})
-	getCookie := lcl.NewMenuItem(m)
-	getCookie.SetCaption("GetCookie")
-	CookieManage.Add(getCookie)
-	getCookie.SetOnClick(func(sender lcl.IObject) {
-	})
-	deleteCookie := lcl.NewMenuItem(m)
-	deleteCookie.SetCaption("DeleteCookie")
-	CookieManage.Add(deleteCookie)
-	deleteCookie.SetOnClick(func(sender lcl.IObject) {
-		fmt.Println("DeleteCookie")
-	})
+	m.webview = wv.NewWkWebview(m)
 
 	// webview parent
 	m.webviewParent = wv.NewWkWebviewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
+
+	//userContentController := wv.WKUserContentControllerRef.New()
+	//wv.NewWKScriptMessageHandler()
+
+	// end
+	m.webviewParent.SetWebview(m.webview.Data())
 
 	m.SetOnShow(func(sender lcl.IObject) {
 		fmt.Println("OnShow:", m.url)
@@ -114,7 +78,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnCloseQuery:", *canClose)
 		if !m.canClose {
 			m.canClose = true
-			//m.webviewParent.FreeChild()
 		}
 		if *canClose && m.isMainWindow {
 			os.Exit(0)
