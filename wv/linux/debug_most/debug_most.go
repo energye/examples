@@ -7,7 +7,7 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	wv "github.com/energye/wv/linux"
+	"github.com/energye/wv/linux"
 	"os"
 	"path/filepath"
 	"unsafe"
