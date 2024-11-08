@@ -168,6 +168,6 @@ func startAssetsServer() {
 	server.PORT = 22222               //服务端口号
 	server.AssetsFSName = "resources" //必须设置目录名和资源文件夹同名
 	//server.Assets = resources
-	server.LocalAssets = filepath.Join(exec.CurrentDir, "wv", "simple", "resources")
+	server.LocalAssets = filepath.Join(exec.CurrentDir, "wv", "windows", "simple", "resources")
 	go server.StartHttpServer()
 }
