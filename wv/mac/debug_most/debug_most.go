@@ -8,7 +8,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wv/darwin"
-	"os"
 )
 
 type TMainForm struct {
@@ -52,6 +51,25 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, data string) {
 		fmt.Println("OnProcessMessage", name)
 	})
+	m.webview.SetOnStartProvisionalNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
+		fmt.Println("OnStartProvisionalNavigation")
+	})
+	m.webview.SetOnFinishNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
+		fmt.Println("OnFinishNavigation")
+	})
+	m.webview.SetOnCreateWebView(func(sender wv.IObject, configuration wv.WKWebViewConfiguration, navigationAction wv.WKNavigationAction,
+		windowFeatures wv.WKWindowFeatures) wv.WkWebview {
+		fmt.Println("OnCreateWebView")
+		wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
+		sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
+		sourceRequest := wv.NewNSURLRequest(sourceFrameInfo.Request())
+		if sourceRequest.IsValid() {
+			sourceURL := wv.NewNSURL(sourceRequest.URL())
+			fmt.Println("\t", sourceURL.AbsoluteString())
+			sourceURL.Free()
+		}
+		return 0
+	})
 	// webview parent
 	m.webviewParent = wv.NewWkWebviewParent(m)
 	m.webviewParent.SetParent(m)
@@ -94,24 +112,22 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetOnShow(func(sender lcl.IObject) {
 		fmt.Println("OnShow:", m.url)
 		//m.webview.LoadURL("https://energye.github.io")
-		//m.webview.LoadURL("http://localhost:22022/test.html")
-		m.webview.LoadURL(m.url)
-		// gtk3 需要设置一次较小的宽高, 然后在 OnShow 里设置默认宽高
-		m.SetWidth(1024)
-		m.SetHeight(600)
+		m.webview.LoadURL("http://localhost:22022/test.html")
+		//m.webview.LoadURL("energy://test.com")
+		//m.webview.LoadURL(m.url)
 		m.ScreenCenter()
 	})
 
-	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-		*canClose = m.canClose
-		fmt.Println("OnCloseQuery:", *canClose)
-		if !m.canClose {
-			m.canClose = true
-		}
-		if *canClose && m.isMainWindow {
-			os.Exit(0)
-		}
-	})
+	//m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+	//	*canClose = m.canClose
+	//	fmt.Println("OnCloseQuery:", *canClose)
+	//	if !m.canClose {
+	//		m.canClose = true
+	//	}
+	//	if *canClose && m.isMainWindow {
+	//		os.Exit(0)
+	//	}
+	//})
 }
 
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {
