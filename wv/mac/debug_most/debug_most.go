@@ -49,15 +49,44 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetDoubleBuffered(true)
 
 	m.webview = wv.NewWkWebview(m)
-
+	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, data string) {
+		fmt.Println("OnProcessMessage", name)
+	})
 	// webview parent
 	m.webviewParent = wv.NewWkWebviewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
 
-	//userContentController := wv.WKUserContentControllerRef.New()
-	//wv.NewWKScriptMessageHandler()
+	userContentController := wv.WKUserContentControllerRef.New()
+	scriptMessageHandler := wv.NewWKScriptMessageHandler(m.webview.AsReceiveScriptMessageDelegate())
+	userContentController.AddScriptMessageHandlerName(scriptMessageHandler, "processMessage")
+
+	configuration := wv.WKWebViewConfigurationRef.New()
+	configuration.SetUserContentController(userContentController.Data())
+
+	URLSchemeHandler := wv.NewWKURLSchemeHandler(m.webview.AsWKURLSchemeHandlerDelegate())
+
+	configuration.SetSuppressesIncrementalRendering(true)
+	configuration.SetApplicationNameForUserAgent("energy.cn")
+	configuration.SetURLSchemeHandlerForURLScheme(URLSchemeHandler.Data(), "energy")
+
+	preference := wv.WKPreferencesRef.New()
+	configuration.SetPreferences(preference.Data())
+
+	preference.SetTabFocusesLinks(true)
+	preference.SetFraudulentWebsiteWarningEnabled(true)
+
+	navigationDelegate := wv.NewWKNavigationDelegate(m.webview.AsWKNavigationDelegate())
+	UIDelegate := wv.NewWKUIDelegate(m.webview.AsWKUIDelegate())
+
+	frame := &wv.TRect{}
+	frame.SetWidth(m.Width())
+	frame.SetHeight(m.Height())
+	m.webview.InitWithFrameConfiguration(frame, configuration.Data())
+
+	m.webview.SetNavigationDelegate(navigationDelegate.Data())
+	m.webview.SetUIDelegate(UIDelegate.Data())
 
 	// end
 	m.webviewParent.SetWebview(m.webview.Data())
