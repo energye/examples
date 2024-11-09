@@ -8,6 +8,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wv/darwin"
+	"unsafe"
 )
 
 type TMainForm struct {
@@ -32,7 +33,7 @@ func main() {
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
 	mainForm.IForm = &lcl.TForm{}
-	mainForm.url = "file:///Users/yanghy/app/github.com/workspace/lib/wk/webkit2_mac/demo/test.html"
+	mainForm.url = "energy://test.com"
 	mainForm.isMainWindow = true
 	lcl.Application.CreateForm(&mainForm)
 	lcl.Application.Run()
@@ -76,19 +77,37 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.SetOnFinishNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
 		fmt.Println("OnFinishNavigation")
 	})
-	m.webview.SetOnCreateWebView(func(sender wv.IObject, configuration wv.WKWebViewConfiguration, navigationAction wv.WKNavigationAction,
-		windowFeatures wv.WKWindowFeatures) wv.WkWebview {
-		fmt.Println("OnCreateWebView")
-		wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
-		sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
-		sourceRequest := wv.NewNSURLRequest(sourceFrameInfo.Request())
-		if sourceRequest.IsValid() {
-			sourceURL := wv.NewNSURL(sourceRequest.URL())
-			fmt.Println("\t", sourceURL.AbsoluteString())
-			sourceURL.Free()
-		}
-		return 0
+	m.webview.SetOnDecidePolicyForNavigationActionPreferences(func(sender wv.IObject, navigationAction wv.WKNavigationAction,
+		actionPolicy *wv.WKNavigationActionPolicy, preferences *wv.WKWebpagePreferences) {
+		fmt.Println("OnDecidePolicyForNavigationActionPreferences")
+		//wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
+		//sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
+		//sourceRequest := wv.NewNSURLRequest(sourceFrameInfo.Request())
+		//targetFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.TargetFrame())
+		//targetRequest := wv.NewNSURLRequest(targetFrameInfo.Request())
+		//if sourceRequest.IsValid() {
+		//	url := wv.NewNSURL(sourceRequest.URL())
+		//	fmt.Println("\tsource:", url.AbsoluteString())
+		//	url.Free()
+		//}
+		//if targetRequest.IsValid() {
+		//	url := wv.NewNSURL(targetRequest.URL())
+		//	fmt.Println("\ttarget:", url.AbsoluteString())
+		//	fmt.Println("\ttarget:", url.Scheme(), url.Path())
+		//	url.Free()
+		//}
+		//request := wv.NewNSURLRequest(wkNavigationAction.Request())
+		//if request.IsValid() {
+		//	url := wv.NewNSURL(request.URL())
+		//	fmt.Println("\trequest:", url.AbsoluteString())
+		//	fmt.Println("\trequest:", url.Scheme(), url.Path())
+		//	url.Free()
+		//}
 	})
+	m.webview.SetOnCreateWebView(m.OnCreateWebView)
+	m.webview.SetOnStartURLSchemeTask(m.OnStartURLSchemeTask)
+	m.webview.SetOnStopURLSchemeTask(m.OnStopURLSchemeTask)
+
 	// webview parent
 	m.webviewParent = wv.NewWkWebviewParent(m)
 	m.webviewParent.SetParent(m)
@@ -131,26 +150,90 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetOnShow(func(sender lcl.IObject) {
 		fmt.Println("OnShow:", m.url)
 		//m.webview.LoadURL("https://energye.github.io")
-		m.webview.LoadURL("http://localhost:22022/index.html")
-		//m.webview.LoadURL("energy://test.com")
+		//m.webview.LoadURL("http://localhost:22022/index.html")
 		//m.webview.LoadURL(m.url)
+		if m.url != "" {
+			m.webview.LoadURL(m.url)
+		}
 		m.ScreenCenter()
 	})
-
-	//m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-	//	*canClose = m.canClose
-	//	fmt.Println("OnCloseQuery:", *canClose)
-	//	if !m.canClose {
-	//		m.canClose = true
-	//	}
-	//	if *canClose && m.isMainWindow {
-	//		os.Exit(0)
-	//	}
-	//})
+	m.webview.SetOnWebContentProcessDidTerminate(func(sender wv.IObject) {
+		fmt.Println("OnWebContentProcessDidTerminate")
+	})
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+		fmt.Println("OnCloseQuery")
+		//*canClose = m.canClose
+		m.webview.StopLoading()
+		//m.webview.RemoveAllSubviews()
+		m.webview.RemoveFromSuperview()
+		m.webview.Free()
+		m.webviewParent.Free()
+	})
 }
 
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
+}
+
+func (m *TMainForm) OnCreateWebView(sender wv.IObject, configuration wv.WKWebViewConfiguration, navigationAction wv.WKNavigationAction,
+	windowFeatures wv.WKWindowFeatures) wv.WkWebview {
+	fmt.Println("OnCreateWebView")
+	wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
+	sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
+	sourceRequest := wv.NewNSURLRequest(sourceFrameInfo.Request())
+	targetFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.TargetFrame())
+	targetRequest := wv.NewNSURLRequest(targetFrameInfo.Request())
+	if sourceRequest.IsValid() {
+		url := wv.NewNSURL(sourceRequest.URL())
+		fmt.Println("\tsource:", url.AbsoluteString())
+		url.Free()
+	}
+	if targetRequest.IsValid() {
+		url := wv.NewNSURL(targetRequest.URL())
+		fmt.Println("\ttarget:", url.AbsoluteString())
+		fmt.Println("\ttarget:", url.Scheme(), url.Path())
+		url.Free()
+	}
+
+	request := wv.NewNSURLRequest(wkNavigationAction.Request())
+	if request.IsValid() {
+		url := wv.NewNSURL(request.URL())
+		fmt.Println("\trequest:", url.AbsoluteString())
+		fmt.Println("\trequest:", url.Scheme(), url.Path())
+		window := NewWindow(url.AbsoluteString())
+		window.Show()
+		url.Free()
+	}
+	return 0
+}
+func (m *TMainForm) OnStartURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKURLSchemeTask) {
+	fmt.Println("OnStartURLSchemeTask")
+	tempURLSchemeTask := wv.NewWKURLSchemeTask(urlSchemeTask)
+	request := wv.NewNSURLRequest(tempURLSchemeTask.Request())
+	tempNSURL := wv.NewNSURL(request.URL())
+	tempUrl := tempNSURL.AbsoluteString()
+	tempHost := tempNSURL.Host()
+	tempPath := tempNSURL.Path()
+	fmt.Println(tempUrl, tempHost, tempPath)
+	tempHtml, _ := resources.ReadFile("assets/index.html")
+	tempDataBytesLength := int32(len(tempHtml))
+
+	tempHTTPHeader := request.AllHTTPHeaderFields()
+	fmt.Println("tempHTTPHeader:", tempHTTPHeader)
+
+	// 响应对象必须包含所请求资源的 MIME 类型
+	response := wv.NSURLResponseRef.New()
+	response.InitWithURLMIMETypeExpectedContentLengthTextEncodingName(tempNSURL.Data(), "text/html", tempDataBytesLength, "utf-8")
+
+	tempURLSchemeTask.ReceiveResponse(response.Data())
+	tempURLSchemeTask.ReceiveData(uintptr(unsafe.Pointer(&tempHtml[0])), tempDataBytesLength)
+	tempURLSchemeTask.Finish()
+	tempURLSchemeTask.Free()
+	response.Free()
+}
+
+func (m *TMainForm) OnStopURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKURLSchemeTask) {
+	fmt.Println("OnStopURLSchemeTask")
 }
 
 func NewWindow(url string) *TMainForm {
