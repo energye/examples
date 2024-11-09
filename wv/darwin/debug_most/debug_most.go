@@ -164,9 +164,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnCloseQuery")
 		//*canClose = m.canClose
 		m.webview.StopLoading()
-		//m.webview.RemoveAllSubviews()
 		m.webview.RemoveFromSuperview()
-		m.webview.Free()
+		//m.webview.Release()
 		m.webviewParent.Free()
 	})
 }
