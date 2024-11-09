@@ -47,9 +47,28 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetHeight(768)
 	m.SetDoubleBuffered(true)
 
+	// TPopupMenu
+	pm := lcl.NewPopupMenu(m)
+	item := lcl.NewMenuItem(m)
+	item.SetCaption("退出(&E)")
+	item.SetOnClick(func(lcl.IObject) {
+		m.Close()
+	})
+	pm.Items().Add(item)
+	item = lcl.NewMenuItem(m)
+	item.SetCaption("Test")
+	item.SetOnClick(func(lcl.IObject) {
+		fmt.Println("test")
+	})
+	pm.Items().Add(item)
+
+	// 将窗口设置一个弹出菜单，右键单击就可显示
+	m.SetPopupMenu(pm)
+
 	m.webview = wv.NewWkWebview(m)
-	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, data string) {
-		fmt.Println("OnProcessMessage", name)
+	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, message string) {
+		fmt.Println("OnProcessMessage", name, "message:", message)
+		pm.PopUp()
 	})
 	m.webview.SetOnStartProvisionalNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
 		fmt.Println("OnStartProvisionalNavigation")
@@ -112,7 +131,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetOnShow(func(sender lcl.IObject) {
 		fmt.Println("OnShow:", m.url)
 		//m.webview.LoadURL("https://energye.github.io")
-		m.webview.LoadURL("http://localhost:22022/test.html")
+		m.webview.LoadURL("http://localhost:22022/index.html")
 		//m.webview.LoadURL("energy://test.com")
 		//m.webview.LoadURL(m.url)
 		m.ScreenCenter()

@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Index-Title</title>
+    <script>
+        window.addEventListener('contextmenu', contextMenuHandler);
+
+        function contextMenuHandler(event) {
+            let element = event.target;
+            let x = event.clientX;
+            let y = event.clientY;
+            let data = {n:"contextmenu",x: x, y: y}
+            window.webkit.messageHandlers.processMessage.postMessage(JSON.stringify(data))
+            event.preventDefault();
+        }
+    </script>
 </head>
 <body>
 <h2>index.html</h2><br>
-<a href="energy://demo.com/test.html">test.html</a><br>
+<a href="energy://demo.com/test.html">energy://demo.com/test.html</a><br>
+<a href="http://localhost:22022/index.html">http://localhost:22022/index.html</a><br>
 <a href="https://www.baidu.com">baidu</a>
 </body>
 </html>

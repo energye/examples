@@ -203,6 +203,12 @@
                 }
             }
         });
+
+        window.addEventListener('contextmenu', contextMenuHandler);
+        function contextMenuHandler(event) {
+           event.preventDefault();
+        }
+
     })()
     setInterval(function () {
         document.getElementById("kw").value = new Date().getTime()
