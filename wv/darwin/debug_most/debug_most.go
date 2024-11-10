@@ -48,6 +48,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetWidth(800)
 	m.SetHeight(600)
 	m.SetDoubleBuffered(true)
+	m.ScreenCenter()
 
 	// TPopupMenu
 	pm := lcl.NewPopupMenu(m)
@@ -156,7 +157,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		if m.url != "" {
 			m.webview.LoadURL(m.url)
 		}
-		m.ScreenCenter()
 	})
 	m.webview.SetOnWebContentProcessDidTerminate(func(sender wv.IObject) {
 		fmt.Println("OnWebContentProcessDidTerminate")
