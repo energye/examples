@@ -165,7 +165,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//*canClose = m.canClose
 		m.webview.StopLoading()
 		m.webview.RemoveFromSuperview()
-		//m.webview.Release()
+		m.webview.Release()
 		m.webviewParent.Free()
 	})
 }
