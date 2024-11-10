@@ -307,7 +307,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
-	m.webviewParent.SetWebView(m.webview)
+	m.webviewParent.SetWebview(m.webview)
 
 	m.SetOnShow(func(sender lcl.IObject) {
 		fmt.Println("OnShow:", m.url)
