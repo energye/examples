@@ -160,6 +160,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.SetOnWebContentProcessDidTerminate(func(sender wv.IObject) {
 		fmt.Println("OnWebContentProcessDidTerminate")
 	})
+	m.webview.SetOnWebViewDidClose(func(sender wv.IObject) {
+		fmt.Println("OnWebViewDidClose")
+	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 		fmt.Println("OnCloseQuery")
 		//*canClose = m.canClose
