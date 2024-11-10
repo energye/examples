@@ -8,6 +8,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wv/darwin"
+	"path/filepath"
 	"unsafe"
 )
 
@@ -44,8 +45,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	icod, _ := resources.ReadFile("assets/icon.ico")
 	m.Icon().LoadFromBytes(icod)
 	m.SetCaption("Main")
-	m.SetWidth(1024)
-	m.SetHeight(768)
+	m.SetWidth(800)
+	m.SetHeight(600)
 	m.SetDoubleBuffered(true)
 
 	// TPopupMenu
@@ -217,7 +218,10 @@ func (m *TMainForm) OnStartURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKU
 	tempHost := tempNSURL.Host()
 	tempPath := tempNSURL.Path()
 	fmt.Println(tempUrl, tempHost, tempPath)
-	tempHtml, _ := resources.ReadFile("assets/index.html")
+	if tempPath == "" {
+		tempPath = "index.html"
+	}
+	tempHtml, _ := resources.ReadFile(filepath.Join("assets", tempPath))
 	tempDataBytesLength := int32(len(tempHtml))
 
 	tempHTTPHeader := request.AllHTTPHeaderFields()
