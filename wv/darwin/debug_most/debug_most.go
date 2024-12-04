@@ -2,9 +2,11 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"github.com/energye/assetserve"
 	_ "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wv/darwin"
@@ -30,6 +32,7 @@ var resources embed.FS
 
 func main() {
 	httpServer()
+	libname.LibName = "/Users/yanghy/golcl/liblcl_wk_3.0.dylib"
 	wv.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
@@ -70,7 +73,13 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview = wv.NewWkWebview(m)
 	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, message string) {
 		fmt.Println("OnProcessMessage", name, "message:", message)
-		pm.PopUp()
+		messageData := struct {
+			Name string `json:"n"`
+		}{}
+		json.Unmarshal([]byte(message), &messageData)
+		if messageData.Name == "contextmenu" {
+			pm.PopUp()
+		}
 	})
 	m.webview.SetOnStartProvisionalNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
 		fmt.Println("OnStartProvisionalNavigation")

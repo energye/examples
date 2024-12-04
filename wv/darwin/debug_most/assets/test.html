@@ -213,5 +213,16 @@
     setInterval(function () {
         document.getElementById("kw").value = new Date().getTime()
     }, 1000)
+
+    window.addEventListener('contextmenu', contextMenuHandler);
+
+    function contextMenuHandler(event) {
+        let element = event.target;
+        let x = event.clientX;
+        let y = event.clientY;
+        let data = {n:"contextmenu",x: x, y: y}
+        window.webkit.messageHandlers.processMessage.postMessage(JSON.stringify(data))
+        event.preventDefault();
+    }
 </script>
 </html>
