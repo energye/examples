@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/energye/assetserve"
 	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/wv/darwin"
@@ -32,7 +31,6 @@ var resources embed.FS
 
 func main() {
 	httpServer()
-	libname.LibName = "/Users/yanghy/golcl/liblcl_wk_3.0.dylib"
 	wv.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
@@ -137,11 +135,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	configuration.SetApplicationNameForUserAgent("energy.cn")
 	configuration.SetURLSchemeHandlerForURLScheme(URLSchemeHandler.Data(), "energy")
 
-	preference := wv.WKPreferencesRef.New()
+	preference := wv.NewWKPreferences(configuration.Preferences()) //wv.WKPreferencesRef.New()
 	configuration.SetPreferences(preference.Data())
 
 	preference.SetTabFocusesLinks(true)
 	preference.SetFraudulentWebsiteWarningEnabled(true)
+	preference.EnableDevtools()
 
 	navigationDelegate := wv.NewWKNavigationDelegate(m.webview.AsWKNavigationDelegate())
 	UIDelegate := wv.NewWKUIDelegate(m.webview.AsWKUIDelegate())
@@ -166,6 +165,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.webview.LoadURL(m.url)
 		}
 		m.ScreenCenter()
+		//		preference.SetValueForKey(true, "developerExtrasEnabled")
 	})
 	m.webview.SetOnWebContentProcessDidTerminate(func(sender wv.IObject) {
 		fmt.Println("OnWebContentProcessDidTerminate")
