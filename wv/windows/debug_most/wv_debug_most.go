@@ -12,8 +12,8 @@ import (
 	"github.com/energye/examples/wv/windows/debug_most/devtools"
 	"github.com/energye/examples/wv/windows/debug_most/scheme"
 	"github.com/energye/examples/wv/windows/debug_most/utils"
+	"github.com/energye/examples/wv/windows/wv2load"
 	"github.com/energye/lcl/api/exception"
-	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
@@ -42,16 +42,12 @@ func main() {
 	})
 	// GlobalWebView2Loader
 	load = wv.GlobalWebView2Loader()
-	liblcl := libname.LibName
-	webView2Loader, _ := filepath.Split(liblcl)
-	webView2Loader = filepath.Join(webView2Loader, "WebView2Loader.dll")
+	webview2Home, wv2Loader := wv2load.Wv2Load()
 	fmt.Println("当前目录:", exec.CurrentDir)
-	fmt.Println("liblcl.dll目录:", liblcl)
-	fmt.Println("WebView2Loader.dll目录:", webView2Loader)
-	fmt.Println("用户缓存目录:", filepath.Join(exec.CurrentDir, "EnergyCache"))
-	fmt.Println("自定义URL协议头:", scheme.SchemeName)
-	load.SetUserDataFolder(filepath.Join(exec.CurrentDir, "EnergyCache"))
-	load.SetLoaderDllPath(webView2Loader)
+	fmt.Println("WebView2Loader.dll目录:", wv2Loader)
+	fmt.Println("用户缓存目录:", filepath.Join(webview2Home, "webview2Cache"))
+	load.SetUserDataFolder(filepath.Join(webview2Home, "webview2Cache"))
+	load.SetLoaderDllPath(wv2Loader)
 	scheme.LoaderOnCustomSchemes(load)
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)

@@ -36,7 +36,9 @@ func main() {
 	fmt.Println("InheritsFrom：", lcl.Application.Is().Object())
 	fmt.Println("InheritsFrom：", lcl.Application.Is().Component())
 	fmt.Println("InheritsFrom：", lcl.Application.Is().Control())
-	fmt.Println(rtl.LibAbout())
+	fmt.Println("LibAbout:", rtl.LibAbout())
+	major, minor, release, patch, fullVersion, ver := rtl.LCLVersion()
+	fmt.Println("LCLVersion major:", major, "minor:", minor, "release:", release, "patch:", patch, "fullVersion:", fullVersion, "version:", ver)
 
 	guid := rtl.CreateGUID()
 	fmt.Println("guid:", guid)

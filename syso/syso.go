@@ -2,7 +2,6 @@ package syso
 
 import (
 	"go/build"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +14,7 @@ func Chdir(module string) {
 	wd = strings.Replace(wd, module, "", 1)
 	err = os.Chdir(filepath.Join(wd, module))
 	if err != nil {
-		log.Panicln("os.Chdir:", err)
+		println("os.Chdir:", err)
 	}
 }
 
