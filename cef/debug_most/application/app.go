@@ -6,8 +6,9 @@ import (
 	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/lcl/api/exception"
+	"github.com/energye/lcl/inits/config"
 	"github.com/energye/lcl/tools"
-	"os"
+	"github.com/energye/lcl/tools/exec"
 	"path/filepath"
 )
 
@@ -25,10 +26,31 @@ func NewApplication() cef.ICefApplication {
 	if !tools.IsDarwin() {
 		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
 		// 指定 CEF Framework
-		frameworkDir := os.Getenv("ENERGY_HOME")
-		app.SetFrameworkDirPath(frameworkDir)
-		app.SetResourcesDirPath(frameworkDir)
-		app.SetLocalesDirPath(filepath.Join(frameworkDir, "locales"))
+		// 默认 CEF Framework 目录
+		cfg := config.Get()
+		if cfg != nil {
+			libCef := func() string {
+				if tools.IsWindows() {
+					return "libcef.dll"
+				} else if tools.IsLinux() {
+					return "libcef.so"
+				}
+				return ""
+			}()
+			if libCef != "" {
+				setOtherDirPath := func(v string) {
+					app.SetResourcesDirPath(v)
+					app.SetLocalesDirPath(filepath.Join(v, "locales"))
+				}
+				if tools.IsExist(filepath.Join(exec.Dir, libCef)) {
+					app.SetFrameworkDirPath(exec.Dir)
+					setOtherDirPath(exec.Dir)
+				} else if frameworkDir := cfg.FrameworkPath(); tools.IsExist(filepath.Join(frameworkDir, libCef)) {
+					app.SetFrameworkDirPath(frameworkDir)
+					setOtherDirPath(frameworkDir)
+				}
+			}
+		}
 	}
 	return app
 }
