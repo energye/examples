@@ -3,19 +3,17 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/examples/cef/debug_most/application"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/tools"
-	"os"
-	"path/filepath"
 )
 
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	app := cef.NewCefApplication()
-	cef.SetGlobalCEFApp(app)
+	app := application.NewApplication()
 	// CEF message loop
 	app.SetExternalMessagePump(false)
 	app.SetMultiThreadedMessageLoop(false)
@@ -33,13 +31,6 @@ func main() {
 			app.Free()
 			return
 		}
-	} else { // MacOS不需要设置CEF框架目录，它是一个固定的目录结构
-		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录则不需要设置
-		// 指定 CEF Framework
-		frameworkDir := os.Getenv("ENERGY_HOME")
-		app.SetFrameworkDirPath(frameworkDir)
-		app.SetResourcesDirPath(frameworkDir)
-		app.SetLocalesDirPath(filepath.Join(frameworkDir, "locales"))
 	}
 	if tools.IsLinux() {
 		// 这是一个解决“GPU不可用错误”问题的方法 linux
