@@ -30,7 +30,6 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.SetHeight(200)
 	// 全局设置提示
 	f.SetShowHint(true)
-
 	// 动态创建
 	f.initComponents()
 	f.SetOnWndProc(func(msg *types.TMessage) {
