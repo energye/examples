@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	libname.LibName = ""
+	libname.LibName = "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout\\liblcl.dll"
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&src.MainForm)
+	lcl.Application.NewForm(&src.MainForm)
 	lcl.Application.Run()
 }
 
