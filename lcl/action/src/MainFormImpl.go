@@ -33,6 +33,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.SetShowHint(true)
 	// 动态创建
 	f.initComponents()
+	return
 	f.SetOnWndProc(func(sender lcl.IObject, msg *types.TLMessage) {
 		f.InheritedWndProc(msg)
 		if msg.Msg == messages.WM_HOTKEY {
