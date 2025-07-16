@@ -32,19 +32,13 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.SetShowHint(true)
 	// 动态创建
 	f.initComponents()
-	//f.SetOnWndProc(func(msg *types.TLMessage) {
-	//	f.InheritedWndProc(msg)
-	//	if msg.Msg == messages.WM_HOTKEY {
-	//		v := f.Visible()
-	//		if v {
-	//			f.Hide()
-	//		} else {
-	//			f.Show()
-	//		}
-	//	}
-	//})
+	f.SetOnWndProc(func(msg *types.TLMessage) {
+		fmt.Println("SetOnWndProc")
+		f.InheritedWndProc(msg)
+	})
 	f.SetOnClose(func(sender lcl.IObject, action *types.TCloseAction) {
 		//win.UnregisterHotKey(f.Handle(), 1)
+		fmt.Println("OnClose", *action)
 	})
 	//win.RegisterHotKey(f.Handle(), 1, win.MOD_ALT|win.MOD_CONTROL, keys.VkH)
 	go func() {
