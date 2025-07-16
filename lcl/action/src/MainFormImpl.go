@@ -2,13 +2,14 @@ package src
 
 import (
 	"fmt"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	ImgList  lcl.IImageList
 	ActList  lcl.IActionList
 	Tlbar    lcl.IToolBar
@@ -32,7 +33,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.SetShowHint(true)
 	// 动态创建
 	f.initComponents()
-	f.SetOnWndProc(func(msg *types.TMessage) {
+	f.SetOnWndProc(func(sender lcl.IObject, msg *types.TLMessage) {
 		f.InheritedWndProc(msg)
 		if msg.Msg == messages.WM_HOTKEY {
 			v := f.Visible()
@@ -58,7 +59,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 }
 
 func (f *TMainForm) OnActExecute(sender lcl.IObject) {
-	lcl.ShowMessage("点击了action")
+	api.ShowMessage("点击了action")
 }
 
 func (f *TMainForm) OnActUpdate(sender lcl.IObject) {
