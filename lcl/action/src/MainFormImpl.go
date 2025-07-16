@@ -5,7 +5,6 @@ import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/messages"
 )
 
 type TMainForm struct {
@@ -33,18 +32,17 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.SetShowHint(true)
 	// 动态创建
 	f.initComponents()
-	return
-	f.SetOnWndProc(func(sender lcl.IObject, msg *types.TLMessage) {
-		f.InheritedWndProc(msg)
-		if msg.Msg == messages.WM_HOTKEY {
-			v := f.Visible()
-			if v {
-				f.Hide()
-			} else {
-				f.Show()
-			}
-		}
-	})
+	//f.SetOnWndProc(func(msg *types.TLMessage) {
+	//	f.InheritedWndProc(msg)
+	//	if msg.Msg == messages.WM_HOTKEY {
+	//		v := f.Visible()
+	//		if v {
+	//			f.Hide()
+	//		} else {
+	//			f.Show()
+	//		}
+	//	}
+	//})
 	f.SetOnClose(func(sender lcl.IObject, action *types.TCloseAction) {
 		//win.UnregisterHotKey(f.Handle(), 1)
 	})
