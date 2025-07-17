@@ -49,15 +49,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.Button1.SetLeft(50)
 	m.Button1.SetTop(50)
 	m.Button1.SetOnClick(m.OnButton1Click)
-
-	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-		var buttons types.TMsgDlgButtons
-		buttons = types.NewSet(types.MbYes)
-		*canClose = api.MessageDlg("是否退出？", types.MtConfirmation, buttons, types.MbNo) == types.IdYes
-	})
 }
 
-func (f *TMainForm) OnFormCloseQuery(Sender lcl.IObject, CanClose *bool) {
+func (f *TMainForm) OnCloseQuery(Sender lcl.IObject, CanClose *bool) {
 	var buttons types.TMsgDlgButtons
 	buttons = types.NewSet(types.MbYes)
 	*CanClose = api.MessageDlg("是否退出？", types.MtConfirmation, buttons, types.MbNo) == types.IdYes
