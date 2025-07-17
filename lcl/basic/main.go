@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1 lcl.IButton
 }
 
 type TForm1 struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1 lcl.IButton
 }
 
@@ -23,8 +23,12 @@ var (
 	form1    TForm1
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm, &form1)
 }
 
@@ -45,16 +49,23 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.Button1.SetLeft(50)
 	m.Button1.SetTop(50)
 	m.Button1.SetOnClick(m.OnButton1Click)
+
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+		var buttons types.TMsgDlgButtons
+		buttons = types.NewSet(types.MbYes)
+		*canClose = api.MessageDlg("是否退出？", types.MtConfirmation, buttons, types.MbNo) == types.IdYes
+	})
 }
 
 func (f *TMainForm) OnFormCloseQuery(Sender lcl.IObject, CanClose *bool) {
-	*CanClose = lcl.MessageDlg("是否退出？", types.MtConfirmation, types.MbYes, types.MbNo) == types.IdYes
+	var buttons types.TMsgDlgButtons
+	buttons = types.NewSet(types.MbYes)
+	*CanClose = api.MessageDlg("是否退出？", types.MtConfirmation, buttons, types.MbNo) == types.IdYes
 }
 
 func (f *TMainForm) OnButton1Click(object lcl.IObject) {
 	form1.Show()
 	fmt.Println("清除事件")
-	//f.Button1.SetOnClick(nil)
 	f.Button1.SetOnClick(f.OnButton1Click)
 	fmt.Println("更换事件")
 	f.Button1.SetOnClick(f.OnButton2Click)
@@ -76,5 +87,5 @@ func (f *TForm1) FormCreate(sender lcl.IObject) {
 }
 
 func (f *TForm1) OnButton1Click(object lcl.IObject) {
-	lcl.ShowMessage("Click")
+	api.ShowMessage("Click")
 }

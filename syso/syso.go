@@ -1,6 +1,7 @@
 package syso
 
 import (
+	"github.com/energye/lcl/api/libname"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -27,4 +28,8 @@ func importPathToDir(importPath string) (string, error) {
 		return "", err
 	}
 	return p.Dir, nil
+}
+
+func TestLoadLibPath() {
+	libname.LibName = "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout\\liblcl.dll"
 }
