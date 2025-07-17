@@ -2,22 +2,22 @@ package main
 
 import (
 	"fmt"
+	. "github.com/energye/examples/syso"
 	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type Form1 struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 type Form2 struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 type Form3 struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var (
@@ -26,12 +26,17 @@ var (
 	form3 Form3
 )
 
+func init() {
+	TestLoadLibPath()
+	Chdir("lcl/createflow")
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	// 创建Form 按参数顺序执行 FormCreate 回调函数
-	lcl.Application.CreateForm(&form1, &form2, &form3)
+	lcl.Application.NewForms(&form1, &form2, &form3)
 	lcl.Application.Run()
 }
 
