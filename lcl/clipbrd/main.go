@@ -11,13 +11,13 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	btn  lcl.IButton
 	btn2 lcl.IButton
 	btn3 lcl.IButton
@@ -29,13 +29,14 @@ type TMainForm struct {
 var mainForm TMainForm
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/clipbrd")
 }
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
 }
 
@@ -88,7 +89,7 @@ func (f *TMainForm) onBtnClick(sender lcl.IObject) {
 
 func (f *TMainForm) onBtn2Click(sender lcl.IObject) {
 	str := ""
-	lcl.Clipboard.GetTextBuf(&str, 1000) // buff不够长
+	lcl.ClipboardHelper.GetTextBuf(lcl.Clipboard, &str, 1000) // buff不够长
 	fmt.Println("len2:", len(str), str)
 }
 
@@ -104,16 +105,16 @@ func (f *TMainForm) onBtn4Click(sender lcl.IObject) {
 	mem.SetPosition(0)
 
 	// 注册自定义的格式
-	//lcl.RegisterClipboardFormat()
+	//api.RegisterClipboardFormat()
 
 	// 预定义格式
-	format := lcl.PredefinedClipboardFormat(types.PcfBitmap)
+	format := api.PredefinedClipboardFormat(types.PcfBitmap)
 	fmt.Println("format:", format)
 
 	if !lcl.Clipboard.SetFormat(format, mem) {
-		lcl.ShowMessage("设置格式失败")
+		api.ShowMessage("设置格式失败")
 	} else {
-		lcl.ShowMessage("设置成功")
+		api.ShowMessage("设置成功")
 	}
 }
 
