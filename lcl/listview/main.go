@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -12,14 +11,15 @@ import (
 	"strings"
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
-	lcl.Application.SetOnException(func(sender lcl.IObject, e lcl.IException) {
-
-	})
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Hello")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.SetWidth(500)
@@ -27,7 +27,7 @@ func main() {
 	// 双缓冲
 	mainForm.SetDoubleBuffered(true)
 
-	imgList := lcl.NewImageList(mainForm)
+	imgList := lcl.NewImageList(&mainForm)
 	if runtime.GOOS == "windows" {
 		icon := lcl.NewIcon()
 		icon.LoadFromResourceName(rtl.MainInstance(), "MAINICON")
@@ -35,8 +35,8 @@ func main() {
 		icon.Free()
 	}
 
-	lv1 := lcl.NewListView(mainForm)
-	lv1.SetParent(mainForm)
+	lv1 := lcl.NewListView(&mainForm)
+	lv1.SetParent(&mainForm)
 	lv1.SetAlign(types.AlTop)
 	lv1.SetRowSelect(true)
 	lv1.SetReadOnly(true)
@@ -45,11 +45,11 @@ func main() {
 	//lv1.SetColumnClick(false)
 	lv1.SetHideSelection(false)
 
-	col := lcl.AsListColumn(lv1.Columns().Add())
+	col := lv1.Columns().AddToListColumn()
 	col.SetCaption("序号")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(lv1.Columns().Add())
+	col = lv1.Columns().AddToListColumn()
 	col.SetCaption("项目1")
 	col.SetWidth(200)
 	lv1.SetOnClick(func(lcl.IObject) {
@@ -72,24 +72,18 @@ func main() {
 
 	lv1.SetOnColumnClick(func(sender lcl.IObject, column lcl.IListColumn) {
 		fmt.Println("index:", column.Index())
-		// 按柱头索引排序, lcl兼容版第二个参数永远为 column
-		lv1.CustomSort(func(item1, item2 lcl.IListItem, optionalParam uint32) int32 {
-			if optionalParam == 0 {
-				return int32(strings.Compare(item1.Caption(), item2.Caption()))
-			} else {
-				return int32(strings.Compare(item1.SubItems().Strings(int32(optionalParam-1)), item2.SubItems().Strings(int32(optionalParam-1))))
-			}
-		}, uint32(column.Index()))
+		lv1.SetSortType(types.StData)
+		lv1.Sort()
 	})
 
-	//lv1.SetOnCompare(func(sender lcl.IObject, item1, item2 lcl.IListItem, data int32, compare *int32) {
-	//	fmt.Println("SetOnCompare", data)
-	//	if data == 0 {
-	//		*compare = int32(strings.Compare(item1.Caption(), item2.Caption()))
-	//	} else {
-	//		*compare = int32(strings.Compare(item1.SubItems().Strings(data-1), item2.SubItems().Strings(data-1)))
-	//	}
-	//})
+	lv1.SetOnCompare(func(sender lcl.IObject, item1, item2 lcl.IListItem, data int32, compare *int32) {
+		//fmt.Println("SetOnCompare", data)
+		if data == 0 {
+			*compare = int32(strings.Compare(item1.Caption(), item2.Caption()))
+		} else {
+			*compare = int32(strings.Compare(item1.SubItems().Strings(data-1), item2.SubItems().Strings(data-1)))
+		}
+	})
 
 	//	lv1.Clear()
 	lv1.Items().BeginUpdate()
@@ -103,8 +97,8 @@ func main() {
 
 	// icon样式
 
-	lv2 := lcl.NewListView(mainForm)
-	lv2.SetParent(mainForm)
+	lv2 := lcl.NewListView(&mainForm)
+	lv2.SetParent(&mainForm)
 	lv2.SetAlign(types.AlTop)
 	//lv2.SetRowSelect(true)
 	//lv2.SetReadOnly(true)
@@ -137,8 +131,8 @@ func main() {
 	lv2.Items().EndUpdate()
 
 	// lv3
-	lv3 := lcl.NewListView(mainForm)
-	lv3.SetParent(mainForm)
+	lv3 := lcl.NewListView(&mainForm)
+	lv3.SetParent(&mainForm)
 	lv3.SetAlign(types.AlClient)
 	lv3.SetRowSelect(true)
 	lv3.SetReadOnly(true)
@@ -147,10 +141,10 @@ func main() {
 	// 失去焦点不隐藏选择的
 	lv3.SetHideSelection(false)
 
-	col = lcl.AsListColumn(lv3.Columns().Add())
+	col = lv3.Columns().AddToListColumn()
 	col.SetCaption("序号")
 	col.SetWidth(100)
-	col = lcl.AsListColumn(lv3.Columns().Add())
+	col = lv3.Columns().AddToListColumn()
 	col.SetCaption("Sub1")
 	col.SetWidth(100)
 
@@ -179,10 +173,10 @@ func main() {
 	}
 	lv3.Items().EndUpdate()
 
-	pnlbottom := lcl.NewPanel(mainForm)
-	pnlbottom.SetParent(mainForm)
+	pnlbottom := lcl.NewPanel(&mainForm)
+	pnlbottom.SetParent(&mainForm)
 	pnlbottom.SetAlign(types.AlBottom)
-	btnTest := lcl.NewButton(mainForm)
+	btnTest := lcl.NewButton(&mainForm)
 	btnTest.SetParent(pnlbottom)
 	btnTest.SetCaption("SetSelected")
 	btnTest.SetWidth(120)
@@ -197,7 +191,7 @@ func main() {
 		}
 	})
 
-	btnTest2 := lcl.NewButton(mainForm)
+	btnTest2 := lcl.NewButton(&mainForm)
 	btnTest2.SetParent(pnlbottom)
 	btnTest2.SetTop(10)
 	btnTest2.SetLeft(btnTest.Left() + btnTest.Width() + 10)
@@ -206,11 +200,11 @@ func main() {
 	btnTest2.SetOnClick(func(sender lcl.IObject) {
 		if lv1.SelCount() > 0 {
 			fmt.Println("click delete")
-			lv1.DeleteSelected()
+			lv1.Items().Delete(lv1.ItemIndex())
 		}
 	})
 
-	btnTest3 := lcl.NewButton(mainForm)
+	btnTest3 := lcl.NewButton(&mainForm)
 	btnTest3.SetParent(pnlbottom)
 	btnTest3.SetTop(10)
 	btnTest3.SetLeft(btnTest2.Left() + btnTest2.Width() + 10)
