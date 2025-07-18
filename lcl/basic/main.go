@@ -34,10 +34,10 @@ func main() {
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("TMainForm FormCreate")
-	//m.SetOnWndProc(func(msg *types.TMessage) {
-	//	m.InheritedWndProc(msg)
-	//	fmt.Println("msg", msg)
-	//})
+	m.SetOnWndProc(func(msg *types.TMessage) {
+		m.InheritedWndProc(msg)
+		fmt.Println("msg", msg)
+	})
 	m.SetCaption("Hello")
 	m.EnabledMaximize(false)
 	m.WorkAreaCenter()

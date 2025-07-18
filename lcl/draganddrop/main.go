@@ -2,19 +2,23 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Drap And Drop")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.EnabledMaximize(false)
@@ -22,8 +26,8 @@ func main() {
 	mainForm.SetHeight(400)
 
 	// tv 演示自身内的拖放
-	tv := lcl.NewTreeView(mainForm)
-	tv.SetParent(mainForm)
+	tv := lcl.NewTreeView(&mainForm)
+	tv.SetParent(&mainForm)
 	tv.SetAlign(types.AlLeft)
 	tv.SetWidth(250)
 	tv.SetDragMode(types.DmAutomatic)
@@ -59,8 +63,8 @@ func main() {
 	tv.Items().EndUpdate()
 
 	// 演示从tv拖到tv2
-	tv2 := lcl.NewTreeView(mainForm)
-	tv2.SetParent(mainForm)
+	tv2 := lcl.NewTreeView(&mainForm)
+	tv2.SetParent(&mainForm)
 	tv2.SetAlign(types.AlRight)
 	tv2.SetWidth(250)
 	tv2.SetDragMode(types.DmAutomatic)

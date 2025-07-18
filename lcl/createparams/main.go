@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1 lcl.IButton
 }
 
 type TForm1 struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1 lcl.IButton
 }
 
@@ -23,13 +23,16 @@ var (
 	form1    TForm1
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm, &form1)
 }
 
 func (f *TMainForm) FormCreate(sender lcl.IObject) {
-
 	f.SetCaption("Hello")
 	f.EnabledMaximize(false)
 	f.SetWidth(300)
@@ -64,7 +67,7 @@ func (f *TForm1) FormCreate(sender lcl.IObject) {
 }
 
 func (f *TForm1) OnButton1Click(object lcl.IObject) {
-	lcl.ShowMessage("Click")
+	api.ShowMessage("Click")
 }
 
 // 可以窗口创建前修改一些样式等操作，被动调用
