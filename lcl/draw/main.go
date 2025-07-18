@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -21,10 +20,11 @@ var (
 )
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/draw")
 }
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 
@@ -36,7 +36,8 @@ func main() {
 		jpgimg.LoadFromFile(jpgFileName)
 	}
 
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Hello")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.SetWidth(600)
@@ -50,8 +51,8 @@ func main() {
 
 	mainForm.SetOnPaint(func(lcl.IObject) {
 		canvas := mainForm.Canvas()
-		canvas.MoveTo(10, 10)
-		canvas.LineTo(50, 10)
+		canvas.MoveToWithIntegerX2(10, 10)
+		canvas.LineToWithIntegerX2(50, 10)
 		s := "这是一段文字"
 		font := lcl.AsFont(canvas.Font())
 		brush := lcl.AsBrush(canvas.Brush())
@@ -60,22 +61,21 @@ func main() {
 		font.SetSize(20)
 		//style := font.Style()
 		canvas.Brush().SetStyle(types.BsClear)
-		canvas.TextOut(100, 30, s)
-		fmt.Println("canvas.Font()", font.Height(), canvas.Font().Size())
+		canvas.TextOutWithIntegerX2Unicodestring(100, 30, s)
+		//fmt.Println("canvas.Font()", font.Height(), canvas.Font().Size())
 
-		r := &types.TRect{0, 0, 80, 80}
+		r := types.TRect{0, 0, 80, 80}
 
 		// 计算文字
 		//fmt.Println("TfSingleLine: ", types.TfSingleLine)
 		s = "由于现有第三方的Go UI库不是太庞大就是用的不习惯，或者组件太少。"
-		canvas.TextRect2(r, s, types.NewSet(types.TfCenter, types.TfVerticalCenter, types.TfSingleLine))
-		//fmt.Println("r: ", r, ", s: ", s)
+		canvas.TextRectWithRectIntegerX2String(r, 0, 0, s)
 
 		s = "测试输出"
-		r = &types.TRect{0, 0, 80, 80}
+		r = types.TRect{0, 0, 80, 80}
 		// brush
 		brush.SetColor(colors.ClGreen)
-		canvas.FillRect(r)
+		canvas.FillRectWithRect(r)
 
 		// font
 		font.SetStyle(0)
@@ -84,13 +84,12 @@ func main() {
 
 		// pen
 		pen.SetColor(colors.ClFuchsia)
-		canvas.Rectangle1(r.Left, r.Top, r.Right, r.Bottom)
+		canvas.RectangleWithIntegerX4(r.Left, r.Top, r.Right, r.Bottom)
 
-		textFmt := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
-		canvas.TextRect2(r, s, textFmt)
+		canvas.TextRectWithRectIntegerX2StringTextStyle(r, 0, 0, s, lcl.TTextStyle{})
 
 		if jpgimg != nil {
-			canvas.DrawForGraphic(0, 80, jpgimg)
+			canvas.DrawWithIntegerX2Graphic(0, 80, jpgimg)
 		}
 
 		// 画多边形
@@ -99,8 +98,8 @@ func main() {
 		//canvas.Polyline([]types.TPoint{{15 + 100, 40}, {43 + 100, 123}, {81 + 100, 42}, {45 + 100, 11}})
 	})
 
-	paintbox := lcl.NewPaintBox(mainForm)
-	paintbox.SetParent(mainForm)
+	paintbox := lcl.NewPaintBox(&mainForm)
+	paintbox.SetParent(&mainForm)
 	paintbox.SetAlign(types.AlBottom)
 	paintbox.SetHeight(mainForm.Height() - 280)
 	//paintbox.SetColor(colors.ClRed)
@@ -110,19 +109,19 @@ func main() {
 		pen.SetColor(colors.ClGreen)
 		font := lcl.AsFont(canvas.Font())
 		r := paintbox.ClientRect()
-		canvas.Rectangle(&r)
+		canvas.RectangleWithRect(r)
 
 		font.SetColor(colors.ClSkyblue)
 		rect := paintbox.ClientRect()
 		s := "在这可以用鼠标绘制"
-		textFmt := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
-		canvas.TextRect2(&rect, s, textFmt)
+		//textFmt := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
+		canvas.TextRectWithRectIntegerX2StringTextStyle(rect, 0, 0, s, lcl.TTextStyle{})
 
 		for _, p := range points {
 			if p.Down {
-				canvas.MoveTo(p.X, p.Y)
+				canvas.MoveToWithIntegerX2(p.X, p.Y)
 			} else {
-				canvas.LineTo(p.X, p.Y)
+				canvas.LineToWithIntegerX2(p.X, p.Y)
 			}
 		}
 
@@ -150,8 +149,8 @@ func main() {
 		}
 	})
 
-	btnClear := lcl.NewButton(mainForm)
-	btnClear.SetParent(mainForm)
+	btnClear := lcl.NewButton(&mainForm)
+	btnClear.SetParent(&mainForm)
 	btnClear.SetCaption("清除绘制")
 	btnClear.SetLeft(mainForm.Width() - btnClear.Width() - 20)
 	btnClear.SetTop(10)

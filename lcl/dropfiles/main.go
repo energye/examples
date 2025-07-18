@@ -2,19 +2,22 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var mainForm TMainForm
 
+func init() {
+
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 
@@ -28,12 +31,10 @@ func (f *TMainForm) FormCreate(object lcl.IObject) {
 	// allow drop file
 	f.SetAllowDropFiles(true)
 
-	// windows10没生效，有待研究
-	//windowsUACMessageFilter(f.Handle())
-	f.SetOnDropFiles(func(sender lcl.IObject, fileNames []string) {
-		fmt.Println("当前拖放文件事件执行，文件数：", len(fileNames))
-		for i, s := range fileNames {
-			fmt.Println("index:", i, ", filename:", s)
+	f.SetOnDropFiles(func(sender lcl.IObject, fileNames lcl.IStringArray) {
+		fmt.Println("当前拖放文件事件执行，文件数：", fileNames.Count())
+		for i := 0; i < fileNames.Count(); i++ {
+			fmt.Println("index:", i, ", filename:", fileNames.GetValue(i))
 		}
 	})
 }

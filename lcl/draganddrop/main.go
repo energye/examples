@@ -46,6 +46,7 @@ func main() {
 	tv.SetOnEndDrag(func(sender, target lcl.IObject, x, y int32) {
 		if target != nil {
 			node := tv.GetNodeAt(x, y)
+			fmt.Println("node:", node.Text())
 			selnode := tv.Selected()
 			if node != nil && selnode != nil {
 				selnode.MoveTo(node, types.NaInsert) // NaAdd
