@@ -4,26 +4,26 @@ import (
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"time"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var mainForm TMainForm
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/stdcontrols")
 }
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	// run
 	lcl.Application.Run()
 }
@@ -96,11 +96,11 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	// 不知道从哪个版开始，默认变成了true了
 	stat.SetSimplePanel(false)
 	//stat.SetSizeGrip(true) // 右下角是否有可调的
-	spnl := lcl.AsStatusPanel(stat.Panels().Add())
+	spnl := stat.Panels().AddToStatusPanel()
 	spnl.SetText("第一个")
 	spnl.SetWidth(80)
 
-	spnl = lcl.AsStatusPanel(stat.Panels().Add())
+	spnl = stat.Panels().AddToStatusPanel()
 	spnl.SetText("第二个")
 	spnl.SetWidth(80)
 
@@ -288,8 +288,8 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 
 	top += mdtp.Height() + 10
-	dtp.SetDateTime(types.TDateTime(api.DUnixToDateTime(time.Now().Add(time.Hour * 48).Unix())))
-	dtp.SetDate(types.TDate(api.DUnixToDateTime(time.Now().AddDate(1, 0, 0).Unix())))
+	dtp.SetDateTime(api.UnixToDateTime(time.Now().Add(time.Hour * 48).Unix()))
+	dtp.SetDate(api.UnixToDateTime(time.Now().AddDate(1, 0, 0).Unix()))
 
 	fmt.Println("time: ", mdtp.Date(), dtp.DateTime())
 
