@@ -2,9 +2,8 @@ package form
 
 import (
 	"fmt"
-
-	. "github.com/energye/lcl/lcl"
-	. "github.com/energye/lcl/types"
+	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 type TPlayListItem struct {
@@ -16,34 +15,34 @@ type TPlayListItem struct {
 }
 
 type TPlayControl struct {
-	IDrawGrid
+	lcl.IDrawGrid
 	datas          []TPlayListItem
-	focusedColor   TColor
-	playColor      TColor
-	mouseMoveColor TColor
+	focusedColor   types.TColor
+	playColor      types.TColor
+	mouseMoveColor types.TColor
 	mouseMoveIndex int32
 	playingIndex   int32
-	singerPicR     TRect
-	singerPic      *TBitmap
+	singerPicR     types.TRect
+	singerPic      *lcl.TBitmap
 }
 
-func NewPlayControl(owner IComponent) *TPlayControl {
+func NewPlayControl(owner lcl.IComponent) *TPlayControl {
 	m := new(TPlayControl)
-	m.IDrawGrid = NewDrawGrid(owner)
+	m.IDrawGrid = lcl.NewDrawGrid(owner)
 	m.IDrawGrid.SetDefaultDrawing(false)
 	m.IDrawGrid.SetDefaultRowHeight(24)
-	m.IDrawGrid.SetOptions(NewSet(GoRangeSelect, GoRowSelect))
+	m.IDrawGrid.SetOptions(types.NewSet(types.GoRangeSelect, types.GoRowSelect))
 	m.IDrawGrid.SetRowCount(1)
 	m.IDrawGrid.SetColCount(4)
 	m.IDrawGrid.SetFixedRows(0)
 	m.IDrawGrid.SetFixedCols(0)
 	m.IDrawGrid.SetGridLineWidth(0)
-	m.IDrawGrid.SetBorderStyle(BsNone)
-	m.IDrawGrid.SetScrollBars(SsVertical)
+	m.IDrawGrid.SetBorderStyleToBorderStyle(types.BsNone)
+	m.IDrawGrid.SetScrollBars(types.SsVertical)
 	m.IDrawGrid.SetWidth(536)
 	m.IDrawGrid.SetHeight(397)
 	// 加载时取消第一行永远被选中
-	m.IDrawGrid.SetSelection(&TGridRect{24, 24, 24, 24})
+	m.IDrawGrid.SetSelection(types.TGridRect{Left: 24, Top: 24, Right: 24, Bottom: 24})
 	m.IDrawGrid.SetColWidths(0, int32(float32(m.Width())*0.1))
 	m.IDrawGrid.SetColWidths(1, int32(float32(m.Width())*0.4))
 	m.IDrawGrid.SetColWidths(2, int32(float32(m.Width())*0.2))
@@ -71,17 +70,17 @@ func (p *TPlayControl) Add(item TPlayListItem) int32 {
 	return int32(len(p.datas)) - 1
 }
 
-func (p *TPlayControl) onDrawCell(sender IObject, aCol, aRow int32, rect TRect, state TGridDrawState) {
+func (p *TPlayControl) onDrawCell(sender lcl.IObject, aCol, aRow int32, rect types.TRect, state types.TGridDrawState) {
 	if len(p.datas) > 0 {
 		canvas := p.Canvas()
-		brush := AsBrush(canvas.Brush())
-		font := AsFont(canvas.Font())
+		brush := canvas.BrushToBrush()
+		font := canvas.FontToFont()
 		if aRow < int32(len(p.datas)) {
-			drawFlags := NewSet(TfVerticalCenter, TfSingleLine, TfEndEllipsis)
+			//drawFlags := types.NewSet(types.TfVerticalCenter, types.TfSingleLine, types.TfEndEllipsis)
 			item := p.datas[int(aRow)]
-			if p.mouseMoveIndex == aRow && p.playingIndex != aRow && !state.In(GdFocused) && !state.In(GdSelected) {
+			if p.mouseMoveIndex == aRow && p.playingIndex != aRow && !state.In(types.GdFocused) && !state.In(types.GdSelected) {
 				brush.SetColor(p.focusedColor - 12)
-			} else if state.In(GdFocused) || state.In(GdSelected) {
+			} else if state.In(types.GdFocused) || state.In(types.GdSelected) {
 				brush.SetColor(p.focusedColor)
 			} else {
 				brush.SetColor(p.Color())
@@ -96,11 +95,10 @@ func (p *TPlayControl) onDrawCell(sender IObject, aCol, aRow int32, rect TRect, 
 			} else {
 				p.SetRowHeights(aRow, 24)
 			}
-			canvas.FillRect(&rect)
+			canvas.FillRectWithRect(rect)
 			r := p.CellRect(aCol, aRow)
 			switch aCol {
 			case 0:
-
 				if aRow == p.playingIndex {
 					if !p.singerPicR.IsEmpty() {
 						r.Left += 1
@@ -111,42 +109,42 @@ func (p *TPlayControl) onDrawCell(sender IObject, aCol, aRow int32, rect TRect, 
 				} else {
 					r.Inflate(-10, 0)
 					s := fmt.Sprintf("%d.", aRow+1)
-					canvas.TextRect2(&r, s, drawFlags.Include(TfRight))
+					canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, s, lcl.TTextStyle{})
 				}
 
 			case 1:
 				if aRow == p.playingIndex {
 					r.Inflate(-10, 0)
-					canvas.Font().SetSize(12)
-					font.SetStyle(NewSet(FsBold))
-					canvas.TextRect2(&r, item.Caption, drawFlags)
+					canvas.FontToFont().SetSize(12)
+					font.SetStyle(types.NewSet(types.FsBold))
+					canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, item.Caption, lcl.TTextStyle{})
 				} else {
 					r.Inflate(-5, 0)
-					canvas.TextRect2(&r, item.Caption, drawFlags)
+					canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, item.Caption, lcl.TTextStyle{})
 				}
-				canvas.Font().SetSize(9)
+				canvas.FontToFont().SetSize(9)
 				font.SetStyle(0)
 			case 2:
 				r.Inflate(-5, 0)
-				canvas.TextRect2(&r, item.Singer, drawFlags)
+				canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, item.Singer, lcl.TTextStyle{})
 			case 3:
 				r.Inflate(-5, 0)
-				canvas.TextRect2(&r, p.mediaLengthToTimeStr(item.Length), drawFlags.Include(TfRight))
+				canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, p.mediaLengthToTimeStr(item.Length), lcl.TTextStyle{})
 			}
 		}
 
 	} else {
-		AsBrush(p.Canvas().Brush()).SetColor(p.Color())
-		p.Canvas().FillRect(&rect)
+		p.Canvas().BrushToBrush().SetColor(p.Color())
+		p.Canvas().FillRectWithRect(rect)
 	}
 }
 
-func (p *TPlayControl) onMouseMove(sender IObject, shift TShiftState, x, y int32) {
+func (p *TPlayControl) onMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
 	if !p.Enabled() {
 		return
 	}
 	var col, row int32
-	p.MouseToCell1(x, y, &col, &row)
+	p.MouseToCellWithIntX4(x, y, &col, &row)
 	p.mouseMoveIndex = row
 	if p.mouseMoveIndex == -1 {
 		return
@@ -154,11 +152,11 @@ func (p *TPlayControl) onMouseMove(sender IObject, shift TShiftState, x, y int32
 	p.Invalidate()
 }
 
-func (p *TPlayControl) onMouseDown(sender IObject, button TMouseButton, shift TShiftState, x, y int32) {
+func (p *TPlayControl) onMouseDown(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 
 }
 
-func (p *TPlayControl) onDblClick(sender IObject) {
+func (p *TPlayControl) onDblClick(sender lcl.IObject) {
 	if !p.Enabled() {
 		return
 	}
@@ -170,11 +168,11 @@ func (p *TPlayControl) onDblClick(sender IObject) {
 	p.Invalidate()
 }
 
-func (p *TPlayControl) onMouseEnter(sender IObject) {
+func (p *TPlayControl) onMouseEnter(sender lcl.IObject) {
 
 }
 
-func (p *TPlayControl) onMouseLeave(sender IObject) {
+func (p *TPlayControl) onMouseLeave(sender lcl.IObject) {
 	if !p.Enabled() {
 		return
 	}
