@@ -28,5 +28,4 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetCaption("frameless")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetBorderStyleToFormBorderStyle(types.BsNone)
-	m.SetBorderStyleToBorderStyle()
 }

@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/rtl"
@@ -14,28 +14,26 @@ import (
 )
 
 var (
-	mainForm lcl.IForm
+	mainForm lcl.TEngForm
 	trayicon lcl.ITrayIcon
 )
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/golcl")
 }
 
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	// 异常捕获
 	defer func() {
 		err := recover()
 		if err != nil {
 			fmt.Println("Exception: ", err)
-			lcl.ShowMessage(err.(error).Error())
+			api.ShowMessage(err.(error).Error())
 		}
 	}()
 
-	fmt.Println("InheritsFrom：", lcl.Application.Is().Object())
-	fmt.Println("InheritsFrom：", lcl.Application.Is().Component())
-	fmt.Println("InheritsFrom：", lcl.Application.Is().Control())
 	fmt.Println("LibAbout:", rtl.LibAbout())
 	major, minor, release, patch, fullVersion, ver := rtl.LCLVersion()
 	fmt.Println("LCLVersion major:", major, "minor:", minor, "release:", release, "patch:", patch, "fullVersion:", fullVersion, "version:", ver)
@@ -49,16 +47,12 @@ func main() {
 	fmt.Println("main")
 
 	lcl.Application.Initialize()
-	lcl.Application.SetOnException(func(sender lcl.IObject, e lcl.IException) {
-		fmt.Println("exception:", e.Message())
-	})
-
 	lcl.Application.SetTitle("Hello World! 系统信息：" + version.OSVersion.ToString())
 	lcl.Application.SetMainFormOnTaskBar(true)
 	// 窗口自动根据系统绽放，默认为false
 	//lcl.Application.SetScaled(true)
 
-	mainForm = lcl.Application.CreateForm()
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetWidth(800)
 	mainForm.SetHeight(600)
 	mainForm.SetOnClose(func(Sender lcl.IObject, Action *types.TCloseAction) {
@@ -66,7 +60,7 @@ func main() {
 	})
 
 	// 窗口大小约束
-	mainForm.SetOnConstrainedResize(func(sender lcl.IObject, minWidth, minHeight, maxWidth, maxHeight *int32) {
+	mainForm.SetOnConstrainedResize(func(sender lcl.IObject, minWidth *types.TConstraintSize, minHeight *types.TConstraintSize, maxWidth *types.TConstraintSize, maxHeight *types.TConstraintSize) {
 		*minWidth = 800
 		*minHeight = 600
 		*maxWidth = 800
@@ -84,7 +78,7 @@ func main() {
 	fmt.Println("fileExists: ", rtl.FileExists(filename))
 
 	mainForm.SetOnCloseQuery(func(Sender lcl.IObject, CanClose *bool) {
-		*CanClose = lcl.MessageDlg("是否退出?", types.MtInformation, types.MbYes, types.MbNo) == types.MrYes
+		*CanClose = api.MessageDlg("是否退出?", types.MtInformation, types.NewSet(types.MbYes), types.MbNo) == types.MrYes
 		fmt.Println("OnCloseQuery")
 	})
 
@@ -105,8 +99,8 @@ func main() {
 		fmt.Println("OnMouseDown")
 	})
 
-	chk := lcl.NewCheckBox(mainForm)
-	chk.SetParent(mainForm)
+	chk := lcl.NewCheckBox(&mainForm)
+	chk.SetParent(&mainForm)
 	chk.SetChecked(true)
 	chk.SetCaption("测试")
 	chk.SetLeft(1)
@@ -116,7 +110,7 @@ func main() {
 	})
 
 	// action
-	action := lcl.NewAction(mainForm)
+	action := lcl.NewAction(&mainForm)
 	action.SetCaption("action1")
 	action.SetOnUpdate(func(sender lcl.IObject) {
 		lcl.AsAction(sender).SetEnabled(chk.Checked())
@@ -124,13 +118,13 @@ func main() {
 	action.SetOnExecute(func(lcl.IObject) {
 		fmt.Println("action execute")
 	})
-	btn := lcl.NewButton(mainForm)
-	btn.SetParent(mainForm)
+	btn := lcl.NewButton(&mainForm)
+	btn.SetParent(&mainForm)
 	btn.SetBounds(250, 30, 90, 25)
 	btn.SetCaption("action")
 	btn.SetAction(action)
 
-	trayicon = lcl.NewTrayIcon(mainForm)
+	trayicon = lcl.NewTrayIcon(&mainForm)
 	trayicon.SetIcon(lcl.Application.Icon()) //不设置会自动使用Application.Icon
 
 	trayicon.SetHint(mainForm.Caption())
@@ -144,44 +138,43 @@ func main() {
 	})
 
 	// img
-	img := lcl.NewImage(mainForm)
+	img := lcl.NewImage(&mainForm)
 	img.SetBounds(132, 30, 156, 97)
-	img.SetParent(mainForm)
+	img.SetParent(&mainForm)
 	img.Picture().LoadFromFile("./imgs/1.jpg")
 	//img.SetStretch(true)
 	img.SetProportional(true)
 
 	// linklabel
-	linklbl := lcl.NewLinkLabel(mainForm)
+	linklbl := lcl.NewLinkLabel(&mainForm)
 	linklbl.SetAlign(types.AlBottom)
 	linklbl.SetCaption("<a href=\"https://www.github.com/energye/energy\">Go Energy测试链接</a>")
-	linklbl.SetParent(mainForm)
+	linklbl.SetParent(&mainForm)
 	linklbl.SetOnLinkClick(func(sender lcl.IObject, link string, linktype types.TSysLinkType) {
 		fmt.Println("link label: ", link, ", type: ", linktype)
 		rtl.SysOpen(link)
 	})
 
 	// menu
-	mainMenu := lcl.NewMainMenu(mainForm)
-	item := lcl.NewMenuItem(mainForm)
+	mainMenu := lcl.NewMainMenu(&mainForm)
+	item := lcl.NewMenuItem(&mainForm)
 	item.SetCaption("File(&F)")
 	mainMenu.Items().Add(item)
 
-	item2 := lcl.NewMenuItem(mainForm)
+	item2 := lcl.NewMenuItem(&mainForm)
 	item2.SetCaption("MemoryStreamTest")
 	item2.SetOnClick(func(lcl.IObject) {
 		mem := lcl.NewMemoryStream()
 		defer mem.Free()
-		mem.Write([]byte("测试"))
+		lcl.StreamHelper.Write(mem, []byte("测试"))
 		mem.SaveToFile("test.txt")
-
 		mem.SetPosition(0)
-		bs := mem.Read(int32(mem.Size()))
-		fmt.Println(", bs:", bs, ", str:", string(bs))
+		bs := lcl.StreamHelper.Read(mem, int(mem.Size()))
+		fmt.Println("bs:", bs, ", str:", string(bs))
 	})
 	item.Add(item2)
 
-	item2 = lcl.NewMenuItem(mainForm)
+	item2 = lcl.NewMenuItem(&mainForm)
 	item2.SetCaption("Exit(&E)")
 	//item2.SetShortCutFromString("Ctrl+Q")
 	item2.SetOnClick(func(lcl.IObject) {
@@ -192,21 +185,21 @@ func main() {
 	//	mainForm.EnabledMinimize(false)
 	//	mainForm.EnabledSystemMenu(false)
 
-	button := lcl.NewButton(mainForm)
+	button := lcl.NewButton(&mainForm)
 
 	button.SetCaption("消息")
-	button.SetParent(mainForm)
+	button.SetParent(&mainForm)
 	button.SetOnClick(func(lcl.IObject) {
 		fmt.Println("button click")
-		lcl.ShowMessage("这是一个消息")
-		lcl.Application.MessageBox("Hello!", "Message", win.MB_YESNO+win.MB_ICONINFORMATION)
+		api.ShowMessage("这是一个消息")
+		lcl.Application.MessageBox(api.PasStr("Hello!"), api.PasStr("Message"), win.MB_YESNO+win.MB_ICONINFORMATION)
 	})
 	button.SetLeft(50)
 	button.SetTop(50)
 	button.SetAlign(types.AlRight)
 
-	edit := lcl.NewEdit(mainForm)
-	edit.SetParent(mainForm)
+	edit := lcl.NewEdit(&mainForm)
+	edit.SetParent(&mainForm)
 	edit.SetLeft(1)
 	edit.SetTop(30)
 	edit.SetTextHint("测试")
@@ -214,8 +207,8 @@ func main() {
 		fmt.Println("edit OnChange")
 	})
 
-	button2 := lcl.NewButton(mainForm)
-	button2.SetParent(mainForm)
+	button2 := lcl.NewButton(&mainForm)
+	button2.SetParent(&mainForm)
 	button2.SetCaption("a")
 	button2.SetWidth(100)
 	button2.SetHeight(28)
@@ -227,9 +220,9 @@ func main() {
 	})
 	button2.SetAlign(types.AlTop)
 
-	combo := lcl.NewComboBox(mainForm)
+	combo := lcl.NewComboBox(&mainForm)
 	combo.SetAlign(types.AlBottom)
-	combo.SetParent(mainForm)
+	combo.SetParent(&mainForm)
 	combo.SetText("ffff")
 	combo.Items().Add("1")
 	combo.Items().Add("2")
@@ -241,15 +234,15 @@ func main() {
 
 	})
 
-	page := lcl.NewPageControl(mainForm)
-	page.SetParent(mainForm)
+	page := lcl.NewPageControl(&mainForm)
+	page.SetParent(&mainForm)
 	page.SetAlign(types.AlBottom)
-	sheet := lcl.NewTabSheet(mainForm)
+	sheet := lcl.NewTabSheet(&mainForm)
 	sheet.SetPageControl(page)
 	sheet.SetCaption("第一页")
 
 	// 需要先将TabSheet设置了父窗口，TListView才可用，不然就会报错
-	lv1 := lcl.NewListView(mainForm)
+	lv1 := lcl.NewListView(&mainForm)
 	lv1.SetAlign(types.AlClient)
 	lv1.SetParent(sheet)
 
@@ -257,16 +250,16 @@ func main() {
 	lv1.SetRowSelect(true)
 	lv1.SetReadOnly(true)
 	lv1.SetGridLines(true)
-	col := lcl.AsListColumn(lv1.Columns().Add())
+	col := lcl.AsListColumn(lv1.Columns().AddToListColumn())
 	col.SetCaption("序号")
 	col.SetWidth(100)
 	// 强制柱头宽，即使被调整也会被还原
 	col.SetMaxWidth(100)
 	col.SetMinWidth(100)
-	col = lcl.AsListColumn(lv1.Columns().Add())
+	col = lcl.AsListColumn(lv1.Columns().AddToListColumn())
 	col.SetCaption("名称")
 	col.SetWidth(200)
-	col = lcl.AsListColumn(lv1.Columns().Add())
+	col = lcl.AsListColumn(lv1.Columns().AddToListColumn())
 	col.SetCaption("内容")
 	col.SetWidth(200)
 	lv1.SetOnClick(func(lcl.IObject) {
@@ -287,23 +280,23 @@ func main() {
 	}
 	lv1.Items().EndUpdate()
 
-	sheet = lcl.NewTabSheet(mainForm)
+	sheet = lcl.NewTabSheet(&mainForm)
 	sheet.SetCaption("第二页")
 	sheet.SetPageControl(page)
 
 	// -----------TreeView 不同Node弹出不同菜单，两个右键例程不同使用
 
-	tvpm1 := lcl.NewPopupMenu(mainForm)
-	mItem := lcl.NewMenuItem(mainForm)
+	tvpm1 := lcl.NewPopupMenu(&mainForm)
+	mItem := lcl.NewMenuItem(&mainForm)
 	mItem.SetCaption("第一种")
 	tvpm1.Items().Add(mItem)
 
-	tvpm2 := lcl.NewPopupMenu(mainForm)
-	mItem = lcl.NewMenuItem(mainForm)
+	tvpm2 := lcl.NewPopupMenu(&mainForm)
+	mItem = lcl.NewMenuItem(&mainForm)
 	mItem.SetCaption("第二种")
 	tvpm2.Items().Add(mItem)
 
-	tv1 := lcl.NewTreeView(mainForm)
+	tv1 := lcl.NewTreeView(&mainForm)
 	tv1.SetAutoExpand(true)
 	tv1.SetParent(sheet)
 	tv1.SetAlign(types.AlClient)
@@ -325,9 +318,9 @@ func main() {
 				p := lcl.Mouse.CursorPos()
 				switch node.Level() {
 				case 0:
-					tvpm1.PopUp1(p.X, p.Y)
+					tvpm1.PopUpWithIntX2(p.X, p.Y)
 				case 1:
-					tvpm2.PopUp1(p.X, p.Y)
+					tvpm2.PopUpWithIntX2(p.X, p.Y)
 				}
 				fmt.Println("node.Level():", node.Level(), ", text:", node.Text())
 			}
@@ -348,13 +341,9 @@ func main() {
 	fmt.Println("Compoment Count:", mainForm.ComponentCount())
 	//	mainForm.ScreenCenter()
 
-	lbl := lcl.NewLabel(mainForm)
+	lbl := lcl.NewLabel(&mainForm)
 	lbl.SetCaption("标签")
 	lbl.SetAlign(types.AlBottom)
-	fmt.Println("InheritsFromControl:", mainForm.Is().Control())
-	fmt.Println("InheritsFromWinControl:", mainForm.Is().WinControl())
-	fmt.Println("InheritsFromComponent:", mainForm.Is().Component())
-	fmt.Println("InheritsFromWinControl:", lbl.Is().WinControl())
 
 	lcl.Application.Run()
 }
