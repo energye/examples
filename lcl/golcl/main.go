@@ -6,6 +6,7 @@ import (
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/base"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/rtl"
@@ -166,7 +167,10 @@ func main() {
 	item2.SetOnClick(func(lcl.IObject) {
 		mem := lcl.NewMemoryStream()
 		defer mem.Free()
-		lcl.StreamHelper.Write(mem, []byte("测试"))
+		//lcl.StreamHelper.Write(mem, []byte("测试"))
+		data := []byte("测试")
+		r := mem.Write(uintptr(base.UnsafePointer(&data[0])), int32(len(data)))
+		fmt.Println("mem.write r:", r)
 		mem.SaveToFile("test.txt")
 		mem.SetPosition(0)
 		bs := lcl.StreamHelper.Read(mem, int(mem.Size()))
