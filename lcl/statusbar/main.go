@@ -2,32 +2,35 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.SetShowHint(true)
-
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetPosition(types.PoScreenCenter)
 
-	form2 := lcl.Application.CreateForm()
+	var form2 lcl.TEngForm
+	lcl.Application.NewForm(&form2)
 	form2.SetCaption("Form2")
-	stb := lcl.NewStatusBar(form2)
-	stb.SetParent(form2)
+	stb := lcl.NewStatusBar(&form2)
+	stb.SetParent(&form2)
 	stb.SetSimpleText("状态条")
 
 	// 窗口全局show提示
 	mainForm.SetShowHint(true)
 
-	button := lcl.NewButton(mainForm)
-	button.SetParent(mainForm)
+	button := lcl.NewButton(&mainForm)
+	button.SetParent(&mainForm)
 	button.SetCaption("按钮1")
 
 	// 长提示，后面使用  | 分割
@@ -37,14 +40,14 @@ func main() {
 		form2.Show()
 	})
 
-	button = lcl.NewButton(mainForm)
-	button.SetParent(mainForm)
+	button = lcl.NewButton(&mainForm)
+	button.SetParent(&mainForm)
 	button.SetCaption("按钮2")
 	button.SetHint("提示。好好好好好。。。。。。。。。。。。。")
 	button.SetBounds(10, 60, 100, 30)
 
-	statusbar := lcl.NewStatusBar(mainForm)
-	statusbar.SetParent(mainForm)
+	statusbar := lcl.NewStatusBar(&mainForm)
+	statusbar.SetParent(&mainForm)
 	statusbar.SetName("statusbar")
 
 	// 右下角出现可调整窗口三角形，默认显示
@@ -56,23 +59,23 @@ func main() {
 	// 一般配合AutoHint使用
 	statusbar.SetSimplePanel(false)
 
-	pnl := lcl.AsStatusPanel(statusbar.Panels().Add())
+	pnl := statusbar.Panels().AddToStatusPanel()
 	pnl.SetText("pnl1")
 	pnl.SetWidth(100)
 
-	pnl = lcl.AsStatusPanel(statusbar.Panels().Add())
+	pnl = statusbar.Panels().AddToStatusPanel()
 	pnl.SetText("pnl1")
 	pnl.SetAlignment(types.TaCenter)
 	pnl.SetWidth(100)
 
-	pnl = lcl.AsStatusPanel(statusbar.Panels().Add())
+	pnl = statusbar.Panels().AddToStatusPanel()
 	pnl.SetText("第二格")
 	pnl.SetAlignment(types.TaRightJustify)
 	pnl.SetWidth(100)
 
 	var i int32
 	for i = 0; i < statusbar.Panels().Count(); i++ {
-		fmt.Println("text:", lcl.AsStatusPanel(statusbar.Panels().Items(i)).Text())
+		fmt.Println("text:", statusbar.Panels().ItemsWithIntToStatusPanel(i).Text())
 	}
 	lcl.Application.Run()
 }

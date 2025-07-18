@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/energye/examples/lcl/simpleIM"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"net"
@@ -21,13 +21,16 @@ var (
 	btnSend                    lcl.IButton
 	tcpConn                    net.Conn
 	nickName                   string
-	mainForm, frmNickNameInput lcl.IForm
+	mainForm, frmNickNameInput lcl.TEngForm
 	editNickName               lcl.IEdit
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
-	lcl.Application.SetOnException(applicationException)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	initMainUI()
@@ -83,10 +86,6 @@ func mainFormDestroy(sender lcl.IObject) {
 	}
 }
 
-func applicationException(sender lcl.IObject, e lcl.IException) {
-	lcl.ShowMessage(e.Message())
-}
-
 func formatdatetime(t time.Time) string {
 	return t.Format("2006-01-02 15:04:05")
 }
@@ -105,7 +104,7 @@ func checkNKName() bool {
 }
 
 func initMainUI() {
-	mainForm = lcl.Application.CreateForm()
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("IMClient")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.SetWidth(800)
@@ -120,59 +119,59 @@ func initMainUI() {
 	//mainForm.SetOnCloseQuery(func(Sender lcl.IObject, CanClose *bool) {
 	//	*CanClose = lcl.MessageDlg("是否退出？", types.MtConfirmation, types.MbYes, types.MbNo) == types.IdYes
 	//})
-	pnl := lcl.NewPanel(mainForm)
-	pnl.SetParent(mainForm)
+	pnl := lcl.NewPanel(&mainForm)
+	pnl.SetParent(&mainForm)
 	pnl.SetAlign(types.AlClient)
 	pnl.SetBevelOuter(types.BvNone)
 
-	pnl2 := lcl.NewPanel(mainForm)
+	pnl2 := lcl.NewPanel(&mainForm)
 	pnl2.SetParent(pnl)
 	pnl2.SetAlign(types.AlClient)
 	pnl2.SetBevelOuter(types.BvNone)
 
-	memoMsg = lcl.NewMemo(mainForm)
+	memoMsg = lcl.NewMemo(&mainForm)
 	memoMsg.SetParent(pnl2)
 	memoMsg.SetAlign(types.AlClient)
 	memoMsg.SetScrollBars(types.SsVertical)
 	memoMsg.SetReadOnly(true)
 
-	pnl2 = lcl.NewPanel(mainForm)
+	pnl2 = lcl.NewPanel(&mainForm)
 	pnl2.SetParent(pnl)
 	pnl2.SetAlign(types.AlRight)
 	pnl2.SetBevelOuter(types.BvNone)
 
-	friendList = lcl.NewListBox(mainForm)
+	friendList = lcl.NewListBox(&mainForm)
 	friendList.SetParent(pnl2)
 	friendList.SetAlign(types.AlClient)
 
 	// message
-	pnl = lcl.NewPanel(mainForm)
-	pnl.SetParent(mainForm)
+	pnl = lcl.NewPanel(&mainForm)
+	pnl.SetParent(&mainForm)
 	pnl.SetAlign(types.AlBottom)
 	pnl.SetHeight(200)
 	pnl.SetBevelOuter(types.BvNone)
 
-	pnl2 = lcl.NewPanel(mainForm)
+	pnl2 = lcl.NewPanel(&mainForm)
 	pnl2.SetParent(pnl)
 	pnl2.SetAlign(types.AlClient)
 	pnl2.SetBevelOuter(types.BvNone)
 
-	memoSendMsg = lcl.NewMemo(mainForm)
+	memoSendMsg = lcl.NewMemo(&mainForm)
 	memoSendMsg.SetParent(pnl2)
 	memoSendMsg.SetAlign(types.AlClient)
 	memoSendMsg.SetScrollBars(types.SsVertical)
 
-	pnl2 = lcl.NewPanel(mainForm)
+	pnl2 = lcl.NewPanel(&mainForm)
 	pnl2.SetParent(pnl)
 	pnl2.SetAlign(types.AlBottom)
 	pnl2.SetBevelOuter(types.BvNone)
 
-	pnl3 := lcl.NewPanel(mainForm)
+	pnl3 := lcl.NewPanel(&mainForm)
 	pnl3.SetParent(pnl2)
 	pnl3.SetAlign(types.AlRight)
 	pnl3.SetBevelOuter(types.BvNone)
 
-	btnSend = lcl.NewButton(mainForm)
+	btnSend = lcl.NewButton(&mainForm)
 	btnSend.SetParent(pnl3)
 	btnSend.SetCaption("发送(&C)")
 	btnSend.SetTop((pnl3.Height() - btnSend.Height()) / 2)
@@ -181,18 +180,18 @@ func initMainUI() {
 }
 
 func initNickNameInput() {
-	frmNickNameInput = lcl.Application.CreateForm()
+	lcl.Application.NewForm(&frmNickNameInput)
 	frmNickNameInput.SetCaption("输入昵称：")
 	frmNickNameInput.ScreenCenter()
 	frmNickNameInput.SetWidth(320)
 	frmNickNameInput.SetHeight(100)
 	frmNickNameInput.EnabledMaximize(false)
 	frmNickNameInput.EnabledMinimize(false)
-	editNickName = lcl.NewEdit(frmNickNameInput)
-	editNickName.SetParent(frmNickNameInput)
+	editNickName = lcl.NewEdit(&frmNickNameInput)
+	editNickName.SetParent(&frmNickNameInput)
 	editNickName.SetBounds(10, (frmNickNameInput.ClientHeight()-editNickName.Height())/2, frmNickNameInput.ClientWidth()-130, 12)
-	btn := lcl.NewButton(frmNickNameInput)
-	btn.SetParent(frmNickNameInput)
+	btn := lcl.NewButton(&frmNickNameInput)
+	btn.SetParent(&frmNickNameInput)
 	btn.SetLeft(editNickName.Left() + editNickName.Width() + 10)
 	btn.SetTop(editNickName.Top() - 3)
 	btn.SetCaption("确定")
@@ -210,7 +209,7 @@ func initNetConn() {
 	var err error
 	tcpConn, err = net.Dial("tcp", "127.0.0.1:6666")
 	if err != nil {
-		lcl.ShowMessage("连接服务器失败，错误：" + err.Error())
+		api.ShowMessage("连接服务器失败，错误：" + err.Error())
 		return
 	}
 	go func() {
@@ -240,14 +239,14 @@ func initNetConn() {
 				})
 			case 1001:
 				lcl.RunOnMainThreadSync(func() {
-					index := friendList.Items().IndexOf(p.NK)
+					index := friendList.Items().IndexOfWithString(p.NK)
 					if index == -1 {
 						friendList.Items().Add(p.NK)
 					}
 				})
 			case 1002:
 				lcl.RunOnMainThreadSync(func() {
-					index := friendList.Items().IndexOf(p.NK)
+					index := friendList.Items().IndexOfWithString(p.NK)
 					if index != -1 {
 						friendList.Items().Delete(index)
 					}

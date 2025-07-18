@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/energye/examples/lcl/simpleIM"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"io"
@@ -21,12 +21,15 @@ var (
 	onlineClientCount int
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("IMServer")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.EnabledMaximize(false)
@@ -35,9 +38,9 @@ func main() {
 	//mainForm.SetOnCloseQuery(func(Sender lcl.IObject, CanClose *bool) {
 	//	*CanClose = lcl.MessageDlg("是否退出？", types.MtConfirmation, types.MbYes, types.MbNo) == types.IdYes
 	//})
-	onlineClientlbl = lcl.NewLabel(mainForm)
+	onlineClientlbl = lcl.NewLabel(&mainForm)
 	onlineClientlbl.SetAlign(types.AlClient)
-	onlineClientlbl.SetParent(mainForm)
+	onlineClientlbl.SetParent(&mainForm)
 	onlineClientlbl.SetAutoSize(false)
 	onlineClientlbl.Font().SetSize(13)
 	onlineClientlbl.SetAlignment(types.TaCenter)
@@ -58,7 +61,7 @@ func initTCP() {
 
 	tcpConn, err := net.Listen("tcp", ":6666")
 	if err != nil {
-		lcl.ShowMessage(err.Error())
+		api.ShowMessage(err.Error())
 		return
 	}
 	defer tcpConn.Close()
@@ -76,7 +79,7 @@ func initTCP() {
 func removeConn(conn net.Conn) {
 	onlineClientCount--
 	if v, ok := clientMap.Load(conn); ok {
-		sendClientMsg(conn, simpleIM.TPacket{1002, v.(string), ""})
+		sendClientMsg(conn, simpleIM.TPacket{CMD: 1002, NK: v.(string)})
 		updateOnlineClient()
 		clientMap.Delete(conn)
 	}

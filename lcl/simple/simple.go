@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"math/rand"
@@ -11,22 +10,25 @@ import (
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 type TForm1 struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var MainForm TMainForm
 var Form1 TForm1
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.SetScaled(true)
-	lcl.Application.CreateForm(&MainForm, &Form1)
+	lcl.Application.NewForms(&MainForm, &Form1)
 	lcl.Application.Run()
 }
 
