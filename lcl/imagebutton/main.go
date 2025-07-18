@@ -2,22 +2,25 @@ package main
 
 import (
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 func init() {
+	TestLoadLibPath()
+
 	Chdir("lcl/imagebutton")
 }
 
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Hello")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.SetDoubleBuffered(true) // 最好开启，以免闪烁
@@ -27,8 +30,8 @@ func main() {
 
 	mainForm.SetShowHint(true)
 
-	btnClose := lcl.NewImageButton(mainForm)
-	btnClose.SetParent(mainForm)
+	btnClose := lcl.NewImageButton(&mainForm)
+	btnClose.SetParent(&mainForm)
 
 	btnClose.SetImageCount(4)
 	btnClose.SetAutoSize(true)
@@ -37,35 +40,35 @@ func main() {
 	btnClose.SetHint("关闭")
 
 	btnClose.SetOnClick(func(lcl.IObject) {
-		lcl.ShowMessage("close")
+		api.ShowMessage("close")
 	})
 
-	btnMax := lcl.NewImageButton(mainForm)
-	btnMax.SetParent(mainForm)
+	btnMax := lcl.NewImageButton(&mainForm)
+	btnMax.SetParent(&mainForm)
 	btnMax.SetImageCount(4)
 	btnMax.SetAutoSize(true)
 	btnMax.Picture().LoadFromFile("btn_max.png")
 	btnMax.SetLeft(btnClose.Left() - btnMax.Width())
 	btnMax.SetHint("最大化")
 
-	btnMin := lcl.NewImageButton(mainForm)
-	btnMin.SetParent(mainForm)
+	btnMin := lcl.NewImageButton(&mainForm)
+	btnMin.SetParent(&mainForm)
 	btnMin.SetImageCount(4)
 	btnMin.SetAutoSize(true)
 	btnMin.Picture().LoadFromFile("btn_min.png")
 	btnMin.SetLeft(btnMax.Left() - btnMin.Width())
 	btnMin.SetHint("最小化")
 
-	btnSkin := lcl.NewImageButton(mainForm)
-	btnSkin.SetParent(mainForm)
+	btnSkin := lcl.NewImageButton(&mainForm)
+	btnSkin.SetParent(&mainForm)
 	btnSkin.SetImageCount(3)
 	btnSkin.SetAutoSize(true)
 	btnSkin.Picture().LoadFromFile("btn_skin.png")
 	btnSkin.SetLeft(btnMin.Left() - btnSkin.Width())
 	btnSkin.SetHint("皮肤")
 
-	btnScan := lcl.NewImageButton(mainForm)
-	btnScan.SetParent(mainForm)
+	btnScan := lcl.NewImageButton(&mainForm)
+	btnScan.SetParent(&mainForm)
 	btnScan.SetImageCount(3)
 	btnScan.SetAutoSize(true)
 	btnScan.Picture().LoadFromFile("btn_scan.png")
