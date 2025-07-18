@@ -13,7 +13,6 @@ type TMainForm struct {
 var mainForm TMainForm
 
 func init() {
-
 	TestLoadLibPath()
 }
 func main() {

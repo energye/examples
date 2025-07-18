@@ -1,8 +1,7 @@
 package main
 
 import (
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -10,20 +9,24 @@ import (
 var MainForm TMainForm
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
+}
+
+func init() {
+	TestLoadLibPath()
 }
 
 func main() {
-	lcl.DEBUG = true
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&MainForm)
+	lcl.Application.NewForm(&MainForm)
 	lcl.Application.Run()
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetCaption("frameless")
 	m.SetPosition(types.PoScreenCenter)
-	m.SetBorderStyleForFormBorderStyle(types.BsNone)
+	m.SetBorderStyleToFormBorderStyle(types.BsNone)
+	m.SetBorderStyleToBorderStyle()
 }
