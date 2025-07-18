@@ -2,24 +2,26 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	lcl.DEBUG = true
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 
@@ -40,11 +42,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	vDrawTree.SetWidth(m.Width())
 	vDrawTree.SetHeight(200)
 	vDrawTree.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
-	dRoot := vDrawTree.AddChild(nil, api.PascalStr("Root"))
-	child1 := vDrawTree.AddChild(dRoot, api.PascalStr("Child 1"))
-	vDrawTree.AddChild(dRoot, api.PascalStr("Child 2"))
-	vDrawTree.AddChild(dRoot, api.PascalStr("Child 3"))
-	vDrawTree.AddChild(child1, api.PascalStr("Grandchild of Child 1"))
+	dRoot := vDrawTree.AddChild(0, api.PasStr("Root"))
+	child1 := vDrawTree.AddChild(dRoot, api.PasStr("Child 1"))
+	vDrawTree.AddChild(dRoot, api.PasStr("Child 2"))
+	vDrawTree.AddChild(dRoot, api.PasStr("Child 3"))
+	vDrawTree.AddChild(child1, api.PasStr("Grandchild of Child 1"))
 
 	vStrTree := lcl.NewLazVirtualStringTree(m)
 	vStrTree.SetParent(m)
@@ -60,18 +62,18 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	vStrTree.SetOnResize(func(sender lcl.IObject) {
 		//fmt.Println("SetOnResize", vStrTree.Width(), vStrTree.Height())
 	})
-	sRoot := vStrTree.AddChild(nil, api.PascalStr("Root"))
+	sRoot := vStrTree.AddChild(0, api.PasStr("Root"))
 	vStrTree.SetText(sRoot, 0, "Root")
-	sChild1 := vStrTree.AddChild(sRoot, api.PascalStr("Child 1"))
-	vStrTree.AddChild(sRoot, api.PascalStr("Child 2"))
-	vStrTree.AddChild(sRoot, api.PascalStr("Child 3"))
-	vStrTree.AddChild(sChild1, api.PascalStr("Grandchild of Child 1"))
+	sChild1 := vStrTree.AddChild(sRoot, api.PasStr("Child 1"))
+	vStrTree.AddChild(sRoot, api.PasStr("Child 2"))
+	vStrTree.AddChild(sRoot, api.PasStr("Child 3"))
+	vStrTree.AddChild(sChild1, api.PasStr("Grandchild of Child 1"))
 
 	vsHeader := vStrTree.Header()
 	vsHeader.SetHeight(19)
 	vsHeader.SetDefaultHeight(19)
 	columns := vsHeader.Columns()
-	vSItem1 := lcl.AsVirtualTreeColumn(columns.Add())
+	vSItem1 := columns.AddToVirtualTreeColumn()
 
 	//vSItem1 := lcl.NewVirtualTreeColumn(columns)
 	vSItem1.SetText("item?")
@@ -81,9 +83,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	btn := lcl.NewButton(m)
 	btn.SetParent(m)
 	btn.SetCaption("点击一下？")
+	wrapRoot := lcl.VirtualNodeWrap.UnWrap(dRoot)
 	btn.SetOnClick(func(sender lcl.IObject) {
 		count := vDrawTree.RootNodeCount()
-		fmt.Println("count:", count, dRoot.Index(), api.GoStr(dRoot.Data()))
+		fmt.Println("count:", count, wrapRoot.Index(), api.GoStr(uintptr(wrapRoot.Data())))
 		fmt.Println(vDrawTree.TotalCount())
 		fmt.Println(vStrTree.TreeOptions().AutoOptions())
 	})
