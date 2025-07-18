@@ -2,24 +2,28 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetWidth(700)
 	mainForm.SetHeight(500)
 	mainForm.WorkAreaCenter()
 	mainForm.SetCaption("九九乘法表")
-	mainForm.ScaleSelf()
-	grid := lcl.NewStringGrid(mainForm)
-	grid.SetParent(mainForm)
+	ScaleSelf(&mainForm)
+	grid := lcl.NewStringGrid(&mainForm)
+	grid.SetParent(&mainForm)
 	grid.SetAlign(types.AlClient)
 
 	// 这里设置的是作为字段，像头一样的

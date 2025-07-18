@@ -10,10 +10,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/lcl/inits"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
@@ -33,7 +33,7 @@ type InputData struct {
 }
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	grid     lcl.IStringGrid
 	edit     lcl.IEdit
 	pnl      lcl.IPanel
@@ -45,8 +45,12 @@ var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 
@@ -103,7 +107,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 	//f.grid.SetFixedHotColor(colors.ClBlue)
 	// 表格边框样式，这里设置为没有边框
-	f.grid.SetBorderStyle(types.BsNone)
+	f.grid.SetBorderStyleToBorderStyle(types.BsNone)
 
 	// 设置表格为平面样式
 	f.grid.SetFlat(true)
@@ -122,7 +126,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	//f.grid.SetImageIndexSortAsc()
 	//f.grid.SetImageIndexSortDesc()
 	// 添加col
-	col := lcl.AsGridColumn(f.grid.Columns().Add())
+	col := f.grid.Columns().AddToGridColumn()
 	title := col.Title()
 	title.SetCaption("Auto")
 	title.SetColor(colors.ClRed)
@@ -132,30 +136,30 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	//title.SetLayout()
 	//title.SetMultiLine()
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.Title().SetCaption("EditMask")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsButton)
 	col.Title().SetCaption("Button")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsButtonColumn)
 	col.Title().SetCaption("ButtonColumn")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsCheckboxColumn)
 	col.Title().SetCaption("CheckBox")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsEllipsis)
 	col.Title().SetCaption("Ellipsis")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsNone)
 	col.Title().SetCaption("None")
 
-	col = lcl.AsGridColumn(f.grid.Columns().Add())
+	col = f.grid.Columns().AddToGridColumn()
 	col.SetButtonStyle(types.CbsPickList)
 	col.Title().SetCaption("PickList")
 	col.PickList().Add("Cow")
@@ -178,7 +182,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	f.edit.SetText(f.iData[0].None)
 	f.grid.SetOptions(f.grid.Options().Include(types.GoCellHints))
 	f.grid.SetShowHint(true)
-	lcl.AsGridColumn(f.grid.Columns().Items(7)).PickList().Add("Giraffe") //Add an item progamatically
+	f.grid.Columns().ItemsWithIntToGridColumn(7).PickList().Add("Giraffe") //Add an item progamatically
 	//The others are added in the Object Inspector
 	lcl.Application.SetHintPause(1)
 
@@ -214,7 +218,7 @@ func (f *TMainForm) onGridButtonClick(sender lcl.IObject, aCol, aRow int32) {
 		f.grid.SetCells(aCol, aRow, f.iData[aRow-1].ButtonColumn)
 		f.grid.SetOptions(f.grid.Options().Include(types.GoEditing)) //Turn cell editing back on
 	case 5:
-		if v := lcl.InputBox("输入", "值: ", ""); v != "" {
+		if v := api.InputBox("输入", "值: ", ""); v != "" {
 			// Click 'tick' sign on calculator to get result
 			f.iData[aRow-1].Ellipsis = v
 			//Store as string
@@ -236,8 +240,8 @@ func (f *TMainForm) onGridDrawCell(sender lcl.IObject, aCol, aRow int32, aRect t
 	//to another cell.
 	if aRow > 0 { //Use DrawCell to paint rectangle
 		if aCol == 2 { //Get colour from array
-			lcl.AsBrush(f.grid.Canvas().Brush()).SetColor(f.iData[aRow-1].Button)
-			f.grid.Canvas().FillRect(&aRect) //Paint Cell
+			f.grid.Canvas().BrushToBrush().SetColor(f.iData[aRow-1].Button)
+			f.grid.Canvas().FillRectWithRect(aRect) //Paint Cell
 		}
 	}
 }
@@ -314,7 +318,7 @@ func (f *TMainForm) onGridValidateEntry(sender lcl.IObject, aCol, aRow int32, ol
 func (f *TMainForm) onGridSelectEditor(sender lcl.IObject, aCol, aRow int32, editor *lcl.IWinControl) {
 	if aCol == 1 && aRow > 0 && f.edit != nil {
 		rect := f.grid.CellRect(aCol, aRow)
-		f.edit.SetBoundsRect(&rect)
+		f.edit.SetBoundsRect(rect)
 		f.edit.SetText(f.grid.Cells(f.grid.Col(), f.grid.Row()) + "abc")
 		fmt.Println("edit: ", f.edit.Instance())
 		*editor = lcl.AsWinControl(f.edit)
