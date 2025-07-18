@@ -1,27 +1,29 @@
 package main
 
 import (
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1  lcl.IXButton
 	richEdit lcl.IRichEdit
 }
 
 var mainForm TMainForm
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 
 	lcl.Application.Run()
 }

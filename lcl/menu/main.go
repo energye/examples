@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
@@ -12,7 +11,7 @@ import (
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	mainMenu lcl.IMainMenu
 }
 
@@ -20,8 +19,11 @@ var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 
@@ -49,7 +51,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 		// ----
 		subItem.SetCaption("关于")
 		subItem.SetOnClick(func(sender lcl.IObject) {
-			lcl.ShowMessage("About")
+			api.ShowMessage("About")
 		})
 		appMenu.Add(subItem)
 		// --
@@ -60,9 +62,9 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 		// ---
 		subItem = lcl.NewMenuItem(f)
 		subItem.SetCaption("首选项...")
-		subItem.SetShortCut(api.DTextToShortCut("Meta+,"))
+		subItem.SetShortCut(api.TextToShortCut("Meta+,"))
 		subItem.SetOnClick(func(sender lcl.IObject) {
-			lcl.ShowMessage("Preferences")
+			api.ShowMessage("Preferences")
 		})
 		appMenu.Add(subItem)
 		// 添加
@@ -75,7 +77,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 	subMenu := lcl.NewMenuItem(f)
 	subMenu.SetCaption("新建(&N)")
-	subMenu.SetShortCut(api.DTextToShortCut("Ctrl+N"))
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+N"))
 	subMenu.SetOnClick(func(lcl.IObject) {
 		fmt.Println("单击了新建")
 	})
@@ -83,12 +85,12 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 	subMenu = lcl.NewMenuItem(f)
 	subMenu.SetCaption("打开(&O)")
-	subMenu.SetShortCut(api.DTextToShortCut("Ctrl+O"))
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+O"))
 	item.Add(subMenu)
 
 	subMenu = lcl.NewMenuItem(f)
 	subMenu.SetCaption("保存(&S)")
-	subMenu.SetShortCut(api.DTextToShortCut("Ctrl+S"))
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+S"))
 	item.Add(subMenu)
 
 	// 分割线
@@ -110,7 +112,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 	subMenu = lcl.NewMenuItem(f)
 	subMenu.SetCaption("退出(&Q)")
-	subMenu.SetShortCut(api.DTextToShortCut("Ctrl+Q"))
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+Q"))
 	subMenu.SetOnClick(func(lcl.IObject) {
 		f.Close()
 	})
@@ -144,7 +146,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 func (f *TMainForm) OnFormPaint(sender lcl.IObject) {
 	///r := types.TRect{0, 0, f.Width(), f.Height()}
 	//f.Canvas().TextRect(r, 0, 0, "右键弹出菜单")
-	f.Canvas().Brush().SetStyle(types.BsClear)
-	lcl.AsFont(f.Canvas().Font()).SetColor(colors.ClGreen)
-	f.Canvas().TextOut(10, 80, "右键弹出菜单")
+	f.Canvas().BrushToBrush().SetStyle(types.BsClear)
+	f.Canvas().FontToFont().SetColor(colors.ClGreen)
+	f.Canvas().TextOutWithIntX2String(10, 80, "右键弹出菜单")
 }

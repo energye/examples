@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	CbbPrinters lcl.IComboBox
 	Btn1        lcl.IButton
 }
@@ -19,11 +19,14 @@ var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
 }
 
@@ -44,7 +47,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 
 func (f *TMainForm) OnButtonClick(sender lcl.IObject) {
 	if f.CbbPrinters.ItemIndex() == -1 {
-		lcl.ShowMessage("先设置一个打印机.")
+		api.ShowMessage("先设置一个打印机.")
 		return
 	}
 	// 注意：由于打印机的Canvas与系统的DPI有关，所以很多都需要通过换算
@@ -59,25 +62,25 @@ func (f *TMainForm) OnButtonClick(sender lcl.IObject) {
 
 	canvas := lcl.Printer.Canvas()
 	//canvas.Brush().SetColor(colors.ClWhite)
-	canvas.Brush().SetStyle(types.BsClear)
+	canvas.BrushToBrush().SetStyle(types.BsClear)
 
-	font := lcl.AsFont(canvas.Font())
+	font := canvas.FontToFont()
 	font.SetName("微软雅黑")
 	font.SetSize(16)
 	font.SetColor(colors.ClGreen)
 
-	canvas.TextOut(0, 0, "这是一个测试")
+	canvas.TextOutWithIntX2String(0, 0, "这是一个测试")
 
 	// 这里画个图片
 
 	jpgImg := lcl.NewJPEGImage()
-	//stream := lcl.NewMemoryStreamFromBytes(testImgBytes)
-	//stream.SetPosition(0)
-	//jpgImg.LoadFromStream(stream)
-	jpgImg.LoadFromBytes(testImgBytes)
-	canvas.DrawForGraphic(200, 200, jpgImg)
+	stream := lcl.NewMemoryStream()
+	stream.SetPosition(0)
+	defer stream.Free()
+	jpgImg.LoadFromStreamWithStream(stream)
+	//jpgImg.LoadFromBytes(testImgBytes)
+	canvas.DrawWithIntX2Graphic(200, 200, jpgImg)
 	//canvas.StretchDraw(types.TRect{10, 10, int32(float64(jpgImg.Width()) * rx), int32(float64(jpgImg.Height()) * rx)}, jpgImg)
-	//stream.Free()
 	jpgImg.Free()
 
 	// 新建一页
@@ -86,9 +89,9 @@ func (f *TMainForm) OnButtonClick(sender lcl.IObject) {
 	font.SetColor(colors.ClBlack)
 	// 这里实际要通过相关的api获取打印机canvas大小，而且那东西与dpi有关
 	r := types.TRect{Right: 2000, Bottom: 2000}
-	canvas.TextRect2(&r,
+	canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top,
 		"这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。",
-		types.NewSet(types.TfCenter, types.TfWordBreak, types.TfVerticalCenter))
+		lcl.TTextStyle{})
 }
 
 func (f *TMainForm) OnCbbChange(sender lcl.IObject) {

@@ -2,24 +2,26 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 )
 
 type TForm1 struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var form1 TForm1
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&form1)
+	lcl.Application.NewForm(&form1)
 	lcl.Application.Run()
 }
 

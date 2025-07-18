@@ -5,13 +5,6 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
-	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/types"
-	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/go-gl/mathgl/mgl32"
 	"image"
 	"image/draw"
 	_ "image/png"

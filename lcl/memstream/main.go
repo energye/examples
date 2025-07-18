@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -11,21 +10,24 @@ import (
 	"net/http"
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
 	//fmt.Println("main:currentThreadId:", thread.GetCurrentThreadId())
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Hello")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.EnabledMaximize(false)
 	mainForm.SetWidth(500)
 	mainForm.SetHeight(600)
 
-	img := lcl.NewImage(mainForm)
-	img.SetParent(mainForm)
+	img := lcl.NewImage(&mainForm)
+	img.SetParent(&mainForm)
 	// 本地加载
 	jpgFileName := "./1.jpg"
 	if rtl.FileExists(jpgFileName) {
@@ -38,8 +40,8 @@ func main() {
 	}
 
 	// 网络图片加载
-	img2 := lcl.NewImage(mainForm)
-	img2.SetParent(mainForm)
+	img2 := lcl.NewImage(&mainForm)
+	img2.SetParent(&mainForm)
 	img2.SetTop(img.Height() + 10)
 	img2.SetAutoSize(true)
 
@@ -51,21 +53,22 @@ func main() {
 			defer resp.Body.Close()
 			bs, err := ioutil.ReadAll(resp.Body)
 			if err == nil {
-				//mem := lcl.NewMemoryStream()
-				//defer mem.Free()
-				//mem.Write(bs)
-				//mem.SetPosition(0)
+				mem := lcl.NewMemoryStream()
+				defer mem.Free()
+				lcl.StreamHelper.Write(mem, bs)
+				mem.SetPosition(0)
+
 				// 让以下代码运行在主线程中
 				lcl.RunOnMainThreadAsync(func(id uint32) {
 					fmt.Println("async id", id)
 				})
 				lcl.RunOnMainThreadAsync(func(id uint32) {
-					fmt.Println("sync id", id)
+					fmt.Println("async id", id)
 				})
 				lcl.RunOnMainThreadSync(func() {
 					//fmt.Println("main:currentThreadId3:", thread.GetCurrentThreadId())
-					//img2.Picture().LoadFromStream(mem)
-					img2.Picture().LoadFromBytes(bs)
+					img2.Picture().LoadFromStream(mem)
+					//img2.Picture().LoadFromBytes(bs)
 				})
 				fmt.Println("测试运行到此。")
 			} else {

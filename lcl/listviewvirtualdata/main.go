@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -13,7 +12,7 @@ import (
 )
 
 type TMainFrom struct {
-	lcl.TForm
+	lcl.TEngForm
 	ListView    lcl.IListView
 	stateImages lcl.IImageList
 	isWindows   bool
@@ -35,13 +34,14 @@ var (
 )
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/listviewvirtualdata")
 }
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&MainFrom)
+	lcl.Application.NewForm(&MainFrom)
 	lcl.Application.Run()
 }
 
@@ -84,27 +84,27 @@ func (f *TMainFrom) FormCreate(sender lcl.IObject) {
 		f.ListView.SetOnMouseDown(f.OnListView1MouseDown)
 	}
 
-	col := lcl.AsListColumn(f.ListView.Columns().Add())
+	col := f.ListView.Columns().AddToListColumn()
 	col.SetCaption("行号")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(f.ListView.Columns().Add())
+	col = f.ListView.Columns().AddToListColumn()
 	col.SetCaption("子项1")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(f.ListView.Columns().Add())
+	col = f.ListView.Columns().AddToListColumn()
 	col.SetCaption("子项2")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(f.ListView.Columns().Add())
+	col = f.ListView.Columns().AddToListColumn()
 	col.SetCaption("子项3")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(f.ListView.Columns().Add())
+	col = f.ListView.Columns().AddToListColumn()
 	col.SetCaption("子项4")
 	col.SetWidth(100)
 
-	col = lcl.AsListColumn(f.ListView.Columns().Add())
+	col = f.ListView.Columns().AddToListColumn()
 	col.SetCaption("子项5")
 	col.SetWidth(100)
 
@@ -128,6 +128,9 @@ func (f *TMainFrom) FormCreate(sender lcl.IObject) {
 	if !f.isWindows {
 		f.ListView.SetOnItemChecked(f.onListView1ItemChecked)
 	}
+	f.ListView.SetOnCompare(func(sender lcl.IObject, item1 lcl.IListItem, item2 lcl.IListItem, data int32, compare *int32) {
+
+	})
 }
 
 func (f *TMainFrom) onListView1ItemChecked(sender lcl.IObject, item lcl.IListItem) {
