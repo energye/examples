@@ -2,24 +2,27 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"strings"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var mainForm TMainForm
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
 }
 
@@ -136,7 +139,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetParent(mainForm)
 	btn.SetCaption("SelectDirectory1")
 	btn.SetOnClick(func(lcl.IObject) {
-		if ok, dir := lcl.SelectDirectory1(0); ok {
+		if ok, dir := api.SelectDirectory1(0); ok {
 			fmt.Println("选择的目录为：", dir)
 		}
 	})
@@ -146,7 +149,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetParent(mainForm)
 	btn.SetCaption("SelectDirectory2")
 	btn.SetOnClick(func(lcl.IObject) {
-		if ok, dir := lcl.SelectDirectory2("标题了", "C:/", true); ok {
+		if ok, dir := api.SelectDirectory2("标题了", "C:/", true); ok {
 			fmt.Println("选择的目录为：", dir)
 		}
 	})
@@ -246,7 +249,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetParent(mainForm)
 	btn.SetCaption("InputBox")
 	btn.SetOnClick(func(lcl.IObject) {
-		s := lcl.InputBox("标题", "提示", "默认值")
+		s := api.InputBox("标题", "提示", "默认值")
 		if s != "" {
 			fmt.Println("结果：", s)
 		}
@@ -258,7 +261,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetCaption("InpuQuery")
 	btn.SetOnClick(func(lcl.IObject) {
 		s := "default"
-		if lcl.InputQuery("标题", "提示", &s) {
+		if api.InputQuery("标题", "提示", &s) {
 			fmt.Println("结果：", s)
 		}
 	})
@@ -286,7 +289,7 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetParent(mainForm)
 	btn.SetCaption("PasswordBox")
 	btn.SetOnClick(func(lcl.IObject) {
-		fmt.Println(lcl.PasswordBox("输入", "请输入密码："))
+		fmt.Println(api.PasswordBox("输入", "请输入密码："))
 	})
 
 	btn = lcl.NewButton(mainForm)
@@ -295,7 +298,12 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetCaption("InputCombo")
 	// +strings.Repeat(" ", 50) 是因为显示的窗口大小会根据`aPrompt`这个计算宽度
 	btn.SetOnClick(func(lcl.IObject) {
-		fmt.Println(lcl.InputCombo("选择", "请选择一项："+strings.Repeat(" ", 50), []string{"第一项", "第二项", "第三项", "第四项"}))
+		list := lcl.NewStringList()
+		defer list.Free()
+		for _, s := range []string{"第一项", "第二项", "第三项", "第四项"} {
+			list.Add(s)
+		}
+		fmt.Println(api.InputCombo("选择", "请选择一项："+strings.Repeat(" ", 50), list.Instance()))
 	})
 
 	btn = lcl.NewButton(mainForm)
@@ -303,7 +311,12 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	btn.SetParent(mainForm)
 	btn.SetCaption("InputComboEx")
 	btn.SetOnClick(func(lcl.IObject) {
-		fmt.Println(lcl.InputComboEx("选择", "请选择一项："+strings.Repeat(" ", 50), []string{"第一项", "第二项", "第三项", "第四项"}, false))
+		list := lcl.NewStringList()
+		defer list.Free()
+		for _, s := range []string{"第一项", "第二项", "第三项", "第四项"} {
+			list.Add(s)
+		}
+		fmt.Println(api.InputComboEx("选择", "请选择一项："+strings.Repeat(" ", 50), list.Instance(), false))
 	})
 
 }
