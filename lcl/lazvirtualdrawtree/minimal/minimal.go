@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"strconv"
@@ -97,24 +96,24 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.ClearButton.SetCaption("清除节点")
 
 	//
-
+	// 在 Go 里，虚拟树的数据需要存到临时集合里
+	dataNodeList := make(map[types.PVirtualNode]string)
 	// 始终需要为OnGetText事件设置一个处理程序，因为它为树结构提供了要显示的字符串数据。
 	m.VST.SetOnGetText(func(sender lcl.IBaseVirtualTree, node types.PVirtualNode, column int32, textType types.TVSTTextType, cellText *string) {
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
-			data := *(*tMyRec)(unsafe.Pointer(dataPtr))
-			*cellText = api.GoStr(data.Caption)
+			// 在集合里取出数据，并返回, node 做为每个节点 key
+			*cellText = dataNodeList[node]
 		}
 		//fmt.Println("OnGetText")
 	})
-
 	// 构建节点标题。此事件针对每个节点触发一次，但以异步方式呈现，即节点在显示时触发，而非添加时。
 	m.VST.SetOnInitNode(func(sender lcl.IBaseVirtualTree, parentNode types.PVirtualNode, node types.PVirtualNode, initialStates *types.TVirtualNodeInitStates) {
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
 			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
-			data := (*tMyRec)(unsafe.Pointer(dataPtr))
-			data.Caption = api.PasStr(fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nodeWrap.Index()))
+			// node 做为每个节点 key
+			dataNodeList[node] = fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nodeWrap.Index())
 			nodeWrap.Free()
 		}
 		//fmt.Println("OnInitNode")
@@ -137,29 +136,32 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	// 按钮事件
 	m.ClearButton.SetOnClick(func(sender lcl.IObject) {
 		lcl.Screen.SetCursor(types.CrHourGlass)
-		start := time.Now().Nanosecond()
+		start := time.Now()
 		m.VST.Clear()
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, (time.Now().Nanosecond()-start)/1e6))
+		dataNodeList = make(map[types.PVirtualNode]string)
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
+
 	m.AddOneButton.SetOnClick(func(sender lcl.IObject) {
 		lcl.Screen.SetCursor(types.CrHourGlass)
-		start := time.Now().Nanosecond()
+		start := time.Now()
 		count, _ := strconv.Atoi(m.Edit1.Text())
 		m.VST.SetRootNodeCount(m.VST.RootNodeCount() + uint32(count))
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, (time.Now().Nanosecond()-start)/1e6))
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
+
 	m.AddChildButton.SetOnClick(func(sender lcl.IObject) {
 		lcl.Screen.SetCursor(types.CrHourGlass)
-		start := time.Now().Nanosecond()
+		start := time.Now()
 		if nodePtr := m.VST.FocusedNode(); nodePtr != 0 {
 			count, _ := strconv.Atoi(m.Edit1.Text())
 			m.VST.SetChildCount(nodePtr, m.VST.ChildCount(nodePtr)+uint32(count))
 			m.VST.SetExpanded(nodePtr, true)
 			m.VST.InvalidateToBottom(nodePtr)
 		}
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, (time.Now().Nanosecond()-start)/1e6))
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
 }
