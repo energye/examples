@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/colors"
+	"math"
+	"math/rand"
+	"strconv"
+	"time"
 	"unsafe"
 )
 
@@ -21,6 +27,7 @@ type TMainForm struct {
 
 var (
 	mainForm TMainForm
+	dataList []*TDataList
 )
 
 func init() {
@@ -28,6 +35,7 @@ func init() {
 }
 
 func main() {
+	rand.NewSource(time.Now().UnixNano())
 	lcl.Init(nil, nil)
 	lcl.Application.SetScaled(true)
 	lcl.Application.Initialize()
@@ -49,6 +57,13 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.VST.SetWidth(640)
 	m.VST.SetTop(5)
 	m.VST.SetLeft(5)
+	m.VST.SetAnimationDuration(200)
+	m.VST.SetAutoExpandDelay(1000)
+	m.VST.SetAutoScrollDelay(1)
+	m.VST.SetAutoScrollInterval(1)
+	m.VST.SetBackgroundOffsetX(0)
+	m.VST.SetBackgroundOffsetY(0)
+	m.VST.SetIndent(18)
 	m.VST.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
 
 	m.AddNodeBtn = lcl.NewButton(m)
@@ -150,27 +165,112 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	column1.SetOptions(column1.Options().Exclude(types.CoAllowClick))
 	// 注册事件
 	m.VST.SetOnGetText(func(sender lcl.IBaseVirtualTree, node types.PVirtualNode, column int32, textType types.TVSTTextType, cellText *string) {
-
-	})
-	m.VST.SetOnPaintText(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, textType types.TVSTTextType) {
-
+		dataPtr := sender.GetNodeData(node)
+		if dataPtr != 0 {
+			data := *(*TTreeData)(unsafe.Pointer(dataPtr))
+			isInData := data.DataIndex < int32(len(dataList))
+			//println(data.DataIndex, isInData)
+			if isInData {
+				col := dataList[data.DataIndex]
+				switch column {
+				case 0:
+					*cellText = col.Text
+				case 1:
+					*cellText = fmt.Sprintf("Stored %v Actual %v", col.NodePointer, node)
+				case 2:
+					*cellText = strconv.Itoa(int(col.RNDNumber))
+				}
+			}
+		}
 	})
 	m.VST.SetOnHeaderClick(func(sender lcl.IVTHeader, hitInfo lcl.TVTHeaderHitInfo) {
-
+		var direction types.TSortDirection
+		if hitInfo.Shift.In(types.SsShift) {
+			direction = types.SdDescending
+		} else {
+			direction = types.SdAscending
+		}
+		if hitInfo.Column != 1 {
+			m.VST.Header().SetSortColumn(hitInfo.Column)
+			m.VST.Header().SetSortDirection(direction)
+			m.VST.SortTree(hitInfo.Column, direction, true)
+		}
 	})
 	m.VST.SetOnFocusChanged(func(sender lcl.IBaseVirtualTree, node types.PVirtualNode, column int32) {
-
+		if node != 0 {
+			dataPtr := m.VST.GetNodeData(node)
+			data := *(*TTreeData)(unsafe.Pointer(dataPtr))
+			dl := dataList[data.DataIndex]
+			m.ClickNodeEdit.SetText(fmt.Sprintf("%v 随机数: %v", dl.Text, dl.RNDNumber))
+		}
 	})
+	compareValue := func(a, b int32) int32 {
+		if a == b {
+			return 0
+		} else if a < b {
+			return -1
+		} else {
+			return 1
+		}
+
+	}
 	m.VST.SetOnCompareNodes(func(sender lcl.IBaseVirtualTree, node1 types.PVirtualNode, node2 types.PVirtualNode, column int32, result *int32) {
+		data1Ptr := m.VST.GetNodeData(node1)
+		data2Ptr := m.VST.GetNodeData(node2)
+		data1 := *(*TTreeData)(unsafe.Pointer(data1Ptr))
+		data2 := *(*TTreeData)(unsafe.Pointer(data2Ptr))
+		switch column {
+		case 0:
+			*result = compareValue(data1.DataIndex, data2.DataIndex)
+		case 1:
+		case 2:
+			*result = compareValue(dataList[data1.DataIndex].RNDNumber, dataList[data2.DataIndex].RNDNumber)
+		default:
+			*result = 0
+		}
 
 	})
 	m.VST.SetOnBeforeCellPaint(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, cellPaintMode types.TVTCellPaintMode,
 		cellRect types.TRect, contentRect *types.TRect) {
-
+		if column < 2 {
+			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
+			defer nodeWrap.Free()
+			if nodeWrap.Index()%2 == 0 {
+				targetCanvas.BrushToBrush().SetColor(colors.ClMoneyGreen)
+				targetCanvas.FillRectWithRect(*contentRect)
+			}
+		}
 	})
-	m.VST.SetOnFreeNode(func(sender lcl.IBaseVirtualTree, node types.PVirtualNode) {
-
+	m.VST.SetOnPaintText(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, textType types.TVSTTextType) {
+		nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
+		defer nodeWrap.Free()
+		if column == 1 && nodeWrap.Index()%2 == 0 {
+			targetCanvas.FontToFont().SetColor(colors.ClRed)
+		}
+		if column == 2 {
+			dataPtr := m.VST.GetNodeData(node)
+			if dataPtr != 0 {
+				data := *(*TTreeData)(unsafe.Pointer(dataPtr))
+				dl := dataList[data.DataIndex]
+				if dl.RNDNumber%2 == 0 {
+					targetCanvas.FontToFont().SetColor(colors.ClBlue)
+					targetCanvas.FontToFont().SetStyle(types.NewSet(types.FsBold))
+				}
+			}
+		}
 	})
+	freeNode := func(sender lcl.IBaseVirtualTree, node types.PVirtualNode) {
+		if node != 0 {
+			dataPtr := m.VST.GetNodeData(node)
+			data := *(*TTreeData)(unsafe.Pointer(dataPtr))
+			// 数据内也应删除, 此处演示
+			dl := dataList[data.DataIndex]
+			dl.Active = false
+			dl.NodePointer = 0
+			dataList[data.DataIndex] = nil
+		}
+	}
+	m.VST.SetOnFreeNode(freeNode)
 	// 显示标题
 	header.SetOptions(header.Options().Include(types.HoVisible))
 	// 显示方向标志
@@ -186,12 +286,45 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.AddNodeBtn.SetOnClick(func(sender lcl.IObject) {
 		// 添加100000条新记录和相应的VST节点
 		m.VST.BeginUpdate()
+		idx := len(dataList)
+		for i := 0; i < 100000; i++ {
+			nodePtr := m.VST.AddChild(0, 0)
+			dataPtr := m.VST.GetNodeData(nodePtr)
+			if dataPtr != 0 {
+				data := (*TTreeData)(unsafe.Pointer(dataPtr))
+				data.DataIndex = int32(idx)
+				newDataList := &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: fmt.Sprintf(" Index %v", data.DataIndex)}
+				dataList = append(dataList, newDataList)
+			}
+			idx++
+		}
+		m.VST.EndUpdate()
+	})
 
+	m.CleanAllBtn.SetOnClick(func(sender lcl.IObject) {
+		// 快速删除所有数据
+		// 清除事件
+		m.VST.SetOnFreeNode(nil)
+		m.VST.Clear()
+		dataList = []*TDataList{}
+		m.VST.SetOnFreeNode(freeNode)
+	})
+
+	m.DeleteSelectedBtn.SetOnClick(func(sender lcl.IObject) {
+		m.VST.BeginUpdate()
+		m.VST.DeleteSelectedNodes()
 		m.VST.EndUpdate()
 	})
 }
 
 func (m *TMainForm) FormAfterCreate(sender lcl.IObject) {
+}
+
+type TDataList struct {
+	NodePointer types.PVirtualNode
+	Active      bool
+	Text        string
+	RNDNumber   int32
 }
 
 type TTreeData struct {
