@@ -2,22 +2,25 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 
@@ -45,5 +48,5 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 }
 
 func (m *TMainForm) OnFormCloseQuery(Sender lcl.IObject, CanClose *bool) {
-	*CanClose = lcl.MessageDlg("是否退出？", types.MtConfirmation, types.MbYes, types.MbNo) == types.IdYes
+	*CanClose = api.MessageDlg("是否退出？", types.MtConfirmation, types.NewSet(types.MbYes), types.MbNo) == types.IdYes
 }

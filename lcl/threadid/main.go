@@ -10,12 +10,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 )
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	fmt.Println("MainThreadId: ", rtl.MainThreadId())
 	fmt.Println("CurrentThreadId: ", rtl.CurrentThreadId())
 	go func() {

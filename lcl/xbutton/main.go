@@ -2,21 +2,24 @@ package main
 
 import (
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
 
 type TForm1 struct {
-	lcl.TForm
+	lcl.TEngForm
 	Button1 lcl.IXButton
 }
 
 var form1 TForm1
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&form1)
 }
 
@@ -53,7 +56,7 @@ func (f *TForm1) FormCreate(sender lcl.IObject) {
 }
 
 func (f *TForm1) OnButton1Click(object lcl.IObject) {
-	lcl.ShowMessage("Click")
+	api.ShowMessage("Click")
 }
 
 func init() {

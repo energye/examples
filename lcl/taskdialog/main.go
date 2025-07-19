@@ -2,24 +2,27 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	Btn1 lcl.IButton
 }
 
 var MainForm TMainForm
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&MainForm)
+	lcl.Application.NewForm(&MainForm)
 	lcl.Application.Run()
 }
 
@@ -51,27 +54,26 @@ func (f *TMainForm) OnBtn1Click(sender lcl.IObject) {
 
 	taskdlg.SetFooterText("底部文本")
 
-	rd := lcl.AsTaskDialogRadioButtonItem(taskdlg.RadioButtons().Add())
+	rd := taskdlg.RadioButtons().AddToTaskDialogBaseButtonItem()
 	rd.SetCaption("单选按钮1")
-	rd = lcl.AsTaskDialogRadioButtonItem(taskdlg.RadioButtons().Add())
+	rd = taskdlg.RadioButtons().AddToTaskDialogBaseButtonItem()
 	rd.SetCaption("单选按钮2")
-	rd = lcl.AsTaskDialogRadioButtonItem(taskdlg.RadioButtons().Add())
+	rd = taskdlg.RadioButtons().AddToTaskDialogBaseButtonItem()
 	rd.SetCaption("单选按钮3")
 
 	taskdlg.SetCommonButtons(0) //rtl.Include(0, 0))
-	btn := lcl.AsTaskDialogButtonItem(taskdlg.Buttons().Add())
+	btn := taskdlg.Buttons().AddToTaskDialogBaseButtonItem()
 	btn.SetCaption("移除")
 	btn.SetModalResult(types.MrYes)
 
-	btn = lcl.AsTaskDialogButtonItem(taskdlg.Buttons().Add())
+	btn = taskdlg.Buttons().AddToTaskDialogBaseButtonItem()
 	btn.SetCaption("保持")
 	btn.SetModalResult(types.MrNo)
 
 	taskdlg.SetMainIcon(types.TdiQuestion)
-
-	if taskdlg.Execute() {
+	if taskdlg.ExecuteToBool() {
 		if taskdlg.ModalResult() == types.MrYes {
-			lcl.ShowMessage("项目已移除")
+			api.ShowMessage("项目已移除")
 
 			fmt.Println(taskdlg.RadioButton().Caption())
 		}

@@ -4,28 +4,28 @@ import (
 	"fmt"
 	"github.com/energye/examples/lcl/trayicon/data"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"runtime"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	btn lcl.IButton
 }
 
 var mainForm TMainForm
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/trayicon")
 }
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 
 	lcl.Application.Run()
 }
@@ -145,10 +145,10 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 // 主要是用于linux跟macOS下，因为不能像Windows一样直接内置到资源中
 func loadMainIconFromStream(outIcon lcl.IIcon) {
 	if outIcon.IsValid() {
-		//mem := lcl.NewMemoryStreamFromBytes(mainIconBytes)
-		//defer mem.Free() // 不要在阻塞的时候使用defer不然会一直到阻塞结束才释放，这里使用是因为这个函数结束了就释放了
-		//mem.SetPosition(0)
-		//outIcon.LoadFromStream(mem)
-		outIcon.LoadFromBytes(data.MainIconBytes)
+		mem := lcl.NewMemoryStream()
+		defer mem.Free() // 不要在阻塞的时候使用defer不然会一直到阻塞结束才释放，这里使用是因为这个函数结束了就释放了
+		mem.SetPosition(0)
+		lcl.StreamHelper.Write(mem, data.MainIconBytes)
+		outIcon.LoadFromStreamWithStream(mem)
 	}
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	. "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -11,22 +10,22 @@ import (
 )
 
 func init() {
+	TestLoadLibPath()
 	Chdir("lcl/treeview")
 }
 func main() {
-	inits.Init(nil, nil)
-	lcl.Application.SetIconResId(3)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-
-	mainForm := lcl.Application.CreateForm()
+	var mainForm lcl.TEngForm
+	lcl.Application.NewForm(&mainForm)
 	mainForm.SetCaption("Hello")
 	mainForm.SetPosition(types.PoScreenCenter)
 	mainForm.EnabledMaximize(false)
 	mainForm.SetWidth(600)
 	mainForm.SetHeight(500)
 
-	imglist := lcl.NewImageList(mainForm)
+	imglist := lcl.NewImageList(&mainForm)
 
 	icon := lcl.NewIcon()
 	if runtime.GOOS == "windows" {
@@ -44,18 +43,18 @@ func main() {
 
 	// -----------TreeView 不同Node弹出不同菜单，两个右键例程不同使用
 
-	tvpm1 := lcl.NewPopupMenu(mainForm)
-	mItem := lcl.NewMenuItem(mainForm)
+	tvpm1 := lcl.NewPopupMenu(&mainForm)
+	mItem := lcl.NewMenuItem(&mainForm)
 	mItem.SetCaption("第一种")
 	tvpm1.Items().Add(mItem)
 
-	tvpm2 := lcl.NewPopupMenu(mainForm)
-	mItem = lcl.NewMenuItem(mainForm)
+	tvpm2 := lcl.NewPopupMenu(&mainForm)
+	mItem = lcl.NewMenuItem(&mainForm)
 	mItem.SetCaption("第二种")
 	tvpm2.Items().Add(mItem)
 
-	tv := lcl.NewTreeView(mainForm)
-	tv.SetParent(mainForm)
+	tv := lcl.NewTreeView(&mainForm)
+	tv.SetParent(&mainForm)
 	tv.SetAlign(types.AlClient)
 
 	tv.SetImages(imglist)
@@ -89,9 +88,9 @@ func main() {
 				p := lcl.Mouse.CursorPos()
 				switch node.Level() {
 				case 0:
-					tvpm1.PopUp1(p.X, p.Y)
+					tvpm1.PopUpWithIntX2(p.X, p.Y)
 				case 1:
-					tvpm2.PopUp1(p.X, p.Y)
+					tvpm2.PopUpWithIntX2(p.X, p.Y)
 				}
 				fmt.Println("node.Level():", node.Level(), ", text:", node.Text())
 			}
