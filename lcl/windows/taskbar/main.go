@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	tsbar "github.com/energye/lcl/pkgs/wintaskbar"
@@ -11,7 +11,7 @@ import (
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	taskBar  *tsbar.WinTaskBar
 	Button1  lcl.IButton
 	Button2  lcl.IButton
@@ -23,8 +23,12 @@ var (
 	mainForm TMainForm
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 

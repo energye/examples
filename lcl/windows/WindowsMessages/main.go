@@ -5,8 +5,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/types"
@@ -18,11 +17,14 @@ var (
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 }
 
 var mainForm TMainForm
 
+func init() {
+	TestLoadLibPath()
+}
 func (f *TMainForm) FormCreate(object lcl.IObject) {
 	f.SetCaption("Windows Messages")
 	f.SetWidth(300)
@@ -48,7 +50,7 @@ func (f *TMainForm) OnFormDestroy(object lcl.IObject) {
 }
 
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }
 

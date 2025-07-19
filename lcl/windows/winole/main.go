@@ -5,20 +5,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/lcl/inits"
-
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/go-ole/go-ole/oleutil"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	Btn1 lcl.IButton
 }
 
 var mainForm TMainForm
 
+func init() {
+	TestLoadLibPath()
+}
 func (f *TMainForm) FormCreate(object lcl.IObject) {
 	f.SetCaption("WinOLE")
 	f.ScreenCenter()
@@ -43,6 +44,6 @@ func (f *TMainForm) OnBtn1Click(object lcl.IObject) {
 }
 
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm)
 }

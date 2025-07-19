@@ -5,8 +5,8 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/pkgs/win/errcode"
 	"os"
@@ -24,8 +24,11 @@ func CreateMutex(lpMutexAttributes *win.TSecurityAttributes, bInitialOwner bool,
 	return _CreateMutex.Call(uintptr(unsafe.Pointer(lpMutexAttributes)), win.CBool(bInitialOwner), win.CStr(lpName))
 }
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	// 利用互斥来演示exe单一运行，当然不止这一种方法了
 	// GetLastError 无法获取错误，待研究原因所在。
 	Mutex, _, err := CreateMutex(nil, true, "SingleRunTest")

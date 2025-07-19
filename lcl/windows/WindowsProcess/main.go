@@ -5,8 +5,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/rtl"
@@ -16,12 +15,21 @@ import (
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	imgList lcl.IImageList
 	lv1     lcl.IListView
 }
 
 var mainForm TMainForm
+
+func init() {
+	TestLoadLibPath()
+}
+
+func main() {
+	lcl.Init(nil, nil)
+	lcl.RunApp(&mainForm)
+}
 
 func (f *TMainForm) FormCreate(object lcl.IObject) {
 	f.SetCaption("Windows Process")
@@ -50,14 +58,14 @@ func (f *TMainForm) initComponents() {
 	f.lv1.SetLargeImages(f.imgList)
 	f.lv1.SetSmallImages(f.imgList)
 
-	col := lcl.AsListColumn(f.lv1.Columns().Add())
+	col := f.lv1.Columns().AddToListColumn()
 	col.SetWidth(60)
 
-	col = lcl.AsListColumn(f.lv1.Columns().Add())
+	col = f.lv1.Columns().AddToListColumn()
 	col.SetCaption("进程名")
 	col.SetAutoSize(true)
 
-	col = lcl.AsListColumn(f.lv1.Columns().Add())
+	col = f.lv1.Columns().AddToListColumn()
 	col.SetCaption("PID")
 	col.SetAutoSize(true)
 
@@ -104,9 +112,4 @@ func (f *TMainForm) fullListView() {
 	if fSnapShotHandle != 0 {
 		win.CloseHandle(fSnapShotHandle)
 	}
-}
-
-func main() {
-	inits.Init(nil, nil)
-	lcl.RunApp(&mainForm)
 }
