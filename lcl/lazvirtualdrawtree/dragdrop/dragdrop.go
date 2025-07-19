@@ -81,10 +81,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.ListBox.SetOnDragOver(func(sender lcl.IObject, source lcl.IObject, X int32, Y int32, state types.TDragState, accept *bool) {
 		*accept = source.Equals(m.VST) || source.Equals(m.ListBox)
-		fmt.Println("ListBox.OnDragOver", *accept)
+		//fmt.Println("ListBox.OnDragOver", *accept)
 	})
 	m.ListBox.SetOnDragDrop(func(sender lcl.IObject, source lcl.IObject, X int32, Y int32) {
-		fmt.Println("ListBox.OnDragDrop")
+		//fmt.Println("ListBox.OnDragDrop")
 		if source.Equals(m.VST) {
 			nodePtr := m.VST.FocusedNode()
 			if nodePtr != 0 {
@@ -113,7 +113,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		*nodeDataSize = int32(unsafe.Sizeof(tNodeData{}))
 	})
 	m.VST.SetOnDragDrop(func(sender lcl.IBaseVirtualTree, source lcl.IObject, dataObject lcl.IDataObject, formats lcl.IFormatArray, shift types.TShiftState, pt types.TPoint, effect *uint32, mode types.TDropMode) {
-		fmt.Println("VST.OnDragDrop")
+		//fmt.Println("VST.OnDragDrop")
 		var (
 			nodePtr   types.PVirtualNode
 			nodeTitle string
@@ -154,7 +154,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		} else if source != nil {
 			*accept = source.Equals(m.ListBox)
 		}
-		fmt.Println("VST.OnDragOver", *accept)
+		//fmt.Println("VST.OnDragOver", *accept)
 	})
 	// 设定初始节点数量。
 	m.VST.SetRootNodeCount(20)
