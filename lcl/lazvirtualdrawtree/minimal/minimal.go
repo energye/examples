@@ -112,9 +112,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
 			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
+			defer nodeWrap.Free()
 			// node 做为每个节点 key
 			dataNodeList[node] = fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nodeWrap.Index())
-			nodeWrap.Free()
 		}
 		//fmt.Println("OnInitNode")
 	})
