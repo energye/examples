@@ -2,27 +2,29 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 )
 
 // 注册表操作示例
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	// 64位下传入KEY_WOW64_64KEY
 	//reg := lcl.NewRegistry(win.KEY_ALL_ACCESS|win.KEY_WOW64_64KEY)
-	reg := lcl.NewRegistryAllAccess()
+	reg := lcl.NewRegistryWithLongword(win.KEY_ALL_ACCESS | win.KEY_WOW64_64KEY)
 	defer reg.Free()
 	reg.SetRootKey(win.HKEY_CURRENT_USER)
-	if reg.OpenKeyReadOnly("SOFTWARE\\Google\\Chrome\\BLBeacon") {
+	if reg.OpenKeyReadOnlyWithString("SOFTWARE\\Google\\Chrome\\BLBeacon") {
 		defer reg.CloseKey()
-		fmt.Println("version:", reg.ReadString("version"))
-		fmt.Println("state:", reg.ReadInteger("state"))
-		fmt.Println("BLBeacon Exists:", reg.KeyExists("BLBeacon"))
-		fmt.Println("failed_count Exists:", reg.ValueExists("failed_count"))
+		fmt.Println("version:", reg.ReadStringWithString("version"))
+		fmt.Println("state:", reg.ReadIntegerWithString("state"))
+		fmt.Println("BLBeacon Exists:", reg.KeyExistsWithString("BLBeacon"))
+		fmt.Println("failed_count Exists:", reg.ValueExistsWithString("failed_count"))
 		//
 		// reg.WriteBool()
 	} else {

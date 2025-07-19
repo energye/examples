@@ -5,8 +5,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/lcl/inits"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/types"
@@ -19,7 +18,7 @@ import (
 )
 
 type TMainFrom struct {
-	lcl.TForm
+	lcl.TEngForm
 	ListView lcl.IListView
 	Icons    lcl.IImageList
 	tempIco  lcl.IIcon
@@ -38,10 +37,14 @@ var (
 	tempData []TTempItem
 )
 
+func init() {
+	TestLoadLibPath()
+}
+
 func main() {
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
-	lcl.Application.CreateForm(&MainFrom)
+	lcl.Application.NewForm(&MainFrom)
 	lcl.Application.Run()
 }
 
@@ -71,7 +74,7 @@ func (f *TMainFrom) FormCreate(sender lcl.IObject) {
 	f.ListView.SetOnAdvancedCustomDrawSubItem(f.OnListView1AdvancedCustomDrawSubItem)
 
 	addCol := func(name string, width int32) {
-		col := lcl.AsListColumn(f.ListView.Columns().Add())
+		col := f.ListView.Columns().AddToListColumn()
 		col.SetCaption(name)
 		col.SetWidth(width)
 		col.SetAlignment(types.TaCenter)
@@ -84,7 +87,9 @@ func (f *TMainFrom) FormCreate(sender lcl.IObject) {
 	addCol("M", 100)
 
 	ico := lcl.NewIcon()
-	_ = filepath.Walk("./icons", func(path string, info os.FileInfo, err error) error {
+	tmpPath, _ := os.Getwd()
+	iconsPath := filepath.Join(tmpPath, "lcl", "windows", "listviewadvcustomdraw", "icons")
+	_ = filepath.Walk(iconsPath, func(path string, info os.FileInfo, err error) error {
 		ext := filepath.Ext(info.Name())
 		if ext == ".ico" {
 			ico.LoadFromFile(path)
@@ -129,40 +134,39 @@ func (f *TMainFrom) GetSubItemRect(hwndLV types.HWND, iItem, iSubItem int32) (re
 	return
 }
 
-func (f *TMainFrom) OnListView1AdvancedCustomDrawSubItem(sender lcl.IListView, item lcl.IListItem, subItem int32, state types.TCustomDrawState, stage types.TCustomDrawStage, defaultDraw *bool) {
+func (f *TMainFrom) OnListView1AdvancedCustomDrawSubItem(sender lcl.ICustomListView, item lcl.IListItem, subItem int32, state types.TCustomDrawState, stage types.TCustomDrawStage, defaultDraw *bool) {
 	if len(tempData) == 0 {
 		return
 	}
 	canvas := sender.Canvas()
-	brush := lcl.AsBrush(canvas.Brush())
+	brush := canvas.BrushToBrush()
 	boundRect := item.DisplayRect(types.DrBounds)
 	if state.In(types.CdsFocused) {
 		brush.SetColor(0x00C5F1FF)
 	} else {
 		brush.SetColor(sender.Color())
 	}
-	canvas.FillRect(&boundRect)
+	canvas.FillRectWithRect(boundRect)
 	data := tempData[item.Index()]
-	drawFlags := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
 	var i int32
-	for i = 0; i < sender.Columns().Count(); i++ {
+	for i = 0; i < sender.ColumnCount(); i++ {
 		r := f.GetSubItemRect(sender.Handle(), item.Index(), i)
 		switch i {
 		case 0:
 			var hw int32 = 16
-			f.Icons.GetIcon(data.IconIndex, f.tempIco, types.GdeNormal)
+			f.Icons.GetIconWithIntIconGraphicsDrawEffect(data.IconIndex, f.tempIco, types.GdeNormal)
 			if !f.tempIco.Empty() {
-				canvas.DrawForGraphic(r.Right/2-hw/2, r.Top+(r.Bottom-r.Top-hw)/2, f.tempIco)
+				canvas.DrawWithIntX2Graphic(r.Right/2-hw/2, r.Top+(r.Bottom-r.Top-hw)/2, f.tempIco)
 			}
 
 		case 1:
-			canvas.TextRect2(&r, data.Sub1, drawFlags)
+			canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, data.Sub1, lcl.TTextStyle{})
 		case 2:
-			canvas.TextRect2(&r, data.Sub2, drawFlags)
+			canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, data.Sub2, lcl.TTextStyle{})
 		case 3:
 
 			brush.SetColor(colors.ClSkyblue)
-			canvas.FrameRect(&r)
+			canvas.FrameRectWithRect(r)
 			r.Inflate(-2, -2)
 
 			right := r.Right - int32(math.Ceil(float64(r.Width())/100.0)*(100.0-float64(data.Progress)))
@@ -171,16 +175,16 @@ func (f *TMainFrom) OnListView1AdvancedCustomDrawSubItem(sender lcl.IListView, i
 			}
 			progRect := types.TRect{Left: r.Left, Top: r.Top, Right: right, Bottom: r.Bottom}
 
-			canvas.FillRect(&progRect)
+			canvas.FillRectWithRect(progRect)
 
 			//flags := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
-			canvas.Brush().SetStyle(types.BsClear)
+			canvas.BrushToBrush().SetStyle(types.BsClear)
 			win.SetBkMode(canvas.Handle(), win.TRANSPARENT)
-			canvas.TextRect2(&r, fmt.Sprintf("%d%%", data.Progress), drawFlags)
+			canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, fmt.Sprintf("%d%%", data.Progress), lcl.TTextStyle{})
 
 		case 4:
 
-			canvas.TextRect2(&r, data.Sub4, drawFlags)
+			canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top, data.Sub4, lcl.TTextStyle{})
 		}
 
 	}
