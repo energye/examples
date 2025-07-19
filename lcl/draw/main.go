@@ -51,28 +51,27 @@ func main() {
 
 	mainForm.SetOnPaint(func(lcl.IObject) {
 		canvas := mainForm.Canvas()
-		canvas.MoveToWithIntegerX2(10, 10)
-		canvas.LineToWithIntegerX2(50, 10)
+		canvas.MoveToWithIntX2(10, 10)
+		canvas.MoveToWithIntX2(50, 10)
 		s := "这是一段文字"
-		font := lcl.AsFont(canvas.Font())
-		brush := lcl.AsBrush(canvas.Brush())
-		pen := lcl.AsPen(canvas.Pen())
+		font := canvas.FontToFont()
+		brush := canvas.BrushToBrush()
+		pen := canvas.PenToPen()
 		font.SetColor(colors.ClRed) // red
 		font.SetSize(20)
 		//style := font.Style()
-		canvas.Brush().SetStyle(types.BsClear)
-		canvas.TextOutWithIntegerX2Unicodestring(100, 30, s)
+		canvas.BrushToBrush().SetStyle(types.BsClear)
+		canvas.TextOutWithIntX2Unicodestring(100, 30, s)
 		//fmt.Println("canvas.Font()", font.Height(), canvas.Font().Size())
 
-		r := types.TRect{0, 0, 80, 80}
+		r := types.TRect{Right: 80, Bottom: 80}
 
 		// 计算文字
-		//fmt.Println("TfSingleLine: ", types.TfSingleLine)
 		s = "由于现有第三方的Go UI库不是太庞大就是用的不习惯，或者组件太少。"
-		canvas.TextRectWithRectIntegerX2String(r, 0, 0, s)
+		canvas.TextRectWithRectIntX2String(r, r.Left, r.Top, s)
 
 		s = "测试输出"
-		r = types.TRect{0, 0, 80, 80}
+		r = types.TRect{Right: 80, Bottom: 80}
 		// brush
 		brush.SetColor(colors.ClGreen)
 		canvas.FillRectWithRect(r)
@@ -84,12 +83,12 @@ func main() {
 
 		// pen
 		pen.SetColor(colors.ClFuchsia)
-		canvas.RectangleWithIntegerX4(r.Left, r.Top, r.Right, r.Bottom)
+		canvas.RectangleWithIntX4(r.Left, r.Top, r.Right, r.Bottom)
 
-		canvas.TextRectWithRectIntegerX2StringTextStyle(r, 0, 0, s, lcl.TTextStyle{})
+		canvas.TextRectWithRectIntX2StringTextStyle(r, 0, 0, s, lcl.TTextStyle{})
 
 		if jpgimg != nil {
-			canvas.DrawWithIntegerX2Graphic(0, 80, jpgimg)
+			canvas.DrawWithIntX2Graphic(0, 80, jpgimg)
 		}
 
 		// 画多边形
@@ -105,9 +104,9 @@ func main() {
 	//paintbox.SetColor(colors.ClRed)
 	paintbox.SetOnPaint(func(lcl.IObject) {
 		canvas := paintbox.Canvas()
-		pen := lcl.AsPen(canvas.Pen())
+		pen := canvas.PenToPen()
 		pen.SetColor(colors.ClGreen)
-		font := lcl.AsFont(canvas.Font())
+		font := canvas.FontToFont()
 		r := paintbox.ClientRect()
 		canvas.RectangleWithRect(r)
 
@@ -115,13 +114,13 @@ func main() {
 		rect := paintbox.ClientRect()
 		s := "在这可以用鼠标绘制"
 		//textFmt := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
-		canvas.TextRectWithRectIntegerX2StringTextStyle(rect, 0, 0, s, lcl.TTextStyle{})
+		canvas.TextRectWithRectIntX2StringTextStyle(rect, 0, 0, s, lcl.TTextStyle{})
 
 		for _, p := range points {
 			if p.Down {
-				canvas.MoveToWithIntegerX2(p.X, p.Y)
+				canvas.MoveToWithIntX2(p.X, p.Y)
 			} else {
-				canvas.LineToWithIntegerX2(p.X, p.Y)
+				canvas.LineToWithIntX2(p.X, p.Y)
 			}
 		}
 
