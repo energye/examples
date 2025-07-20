@@ -296,7 +296,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			if dataPtr != 0 {
 				data := (*TTreeData)(unsafe.Pointer(dataPtr))
 				data.DataIndex = int32(idx)
-				dataList[data.DataIndex] = &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: fmt.Sprintf(" Index %v", data.DataIndex), Active: true}
+				dataList[data.DataIndex] = &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: Concat("Index ", strconv.Itoa(int(data.DataIndex))), Active: true}
 			}
 			idx++
 		}

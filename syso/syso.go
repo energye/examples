@@ -1,6 +1,7 @@
 package syso
 
 import (
+	"bytes"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"go/build"
@@ -41,4 +42,15 @@ func ScaleSelf(f lcl.IEngForm) {
 		f.SetClientWidth(int32(float64(f.ClientWidth()) * (float64(lcl.Screen.PixelsPerInch()) / 96.0)))
 		f.SetClientHeight(int32(float64(f.ClientHeight()) * (float64(lcl.Screen.PixelsPerInch()) / 96.0)))
 	}
+}
+
+var buf = bytes.Buffer{}
+
+func Concat(vs ...string) (r string) {
+	for _, v := range vs {
+		buf.WriteString(v)
+	}
+	r = buf.String()
+	buf.Reset()
+	return
 }

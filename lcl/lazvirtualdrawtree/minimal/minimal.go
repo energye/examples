@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
@@ -108,12 +109,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//fmt.Println("OnGetText")
 	})
 	// 构建节点标题。此事件针对每个节点触发一次，但以异步方式呈现，即节点在显示时触发，而非添加时。
+	//buf := strings.Builder{}
+	buf := bytes.Buffer{}
 	m.VST.SetOnInitNode(func(sender lcl.IBaseVirtualTree, parentNode types.PVirtualNode, node types.PVirtualNode, initialStates *types.TVirtualNodeInitStates) {
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
 			nd := node.ToGo()
 			// node 做为每个节点 key
-			dataNodeList[node] = fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nd.Index)
+			buf.WriteString("Level ")
+			buf.WriteString(strconv.Itoa(int(sender.GetNodeLevel(node))))
+			buf.WriteString(", Index ")
+			buf.WriteString(strconv.Itoa(int(nd.Index)))
+			dataNodeList[node] = buf.String()
+			buf.Reset()
 		}
 		//fmt.Println("OnInitNode")
 	})
