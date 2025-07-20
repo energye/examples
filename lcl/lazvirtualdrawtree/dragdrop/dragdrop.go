@@ -33,7 +33,7 @@ func main() {
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	m.SetCaption("dragdrop")
+	m.SetCaption("VirtualTrees dragdrop")
 	m.WorkAreaCenter()
 	m.SetHeight(350)
 	m.SetWidth(500)
@@ -42,7 +42,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.ShowHeaderCheckBox.SetParent(m)
 	m.ShowHeaderCheckBox.SetLeft(8)
 	m.ShowHeaderCheckBox.SetTop(5)
-	m.ShowHeaderCheckBox.SetCaption("显示头部")
+	m.ShowHeaderCheckBox.SetCaption("置顶")
 	m.ShowHeaderCheckBox.SetOnChange(func(sender lcl.IObject) {
 		if m.ShowHeaderCheckBox.Checked() {
 			m.SetFormStyle(types.FsSystemStayOnTop)
