@@ -111,10 +111,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.VST.SetOnInitNode(func(sender lcl.IBaseVirtualTree, parentNode types.PVirtualNode, node types.PVirtualNode, initialStates *types.TVirtualNodeInitStates) {
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
-			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
-			defer nodeWrap.Free()
+			nd := node.ToGo()
 			// node 做为每个节点 key
-			dataNodeList[node] = fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nodeWrap.Index())
+			dataNodeList[node] = fmt.Sprintf("Level %v, Index %v", sender.GetNodeLevel(node), nd.Index)
 		}
 		//fmt.Println("OnInitNode")
 	})

@@ -236,9 +236,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cellRect types.TRect, contentRect *types.TRect) {
 		//println("OnBeforeCellPaint")
 		if column < 2 {
-			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
-			defer nodeWrap.Free()
-			if nodeWrap.Index()%2 == 0 {
+			nd := node.ToGo()
+			if nd.Index%2 == 0 {
 				targetCanvas.BrushToBrush().SetColor(colors.ClMoneyGreen)
 				targetCanvas.FillRectWithRect(*contentRect)
 			}
@@ -246,9 +245,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 	m.VST.SetOnPaintText(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, textType types.TVSTTextType) {
 		//println("OnPaintText")
-		nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
-		defer nodeWrap.Free()
-		if column == 1 && nodeWrap.Index()%2 == 0 {
+		nd := node.ToGo()
+		if column == 1 && nd.Index%2 == 0 {
 			targetCanvas.FontToFont().SetColor(colors.ClRed)
 		}
 		if column == 2 {
