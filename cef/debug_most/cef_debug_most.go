@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/application"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
@@ -13,9 +14,9 @@ import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/logger"
 	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
+	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/tools"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
@@ -24,7 +25,7 @@ import (
 )
 
 type BrowserWindow struct {
-	lcl.TForm
+	lcl.TEngForm
 	mainWindowId int32 // 主窗口ID
 	timer        lcl.ITimer
 	windowParent cef.ICEFWinControl
@@ -39,25 +40,21 @@ var (
 )
 
 func main() {
-	logger.SetEnable(true)
-	logger.SetLevel(logger.LDebug)
-	logger.Info("help-sub-process:", help)
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
 	app := application.NewApplication()
-	if tools.IsDarwin() {
+	if tool.IsDarwin() {
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
 		// MacOS
 		cef.AddCrDelegate()
-		cef.GlobalWorkSchedulerCreate(nil)
 		app.SetOnScheduleMessagePumpWork(nil)
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
 		if !process.Args.IsMain() {
 			// MacOS 多进程时，需要调用StartSubProcess来启动子进程
 			subStart := app.StartSubProcess()
-			fmt.Println("subStart:", subStart, process.Args.ProcessType())
+			fmt.Println("subStart:", subStart, app.ProcessType())
 			app.Free()
 			return
 		}
@@ -69,7 +66,7 @@ func main() {
 	}
 	// 主进程启动
 	mainStart := app.StartMainProcess()
-	fmt.Println("mainStart:", mainStart, process.Args.ProcessType())
+	fmt.Println("mainStart:", mainStart, app.ProcessType())
 	if mainStart {
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
@@ -144,13 +141,13 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// devtools
 	devtools.DevTools(m.chromium)
 
-	m.chromium.SetOnLoadingProgressChange(func(sender cef.IObject, browser cef.ICefBrowser, progress float64) {
+	m.chromium.SetOnLoadingProgressChange(func(sender lcl.IObject, browser cef.ICefBrowser, progress float64) {
 		fmt.Println("OnLoadingProgressChange:", progress)
 	})
-	m.chromium.SetOnLoadStart(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cef.TCefTransitionType) {
+	m.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
 		fmt.Println("OnLoadStart:", frame.GetUrl())
 	})
-	m.chromium.SetOnLoadEnd(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
+	m.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
 		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())

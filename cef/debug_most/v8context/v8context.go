@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/debug_most/domvisitor"
-	"github.com/energye/lcl/process"
 	"strconv"
 	"unsafe"
 )
 
 func Context(app cef.ICefApplication) {
-	fmt.Println("ProcessType:", process.Args.ProcessType())
 	var (
-		ipc         cef.ICefV8Value
-		onHandler   cef.IV8Handler
-		emitHandler cef.IV8Handler
-		onCallback  cef.ICefV8Value
+		ipc         cef.ICefv8Value
+		onHandler   cef.IEngV8Handler
+		emitHandler cef.IEngV8Handler
+		onCallback  cef.ICefv8Value
 	)
 	app.SetOnContextCreated(func(browser cef.ICefBrowser, frame cef.ICefFrame, context cef.ICefV8Context) {
 		onHandler = cef.NewV8Handler()
@@ -44,7 +42,7 @@ func Context(app cef.ICefApplication) {
 				emitName.FreeAndNil()
 				arguments.Free()
 			}()
-			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", process.Args.ProcessType())
+			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", app.ProcessType())
 			eventName := emitName.GetStringValue()
 			if eventName == "domVisitor" {
 				domvisitor.DomVisitor()
