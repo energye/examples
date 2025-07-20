@@ -146,7 +146,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		start := time.Now()
 		m.VST.Clear()
 		dataNodeList = make(map[types.PVirtualNode]string)
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms %v ns", labelText, time.Now().Sub(start).Nanoseconds()/1000000, time.Now().Sub(start).Nanoseconds()))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
 
@@ -155,7 +155,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		start := time.Now()
 		count, _ := strconv.Atoi(m.Edit1.Text())
 		m.VST.SetRootNodeCount(m.VST.RootNodeCount() + uint32(count))
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms %v ns", labelText, time.Now().Sub(start).Nanoseconds()/1000000, time.Now().Sub(start).Nanoseconds()))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
 
@@ -168,7 +168,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.VST.SetExpanded(nodePtr, true)
 			m.VST.InvalidateToBottom(nodePtr)
 		}
-		m.Label1.SetCaption(fmt.Sprintf("%v%v ms", labelText, time.Now().Sub(start).Nanoseconds()/1000000))
+		m.Label1.SetCaption(fmt.Sprintf("%v%v ms %v ns", labelText, time.Now().Sub(start).Nanoseconds()/1000000, time.Now().Sub(start).Nanoseconds()))
 		lcl.Screen.SetCursor(types.CrDefault)
 	})
 }
