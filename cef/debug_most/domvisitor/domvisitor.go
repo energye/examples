@@ -5,12 +5,12 @@ import (
 	"github.com/energye/cef/cef"
 )
 
-var dv cef.IDomVisitor
+var dv cef.IEngDomVisitor
 
 func DomVisitor() {
 	if dv == nil {
-		dv = cef.NewDomVisitor()
-		dv.SetOnDomVisitor(func(document cef.ICefDomDocument) {
+		dv = cef.NewEngDomVisitor()
+		dv.SetOnDomVisitorVisit(func(document cef.ICefDomDocument) {
 			fmt.Println("title:", document.GetTitle())
 			body := document.GetBody()
 			fmt.Println("body-InnerText:", body.GetElementInnerText())

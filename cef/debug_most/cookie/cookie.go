@@ -3,15 +3,17 @@ package cookie
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/lcl/lcl"
-	"time"
+	"github.com/energye/lcl/types"
 )
 
 func Cookie(chromium cef.IChromium) {
 	//获取cookie时触发
-	chromium.SetOnCookiesVisited(func(sender cef.IObject, cookie cef.TCookie, count, total, id int32, deleteCookie, result *bool) {
-		fmt.Println("SetOnCookiesVisited: ", count, total, id, deleteCookie)
-		fmt.Println("cookie:", cookie)
+	chromium.SetOnCookiesVisited(func(sender lcl.IObject, name string, value string, domain string, path string, secure bool, httponly bool, hasExpires bool,
+		creation types.TDateTime, lastAccess types.TDateTime, expires types.TDateTime, count int32, total int32, iD int32, sameSite cefTypes.TCefCookieSameSite,
+		priority cefTypes.TCefCookiePriority, deleteCookie *bool, result *bool) {
+		fmt.Println("SetOnCookiesVisited: ", count, total, iD, deleteCookie)
 	})
 	//删除cookie时触发
 	chromium.SetOnCookiesDeleted(func(sender lcl.IObject, numDeleted int32) {
@@ -39,24 +41,24 @@ func DeleteCookie(chromium cef.IChromium) {
 }
 
 func SetCookie(chromium cef.IChromium) {
-	cookie := cef.TCookie{
-		Name:       "example_cookie_name",
-		Value:      "111",
-		Domain:     "",
-		Path:       "/",
-		Creation:   cef.DateTimeToDTime(time.Now()),
-		LastAccess: cef.DateTimeToDTime(time.Now()),
-		Expires:    cef.DateTimeToDTime(time.Now()),
-		Secure:     true,
-		Httponly:   true,
-		HasExpires: true,
-		SameSite:   cef.CEF_COOKIE_SAME_SITE_UNSPECIFIED,
-		Priority:   cef.CEF_COOKIE_PRIORITY_MEDIUM,
-	}
-	fmt.Println("set cookie 1")
-	chromium.SetCookie("https://www.example.com", false, 1, cookie)
-	fmt.Println("set cookie 2")
-	chromium.SetCookie("https://www.example.com", false, 2, cookie)
-	fmt.Println("set cookie 3")
-	chromium.SetCookie("https://www.baidu.com", false, 3, cookie)
+	//cookie := cef.TCookie{
+	//	Name:       "example_cookie_name",
+	//	Value:      "111",
+	//	Domain:     "",
+	//	Path:       "/",
+	//	Creation:   cef.DateTimeToDTime(time.Now()),
+	//	LastAccess: cef.DateTimeToDTime(time.Now()),
+	//	Expires:    cef.DateTimeToDTime(time.Now()),
+	//	Secure:     true,
+	//	Httponly:   true,
+	//	HasExpires: true,
+	//	SameSite:   cef.CEF_COOKIE_SAME_SITE_UNSPECIFIED,
+	//	Priority:   cef.CEF_COOKIE_PRIORITY_MEDIUM,
+	//}
+	//fmt.Println("set cookie 1")
+	//chromium.SetCookie("https://www.example.com", false, 1, cookie)
+	//fmt.Println("set cookie 2")
+	//chromium.SetCookie("https://www.example.com", false, 2, cookie)
+	//fmt.Println("set cookie 3")
+	//chromium.SetCookie("https://www.baidu.com", false, 3, cookie)
 }

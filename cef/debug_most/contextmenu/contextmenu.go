@@ -3,6 +3,7 @@ package contextmenu
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types/colors"
@@ -10,31 +11,31 @@ import (
 
 func ContextMenu(chromium cef.IChromium) {
 	var (
-		menuId01           cef.MenuId
-		menuId02           cef.MenuId
-		menuId03           cef.MenuId
-		menuId0301         cef.MenuId
-		menuId0302         cef.MenuId
-		menuIdCheck        cef.MenuId
+		menuId01           cefTypes.TCefMenuId
+		menuId02           cefTypes.TCefMenuId
+		menuId03           cefTypes.TCefMenuId
+		menuId0301         cefTypes.TCefMenuId
+		menuId0302         cefTypes.TCefMenuId
+		menuIdCheck        cefTypes.TCefMenuId
 		isMenuIdCheck      = true
-		menuIdEnable       cef.MenuId
+		menuIdEnable       cefTypes.TCefMenuId
 		isMenuIdEnable     = true
-		menuIdEnableCtl    cef.MenuId
-		menuIdRadio101     cef.MenuId
-		menuIdRadio102     cef.MenuId
-		menuIdRadio103     cef.MenuId
-		radioDefault1Check cef.MenuId
-		menuIdRadio201     cef.MenuId
-		menuIdRadio202     cef.MenuId
-		menuIdRadio203     cef.MenuId
-		radioDefault2Check cef.MenuId
-		refresh            cef.MenuId
-		devtoolsId         cef.MenuId
+		menuIdEnableCtl    cefTypes.TCefMenuId
+		menuIdRadio101     cefTypes.TCefMenuId
+		menuIdRadio102     cefTypes.TCefMenuId
+		menuIdRadio103     cefTypes.TCefMenuId
+		radioDefault1Check cefTypes.TCefMenuId
+		menuIdRadio201     cefTypes.TCefMenuId
+		menuIdRadio202     cefTypes.TCefMenuId
+		menuIdRadio203     cefTypes.TCefMenuId
+		radioDefault2Check cefTypes.TCefMenuId
+		refresh            cefTypes.TCefMenuId
+		devtoolsId         cefTypes.TCefMenuId
 	)
-	nextMenuId := cef.MENU_ID_USER_FIRST
-	var nextCommandId = func(reset ...bool) cef.MenuId {
+	nextMenuId := cefTypes.MENU_ID_USER_FIRST
+	var nextCommandId = func(reset ...bool) cefTypes.TCefMenuId {
 		if len(reset) > 0 {
-			nextMenuId = cef.MENU_ID_USER_FIRST
+			nextMenuId = cefTypes.MENU_ID_USER_FIRST
 		}
 		nextMenuId++
 		return nextMenuId
@@ -42,7 +43,7 @@ func ContextMenu(chromium cef.IChromium) {
 	chromium.SetOnBeforeContextMenu(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, model cef.ICefMenuModel) {
 		fmt.Println("OnBeforeContextMenu")
 		model.AddSeparator()
-		menuId01 = cef.MENU_ID_USER_FIRST + 1
+		menuId01 = cefTypes.MENU_ID_USER_FIRST + 1
 		menuId01 = nextCommandId(true)
 		model.AddItem(menuId01, "菜单一 html 文字变红色")
 		menuId02 = nextCommandId()
@@ -63,7 +64,7 @@ func ContextMenu(chromium cef.IChromium) {
 		menuIdEnable = nextCommandId()
 		if isMenuIdEnable {
 			model.AddItem(menuIdEnable, "菜单-已启用")
-			model.SetColor(menuIdEnable, cef.CEF_MENU_COLOR_TEXT, colors.NewARGB(255, 111, 12, 200).ARGB())
+			model.SetColor(menuIdEnable, cefTypes.CEF_MENU_COLOR_TEXT, colors.NewARGB(255, 111, 12, 200).ARGB())
 		} else {
 			model.AddItem(menuIdEnable, "菜单-已禁用")
 		}
@@ -73,7 +74,7 @@ func ContextMenu(chromium cef.IChromium) {
 		//为什么要用Visible而不是不创建这个菜单? 因为菜单项的ID是动态的啊。
 		model.SetVisible(menuIdEnableCtl, !isMenuIdEnable)
 		if !isMenuIdEnable {
-			model.SetColor(menuIdEnableCtl, cef.CEF_MENU_COLOR_TEXT, colors.NewARGB(255, 222, 111, 0).ARGB())
+			model.SetColor(menuIdEnableCtl, cefTypes.CEF_MENU_COLOR_TEXT, colors.NewARGB(255, 222, 111, 0).ARGB())
 		}
 		model.AddSeparator()
 		//radio 1组
@@ -104,7 +105,7 @@ func ContextMenu(chromium cef.IChromium) {
 		devtoolsId = nextCommandId()
 		model.AddItem(devtoolsId, "开发者工具")
 	})
-	chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cef.MenuId, eventFlags uint32, result *bool) {
+	chromium.SetOnContextMenuCommand(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, commandId cefTypes.TCefMenuId, eventFlags uint32, result *bool) {
 		fmt.Println("OnContextMenuCommand commandId:", commandId)
 		switch commandId {
 		case menuId01:

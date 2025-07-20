@@ -5,10 +5,11 @@ import (
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/debug_most/utils"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 func DevTools(chromium cef.IChromium) {
-	chromium.SetOnDevToolsRawMessage(func(sender cef.IObject, browser cef.ICefBrowser, message uintptr, messageSize uint32, handled *bool) {
+	chromium.SetOnDevToolsRawMessage(func(sender lcl.IObject, browser cef.ICefBrowser, message uintptr, messageSize uint32, handled *bool) {
 		fmt.Println("OnDevToolsRawMessage message:", message, messageSize)
 		data := utils.ReadData(message, messageSize)
 		fmt.Println("data:", string(data))
@@ -18,11 +19,11 @@ func DevTools(chromium cef.IChromium) {
 
 func ShowDevtools(chromium cef.IChromium) {
 	lcl.RunOnMainThreadAsync(func(id uint32) {
-		point := cef.TPoint{
+		point := types.TPoint{
 			X: 100,
 			Y: 100,
 		}
-		chromium.ShowDevToolsForIWinControl(&point, nil)
+		chromium.ShowDevToolsWithPointWinControl(point, nil)
 	})
 }
 
@@ -49,5 +50,5 @@ func ExecuteDevToolsMethod(chromium cef.IChromium) {
 
 func ExecuteJavaScript(chromium cef.IChromium) {
 	var jsCode = `document.body.style.background="#999999";`
-	chromium.ExecuteJavaScript(jsCode, "", "", 0)
+	chromium.ExecuteJavaScriptWithStringX2FrameInt(jsCode, "", chromium.Browser().GetMainFrame(), 0)
 }

@@ -3,6 +3,7 @@ package scheme
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/utils"
 	"io/ioutil"
 	"net/url"
@@ -22,7 +23,7 @@ func ApplicationOnRegCustomSchemes(registrar cef.ICefSchemeRegistrarRef) {
 	case "HTTP", "HTTPS", "FILE", "FTP", "ABOUT", "DATA":
 		return
 	}
-	registrar.AddCustomScheme(SchemeName, cef.CEF_SCHEME_OPTION_STANDARD|cef.CEF_SCHEME_OPTION_CORS_ENABLED|cef.CEF_SCHEME_OPTION_SECURE|cef.CEF_SCHEME_OPTION_FETCH_ENABLED)
+	registrar.AddCustomScheme(SchemeName, cefTypes.CEF_SCHEME_OPTION_STANDARD|cefTypes.CEF_SCHEME_OPTION_CORS_ENABLED|cefTypes.CEF_SCHEME_OPTION_SECURE|cefTypes.CEF_SCHEME_OPTION_FETCH_ENABLED)
 }
 
 type SliceHeader struct {
@@ -33,8 +34,8 @@ type SliceHeader struct {
 
 func ChromiumAfterCreated(browser cef.ICefBrowser) {
 	fmt.Println("scheme -> OnAfterCreated")
-	handlerFactory := cef.NewSchemeHandlerFactory(0)
-	handlerFactory.SetOnNew(func(browser cef.ICefBrowser, frame cef.ICefFrame, schemeName string, request cef.ICefRequest) (result cef.ICefResourceHandler) {
+	schemeHandlerFactory := cef.NewEngSchemeHandlerFactory(0)
+	schemeHandlerFactory.SetOnSchemeFactoryNew(func(browser cef.ICefBrowser, frame cef.ICefFrame, schemeName string, request cef.ICefRequest) cef.IEngResourceHandler {
 		fmt.Println("scheme -> handlerFactory -> SetOnNew schemeName:", schemeName, "url:", request.GetUrl())
 		reqUrl, err := url.Parse(request.GetUrl())
 		if err != nil {
@@ -87,8 +88,8 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 			}
 			return false
 		}
-		resourceHandler := cef.NewResourceHandler(browser, frame, schemeName, request)
-		resourceHandler.SetOnProcessRequest(func(request cef.ICefRequest, callback cef.ICefCallback, outResult *bool) {
+		resourceHandler := cef.NewEngResourceHandler(browser, frame, schemeName, request)
+		resourceHandler.SetOnResourceProcessRequest(func(request cef.ICefRequest, callback cef.ICefCallback) bool {
 			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnProcessRequest")
 			responseData, err = ioutil.ReadFile(filepath.Join(utils.RootPath(), "assets\\scheme.html"))
 			if err == nil {
@@ -97,10 +98,10 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 				start = 0
 			}
 			fmt.Println("\tresponseData size:", len(responseData))
-			*outResult = true
 			callback.Cont()
+			return true
 		})
-		resourceHandler.SetOnGetResponseHeaders(func(response cef.ICefResponse, outResponseLength *int64, outRedirectUrl *string) {
+		resourceHandler.SetOnResourceGetResponseHeaders(func(response cef.ICefResponse, outResponseLength *int64, outRedirectUrl *string) {
 			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnGetResponseHeaders")
 			fmt.Println("\tstatusCode:", statusCode, "statusText:", statusText, "mimeType:", mimeType, "size:", len(responseData))
 			response.SetStatus(statusCode)
@@ -108,6 +109,7 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 			response.SetMimeType(mimeType)
 			*outResponseLength = int64(len(responseData))
 		})
+
 		//resourceHandler.SetOnRead(func(dataOut uintptr, bytesToRead int32, bytesRead *int32, callback cef.ICefResourceReadCallback, outResult *bool) {
 		//	fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnRead")
 		//	*outResult = readData(dataOut, bytesToRead, bytesRead)
@@ -115,14 +117,16 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 		//		callback.Cont(int64(*bytesRead))
 		//	}
 		//})
-		resourceHandler.SetOnReadResponse(func(dataOut uintptr, bytesToRead int32, bytesRead *int32, callback cef.ICefCallback, outResult *bool) {
+		resourceHandler.SetOnResourceReadResponse(func(dataOut uintptr, bytesToRead int32, bytesRead *int32, callback cef.ICefCallback) bool {
 			fmt.Println("scheme -> handlerFactory -> resourceHandler -> SetOnReadResponse")
-			*outResult = readData(dataOut, bytesToRead, bytesRead)
-			if *outResult {
+			r := readData(dataOut, bytesToRead, bytesRead)
+			if r {
 				callback.Cont()
 			}
+			return r
 		})
-		return resourceHandler.AsInterface()
+		return resourceHandler
 	})
-	browser.GetHost().GetRequestContext().RegisterSchemeHandlerFactory(SchemeName, DomainName, handlerFactory.AsInterface())
+
+	browser.GetHost().GetRequestContext().RegisterSchemeHandlerFactory(SchemeName, DomainName, schemeHandlerFactory.AsInterface())
 }
