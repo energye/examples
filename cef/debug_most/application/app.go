@@ -14,7 +14,6 @@ import (
 
 var (
 	GlobalCEFApp cef.ICefApplication
-	GlobalCEFWorkScheduler
 )
 
 func NewApplication() cef.ICefApplication {
@@ -23,6 +22,7 @@ func NewApplication() cef.ICefApplication {
 	})
 	if GlobalCEFApp == nil {
 		GlobalCEFApp = cef.NewApplication()
+		cef.SetGlobalCEFApplication(GlobalCEFApp)
 	}
 	GlobalCEFApp.SetEnableGPU(true)
 	v8context.Context(GlobalCEFApp)

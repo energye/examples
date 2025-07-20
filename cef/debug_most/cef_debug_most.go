@@ -12,14 +12,12 @@ import (
 	"github.com/energye/examples/cef/debug_most/utils"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/process"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tool"
-	"github.com/energye/lcl/tools"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
+	"github.com/energye/workspace/lcl/tools"
 	"path/filepath"
 	"unsafe"
 )
@@ -48,10 +46,13 @@ func main() {
 		app.InitLibLocationFromArgs()
 		// MacOS
 		cef.AddCrDelegate()
+		scheduler := cef.NewWorkScheduler(nil)
+		cef.SetGlobalCEFWorkSchedule(scheduler)
+
 		app.SetOnScheduleMessagePumpWork(nil)
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
-		if !process.Args.IsMain() {
+		if app.ProcessType() != cefTypes.PtBrowser {
 			// MacOS 多进程时，需要调用StartSubProcess来启动子进程
 			subStart := app.StartSubProcess()
 			fmt.Println("subStart:", subStart, app.ProcessType())
@@ -73,13 +74,10 @@ func main() {
 			fmt.Println("Release")
 			app.Free()
 		})
-		exception.SetOnException(func(funcName, message string) {
-			fmt.Println("Exception func:", funcName, "message:", message)
-		})
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
-		lcl.Application.CreateForm(&BW)
+		lcl.Application.NewForm(&BW)
 		lcl.Application.Run()
 	}
 	fmt.Println("app free")
@@ -92,7 +90,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetCaption("Energy3.0 - CEF simple")
 	m.chromium = cef.NewChromium(m)
 	var assetsHtml string
-	if tools.IsDarwin() {
+	if tool.IsDarwin() {
 		assetsHtml = filepath.Join("file://", utils.RootPath(), "debug_most", "assets", "index.html")
 	} else {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
@@ -100,10 +98,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
 	//m.chromium.SetDefaultUrl("https://www.baidu.com")
-	if tools.IsWindows() {
-		m.windowParent = cef.NewCEFWindowParent(m)
+	if tool.IsWindows() {
+		m.windowParent = cef.NewWindowParent(m)
 	} else {
-		windowParent := cef.NewCEFLinkedWindowParent(m)
+		windowParent := cef.NewLinkedWindowParent(m)
 		windowParent.SetChromium(m.chromium)
 		m.windowParent = windowParent
 	}
@@ -150,7 +148,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
-		manager.VisitAllCookies(cef.NewCefCustomCookieVisitor(m.chromium.AsInterface(), 0).AsInterface())
+		// 使用 chromium 事件
+		manager.VisitAllCookies(cef.AsEngCookieVisitor(cef.NewCustomCookieVisitor(m.chromium, 0)))
+		// 使用 Eng 事件
+		//manager.VisitAllCookies(cef.NewEngCookieVisitor())
 		manager.FreeAndNil()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
@@ -170,10 +171,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnBeforeBrowser")
 		m.windowParent.UpdateSize()
 	})
-	m.chromium.SetOnDragEnter(func(sender cef.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cef.TCefDragOperations, outResult *bool) {
-		if mask&cef.DRAG_OPERATION_LINK == cef.DRAG_OPERATION_LINK {
-			var fileNameList cef.IStrings
-			fmt.Println("SetOnDragEnter", mask&cef.DRAG_OPERATION_LINK, dragData.IsLink(), dragData.IsFile(), "GetFileName:", dragData.GetFileName(),
+	m.chromium.SetOnDragEnter(func(sender lcl.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cefTypes.TCefDragOperations, outResult *bool) {
+		if mask&cefTypes.DRAG_OPERATION_LINK == cefTypes.DRAG_OPERATION_LINK {
+			var fileNameList lcl.IStrings
+			fmt.Println("SetOnDragEnter", mask&cefTypes.DRAG_OPERATION_LINK, dragData.IsLink(), dragData.IsFile(), "GetFileName:", dragData.GetFileName(),
 				"GetFileNames:", dragData.GetFileNames(&fileNameList))
 			if fileNameList != nil {
 				count := int(fileNameList.Count())
@@ -189,7 +190,26 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			*outResult = true
 		}
 	})
-	m.chromium.SetOnBeforePopup(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, beforePopup cef.TBeforePopup, popupFeatures cef.TCefPopupFeatures,
+	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string,
+		targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
+		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient,
+		settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+		fmt.Printf("beforePopup: %+v\n", windowInfo)
+		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
+		fmt.Println(browser.GetIdentifier())
+		fmt.Println(frame.GetIdentifier(), frame.GetUrl())
+		v8ctx := frame.GetV8Context()
+		if v8ctx != nil {
+			fmt.Println(frame.GetV8Context())
+			fmt.Println(frame.GetV8Context().GetFrame().GetUrl())
+		}
+		settings.DefaultFontSize = 36
+		settings.StandardFontFamily = "微软雅黑"
+		windowInfo.Bounds = cef.TCefRect{X: 400, Y: 10, Width: 400, Height: 400}
+		windowInfo.WindowName = "杨杨红红岩岩"
+
+	})
+	m.chromium.SetOnBeforePopup(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, beforePopup cefTypes.TBeforePopup, popupFeatures cef.TCefPopupFeatures,
 		windowInfo *cef.TCefWindowInfo, settings *cef.TCefBrowserSettings) (
 		client cef.ICefClient, extraInfo cef.ICefDictionaryValue, noJavascriptAccess, result bool) {
 		fmt.Printf("beforePopup: %+v\n", beforePopup)
