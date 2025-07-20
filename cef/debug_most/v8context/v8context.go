@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/domvisitor"
 	"strconv"
 	"unsafe"
@@ -16,9 +17,9 @@ func Context(app cef.ICefApplication) {
 		emitHandler cef.IEngV8Handler
 		onCallback  cef.ICefv8Value
 	)
-	app.SetOnContextCreated(func(browser cef.ICefBrowser, frame cef.ICefFrame, context cef.ICefV8Context) {
-		onHandler = cef.NewV8Handler()
-		onHandler.SetOnExecute(func(name string, object cef.ICefV8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefV8Value, exception string, result bool) {
+	app.SetOnContextCreated(func(browser cef.ICefBrowser, frame cef.ICefFrame, context cef.ICefv8Context) {
+		onHandler = cef.NewEngV8Handler()
+		onHandler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
 			fmt.Println("ipc.on Execute name:", name)
 			// JS事件名
 			//lName := arguments.Get(0)
@@ -27,10 +28,10 @@ func Context(app cef.ICefApplication) {
 			onCallback = cef.V8ValueRef.UnWrap(callFN.Wrap())
 			callFN.Free()
 			arguments.Free()
-			return
+			return true
 		})
-		emitHandler = cef.NewV8Handler()
-		emitHandler.SetOnExecute(func(name string, object cef.ICefV8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefV8Value, exception string, result bool) {
+		emitHandler = cef.NewEngV8Handler()
+		emitHandler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
 			fmt.Println("ipc.emit Execute name:", name)
 			v8ctx := cef.V8ContextRef.Current()
 			ctxFrame := v8ctx.GetFrame()
@@ -49,7 +50,7 @@ func Context(app cef.ICefApplication) {
 			} else {
 				// 发送消息
 				var buf bytes.Buffer
-				for i := 1; i < arguments.Size(); i++ {
+				for i := 1; i < arguments.Count(); i++ {
 					val := arguments.Get(i)
 					if val.IsString() {
 						buf.WriteString(val.GetStringValue())
@@ -76,16 +77,16 @@ func Context(app cef.ICefApplication) {
 				dataBytes := buf.Bytes()
 				SendBrowserMessage(ctxFrame, eventName, dataBytes)
 			}
-			return
+			return true
 		})
 		ipc = cef.V8ValueRef.NewObject(nil, nil)
-		onFunc := cef.V8ValueRef.NewFunction("on", onHandler.AsInterface())
-		ipc.SetValueByKey("on", onFunc, cef.V8_PROPERTY_ATTRIBUTE_READONLY)
-		emitFunc := cef.V8ValueRef.NewFunction("emit", emitHandler.AsInterface())
-		ipc.SetValueByKey("emit", emitFunc, cef.V8_PROPERTY_ATTRIBUTE_READONLY)
-		context.GetGlobal().SetValueByKey("ipc", ipc, cef.V8_PROPERTY_ATTRIBUTE_READONLY)
+		onFunc := cef.V8ValueRef.NewFunction("on", onHandler)
+		ipc.SetValueByKey("on", onFunc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
+		emitFunc := cef.V8ValueRef.NewFunction("emit", emitHandler)
+		ipc.SetValueByKey("emit", emitFunc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
+		context.GetGlobal().SetValueByKey("ipc", ipc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
 	})
-	app.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
+	app.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("渲染进程 name:", message.GetName())
 		args := message.GetArgumentList()
 		binArgs := args.GetBinary(0)
@@ -102,11 +103,11 @@ func Context(app cef.ICefApplication) {
 		// 进入上下文
 		if v8ctx.Enter() {
 			// 调用JS回调函数
-			callFuncArgs := make([]cef.ICefV8Value, 4)
-			callFuncArgs[0] = cef.V8ValueRef.NewString("参数数据")
-			callFuncArgs[1] = cef.V8ValueRef.NewBool(true)
-			callFuncArgs[2] = cef.V8ValueRef.NewInt(9999)
-			callFuncArgs[3] = cef.V8ValueRef.NewDouble(100.99)
+			callFuncArgs := cef.NewCefv8ValueArray(0, 0)
+			callFuncArgs.Add(cef.V8ValueRef.NewString("参数数据"))
+			callFuncArgs.Add(cef.V8ValueRef.NewBool(true))
+			callFuncArgs.Add(cef.V8ValueRef.NewInt(9999))
+			callFuncArgs.Add(cef.V8ValueRef.NewDouble(100.99))
 			// 执行 ipc.on 回调函数
 			ret := onCallback.ExecuteFunctionWithContext(v8ctx, nil, callFuncArgs)
 			if ret != nil && ret.IsValid() {
@@ -116,8 +117,8 @@ func Context(app cef.ICefApplication) {
 				}
 				ret.FreeAndNil()
 			}
-			for _, v := range callFuncArgs {
-				v.FreeAndNil()
+			for i := 0; i < callFuncArgs.Count(); i++ {
+				callFuncArgs.Get(i).FreeAndNil()
 			}
 			v8ctx.Exit()
 		}
@@ -126,25 +127,23 @@ func Context(app cef.ICefApplication) {
 	app.SetOnWebKitInitialized(func() {
 		fmt.Println("SetOnWebKitInitialized")
 		var myparamValue string
-		v8Handler := cef.NewV8Handler()
-		v8Handler.SetOnExecute(func(name string, object cef.ICefV8Value, arguments cef.ICefV8ValueArray) (retVal cef.ICefV8Value, exception string, result bool) {
+		v8Handler := cef.NewEngV8Handler()
+		v8Handler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
 			fmt.Println("v8Handler.Execute", name)
 			if name == "GetMyParam" {
-				result = true
-				retVal = cef.V8ValueRef.NewString(myparamValue)
+				*retval = cef.V8ValueRef.NewString(myparamValue)
 			} else if name == "SetMyParam" {
-				if arguments.Size() > 0 {
+				if arguments.Count() > 0 {
 					newValue := arguments.Get(0)
 					fmt.Println("value is string:", newValue.IsString())
 					fmt.Println("value:", newValue.GetStringValue())
 					myparamValue = newValue.GetStringValue()
 					newValue.FreeAndNil()
 				}
-				result = true
 			}
 			object.FreeAndNil()
 			arguments.Free()
-			return
+			return true
 		})
 		//注册js
 		var jsCode = `
@@ -164,7 +163,8 @@ func Context(app cef.ICefApplication) {
             })();
 `
 		// 注册JS 和v8处理器
-		cef.RegisterExtension("v8/test", jsCode, v8Handler.AsInterface())
+		v8Handler = cef.V8HandlerRef.UnWrap(v8Handler.Wrap())
+		cef.RegisterExtension("v8/test", jsCode, v8Handler)
 	})
 }
 
@@ -177,7 +177,7 @@ func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	}
 	dataBin := cef.BinaryValueRef.New(dataPtr, uint32(len(data)))
 	messageArgumentList.SetBinary(0, dataBin)
-	frame.SendProcessMessage(cef.PID_RENDERER, processMessage)
+	frame.SendProcessMessage(cefTypes.PID_RENDERER, processMessage)
 	if dataBin != nil {
 		dataBin.FreeAndNil()
 	}

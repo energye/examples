@@ -17,7 +17,6 @@ import (
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
-	"github.com/energye/workspace/lcl/tools"
 	"path/filepath"
 	"unsafe"
 )
@@ -209,42 +208,16 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		windowInfo.WindowName = "杨杨红红岩岩"
 
 	})
-	m.chromium.SetOnBeforePopup(func(sender cef.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, beforePopup cefTypes.TBeforePopup, popupFeatures cef.TCefPopupFeatures,
-		windowInfo *cef.TCefWindowInfo, settings *cef.TCefBrowserSettings) (
-		client cef.ICefClient, extraInfo cef.ICefDictionaryValue, noJavascriptAccess, result bool) {
-		fmt.Printf("beforePopup: %+v\n", beforePopup)
-		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
-		fmt.Println(browser.GetIdentifier())
-		fmt.Println(frame.GetIdentifier(), frame.GetUrl())
-		v8ctx := frame.GetV8Context()
-		if v8ctx != nil {
-			fmt.Println(frame.GetV8Context())
-			fmt.Println(frame.GetV8Context().GetFrame().GetUrl())
-		}
-		settings.DefaultFontSize = 36
-		settings.StandardFontFamily = "微软雅黑"
-		windowInfo.X = 400
-		windowInfo.Y = 10
-		windowInfo.Width = 400
-		windowInfo.Height = 400
-		windowInfo.WindowName = "杨杨红红岩岩"
-		//result = true
-		return
-	})
 
-	m.chromium.SetOnRenderCompMsg(func(sender lcl.IObject, message *types.TMessage, lResult *types.LRESULT, aHandled *bool) {
-		//fmt.Println("SetOnRenderCompMsg", *lResult, *aHandled)
-		//*aHandled = true
-	})
-
-	m.chromium.SetOnDownloadUpdated(func(sender cef.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
+	m.chromium.SetOnDownloadUpdated(func(sender lcl.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
 		fmt.Println("DownloadUpdated frameId", browser.GetMainFrame().GetIdentifier(), "Id:", downloadItem.GetId(), "originalUrl:", downloadItem.GetOriginalUrl(), "url:", downloadItem.GetUrl())
 		fmt.Println("\t", downloadItem.GetTotalBytes(), "/", downloadItem.GetReceivedBytes(), "speed:", downloadItem.GetCurrentSpeed(), "fullPath:", downloadItem.GetFullPath())
 	})
 
-	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cef.TCefReturnValue) {
+	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cefTypes.TCefReturnValue) {
 		fmt.Println("SetOnBeforeResourceLoad")
-		headerMap := request.GetHeaderMap()
+		headerMap := cef.NewCustomStringMultimap()
+		request.GetHeaderMap(headerMap)
 		fmt.Println("headerMap size:", headerMap.GetSize())
 		var key, val string
 		for i := 0; i < int(headerMap.GetSize()); i++ {
@@ -254,9 +227,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 				fmt.Println("  key:", key, "val:", val)
 			}
 		}
+		headerMap.Free()
 		//callback.Cont()
 	})
-	m.chromium.SetOnProcessMessageReceived(func(browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cef.TCefProcessId, message cef.ICefProcessMessage, outResult *bool) {
+	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
+		message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("主进程 name:", message.GetName())
 		defer message.FreeAndNil()
 		if message.GetName() == "jsreturn" {
@@ -289,7 +264,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			messageArgumentList := processMessage.GetArgumentList()
 			dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
 			messageArgumentList.SetBinary(0, dataBin)
-			frame.SendProcessMessage(cef.PID_BROWSER, processMessage)
+			frame.SendProcessMessage(cefTypes.PID_BROWSER, processMessage)
 			dataBin.FreeAndNil()
 			messageArgumentList.Clear()
 			messageArgumentList.FreeAndNil()
@@ -305,7 +280,7 @@ func (m *BrowserWindow) createBrowser(sender lcl.IObject) {
 	m.timer.SetEnabled(false)
 	rect := m.ClientRect()
 	init := m.chromium.Initialized()
-	created := m.chromium.CreateBrowserByWindowHandle(m.windowParent.Handle(), &rect, "", nil, nil, false)
+	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
 	fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
 	if !created {
 		m.timer.SetEnabled(true)
@@ -345,14 +320,14 @@ func (m *BrowserWindow) closeQuery(sender lcl.IObject, canClose *bool) {
 	}
 }
 
-func (m *BrowserWindow) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cef.TCefCloseBrowserAction) {
+func (m *BrowserWindow) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
 	fmt.Println("chromiumClose id:", browser.GetIdentifier(), "mainWindowId:", m.mainWindowId)
 	if browser.GetIdentifier() == m.mainWindowId {
-		if tools.IsDarwin() {
+		if tool.IsDarwin() {
 			m.windowParent.DestroyChildWindow()
-			*aAction = cef.CbaClose
+			*aAction = cefTypes.CbaClose
 		} else {
-			*aAction = cef.CbaDelay
+			*aAction = cefTypes.CbaDelay
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.windowParent.Free()
 			})
@@ -364,7 +339,7 @@ func (m *BrowserWindow) chromiumBeforeClose(sender lcl.IObject, browser cef.ICef
 	fmt.Println("chromiumBeforeClose id:", browser.GetIdentifier(), "mainWindowId:", m.mainWindowId)
 	if browser.GetIdentifier() == m.mainWindowId {
 		m.canClose = true
-		if tools.IsDarwin() {
+		if tool.IsDarwin() {
 			m.Close()
 		} else {
 			rtl.PostMessage(m.Handle(), messages.WM_CLOSE, 0, 0)
