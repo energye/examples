@@ -27,7 +27,7 @@ type TMainForm struct {
 
 var (
 	mainForm TMainForm
-	dataList []*TDataList
+	dataList = make(map[int32]*TDataList)
 )
 
 func init() {
@@ -165,6 +165,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	column1.SetOptions(column1.Options().Exclude(types.CoAllowClick))
 	// 注册事件
 	m.VST.SetOnGetText(func(sender lcl.IBaseVirtualTree, node types.PVirtualNode, column int32, textType types.TVSTTextType, cellText *string) {
+		//println("OnGetText")
 		dataPtr := sender.GetNodeData(node)
 		if dataPtr != 0 {
 			data := *(*TTreeData)(unsafe.Pointer(dataPtr))
@@ -215,6 +216,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	}
 	m.VST.SetOnCompareNodes(func(sender lcl.IBaseVirtualTree, node1 types.PVirtualNode, node2 types.PVirtualNode, column int32, result *int32) {
+		//println("OnCompareNodes")
 		data1Ptr := m.VST.GetNodeData(node1)
 		data2Ptr := m.VST.GetNodeData(node2)
 		data1 := *(*TTreeData)(unsafe.Pointer(data1Ptr))
@@ -232,6 +234,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 	m.VST.SetOnBeforeCellPaint(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, cellPaintMode types.TVTCellPaintMode,
 		cellRect types.TRect, contentRect *types.TRect) {
+		//println("OnBeforeCellPaint")
 		if column < 2 {
 			nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
 			defer nodeWrap.Free()
@@ -242,6 +245,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	m.VST.SetOnPaintText(func(sender lcl.IBaseVirtualTree, targetCanvas lcl.ICanvas, node types.PVirtualNode, column int32, textType types.TVSTTextType) {
+		//println("OnPaintText")
 		nodeWrap := lcl.VirtualNodeWrap.UnWrap(node)
 		defer nodeWrap.Free()
 		if column == 1 && nodeWrap.Index()%2 == 0 {
@@ -285,6 +289,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	// 按钮事件
 	m.AddNodeBtn.SetOnClick(func(sender lcl.IObject) {
 		// 添加100000条新记录和相应的VST节点
+		start := time.Now()
 		m.VST.BeginUpdate()
 		idx := len(dataList)
 		for i := 0; i < 100000; i++ {
@@ -293,27 +298,46 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			if dataPtr != 0 {
 				data := (*TTreeData)(unsafe.Pointer(dataPtr))
 				data.DataIndex = int32(idx)
-				newDataList := &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: fmt.Sprintf(" Index %v", data.DataIndex)}
-				dataList = append(dataList, newDataList)
+				dataList[data.DataIndex] = &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: fmt.Sprintf(" Index %v", data.DataIndex), Active: true}
 			}
 			idx++
 		}
 		m.VST.EndUpdate()
+		m.SetCaption(fmt.Sprintf("添加用时 %v ms, 总节点数: %v", time.Now().Sub(start).Nanoseconds()/1000000, m.VST.RootNodeCount()))
 	})
 
 	m.CleanAllBtn.SetOnClick(func(sender lcl.IObject) {
+		start := time.Now()
 		// 快速删除所有数据
 		// 清除事件
 		m.VST.SetOnFreeNode(nil)
 		m.VST.Clear()
-		dataList = []*TDataList{}
+		dataList = make(map[int32]*TDataList)
 		m.VST.SetOnFreeNode(freeNode)
+		m.SetCaption(fmt.Sprintf("清除用时 %v ms, 总节点数: %v", time.Now().Sub(start).Nanoseconds()/1000000, m.VST.RootNodeCount()))
 	})
 
 	m.DeleteSelectedBtn.SetOnClick(func(sender lcl.IObject) {
+		start := time.Now()
 		m.VST.BeginUpdate()
 		m.VST.DeleteSelectedNodes()
 		m.VST.EndUpdate()
+		m.SetCaption(fmt.Sprintf("删除用时 %v ms, 总节点数: %v", time.Now().Sub(start).Nanoseconds()/1000000, m.VST.RootNodeCount()))
+	})
+
+	m.FindFilterEdit.SetOnChange(func(sender lcl.IObject) {
+		idx, _ := strconv.Atoi(m.FindFilterEdit.Text())
+		if idx < len(dataList) {
+			nodeData := dataList[int32(idx)]
+			nodePtr := nodeData.NodePointer
+			if nodePtr != 0 && nodeData.Active {
+				// 将其显示在VST的中心
+				m.VST.ScrollIntoViewWithPVirtualNodeBoolX2(nodePtr, true, false)
+				m.ClickNodeEdit.SetText(fmt.Sprintf("%v 随机数: %v", nodeData.Text, nodeData.RNDNumber))
+			} else {
+				m.ClickNodeEdit.SetText("节点不存在")
+			}
+		}
 	})
 }
 
