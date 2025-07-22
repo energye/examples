@@ -128,5 +128,5 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 		return resourceHandler
 	})
 
-	browser.GetHost().GetRequestContext().RegisterSchemeHandlerFactory(SchemeName, DomainName, schemeHandlerFactory.AsIntfSchemeHandlerFactory())
+	browser.GetHost().GetRequestContext().RegisterSchemeHandlerFactory(SchemeName, DomainName, schemeHandlerFactory)
 }
