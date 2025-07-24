@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/energye/lcl/tools/exec"
+	"github.com/energye/lcl/tool/exec"
 	"path/filepath"
 )
 

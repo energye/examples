@@ -23,6 +23,7 @@ func DomVisitor() {
 		ctxFrame.FreeAndNil()
 		v8ctx.FreeAndNil()
 	}()
-	ctxFrame.VisitDom(dv.AsInterface())
-	fmt.Println("DomVisitor end")
+	visitor := cef.AsEngDomVisitor(dv.AsIntfDomVisitor())
+	ctxFrame.VisitDom(visitor)
+	fmt.Println("DomVisitor end RefCount:", visitor.RefCount())
 }
