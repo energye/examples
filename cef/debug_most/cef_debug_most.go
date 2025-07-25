@@ -10,7 +10,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/utils"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
@@ -35,6 +35,10 @@ var (
 	BW   BrowserWindow
 	help string //= "true" // go build -ldflags="-X main.help=true"
 )
+
+func init() {
+	TestLoadLibPath()
+}
 
 func main() {
 	//全局初始化 每个应用都必须调用的
