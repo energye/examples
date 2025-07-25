@@ -125,6 +125,7 @@ func ChromiumAfterCreated(browser cef.ICefBrowser) {
 			}
 			return r
 		})
+		resourceHandler = cef.AsEngResourceHandler(resourceHandler.AsIntfResourceHandler())
 		return resourceHandler
 	})
 
