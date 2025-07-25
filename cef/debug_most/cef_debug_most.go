@@ -155,7 +155,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		manager.VisitAllCookies(cef.AsEngCookieVisitor(cef.NewCustomCookieVisitor(m.chromium, 0)))
 		// 使用 Eng 事件
 		//manager.VisitAllCookies(cef.NewEngCookieVisitor())
-		manager.Free()
+		manager.Release()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")
@@ -231,8 +231,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 				fmt.Println("  key:", key, "val:", val)
 			}
 		}
-		headerMap.Release()
-		//callback.Cont()
+		headerMap.Free()
 	})
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {

@@ -139,11 +139,11 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("value is string:", newValue.IsString())
 					fmt.Println("value:", newValue.GetStringValue())
 					myparamValue = newValue.GetStringValue()
-					//newValue.Free()
+					newValue.Release()
 				}
 			}
-			//object.Free()
-			//arguments.Free()
+			object.Release()
+			arguments.Free()
 			return true
 		})
 		//注册js
@@ -180,9 +180,9 @@ func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	messageArgumentList.SetBinary(0, dataBin)
 	frame.SendProcessMessage(cefTypes.PID_RENDERER, processMessage)
 	if dataBin != nil {
-		//dataBin.Free()
+		dataBin.Release()
 	}
 	messageArgumentList.Clear()
-	//messageArgumentList.Free()
-	//processMessage.Free()
+	messageArgumentList.Release()
+	processMessage.Release()
 }

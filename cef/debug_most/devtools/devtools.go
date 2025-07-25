@@ -45,7 +45,7 @@ func ExecuteDevToolsMethod(chromium cef.IChromium) {
 	dict.SetString("userAgent", "Mozilla/5.0 (Linux; Android 11; M2102K1G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Mobile Safari/537.36")
 	gId = chromium.ExecuteDevToolsMethod(gId, "Emulation.setUserAgentOverride", dict)
 	fmt.Println("ExecuteDevToolsMethod - result messageId:", gId)
-	dict.Free()
+	dict.Release()
 }
 
 func ExecuteJavaScript(chromium cef.IChromium) {
