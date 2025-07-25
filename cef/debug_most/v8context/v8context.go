@@ -26,8 +26,8 @@ func Context(app cef.ICefApplication) {
 			// JS事件回调函数
 			callFN := arguments.Get(1)
 			onCallback = cef.V8ValueRef.UnWrap(callFN.Wrap())
-			//callFN.Free()
-			//arguments.Free()
+			callFN.Release()
+			arguments.Free()
 			return true
 		})
 		emitHandler = cef.NewEngV8Handler()
@@ -37,10 +37,10 @@ func Context(app cef.ICefApplication) {
 			ctxFrame := v8ctx.GetFrame()
 			emitName := arguments.Get(0)
 			defer func() {
-				object.Free()
-				ctxFrame.Free()
-				v8ctx.Free()
-				emitName.Free()
+				object.Release()
+				ctxFrame.Release()
+				v8ctx.Release()
+				emitName.Release()
 				arguments.Free()
 			}()
 			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", app.ProcessType())
@@ -69,10 +69,10 @@ func Context(app cef.ICefApplication) {
 							} else if arg.IsDouble() {
 								buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
 							}
-							//arg.Free()
+							arg.Release()
 						}
 					}
-					//val.Free()
+					val.Release()
 				}
 				dataBytes := buf.Bytes()
 				SendBrowserMessage(ctxFrame, eventName, dataBytes)
@@ -95,10 +95,10 @@ func Context(app cef.ICefApplication) {
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 		fmt.Println("data:", string(messageDataBytes))
 		v8ctx := frame.GetV8Context()
-		//defer binArgs.Free()
-		//defer args.Free()
-		//defer message.Free()
-		//defer v8ctx.Free()
+		defer binArgs.Release()
+		defer args.Release()
+		defer message.Release()
+		defer v8ctx.Release()
 		// 获取当前frame v8context
 		// 进入上下文
 		if v8ctx.Enter() {
@@ -115,8 +115,9 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("ret-value:", ret.GetStringValue())
 					SendBrowserMessage(frame, "jsreturn", []byte(ret.GetStringValue()))
 				}
-				//ret.Free()
+				ret.Release()
 			}
+			callFuncArgs.Free()
 			//for i := 0; i < callFuncArgs.Count(); i++ {
 			//	callFuncArgs.Get(i).Free()
 			//}
