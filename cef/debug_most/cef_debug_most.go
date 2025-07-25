@@ -189,10 +189,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			*outResult = true
 		}
 	})
-	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string,
-		targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
-		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient,
-		settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
+		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
+		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
+		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		fmt.Printf("beforePopup: %+v\n", windowInfo)
 		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
 		fmt.Println(browser.GetIdentifier())
@@ -206,7 +206,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		settings.StandardFontFamily = "微软雅黑"
 		windowInfo.Bounds = cef.TCefRect{X: 400, Y: 10, Width: 400, Height: 400}
 		windowInfo.WindowName = "杨杨红红岩岩"
-
 	})
 
 	m.chromium.SetOnDownloadUpdated(func(sender lcl.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {

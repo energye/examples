@@ -164,7 +164,7 @@ func Context(app cef.ICefApplication) {
 `
 		// 注册JS 和v8处理器
 		v8Handler = cef.V8HandlerRef.UnWrap(v8Handler.Wrap())
-		cef.RegisterExtension("v8/test", jsCode, v8Handler)
+		cef.MiscFunc.CefRegisterExtension("v8/test", jsCode, v8Handler)
 	})
 }
 
