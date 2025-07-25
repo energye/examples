@@ -155,7 +155,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		manager.VisitAllCookies(cef.AsEngCookieVisitor(cef.NewCustomCookieVisitor(m.chromium, 0)))
 		// 使用 Eng 事件
 		//manager.VisitAllCookies(cef.NewEngCookieVisitor())
-		manager.FreeAndNil()
+		manager.Free()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated 1")
@@ -221,11 +221,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnBeforeResourceLoad")
 		headerMap := cef.NewCustomStringMultimap()
 		request.GetHeaderMap(headerMap)
-		fmt.Println("headerMap size:", headerMap.GetSize())
+		tempHeaderMap := cef.AsCefCustomStringMultimap(headerMap.AsIntfStringMultimap())
+		fmt.Println("headerMap size:", tempHeaderMap.GetSize())
 		var key, val string
-		for i := 0; i < int(headerMap.GetSize()); i++ {
-			key = headerMap.GetKey(uint32(i))
-			val = headerMap.GetValue(uint32(i))
+		for i := 0; i < int(tempHeaderMap.GetSize()); i++ {
+			key = tempHeaderMap.GetKey(uint32(i))
+			val = tempHeaderMap.GetValue(uint32(i))
 			if key != "" {
 				fmt.Println("  key:", key, "val:", val)
 			}
@@ -236,7 +237,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("主进程 name:", message.GetName())
-		defer message.FreeAndNil()
+		defer message.Free()
 		if message.GetName() == "jsreturn" {
 
 		} else if message.GetName() == "cookieVisited" {
@@ -258,8 +259,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			messageDataBytes := make([]byte, int(binArgs.GetSize()))
 			binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 			fmt.Println("data:", string(messageDataBytes))
-			binArgs.FreeAndNil()
-			args.FreeAndNil()
+			binArgs.Free()
+			args.Free()
 
 			// 消息发送到渲染进程
 			dataBytes := []byte("OK收到: " + string(messageDataBytes))
@@ -268,10 +269,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
 			messageArgumentList.SetBinary(0, dataBin)
 			frame.SendProcessMessage(cefTypes.PID_BROWSER, processMessage)
-			dataBin.FreeAndNil()
+			dataBin.Free()
 			messageArgumentList.Clear()
-			messageArgumentList.FreeAndNil()
-			processMessage.FreeAndNil()
+			messageArgumentList.Free()
+			processMessage.Free()
 		}
 	})
 }

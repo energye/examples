@@ -37,10 +37,10 @@ func Context(app cef.ICefApplication) {
 			ctxFrame := v8ctx.GetFrame()
 			emitName := arguments.Get(0)
 			defer func() {
-				object.FreeAndNil()
-				ctxFrame.FreeAndNil()
-				v8ctx.FreeAndNil()
-				emitName.FreeAndNil()
+				object.Free()
+				ctxFrame.Free()
+				v8ctx.Free()
+				emitName.Free()
 				arguments.Free()
 			}()
 			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", app.ProcessType())
@@ -69,10 +69,10 @@ func Context(app cef.ICefApplication) {
 							} else if arg.IsDouble() {
 								buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
 							}
-							arg.FreeAndNil()
+							arg.Free()
 						}
 					}
-					val.FreeAndNil()
+					val.Free()
 				}
 				dataBytes := buf.Bytes()
 				SendBrowserMessage(ctxFrame, eventName, dataBytes)
@@ -80,9 +80,9 @@ func Context(app cef.ICefApplication) {
 			return true
 		})
 		ipc = cef.V8ValueRef.NewObject(nil, nil)
-		onFunc := cef.V8ValueRef.NewFunction("on", onHandler)
+		onFunc := cef.V8ValueRef.NewFunction("on", cef.AsEngV8Handler(onHandler.AsIntfV8Handler()))
 		ipc.SetValueByKey("on", onFunc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
-		emitFunc := cef.V8ValueRef.NewFunction("emit", emitHandler)
+		emitFunc := cef.V8ValueRef.NewFunction("emit", cef.AsEngV8Handler(emitHandler.AsIntfV8Handler()))
 		ipc.SetValueByKey("emit", emitFunc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
 		context.GetGlobal().SetValueByKey("ipc", ipc, cefTypes.V8_PROPERTY_ATTRIBUTE_READONLY)
 	})
@@ -95,10 +95,10 @@ func Context(app cef.ICefApplication) {
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 		fmt.Println("data:", string(messageDataBytes))
 		v8ctx := frame.GetV8Context()
-		defer binArgs.FreeAndNil()
-		defer args.FreeAndNil()
-		defer message.FreeAndNil()
-		defer v8ctx.FreeAndNil()
+		defer binArgs.Free()
+		defer args.Free()
+		defer message.Free()
+		defer v8ctx.Free()
 		// 获取当前frame v8context
 		// 进入上下文
 		if v8ctx.Enter() {
@@ -115,10 +115,10 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("ret-value:", ret.GetStringValue())
 					SendBrowserMessage(frame, "jsreturn", []byte(ret.GetStringValue()))
 				}
-				ret.FreeAndNil()
+				ret.Free()
 			}
 			for i := 0; i < callFuncArgs.Count(); i++ {
-				callFuncArgs.Get(i).FreeAndNil()
+				callFuncArgs.Get(i).Free()
 			}
 			v8ctx.Exit()
 		}
@@ -138,10 +138,10 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("value is string:", newValue.IsString())
 					fmt.Println("value:", newValue.GetStringValue())
 					myparamValue = newValue.GetStringValue()
-					newValue.FreeAndNil()
+					newValue.Free()
 				}
 			}
-			object.FreeAndNil()
+			object.Free()
 			arguments.Free()
 			return true
 		})
@@ -163,7 +163,7 @@ func Context(app cef.ICefApplication) {
             })();
 `
 		// 注册JS 和v8处理器
-		v8Handler = cef.V8HandlerRef.UnWrap(v8Handler.Wrap())
+		v8Handler = cef.AsEngV8Handler(v8Handler.AsIntfV8Handler())
 		cef.MiscFunc.CefRegisterExtension("v8/test", jsCode, v8Handler)
 	})
 }
@@ -179,9 +179,9 @@ func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	messageArgumentList.SetBinary(0, dataBin)
 	frame.SendProcessMessage(cefTypes.PID_RENDERER, processMessage)
 	if dataBin != nil {
-		dataBin.FreeAndNil()
+		dataBin.Free()
 	}
 	messageArgumentList.Clear()
-	messageArgumentList.FreeAndNil()
-	processMessage.FreeAndNil()
+	messageArgumentList.Free()
+	processMessage.Free()
 }

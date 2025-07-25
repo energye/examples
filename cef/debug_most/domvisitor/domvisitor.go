@@ -20,8 +20,8 @@ func DomVisitor() {
 	v8ctx := cef.V8ContextRef.Current()
 	ctxFrame := v8ctx.GetFrame()
 	defer func() {
-		ctxFrame.FreeAndNil()
-		v8ctx.FreeAndNil()
+		ctxFrame.Free()
+		v8ctx.Free()
 	}()
 	visitor := cef.AsEngDomVisitor(dv.AsIntfDomVisitor())
 	ctxFrame.VisitDom(visitor)
