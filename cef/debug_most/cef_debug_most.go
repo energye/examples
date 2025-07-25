@@ -152,7 +152,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
 		// 使用 chromium 事件
-		manager.VisitAllCookies(cef.AsEngCookieVisitor(cef.NewCustomCookieVisitor(m.chromium, 0)))
+		manager.VisitAllCookies(cef.AsEngCookieVisitor(cef.NewCustomCookieVisitor(m.chromium, 0).AsIntfCookieVisitor()))
 		// 使用 Eng 事件
 		//manager.VisitAllCookies(cef.NewEngCookieVisitor())
 		manager.Release()
@@ -219,19 +219,19 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	m.chromium.SetOnBeforeResourceLoad(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest, callback cef.ICefCallback, result *cefTypes.TCefReturnValue) {
 		fmt.Println("SetOnBeforeResourceLoad")
-		headerMap := cef.NewCustomStringMultimap()
-		request.GetHeaderMap(headerMap)
-		tempHeaderMap := cef.AsCefCustomStringMultimap(headerMap.AsIntfStringMultimap())
-		fmt.Println("headerMap size:", tempHeaderMap.GetSize())
+		headerMap := cef.NewStringMultimapOwn()
+		intfHeaderMap := cef.AsCefStringMultimapOwn(headerMap.AsIntfStringMultimap())
+		request.GetHeaderMap(intfHeaderMap)
+		fmt.Println("headerMap size:", intfHeaderMap.GetSize())
 		var key, val string
-		for i := 0; i < int(tempHeaderMap.GetSize()); i++ {
-			key = tempHeaderMap.GetKey(uint32(i))
-			val = tempHeaderMap.GetValue(uint32(i))
+		for i := 0; i < int(intfHeaderMap.GetSize()); i++ {
+			key = intfHeaderMap.GetKey(uint32(i))
+			val = intfHeaderMap.GetValue(uint32(i))
 			if key != "" {
 				fmt.Println("  key:", key, "val:", val)
 			}
 		}
-		headerMap.Free()
+		intfHeaderMap.Release()
 	})
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {

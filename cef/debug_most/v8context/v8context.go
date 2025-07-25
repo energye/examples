@@ -130,6 +130,10 @@ func Context(app cef.ICefApplication) {
 		var myparamValue string
 		v8Handler := cef.NewEngV8Handler()
 		v8Handler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
+			defer func() {
+				object.Release()
+				arguments.Free()
+			}()
 			fmt.Println("v8Handler.Execute", name)
 			if name == "GetMyParam" {
 				*retval = cef.V8ValueRef.NewString(myparamValue)
@@ -142,8 +146,6 @@ func Context(app cef.ICefApplication) {
 					newValue.Release()
 				}
 			}
-			object.Release()
-			arguments.Free()
 			return true
 		})
 		//注册js
