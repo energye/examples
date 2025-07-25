@@ -237,7 +237,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {
 		fmt.Println("主进程 name:", message.GetName())
-		defer message.Free()
+		//defer message.Free()
 		if message.GetName() == "jsreturn" {
 
 		} else if message.GetName() == "cookieVisited" {
@@ -259,8 +259,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			messageDataBytes := make([]byte, int(binArgs.GetSize()))
 			binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 			fmt.Println("data:", string(messageDataBytes))
-			binArgs.Free()
-			args.Free()
+			//binArgs.Free()
+			//args.Free()
 
 			// 消息发送到渲染进程
 			dataBytes := []byte("OK收到: " + string(messageDataBytes))
@@ -269,10 +269,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			dataBin := cef.BinaryValueRef.New(uintptr(unsafe.Pointer(&dataBytes[0])), uint32(len(dataBytes)))
 			messageArgumentList.SetBinary(0, dataBin)
 			frame.SendProcessMessage(cefTypes.PID_BROWSER, processMessage)
-			dataBin.Free()
+			//dataBin.Free()
 			messageArgumentList.Clear()
-			messageArgumentList.Free()
-			processMessage.Free()
+			//messageArgumentList.Free()
+			//processMessage.Free()
 		}
 	})
 }

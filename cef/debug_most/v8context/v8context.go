@@ -26,8 +26,8 @@ func Context(app cef.ICefApplication) {
 			// JS事件回调函数
 			callFN := arguments.Get(1)
 			onCallback = cef.V8ValueRef.UnWrap(callFN.Wrap())
-			callFN.Free()
-			arguments.Free()
+			//callFN.Free()
+			//arguments.Free()
 			return true
 		})
 		emitHandler = cef.NewEngV8Handler()
@@ -69,10 +69,10 @@ func Context(app cef.ICefApplication) {
 							} else if arg.IsDouble() {
 								buf.WriteString(fmt.Sprintf("%v", arg.GetDoubleValue()))
 							}
-							arg.Free()
+							//arg.Free()
 						}
 					}
-					val.Free()
+					//val.Free()
 				}
 				dataBytes := buf.Bytes()
 				SendBrowserMessage(ctxFrame, eventName, dataBytes)
@@ -95,10 +95,10 @@ func Context(app cef.ICefApplication) {
 		binArgs.GetData(uintptr(unsafe.Pointer(&messageDataBytes[0])), binArgs.GetSize(), 0)
 		fmt.Println("data:", string(messageDataBytes))
 		v8ctx := frame.GetV8Context()
-		defer binArgs.Free()
-		defer args.Free()
-		defer message.Free()
-		defer v8ctx.Free()
+		//defer binArgs.Free()
+		//defer args.Free()
+		//defer message.Free()
+		//defer v8ctx.Free()
 		// 获取当前frame v8context
 		// 进入上下文
 		if v8ctx.Enter() {
@@ -115,11 +115,11 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("ret-value:", ret.GetStringValue())
 					SendBrowserMessage(frame, "jsreturn", []byte(ret.GetStringValue()))
 				}
-				ret.Free()
+				//ret.Free()
 			}
-			for i := 0; i < callFuncArgs.Count(); i++ {
-				callFuncArgs.Get(i).Free()
-			}
+			//for i := 0; i < callFuncArgs.Count(); i++ {
+			//	callFuncArgs.Get(i).Free()
+			//}
 			v8ctx.Exit()
 		}
 	})
@@ -138,11 +138,11 @@ func Context(app cef.ICefApplication) {
 					fmt.Println("value is string:", newValue.IsString())
 					fmt.Println("value:", newValue.GetStringValue())
 					myparamValue = newValue.GetStringValue()
-					newValue.Free()
+					//newValue.Free()
 				}
 			}
-			object.Free()
-			arguments.Free()
+			//object.Free()
+			//arguments.Free()
 			return true
 		})
 		//注册js
@@ -179,9 +179,9 @@ func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	messageArgumentList.SetBinary(0, dataBin)
 	frame.SendProcessMessage(cefTypes.PID_RENDERER, processMessage)
 	if dataBin != nil {
-		dataBin.Free()
+		//dataBin.Free()
 	}
 	messageArgumentList.Clear()
-	messageArgumentList.Free()
-	processMessage.Free()
+	//messageArgumentList.Free()
+	//processMessage.Free()
 }
