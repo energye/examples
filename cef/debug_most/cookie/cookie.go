@@ -13,7 +13,9 @@ func Cookie(chromium cef.IChromium) {
 	chromium.SetOnCookiesVisited(func(sender lcl.IObject, name string, value string, domain string, path string, secure bool, httponly bool, hasExpires bool,
 		creation types.TDateTime, lastAccess types.TDateTime, expires types.TDateTime, count int32, total int32, iD int32, sameSite cefTypes.TCefCookieSameSite,
 		priority cefTypes.TCefCookiePriority, deleteCookie *bool, result *bool) {
-		fmt.Println("SetOnCookiesVisited: ", count, total, iD, deleteCookie)
+		fmt.Println("SetOnCookiesVisited: ", name, value, domain, path, secure, httponly, hasExpires, creation, lastAccess,
+			expires, count, total, sameSite, iD, sameSite, priority, *deleteCookie, *result)
+
 	})
 	//删除cookie时触发
 	chromium.SetOnCookiesDeleted(func(sender lcl.IObject, numDeleted int32) {
