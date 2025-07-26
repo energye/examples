@@ -94,9 +94,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium = cef.NewChromium(m)
 	var assetsHtml string
 	if tool.IsDarwin() {
-		assetsHtml = filepath.Join("file://", utils.RootPath(), "debug_most", "assets", "index.html")
+		assetsHtml = filepath.Join("file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html")
 	} else {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
+		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
