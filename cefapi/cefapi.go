@@ -7,6 +7,6 @@ import (
 
 func main() {
 	s := cefapi.CreateRefCounted(128, cefapi.OwnedByCEF)
-	fmt.Println(s)
+	fmt.Println(s, cefapi.BaseRefCountedSize())
 	s.Release()
 }
