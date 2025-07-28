@@ -38,7 +38,7 @@ func main() {
 	utils.Assets = assets
 	wv.Init(nil, nil)
 	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("ERROR exception:", exception, "message:", message)
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)

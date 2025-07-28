@@ -6,6 +6,7 @@ import (
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/application"
 	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 )
@@ -17,6 +18,9 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
+	})
 	app := application.NewApplication()
 	// CEF message loop
 	app.SetExternalMessagePump(false)
