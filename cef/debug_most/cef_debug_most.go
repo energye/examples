@@ -12,6 +12,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tool"
@@ -43,6 +44,9 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
+	})
 	app := application.NewApplication()
 	if tool.IsDarwin() {
 		app.SetUseMockKeyChain(true)
@@ -75,7 +79,6 @@ func main() {
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
 			fmt.Println("Release")
-			app.Free()
 		})
 		// LCL窗口
 		lcl.Application.Initialize()
@@ -83,7 +86,6 @@ func main() {
 		lcl.Application.NewForm(&BW)
 		lcl.Application.Run()
 	}
-	fmt.Println("app free")
 }
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {

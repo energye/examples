@@ -30,7 +30,7 @@ func main() {
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
 	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("ERROR exception:", exception, "message:", message)
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	fmt.Println(api.MainThreadId(), api.CurrentThreadId())
 
