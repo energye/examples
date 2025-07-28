@@ -8,10 +8,12 @@ var GlobalWVLoader wv.IWVLoader
 
 func NewWVLoader() wv.IWVLoader {
 	if GlobalWVLoader == nil {
-		GlobalWVLoader = wv.NewLoader(nil)
-		wv.SetGlobalWebView2Loader(GlobalWVLoader)
-		GlobalWVLoader.SetUserDataFolder(WVCachePath())
-		GlobalWVLoader.SetLoaderDllPath(WV2LoaderDllPath())
+		if GlobalWVLoader = wv.GetGlobalWebView2Loader(); GlobalWVLoader != nil {
+			return GlobalWVLoader
+		} else {
+			GlobalWVLoader = wv.NewLoader(nil)
+			wv.SetGlobalWebView2Loader(GlobalWVLoader)
+		}
 	}
 	return GlobalWVLoader
 }

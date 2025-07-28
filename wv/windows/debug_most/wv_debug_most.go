@@ -36,18 +36,23 @@ func init() {
 func main() {
 	utils.Assets = assets
 	wv.Init(nil, nil)
-	// GlobalWebView2Loader
+
 	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)
 	fmt.Println("WebView2Loader.dll目录:", application.WV2LoaderDllPath())
 	fmt.Println("用户缓存目录:", filepath.Join(application.WVCachePath(), "webview2Cache"))
+	load.SetUserDataFolder(application.WVCachePath())
+	load.SetLoaderDllPath(application.WV2LoaderDllPath())
 	scheme.LoaderOnCustomSchemes(load)
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
+
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&MainForm)
 	lcl.Application.Run()
+	// 销毁 WebView2Loader
+	wv.DestroyGlobalWebView2Loader()
 }
 
 type ProcessMessage struct {
@@ -224,6 +229,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				m.browser.CreateBrowserWithHandleBool(m.windowParent.Handle(), true)
 			}
 		}
+	})
+	m.SetOnClose(func(sender lcl.IObject, closeAction *types.TCloseAction) {
+		m.browser.Stop()
 	})
 }
 
