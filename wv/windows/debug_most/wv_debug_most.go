@@ -11,6 +11,7 @@ import (
 	"github.com/energye/examples/wv/windows/debug_most/devtools"
 	"github.com/energye/examples/wv/windows/debug_most/scheme"
 	"github.com/energye/examples/wv/windows/debug_most/utils"
+	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool/exec"
 	"github.com/energye/lcl/types"
@@ -36,7 +37,9 @@ func init() {
 func main() {
 	utils.Assets = assets
 	wv.Init(nil, nil)
-
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("ERROR exception:", exception, "message:", message)
+	})
 	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)
 	fmt.Println("WebView2Loader.dll目录:", application.WV2LoaderDllPath())

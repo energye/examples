@@ -4,16 +4,17 @@ import (
 	"embed"
 	"fmt"
 	"github.com/energye/assetserve"
-	_ "github.com/energye/examples/syso"
-	"github.com/energye/examples/wv/windows/wv2load"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/tools/exec"
+	"github.com/energye/lcl/tool/exec"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"github.com/energye/lcl/types/messages"
-	"github.com/energye/wv/windows"
+	wvTypes "github.com/energye/wv/types/windows"
+	wv "github.com/energye/wv/windows"
 	"path/filepath"
 	"unsafe"
 )
@@ -24,36 +25,35 @@ var load wv.IWVLoader
 //go:embed resources
 var resources embed.FS
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
-	exception.SetOnException(func(funcName, message string) {
-		fmt.Println("ERROR funcName:", funcName, "message:", message)
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("ERROR exception:", exception, "message:", message)
 	})
 	// GlobalWebView2Loader
-	load = wv.GlobalWebView2Loader()
-	webview2Home, wv2Loader := wv2load.Wv2Load()
+	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)
-	fmt.Println("WebView2Loader.dll目录:", wv2Loader)
-	fmt.Println("用户缓存目录:", filepath.Join(webview2Home, "webview2Cache"))
-	load.SetUserDataFolder(filepath.Join(webview2Home, "webview2Cache"))
-	load.SetLoaderDllPath(wv2Loader)
+	fmt.Println("WebView2Loader.dll目录:", application.WV2LoaderDllPath())
+	fmt.Println("用户缓存目录:", filepath.Join(application.WVCachePath(), "webview2Cache"))
+	load.SetUserDataFolder(application.WVCachePath())
+	load.SetLoaderDllPath(application.WV2LoaderDllPath())
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
-	// 启动 内置http server
 	startHttpServer()
-	// 底层库全局异常
-	lcl.Application.SetOnException(func(sender lcl.IObject, e lcl.IException) {
-		fmt.Println("底层库异常:", e.ToString())
-	})
+
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
+	wv.DestroyGlobalWebView2Loader()
 }
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	windowParent         wv.IWVWindowParent
 	browser              wv.IWVBrowser
 	messageEdit          lcl.IEdit
@@ -75,7 +75,7 @@ func (m *TMainForm) createRightBoxLayout() {
 	messagePanel.SetLeft(m.Width() / 2)
 	messagePanel.SetHeight(m.Height())
 	messagePanel.SetWidth(m.Width() / 2)
-	messagePanel.SetBorderStyle(types.BsNone)
+	messagePanel.SetBorderStyleToBorderStyle(types.BsNone)
 	messagePanel.SetBorderWidth(1)
 	messagePanel.SetColor(colors.ClWhite)
 	messagePanel.SetAnchors(types.NewSet(types.AkTop, types.AkRight, types.AkBottom))
@@ -144,9 +144,9 @@ func (m *TMainForm) createRightBoxLayout() {
 		// 清空缓冲区, 填充0
 		m.fullChar(m.sharedBuffer.Buffer(), uintptr(CUSTOM_SHARED_BUFFER_SIZE), 0)
 		// 将新数据放入缓冲区
-		api.DMove(api.PascalStr(text), m.sharedBuffer.Buffer(), len(text))
+		api.Move(api.PasStr(text), m.sharedBuffer.Buffer(), len(text))
 		// 发送缓冲数据到页面监听事件 "sharedbufferreceived"
-		m.browser.PostSharedBufferToScript(tempSharedBufferItf, wv.COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_WRITE, "")
+		m.browser.PostSharedBufferToScript(tempSharedBufferItf, wvTypes.COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_WRITE, "")
 	})
 
 	enableContextMenuChk := lcl.NewCheckBox(messagePanel)
@@ -181,7 +181,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetDoubleBuffered(true)
 	m.createRightBoxLayout()
 
-	m.windowParent = wv.NewWVWindowParent(m)
+	m.windowParent = wv.NewWindowParent(m)
 	m.windowParent.SetParent(m)
 	//重新调整browser窗口的Parent属性
 	//重新设置了上边距，宽，高
@@ -190,7 +190,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.windowParent.SetWidth(m.Width() / 2)
 	m.windowParent.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 
-	m.browser = wv.NewWVBrowser(m)
+	m.browser = wv.NewBrowser(m)
 	m.browser.SetDefaultURL("http://localhost:22022/index.html")
 	m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44") // 设置
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
@@ -201,7 +201,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
-	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
+	m.browser.SetOnWebMessageReceived(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
 		messageData := args.WebMessageAsString()
@@ -218,11 +218,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	// 右键菜单图标
 	menuExit, _ := resources.ReadFile("resources/menu_exit.png")
 	m.menuExitMemory = lcl.NewMemoryStream()
-	m.menuExitMemory.LoadFromBytes(menuExit)
 	menuExitStreamAdapter := lcl.NewStreamAdapter(m.menuExitMemory, types.SoOwned)
+	lcl.StreamHelper.Write(m.menuExitMemory, menuExit)
+	baseIntfMenuExitStreamAdapter := lcl.AsStreamAdapter(menuExitStreamAdapter.AsIntfStream())
 	// 右键菜单退出项ID
 	var exitItemId int32
-	m.browser.SetOnContextMenuRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContextMenuRequestedEventArgs) {
+	m.browser.SetOnContextMenuRequested(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContextMenuRequestedEventArgs) {
 		var tmpMenuItemPtr wv.ICoreWebView2ContextMenuItem
 		tmpArgs := wv.NewCoreWebView2ContextMenuRequestedEventArgs(args)
 		menuItems := tmpArgs.MenuItems()
@@ -231,7 +232,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			tmpCollection.RemoveAllMenuItems()
 			return
 		}
-		if m.browser.CoreWebView2Environment().CreateContextMenuItem("Exit", menuExitStreamAdapter, wv.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &tmpMenuItemPtr) {
+		if m.browser.CoreWebView2Environment().CreateContextMenuItem("Exit", baseIntfMenuExitStreamAdapter, wvTypes.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &tmpMenuItemPtr) {
 			tmpMenuItem := wv.NewCoreWebView2ContextMenuItem(tmpMenuItemPtr)
 			exitItemId = tmpMenuItem.CommandId()
 			// 设置菜单事件触发对象为delegateEvents, 触发 SetOnCustomItemSelected 事件
@@ -243,7 +244,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		tmpArgs.Free()
 	})
 	// 自定义菜单项选择事件回调
-	m.browser.SetOnCustomItemSelected(func(sender wv.IObject, menuItem wv.ICoreWebView2ContextMenuItem) {
+	m.browser.SetOnCustomItemSelected(func(sender lcl.IObject, menuItem wv.ICoreWebView2ContextMenuItem) {
 		menuItem = wv.NewCoreWebView2ContextMenuItem(menuItem)
 		fmt.Println("SetOnCustomItemSelected", menuItem.CommandId())
 		if exitItemId == menuItem.CommandId() {
@@ -252,7 +253,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		// free
 		menuItem.Free()
 	})
-	m.browser.SetOnNewWindowRequested(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NewWindowRequestedEventArgs) {
+	m.browser.SetOnNewWindowRequested(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NewWindowRequestedEventArgs) {
 		args = wv.NewCoreWebView2NewWindowRequestedEventArgs(args)
 		// 阻止新窗口
 		args.SetHandled(true)
@@ -273,7 +274,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		} else {
 			if load.Initialized() {
 				fmt.Println("回调函数 => SetOnShow 初始化成功")
-				m.browser.CreateBrowser(m.windowParent.Handle(), true)
+				m.browser.CreateBrowserWithHandleBool(m.windowParent.Handle(), true)
 			}
 		}
 	})
