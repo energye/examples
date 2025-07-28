@@ -100,6 +100,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	} else {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
 		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+		//assetsHtml = "https://webgpu.github.io/webgpu-samples/?sample=renderBundles"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
