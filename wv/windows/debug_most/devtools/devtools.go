@@ -2,7 +2,9 @@ package devtools
 
 import (
 	"fmt"
-	"github.com/energye/wv/windows"
+	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
+	wv "github.com/energye/wv/windows"
 )
 
 func OpenDevtools(browser wv.IWVBrowser) {
@@ -10,11 +12,12 @@ func OpenDevtools(browser wv.IWVBrowser) {
 }
 
 func DevTools(browser wv.IWVBrowser) {
-	browser.SetOnDevToolsProtocolEventReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2DevToolsProtocolEventReceivedEventArgs, eventName string, eventID int32) {
+	browser.SetOnDevToolsProtocolEventReceived(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2DevToolsProtocolEventReceivedEventArgs, eventName string, eventID int32) {
 		fmt.Println("SetOnDevToolsProtocolEventReceived")
 	})
-	browser.SetOnCallDevToolsProtocolMethodCompleted(func(sender wv.IObject, errorCode int32, returnObjectAsJson string, executionID int32) {
-		fmt.Println("SetOnCallDevToolsProtocolMethodCompleted errorCode:", errorCode, "returnObjectAsJson:", returnObjectAsJson, "executionID:", executionID)
+	browser.SetOnCallDevToolsProtocolMethodCompleted(func(sender lcl.IObject, errorCode types.HRESULT, result string, executionID int32) {
+		fmt.Println("SetOnCallDevToolsProtocolMethodCompleted errorCode:", errorCode, "result:", result, "executionID:", executionID)
+
 	})
 }
 

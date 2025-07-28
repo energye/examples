@@ -4,25 +4,22 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"github.com/energye/energy/v3/ipc"
-	"github.com/energye/energy/v3/ipc/callback"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/debug_most/contextmenu"
 	"github.com/energye/examples/wv/windows/debug_most/cookie"
 	"github.com/energye/examples/wv/windows/debug_most/devtools"
 	"github.com/energye/examples/wv/windows/debug_most/scheme"
 	"github.com/energye/examples/wv/windows/debug_most/utils"
-	"github.com/energye/examples/wv/windows/wv2load"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/tools/exec"
+	"github.com/energye/lcl/tool/exec"
 	"github.com/energye/lcl/types"
-	"github.com/energye/wv/windows"
+	wv "github.com/energye/wv/windows"
 	"path/filepath"
 )
 
 type TMainForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	windowParent wv.IWVWindowParent
 	browser      wv.IWVBrowser
 }
@@ -33,27 +30,23 @@ var load wv.IWVLoader
 //go:embed assets
 var assets embed.FS
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
 	utils.Assets = assets
-	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
-	exception.SetOnException(func(funcName, message string) {
-		fmt.Println("ERROR funcName:", funcName, "message:", message)
-	})
 	// GlobalWebView2Loader
-	load = wv.GlobalWebView2Loader()
-	webview2Home, wv2Loader := wv2load.Wv2Load()
+	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)
-	fmt.Println("WebView2Loader.dll目录:", wv2Loader)
-	fmt.Println("用户缓存目录:", filepath.Join(webview2Home, "webview2Cache"))
-	load.SetUserDataFolder(filepath.Join(webview2Home, "webview2Cache"))
-	load.SetLoaderDllPath(wv2Loader)
+	fmt.Println("WebView2Loader.dll目录:", application.WV2LoaderDllPath())
+	fmt.Println("用户缓存目录:", filepath.Join(application.WVCachePath(), "webview2Cache"))
 	scheme.LoaderOnCustomSchemes(load)
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
-	lcl.Application.CreateForm(&MainForm)
+	lcl.Application.NewForm(&MainForm)
 	lcl.Application.Run()
 }
 
@@ -64,10 +57,6 @@ type ProcessMessage struct {
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	ipc.On("ipc-test", func(context callback.IContext) {
-
-	})
-
 	m.SetCaption("Energy3.0 - webview2 simple")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(1024)
@@ -75,7 +64,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetDoubleBuffered(true)
 	back, forward, stop, refresh, addr := controlUI(m)
 
-	m.windowParent = wv.NewWVWindowParent(m)
+	m.windowParent = wv.NewWindowParent(m)
 	m.windowParent.SetParent(m)
 	//m.windowParent.SetWidth(200)
 	//m.windowParent.SetHeight(200)
@@ -88,7 +77,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.windowParent.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	//m.windowParent.SetAlign(types.AlClient)
 
-	m.browser = wv.NewWVBrowser(m)
+	m.browser = wv.NewBrowser(m)
 	m.windowParent.SetBrowser(m.browser)
 	m.browser.SetDefaultURL("myscheme://domain/index.html")
 	//m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
@@ -114,11 +103,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		refresh.SetEnabled(!aIsNavigating)
 		stop.SetEnabled(aIsNavigating)
 	}
-	m.browser.SetOnExecuteScriptCompleted(func(sender wv.IObject, errorCode int32, resulIObjectAsJson string, executionID int32) {
+	m.browser.SetOnExecuteScriptCompleted(func(sender lcl.IObject, errorCode types.HRESULT, resultObjectAsJson string, executionID int32) {
 		fmt.Println("回调函数 WVBrowser => SetOnExecuteScriptCompleted errorCode:", errorCode,
-			"executionID:", executionID, "resulIObjectAsJson:", resulIObjectAsJson)
+			"executionID:", executionID, "resulIObjectAsJson:", resultObjectAsJson)
 	})
-	m.browser.SetOnNavigationStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
+	m.browser.SetOnNavigationStarting(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationStarting")
 		navBtns(true)
 		args = wv.NewCoreWebView2NavigationStartingEventArgs(args)
@@ -136,7 +125,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				name  string
 				value string
 			)
-
 			for {
 				iterator.GetCurrentHeader(&name, &value)
 				fmt.Println("\tname:", name, "value:", value)
@@ -148,7 +136,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	})
 	// 进程消息
-	m.browser.SetOnWebMessageReceived(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
+	m.browser.SetOnWebMessageReceived(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2WebMessageReceivedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnWebMessageReceived")
 		args = wv.NewCoreWebView2WebMessageReceivedEventArgs(args)
 		defer args.Free()
@@ -182,26 +170,26 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.browser.AddOrUpdateCookie(newCookie)
 		}
 	})
-	m.browser.SetOnSourceChanged(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
+	m.browser.SetOnSourceChanged(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2SourceChangedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnSourceChanged")
 		addr.SetText(m.browser.Source())
 	})
-	m.browser.SetOnContentLoading(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContentLoadingEventArgs) {
+	m.browser.SetOnContentLoading(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2ContentLoadingEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnContentLoading")
 	})
 	m.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", m.browser.DocumentTitle())
 	})
-	m.browser.SetOnDownloadStateChanged(func(sender wv.IObject, downloadOperation wv.ICoreWebView2DownloadOperation, downloadID int32) {
+	m.browser.SetOnDownloadStateChanged(func(sender lcl.IObject, downloadOperation wv.ICoreWebView2DownloadOperation, downloadID int32) {
 		fmt.Println("SetOnDownloadStateChanged:", downloadOperation.BytesReceived(), "/", downloadOperation.TotalBytesToReceive())
 	})
-	m.browser.SetOnDownloadStarting(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2DownloadStartingEventArgs) {
+	m.browser.SetOnDownloadStarting(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2DownloadStartingEventArgs) {
 		args = wv.NewCoreWebView2DownloadStartingEventArgs(args)
 		defer args.Free()
 		fmt.Println("SetOnDownloadStarting:", args.ResultFilePath())
 	})
 
-	m.browser.SetOnNavigationCompleted(func(sender wv.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
+	m.browser.SetOnNavigationCompleted(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
 		fmt.Println("回调函数 WVBrowser => SetOnNavigationCompleted")
 		// 重置 stream
 		//embedAssetsStream.Clear()
@@ -233,7 +221,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		} else {
 			if load.Initialized() {
 				fmt.Println("回调函数 => SetOnShow 初始化成功")
-				m.browser.CreateBrowser(m.windowParent.Handle(), true)
+				m.browser.CreateBrowserWithHandleBool(m.windowParent.Handle(), true)
 			}
 		}
 	})

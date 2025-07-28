@@ -3,28 +3,26 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/energye/assetserve"
-	"github.com/energye/energy/v3/ipc"
-	"github.com/energye/energy/v3/ipc/callback"
-	"github.com/energye/energy/v3/wv"
-	_ "github.com/energye/examples/syso"
+	. "github.com/energye/examples/syso"
+	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/rtl/version"
-	"github.com/energye/lcl/tools/exec"
 	"github.com/energye/lcl/types"
-	wv2 "github.com/energye/wv/windows"
+	"github.com/energye/workspace/energy/ipc"
+	"github.com/energye/workspace/energy/ipc/callback"
+	wv "github.com/energye/wv/windows"
 	"math/rand"
-	"path/filepath"
 	"time"
 )
 
 //go:embed resources
 var resources embed.FS
 
+func init() {
+	TestLoadLibPath()
+}
 func main() {
 	wv.Init(nil, nil)
-	fmt.Println("version:", version.OSVersion.ToString())
-	app := wv.NewApplication()
+	app := application.NewWVLoader()
 	icon, _ := resources.ReadFile("resources/icon.ico")
 	app.SetOptions(wv.Options{
 		Caption: "energy - webview2",
@@ -154,20 +152,9 @@ func main() {
 			}
 		}
 	})
-	//ipc.RemoveOn("test-name")
-	startAssetsServer()
 	app.Run()
 }
 
 type SubForm struct {
 	lcl.TForm
-}
-
-func startAssetsServer() {
-	server := assetserve.NewAssetsHttpServer()
-	server.PORT = 22222               //服务端口号
-	server.AssetsFSName = "resources" //必须设置目录名和资源文件夹同名
-	//server.Assets = resources
-	server.LocalAssets = filepath.Join(exec.CurrentDir, "wv", "windows", "simple", "resources")
-	go server.StartHttpServer()
 }
