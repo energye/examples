@@ -68,11 +68,11 @@ func main() {
 	// 排序箭头
 	lv1.SetAutoSortIndicator(true)
 	//lv1.SetSortDirection(types.SdAscending) //  AES or DES
-	lv1.SetSortType(types.StText) // 按文本排序
+	lv1.SetSortType(types.StText1) // 按文本排序
 
 	lv1.SetOnColumnClick(func(sender lcl.IObject, column lcl.IListColumn) {
 		fmt.Println("index:", column.Index())
-		lv1.SetSortType(types.StData)
+		lv1.SetSortType(types.StData1)
 		lv1.Sort()
 	})
 

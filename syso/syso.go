@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/tool"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -33,7 +34,11 @@ func importPathToDir(importPath string) (string, error) {
 }
 
 func TestLoadLibPath() {
-	libname.LibName = "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout\\liblcl.dll"
+	if tool.IsWindows() {
+		libname.LibName = "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout\\liblcl.dll"
+	} else if tool.IsLinux() {
+		libname.LibName = "/home/yanghy/app/gopath/src/github.com/energye/workspace/gen/gout/liblcl.so"
+	}
 }
 
 // ScaleSelf : 这个方法主要是用于当不使用资源窗口创建时用，这个方法要用于设置了Width, Height或者ClientWidth、ClientHeight之后
