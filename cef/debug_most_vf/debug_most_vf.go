@@ -6,9 +6,11 @@ import (
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/debug_most/application"
 	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
+	"os"
 )
 
 func init() {
@@ -22,9 +24,7 @@ func main() {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
-	// CEF message loop
-	app.SetExternalMessagePump(false)
-	app.SetMultiThreadedMessageLoop(false)
+	app.SetGTKVersion(cefTypes.GtkVersion3)
 	if tool.IsDarwin() {
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
@@ -39,8 +39,17 @@ func main() {
 			fmt.Println("subStart:", subStart, app.ProcessType())
 			return
 		}
-	}
-	if tool.IsLinux() {
+	} else if tool.IsLinux() {
+		if api.Widget().IsGTK2() {
+			// gtk2 使用 lcl 窗口
+			println("当前 demo 为 CEF VF GTK3")
+			os.Exit(1)
+		} else if api.Widget().IsGTK3() {
+			// CEF message loop
+			// gtk3 使用 vf 窗口
+			app.SetExternalMessagePump(false)
+			app.SetMultiThreadedMessageLoop(false)
+		}
 		// 这是一个解决“GPU不可用错误”问题的方法 linux
 		// https://bitbucket.org/chromiumembedded/cef/issues/2964/gpu-is-not-usable-error-during-cef
 		app.SetDisableZygote(true)

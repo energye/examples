@@ -19,6 +19,7 @@ import (
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
+	"os"
 	"path/filepath"
 	"unsafe"
 )
@@ -80,8 +81,8 @@ func main() {
 			app.SetMultiThreadedMessageLoop(true)
 		} else if api.Widget().IsGTK3() {
 			// gtk3 使用 vf 窗口
-			app.SetExternalMessagePump(false)
-			app.SetMultiThreadedMessageLoop(false)
+			println("当前 demo 为 CEF LCL GTK2")
+			os.Exit(1)
 		}
 		// 这是一个解决“GPU不可用错误”问题的方法 linux
 		// https://bitbucket.org/chromiumembedded/cef/issues/2964/gpu-is-not-usable-error-during-cef
