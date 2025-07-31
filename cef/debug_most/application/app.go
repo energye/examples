@@ -71,5 +71,10 @@ func Get() *Config {
 }
 
 func (m *Config) FrameworkPath() string {
-	return "E:\\app\\energy\\CEF-136_WINDOWS_64"
+	if tool.IsWindows() {
+		return "E:\\app\\energy\\CEF-136_WINDOWS_64"
+	} else if tool.IsLinux() {
+		return "/home/yanghy/app/energy/CEF-136_LINUX_64"
+	}
+	return ""
 }
