@@ -49,6 +49,7 @@ func main() {
 	})
 	app := application.NewApplication()
 	if tool.IsDarwin() {
+		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
 		// MacOS
@@ -66,11 +67,12 @@ func main() {
 			app.Free()
 			return
 		}
-	} else { // MacOS不需要设置CEF框架目录，它是一个固定的目录结构
-		if help == "true" {
-			subexe := filepath.Join(utils.RootPath(), "helper", "helper.exe")
-			app.SetBrowserSubprocessPath(subexe)
+	} else if tool.IsLinux() {
+		if api.Widget().IsGTK2() {
+
 		}
+	} else if tool.IsWindows() {
+
 	}
 	// 主进程启动
 	mainStart := app.StartMainProcess()
@@ -79,7 +81,9 @@ func main() {
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
 			fmt.Println("Release")
+			api.WidgetSetFinalization()
 		})
+		api.WidgetSetInitialization()
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
