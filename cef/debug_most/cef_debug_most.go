@@ -119,15 +119,17 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium = cef.NewChromium(m)
 	var assetsHtml string
 	if tool.IsDarwin() {
-		assetsHtml = filepath.Join("file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html")
-	} else {
+		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+	} else if tool.IsLinux() {
+		assetsHtml = "file:///home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/debug_most/assets/index.html"
+		//assetsHtml = "https://www.baidu.com"
+	} else if tool.IsWindows() {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
 		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
 		//assetsHtml = "https://webgpu.github.io/webgpu-samples/?sample=renderBundles"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
-	//m.chromium.SetDefaultUrl("https://www.baidu.com")
 	if tool.IsWindows() {
 		m.windowParent = cef.NewWindowParent(m)
 	} else {
@@ -144,8 +146,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.timer.SetInterval(200)
 	m.timer.SetOnTimer(m.createBrowser)
 	// 在show时创建chromium browser
-	m.TForm.SetOnShow(m.show)
-	m.TForm.SetOnActivate(m.active)
+	if tool.IsLinux() {
+		// Linux需要一个可见的表单来创建浏览器，因此我们需要使用 TForm。OnActivate事件而不是TForm.OnShow
+		m.TForm.SetOnActivate(m.active)
+	} else {
+		m.TForm.SetOnShow(m.show)
+	}
 	m.TForm.SetOnResize(m.resize)
 	m.windowParent.SetOnEnter(func(sender lcl.IObject) {
 		m.chromium.Initialized()
