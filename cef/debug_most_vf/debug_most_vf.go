@@ -24,7 +24,7 @@ func main() {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
-	app.SetGTKVersion(cefTypes.GtkVersion3)
+	app.SetGTKVersion(cefTypes.GtkVersion3) // GTK3
 	if tool.IsDarwin() {
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
