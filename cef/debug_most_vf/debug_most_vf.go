@@ -24,7 +24,6 @@ func main() {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
-	app.SetGTKVersion(cefTypes.GtkVersion3) // GTK3
 	if tool.IsDarwin() {
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
@@ -47,6 +46,7 @@ func main() {
 		} else if api.Widget().IsGTK3() {
 			// CEF message loop
 			// gtk3 使用 vf 窗口
+			app.SetGTKVersion(cefTypes.GtkVersion3) // GTK3
 			app.SetExternalMessagePump(false)
 			app.SetMultiThreadedMessageLoop(false)
 		}
