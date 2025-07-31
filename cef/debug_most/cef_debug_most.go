@@ -59,11 +59,9 @@ func main() {
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
-		// MacOS
 		cef.AddCrDelegate()
 		scheduler := cef.NewWorkScheduler(nil)
 		cef.SetGlobalCEFWorkSchedule(scheduler)
-
 		app.SetOnScheduleMessagePumpWork(nil)
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
