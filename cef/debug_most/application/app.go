@@ -3,8 +3,6 @@ package application
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/examples/cef/debug_most/scheme"
-	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/tool/exec"
@@ -23,11 +21,6 @@ func NewApplication() cef.ICefApplication {
 		GlobalCEFApp = cef.NewApplication()
 		cef.SetGlobalCEFApplication(GlobalCEFApp)
 	}
-	GlobalCEFApp.SetEnableGPU(true)
-	v8context.Context(GlobalCEFApp)
-	GlobalCEFApp.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-		scheme.ApplicationOnRegCustomSchemes(registrar)
-	})
 	if !tool.IsDarwin() {
 		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
 		// 指定 CEF Framework

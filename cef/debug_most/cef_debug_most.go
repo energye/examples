@@ -10,6 +10,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/utils"
+	"github.com/energye/examples/cef/debug_most/v8context"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
@@ -48,6 +49,11 @@ func main() {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
+	app.SetEnableGPU(true)
+	v8context.Context(app)
+	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+		scheme.ApplicationOnRegCustomSchemes(registrar)
+	})
 	if tool.IsDarwin() {
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
 		app.SetUseMockKeyChain(true)
@@ -69,10 +75,21 @@ func main() {
 		}
 	} else if tool.IsLinux() {
 		if api.Widget().IsGTK2() {
-
+			// gtk2 使用 lcl 窗口
+			app.SetExternalMessagePump(false)
+			app.SetMultiThreadedMessageLoop(true)
+		} else if api.Widget().IsGTK3() {
+			// gtk3 使用 vf 窗口
+			app.SetExternalMessagePump(false)
+			app.SetMultiThreadedMessageLoop(false)
 		}
+		// 这是一个解决“GPU不可用错误”问题的方法 linux
+		// https://bitbucket.org/chromiumembedded/cef/issues/2964/gpu-is-not-usable-error-during-cef
+		app.SetDisableZygote(true)
 	} else if tool.IsWindows() {
-
+		// win32 使用 lcl 窗口
+		app.SetExternalMessagePump(false)
+		app.SetMultiThreadedMessageLoop(true)
 	}
 	// 主进程启动
 	mainStart := app.StartMainProcess()
@@ -81,7 +98,9 @@ func main() {
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
 			fmt.Println("Release")
-			api.WidgetSetFinalization()
+			if tool.IsLinux() {
+				api.WidgetSetFinalization()
+			}
 		})
 		api.WidgetSetInitialization()
 		// LCL窗口
