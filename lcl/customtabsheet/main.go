@@ -56,17 +56,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetHeight(600)
 	m.SetDoubleBuffered(true)
 	//m.SetColor(colors.ClYellow)
-	m.SetColor(colors.RGBToColor(143, 143, 143))
+	m.SetColor(colors.RGBToColor(56, 57, 60))
 
 	{
 		cus := wg.NewButton(m)
 		cus.SetParent(m)
-		cus.SetCaption("上圆角")
 		cus.SetShowHint(true)
+		cus.SetCaption("上圆角")
 		cus.SetHint("上圆角上圆角")
 		cus.Font().SetSize(12)
 		cus.Font().SetColor(colors.Cl3DFace)
-		cus.SetBoundsRect(types.TRect{Left: 50, Top: 50, Right: 250, Bottom: 100})
+		cus.SetBoundsRect(types.TRect{Left: 50, Top: 50, Right: 250, Bottom: 90})
+		cus.SetStartColor(colors.RGBToColor(86, 88, 93))
+		cus.SetEndColor(colors.RGBToColor(86, 88, 93))
 		cus.RoundedCorner = cus.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
 		cus.SetOnCloseClick(func(sender lcl.IObject) {
 			fmt.Println("点击了 X")
