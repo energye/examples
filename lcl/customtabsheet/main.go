@@ -23,6 +23,7 @@ func init() {
 type TMainForm struct {
 	lcl.TEngForm
 	oldWndPrc uintptr
+	box       lcl.IPanel
 }
 
 var MainForm TMainForm
@@ -38,22 +39,6 @@ func main() {
 	lcl.Application.Run()
 }
 
-type TTabState = int32
-
-const (
-	tsNormal TTabState = iota
-	tsHover
-	tsActive
-)
-
-func ReadImgData(name string) []byte {
-	data, err := resources.ReadFile("resources/" + name)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
 func (m *TMainForm) wndProc(hwnd types.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
 	case messages.WM_DPICHANGED:
@@ -63,29 +48,17 @@ func (m *TMainForm) wndProc(hwnd types.HWND, message uint32, wParam, lParam uint
 				newWindowSize.Left, newWindowSize.Top, newWindowSize.Right-newWindowSize.Left, newWindowSize.Bottom-newWindowSize.Top,
 				win.SWP_NOZORDER|win.SWP_NOACTIVATE)
 		}
-	}
-	switch message {
+		return 0 // 确保处理WM_DPICHANGED后返回
+
 	case messages.WM_ACTIVATE:
-		// If we want to have a frameless window but with the default frame decorations, extend the DWM client area.
-		// This Option is not affected by returning 0 in WM_NCCALCSIZE.
-		// As a result we have hidden the titlebar but still have the default window frame styling.
-		// See: https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmextendframeintoclientarea#remarks
 		win.ExtendFrameIntoClientArea(m.Handle(), win.Margins{CxLeftWidth: 1, CxRightWidth: 1, CyTopHeight: 1, CyBottomHeight: 1})
+		return 0
+
 	case messages.WM_NCCALCSIZE:
-		// Trigger condition: Change the window size
-		// Disable the standard frame by allowing the client area to take the full window size.
-		// See: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-nccalcsize#remarks
-		// This hides the titlebar and also disables the resizing from user interaction because the standard frame is not
-		// shown. We still need the WS_THICKFRAME style to enable resizing from the frontend.
 		if wParam != 0 {
-			// Content overflow screen issue when maximizing borderless windows
-			// See: https://github.com/MicrosoftEdge/WebView2Feedback/issues/2549
-			//isMinimize := uint32(win.GetWindowLong(m.Handle(), win.GWL_STYLE))&win.WS_MINIMIZE != 0
 			isMaximize := uint32(win.GetWindowLong(m.Handle(), win.GWL_STYLE))&win.WS_MAXIMIZE != 0
 			if isMaximize {
 				rect := (*types.TRect)(unsafe.Pointer(lParam))
-				// m.Monitor().WorkareaRect(): When minimizing windows and restoring windows on multiple monitors, the main monitor is obtained.
-				// Need to obtain correct monitor information to prevent error freezing message loops from occurring
 				monitor := win.MonitorFromRect(rect, win.MONITOR_DEFAULTTONULL)
 				if monitor != 0 {
 					var monitorInfo types.TMonitorInfo
@@ -95,12 +68,66 @@ func (m *TMainForm) wndProc(hwnd types.HWND, message uint32, wParam, lParam uint
 					}
 				}
 			}
-			return 0
+			return 0 // 移除标准边框
+		}
+
+	case messages.WM_NCHITTEST: // 新增：处理鼠标命中测试
+		x := int32(lParam & 0xFFFF)
+		y := int32(lParam >> 16)
+		var rect types.TRect
+		win.GetWindowRect(m.Handle(), &rect)
+
+		borderWidth := int32(5) // 边缘检测宽度
+		left := x - rect.Left
+		right := rect.Right - x
+		top := y - rect.Top
+		bottom := rect.Bottom - y
+
+		// 检测角落区域
+		if left < borderWidth && top < borderWidth {
+			return messages.HTTOPLEFT
+		} else if right < borderWidth && top < borderWidth {
+			return messages.HTTOPRIGHT
+		} else if left < borderWidth && bottom < borderWidth {
+			return messages.HTBOTTOMLEFT
+		} else if right < borderWidth && bottom < borderWidth {
+			return messages.HTBOTTOMRIGHT
+		}
+
+		// 检测边缘区域
+		if left < borderWidth {
+			return messages.HTLEFT
+		} else if right < borderWidth {
+			return messages.HTRIGHT
+		} else if top < borderWidth {
+			return messages.HTTOP
+		} else if bottom < borderWidth {
+			return messages.HTBOTTOM
+		}
+
+		// 检测标题栏区域（假设标题栏高度为30）
+		titleBarHeight := int32(30)
+		if top < titleBarHeight {
+			return messages.HTCAPTION // 允许拖动窗口
 		}
 	}
 
 	return win.CallWindowProc(m.oldWndPrc, uintptr(hwnd), message, wParam, lParam)
 }
+
+func (m *TMainForm) HookWndProcMessage() {
+	wndProcCallback := syscall.NewCallback(m.wndProc)
+	m.oldWndPrc = win.SetWindowLongPtr(m.Handle(), win.GWL_WNDPROC, wndProcCallback)
+	// trigger WM_NCCALCSIZE
+	// https://learn.microsoft.com/en-us/windows/win32/dwm/customframe#removing-the-standard-frame
+	clientRect := m.BoundsRect()
+	win.SetWindowPos(m.Handle(), 0, clientRect.Left, clientRect.Top, clientRect.Right-clientRect.Left, clientRect.Bottom-clientRect.Top, win.SWP_FRAMECHANGED|win.SWP_NOACTIVATE)
+}
+
+func (m *TMainForm) FormAfterCreate(sender lcl.IObject) {
+	m.HookWndProcMessage()
+}
+
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetCaption("ENERGY 自定义(自绘)控件")
 	m.SetPosition(types.PoScreenCenter)
@@ -110,10 +137,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
 
-	{
-		wndProcCallback := syscall.NewCallback(m.wndProc)
-		m.oldWndPrc = win.SetWindowLongPtr(m.Handle(), win.GWL_WNDPROC, wndProcCallback)
-	}
+	//m.box = lcl.NewPanel(m)
+	//m.box.SetParent(m)
+	////m.box.SetAlign(types.AlClient)
+	//m.box.SetDoubleBuffered(true)
+	//m.box.SetBounds(5, 5, m.Width()-10, m.Height()-10)
+	//m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	//m.box.SetColor(colors.RGBToColor(56, 57, 60))
+	//m.box.SetBevelOuter(types.BvNone)
 
 	{
 		cus := wg.NewButton(m)
