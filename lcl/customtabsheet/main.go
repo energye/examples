@@ -5,9 +5,13 @@ import (
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"github.com/energye/lcl/types/messages"
+	"syscall"
 	"time"
+	"unsafe"
 	"widget/wg"
 )
 
@@ -18,6 +22,7 @@ func init() {
 
 type TMainForm struct {
 	lcl.TEngForm
+	oldWndPrc uintptr
 }
 
 var MainForm TMainForm
@@ -49,6 +54,53 @@ func ReadImgData(name string) []byte {
 	return data
 }
 
+func (m *TMainForm) wndProc(hwnd types.HWND, message uint32, wParam, lParam uintptr) uintptr {
+	switch message {
+	case messages.WM_DPICHANGED:
+		if !lcl.Application.Scaled() {
+			newWindowSize := (*types.TRect)(unsafe.Pointer(lParam))
+			win.SetWindowPos(m.Handle(), uintptr(0),
+				newWindowSize.Left, newWindowSize.Top, newWindowSize.Right-newWindowSize.Left, newWindowSize.Bottom-newWindowSize.Top,
+				win.SWP_NOZORDER|win.SWP_NOACTIVATE)
+		}
+	}
+	switch message {
+	case messages.WM_ACTIVATE:
+		// If we want to have a frameless window but with the default frame decorations, extend the DWM client area.
+		// This Option is not affected by returning 0 in WM_NCCALCSIZE.
+		// As a result we have hidden the titlebar but still have the default window frame styling.
+		// See: https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmextendframeintoclientarea#remarks
+		win.ExtendFrameIntoClientArea(m.Handle(), win.Margins{CxLeftWidth: 1, CxRightWidth: 1, CyTopHeight: 1, CyBottomHeight: 1})
+	case messages.WM_NCCALCSIZE:
+		// Trigger condition: Change the window size
+		// Disable the standard frame by allowing the client area to take the full window size.
+		// See: https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-nccalcsize#remarks
+		// This hides the titlebar and also disables the resizing from user interaction because the standard frame is not
+		// shown. We still need the WS_THICKFRAME style to enable resizing from the frontend.
+		if wParam != 0 {
+			// Content overflow screen issue when maximizing borderless windows
+			// See: https://github.com/MicrosoftEdge/WebView2Feedback/issues/2549
+			//isMinimize := uint32(win.GetWindowLong(m.Handle(), win.GWL_STYLE))&win.WS_MINIMIZE != 0
+			isMaximize := uint32(win.GetWindowLong(m.Handle(), win.GWL_STYLE))&win.WS_MAXIMIZE != 0
+			if isMaximize {
+				rect := (*types.TRect)(unsafe.Pointer(lParam))
+				// m.Monitor().WorkareaRect(): When minimizing windows and restoring windows on multiple monitors, the main monitor is obtained.
+				// Need to obtain correct monitor information to prevent error freezing message loops from occurring
+				monitor := win.MonitorFromRect(rect, win.MONITOR_DEFAULTTONULL)
+				if monitor != 0 {
+					var monitorInfo types.TMonitorInfo
+					monitorInfo.CbSize = types.DWORD(unsafe.Sizeof(monitorInfo))
+					if win.GetMonitorInfo(monitor, &monitorInfo) {
+						*rect = monitorInfo.RcWork
+					}
+				}
+			}
+			return 0
+		}
+	}
+
+	return win.CallWindowProc(m.oldWndPrc, uintptr(hwnd), message, wParam, lParam)
+}
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetCaption("ENERGY 自定义(自绘)控件")
 	m.SetPosition(types.PoScreenCenter)
@@ -57,6 +109,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetDoubleBuffered(true)
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
+
+	{
+		wndProcCallback := syscall.NewCallback(m.wndProc)
+		m.oldWndPrc = win.SetWindowLongPtr(m.Handle(), win.GWL_WNDPROC, wndProcCallback)
+	}
 
 	{
 		cus := wg.NewButton(m)
