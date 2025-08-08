@@ -68,8 +68,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus.Font().SetColor(colors.Cl3DFace)
 		cus.SetBoundsRect(types.TRect{Left: 50, Top: 50, Right: 250, Bottom: 100})
 		cus.RoundedCorner = cus.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
-		cus.SetOnClick(func(sender lcl.IObject) {
-			fmt.Println("点击了")
+		cus.SetOnCloseClick(func(sender lcl.IObject) {
+			fmt.Println("点击了 X")
 		})
 		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\icon.png")
 		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\close.png")
