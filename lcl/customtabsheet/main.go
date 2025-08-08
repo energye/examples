@@ -1,6 +1,8 @@
 package main
 
 import (
+	"embed"
+	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -20,6 +22,9 @@ type TMainForm struct {
 
 var MainForm TMainForm
 
+//go:embed resources
+var resources embed.FS
+
 func main() {
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
@@ -36,8 +41,16 @@ const (
 	tsActive
 )
 
+func ReadImgData(name string) []byte {
+	data, err := resources.ReadFile("resources/" + name)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	m.SetCaption("ENERGY LCL")
+	m.SetCaption("ENERGY 自定义(自绘)控件")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(800)
 	m.SetHeight(600)
@@ -55,37 +68,42 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus.Font().SetColor(colors.Cl3DFace)
 		cus.SetBoundsRect(types.TRect{Left: 50, Top: 50, Right: 250, Bottom: 100})
 		cus.RoundedCorner = cus.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
+		cus.SetOnClick(func(sender lcl.IObject) {
+			fmt.Println("点击了")
+		})
+		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\icon.png")
+		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\close.png")
 
-		cus2 := wg.NewButton(m)
-		cus2.SetParent(m)
-		cus2.SetCaption("大圆角")
-		cus2.SetBoundsRect(types.TRect{Left: 50, Top: 150, Right: 250, Bottom: 220})
-		cus2.SetStartColor(colors.RGBToColor(255, 100, 0))
-		cus2.SetEndColor(colors.RGBToColor(69, 81, 143))
-		//cus2.SetEndColor(colors.RGBToColor(180, 0, 0))
-		cus2.Font().SetColor(colors.ClWhite)
-		cus2.SetRadius(20)
-		cus2.SetAlpha(255)
-
-		cus3 := wg.NewButton(m)
-		cus3.SetParent(m)
-		cus3.SetCaption("小圆角")
-		cus3.SetBoundsRect(types.TRect{Left: 50, Top: 250, Right: 250, Bottom: 320})
-		cus3.SetStartColor(colors.RGBToColor(0, 180, 0))
-		cus3.SetEndColor(colors.RGBToColor(0, 100, 0))
-		cus3.Font().SetColor(colors.ClYellow)
-		cus3.SetRadius(8)
-		cus3.SetAlpha(255)
-
-		cus4 := wg.NewButton(m)
-		cus4.SetParent(m)
-		cus4.SetCaption("大大圆角")
-		cus4.Font().SetColor(colors.ClWhite)
-		cus4.SetBoundsRect(types.TRect{Left: 50, Top: 350, Right: 250, Bottom: 420})
-		cus4.SetStartColor(colors.RGBToColor(41, 42, 43))
-		cus4.SetEndColor(colors.RGBToColor(80, 81, 82))
-		cus4.SetRadius(35)
-		cus4.SetAlpha(255)
+		//cus2 := wg.NewButton(m)
+		//cus2.SetParent(m)
+		//cus2.SetCaption("大圆角")
+		//cus2.SetBoundsRect(types.TRect{Left: 50, Top: 150, Right: 250, Bottom: 220})
+		//cus2.SetStartColor(colors.RGBToColor(255, 100, 0))
+		//cus2.SetEndColor(colors.RGBToColor(69, 81, 143))
+		////cus2.SetEndColor(colors.RGBToColor(180, 0, 0))
+		//cus2.Font().SetColor(colors.ClWhite)
+		//cus2.SetRadius(20)
+		//cus2.SetAlpha(255)
+		//
+		//cus3 := wg.NewButton(m)
+		//cus3.SetParent(m)
+		//cus3.SetCaption("小圆角")
+		//cus3.SetBoundsRect(types.TRect{Left: 50, Top: 250, Right: 250, Bottom: 320})
+		//cus3.SetStartColor(colors.RGBToColor(0, 180, 0))
+		//cus3.SetEndColor(colors.RGBToColor(0, 100, 0))
+		//cus3.Font().SetColor(colors.ClYellow)
+		//cus3.SetRadius(8)
+		//cus3.SetAlpha(255)
+		//
+		//cus4 := wg.NewButton(m)
+		//cus4.SetParent(m)
+		//cus4.SetCaption("大大圆角")
+		//cus4.Font().SetColor(colors.ClWhite)
+		//cus4.SetBoundsRect(types.TRect{Left: 50, Top: 350, Right: 250, Bottom: 420})
+		//cus4.SetStartColor(colors.RGBToColor(41, 42, 43))
+		//cus4.SetEndColor(colors.RGBToColor(80, 81, 82))
+		//cus4.SetRadius(35)
+		//cus4.SetAlpha(255)
 	}
 	{
 		if false {
