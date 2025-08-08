@@ -48,9 +48,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	{
 		cus := wg.NewButton(m)
 		cus.SetParent(m)
-		cus.SetCaption("圆角按钮 o 圆角按钮 o 圆角按钮")
+		cus.SetCaption("上圆角")
 		cus.SetShowHint(true)
-		cus.SetHint("圆角按钮 o 圆角按钮 o 圆角按钮")
+		cus.SetHint("上圆角上圆角")
 		cus.Font().SetSize(12)
 		cus.Font().SetColor(colors.Cl3DFace)
 		cus.SetBoundsRect(types.TRect{Left: 50, Top: 50, Right: 250, Bottom: 100})
@@ -84,7 +84,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus4.SetBoundsRect(types.TRect{Left: 50, Top: 350, Right: 250, Bottom: 420})
 		cus4.SetStartColor(colors.RGBToColor(41, 42, 43))
 		cus4.SetEndColor(colors.RGBToColor(80, 81, 82))
-		cus4.SetRadius(25)
+		cus4.SetRadius(35)
 		cus4.SetAlpha(255)
 	}
 	{
