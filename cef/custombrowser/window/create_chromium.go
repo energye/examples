@@ -7,6 +7,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/colors"
 	"widget/wg"
 )
 
@@ -22,6 +23,8 @@ type Chromium struct {
 	oldWndPrc    uintptr
 	afterCreate  ChromiumAfterCreate
 	tabSheet     *wg.TButton
+	isActive     bool
+	currentURL   string
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
@@ -84,6 +87,29 @@ func (m *Chromium) SetOnAfterCreated(fn ChromiumAfterCreate) {
 	m.afterCreate = fn
 }
 
+func (m *Chromium) updateTabSheetActive(isActive bool) {
+	if m.tabSheet == nil {
+		return
+	}
+	if isActive {
+		activeColor := colors.RGBToColor(86, 88, 93)
+		m.tabSheet.SetStartColor(activeColor)
+		m.tabSheet.SetEndColor(activeColor)
+		m.windowParent.SetVisible(true)
+		m.isActive = true
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			m.mainWindow.addr.SetText(m.currentURL)
+		})
+	} else {
+		notActiveColor := colors.RGBToColor(56, 57, 60)
+		m.tabSheet.SetStartColor(notActiveColor)
+		m.tabSheet.SetEndColor(notActiveColor)
+		m.windowParent.SetVisible(false)
+		m.isActive = false
+	}
+	m.tabSheet.Invalidate()
+}
+
 func (m *BrowserWindow) createChromium(url string) *Chromium {
 	newChromium := &Chromium{mainWindow: m}
 
@@ -136,6 +162,28 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
 		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		*result = true
+		newChromium.chromium.LoadURLWithStringFrame(targetUrl, frame)
+	})
+	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
+		if newChromium.tabSheet != nil {
+			if title == "about:blank" {
+				return
+			}
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				newChromium.tabSheet.SetCaption(title)
+				newChromium.tabSheet.Invalidate()
+			})
+		}
+	})
+	newChromium.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
+		tempUrl := frame.GetUrl()
+		if tempUrl == "about:blank" {
+			return
+		}
+		newChromium.currentURL = tempUrl
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			m.addr.SetText(tempUrl)
+		})
 	})
 	return newChromium
 }

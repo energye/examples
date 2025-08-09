@@ -83,11 +83,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addBtn.SetAlpha(255)
 	m.addBtn.SetIcon(getImageResourcePath("add.png"))
 	m.addBtn.SetOnClick(func(sender lcl.IObject) {
-		tempUrl := m.addr.Text()
-		if _, err := url.Parse(tempUrl); err != nil {
-			tempUrl = "https://energye.github.io/"
-		}
-		newChromium := m.createChromium(tempUrl)
+		m.addr.SetText("")
+		newChromium := m.createChromium("")
 		newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
 		newChromium.createBrowser(nil)
 	})
@@ -130,6 +127,16 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		k := *key
 		if k == 13 || k == 10 {
 			*key = 0
+			tempUrl := strings.TrimSpace(m.addr.Text())
+			if _, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
+				tempUrl = "https://energye.github.io/"
+			}
+			for _, chrom := range m.chroms {
+				if chrom.isActive {
+					chrom.chromium.LoadURLWithStringFrame(tempUrl, chrom.chromium.Browser().GetMainFrame())
+					break
+				}
+			}
 		}
 	})
 	m.addr.SetOnChange(func(sender lcl.IObject) {
@@ -155,7 +162,6 @@ func (m *BrowserWindow) AddTabSheet(newChromium *Chromium) {
 			leftSize += chrom.tabSheet.Width() + 5
 		}
 	}
-	// 更新其它tabSheet 非激活状态(颜色控制)
 
 	// 创建新 tabSheet
 	newTabSheet := wg.NewButton(m)
@@ -175,10 +181,27 @@ func (m *BrowserWindow) AddTabSheet(newChromium *Chromium) {
 	})
 	newTabSheet.SetIconFavorite(getImageResourcePath("icon.png"))
 	newTabSheet.SetIconClose(getImageResourcePath("sheet_close.png"))
+	newTabSheet.SetOnClick(func(sender lcl.IObject) {
+		m.updateTabSheetActive(newChromium)
+		newChromium.updateTabSheetActive(true)
+	})
+	newChromium.isActive = true
 	newChromium.tabSheet = newTabSheet
 
 	// 更新添加按钮位置
 	m.updateAddBtnLeft()
+
+	// 更新其它tabSheet 非激活状态(颜色控制)
+	m.updateTabSheetActive(newChromium)
+}
+
+// 更新其它 tab sheet 状态
+func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
+	for _, chrom := range m.chroms {
+		if chrom != currentChromium {
+			chrom.updateTabSheetActive(false)
+		}
+	}
 }
 
 func (m *BrowserWindow) updateAddBtnLeft() {
