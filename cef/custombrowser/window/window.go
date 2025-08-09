@@ -2,7 +2,6 @@ package window
 
 import (
 	"fmt"
-	"github.com/energye/examples/cef/utils"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tool"
@@ -11,7 +10,6 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"widget/wg"
 )
@@ -24,7 +22,7 @@ type BrowserWindow struct {
 	canClose     bool
 	oldWndPrc    uintptr
 	windowId     int
-	chroms       utils.ArrayMap[*Chromium]
+	chroms       []*Chromium
 	addChromBtn  *wg.TButton
 	backBtn      *wg.TButton
 	refreshBtn   *wg.TButton
@@ -73,7 +71,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.content.SetHeight(m.Height() - (m.content.Top() + 5))
 
 	newChromium := m.createChromium("")
-	newChromium.SetOnCreateTabSheet(m.OnChromiumCreateTabSheet)
+	m.OnChromiumCreateTabSheet(newChromium)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
 		newChromium.createBrowser(nil)
 	})
@@ -183,7 +181,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
 		m.addr.SetText("")
 		newChromium := m.createChromium("")
-		newChromium.SetOnCreateTabSheet(m.OnChromiumCreateTabSheet)
+		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)
 	})
 	// 窗口 最小化，最大化，关闭按钮
@@ -312,11 +310,11 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 			if _, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
 				tempUrl = "https://energye.github.io/"
 			}
-			m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+			for _, chrom := range m.chroms {
 				if chrom.isActive {
 					chrom.chromium.LoadURLWithStringFrame(tempUrl, chrom.chromium.Browser().GetMainFrame())
 				}
-			})
+			}
 		}
 	})
 	m.addr.SetOnChange(func(sender lcl.IObject) {
@@ -343,19 +341,20 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 
 // 浏览器创建完添加一个 tab Sheet
 func (m *BrowserWindow) OnChromiumCreateTabSheet(newChromium *Chromium) {
-	m.chroms.Add(strconv.Itoa(int(newChromium.windowId)), newChromium)
-	fmt.Println("OnChromiumCreateTabSheet", "当前chromium数量:", len(m.chroms.Keys()), "新chromiumID:", newChromium.windowId)
+	m.chroms = append(m.chroms, newChromium)
+	newChromium.windowId = int32(len(m.chroms))
+	fmt.Println("OnChromiumCreateTabSheet", "当前chromium数量:", len(m.chroms), "新chromiumID:", newChromium.windowId)
 	m.AddTabSheet(newChromium)
 }
 
 func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	// 当前的设置为激活状态（颜色控制）
 	var leftSize int32 = 5
-	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+	for _, chrom := range m.chroms {
 		if chrom.tabSheet != nil {
 			leftSize += chrom.tabSheet.Width() + 5
 		}
-	})
+	}
 
 	// 创建新 tabSheet
 	newTabSheet := wg.NewButton(m)
@@ -372,9 +371,11 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
 		currentChromium.closeBrowser()
-		m.chroms.Del(strconv.Itoa(int(currentChromium.windowId)))
-		if m.chroms.Count() > 0 {
-			lastChrom := m.chroms.Values()[m.chroms.Count()-1]
+		// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
+		idx := currentChromium.windowId - 1
+		m.chroms = append(m.chroms[:idx], m.chroms[idx+1:]...)
+		if len(m.chroms) > 0 {
+			lastChrom := m.chroms[len(m.chroms)-1]
 			lastChrom.updateTabSheetActive(true)
 			m.updateTabSheetActive(lastChrom)
 		}
@@ -406,7 +407,7 @@ func (m *BrowserWindow) recalculateTabSheet() {
 		leftSize           int32 = 0             // 默认 间距
 	)
 	areaWidth := widht - rightSize // 区域可用宽度
-	count := int32(m.chroms.Count())
+	count := int32(len(m.chroms))
 	if count == 0 {
 		count = 1
 	}
@@ -418,12 +419,12 @@ func (m *BrowserWindow) recalculateTabSheet() {
 		avgWidth = maxWidth
 	}
 
-	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+	for _, chrom := range m.chroms {
 		if chrom.tabSheet != nil {
 			chrom.tabSheet.SetBounds(leftSize+5, 5, avgWidth, 40)
 			leftSize += avgWidth
 		}
-	})
+	}
 
 	// 更新添加按钮位置
 	m.updateAddBtnLeft()
@@ -432,39 +433,45 @@ func (m *BrowserWindow) recalculateTabSheet() {
 // 获得当前激活的 chrom
 func (m *BrowserWindow) getActiveChrom() *Chromium {
 	var result *Chromium
-	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+	for _, chrom := range m.chroms {
 		if chrom.isActive {
 			result = chrom
 		}
-	})
+	}
 	return result
 }
 
 // 更新其它 tab sheet 状态
 func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
-	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+	for _, chrom := range m.chroms {
 		if chrom != currentChromium {
 			chrom.updateTabSheetActive(false)
 		}
-	})
+	}
 }
 
 // 更新 添加按钮位置
 func (m *BrowserWindow) updateAddBtnLeft() {
 	var leftSize int32 = 0
-	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
+	for _, chrom := range m.chroms {
 		if chrom.tabSheet != nil {
 			leftSize += chrom.tabSheet.Width()
 		}
-	})
+	}
 	// 保持在最后
-	m.addChromBtn.SetLeft(leftSize + 5)
+	if m.addChromBtn != nil {
+		m.addChromBtn.SetLeft(leftSize + 5)
+	}
 	// 地址栏右侧按钮
-	m.addrRightBtn.SetLeft(m.addr.Left() + m.addr.Width() + 5)
+	if m.addrRightBtn != nil {
+		m.addrRightBtn.SetLeft(m.addr.Left() + m.addr.Width() + 5)
+	}
 	// 窗口 最小化、最大化，关闭按钮
-	m.minBtn.SetLeft(m.box.Width() - 45*3)
-	m.maxBtn.SetLeft(m.box.Width() - 45*2)
-	m.closeBtn.SetLeft(m.box.Width() - 45)
+	if m.minBtn != nil {
+		m.minBtn.SetLeft(m.box.Width() - 45*3)
+		m.maxBtn.SetLeft(m.box.Width() - 45*2)
+		m.closeBtn.SetLeft(m.box.Width() - 45)
+	}
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {

@@ -165,16 +165,12 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
-		newChromium.windowId = browser.GetIdentifier()
 		newChromium.windowParent.UpdateSize()
 	})
 	newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
 		userGesture, isRedirect bool, result *bool) {
 		fmt.Println("SetOnBeforeBrowse", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		newChromium.windowParent.UpdateSize()
-		if newChromium.createTabSheet != nil && !browser.GetHost().HasDevTools() {
-			newChromium.createTabSheet(newChromium)
-		}
 	})
 	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
 		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
@@ -213,16 +209,18 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 			tempUrl = ""
 		}
 		newChromium.currentURL = tempUrl
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			m.addr.SetText(tempUrl)
-			m.addr.SetFocus()
-		})
+		if newChromium.isActive {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.addr.SetText(tempUrl)
+				m.addr.SetFocus()
+			})
+		}
 	})
 	return newChromium
 }
 
 func isDefaultResourceHTML(v string) bool {
-	return v == "about:blank" ||
+	return v == "about:blank" || v == "DevTools" ||
 		(strings.Index(v, "file://") != -1 && strings.Index(v, "resources") != -1) ||
 		strings.Index(v, "default.html") != -1 ||
 		strings.Index(v, "view-source:file://") != -1 ||
