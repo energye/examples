@@ -68,7 +68,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.content.SetWidth(m.Width() - 10)
 	m.content.SetHeight(m.Height() - (m.content.Top() + 5))
 
-	newChromium := m.createChromium("https://www.baidu.com")
+	newChromium := m.createChromium("")
 	newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
 		newChromium.createBrowser(nil)
@@ -83,46 +83,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 // box 容器 窗口 拖拽 大小调整
 func (m *BrowserWindow) boxDrag() {
-	//case messages.WM_NCHITTEST: // 新增：处理鼠标命中测试
-	//	x := int32(lParam & 0xFFFF)
-	//	y := int32(lParam >> 16)
-	//	var rect types.TRect
-	//	win.GetWindowRect(m.Handle(), &rect)
-	//
-	//	borderWidth := int32(5) // 边缘检测宽度
-	//	left := x - rect.Left
-	//	right := rect.Right - x
-	//	top := y - rect.Top
-	//	bottom := rect.Bottom - y
-	//
-	//	// 检测角落区域
-	//	if left < borderWidth && top < borderWidth {
-	//	return messages.HTTOPLEFT
-	//	} else if right < borderWidth && top < borderWidth {
-	//	return messages.HTTOPRIGHT
-	//	} else if left < borderWidth && bottom < borderWidth {
-	//	return messages.HTBOTTOMLEFT
-	//	} else if right < borderWidth && bottom < borderWidth {
-	//	return messages.HTBOTTOMRIGHT
-	//	}
-	//
-	//	// 检测边缘区域
-	//	if left < borderWidth {
-	//	return messages.HTLEFT
-	//	} else if right < borderWidth {
-	//	return messages.HTRIGHT
-	//	} else if top < borderWidth {
-	//	return messages.HTTOP
-	//	} else if bottom < borderWidth {
-	//	return messages.HTBOTTOM
-	//	}
-	//
-	//	// 检测标题栏区域（假设标题栏高度为30）
-	//	titleBarHeight := int32(30)
-	//	if top < titleBarHeight {
-	//	return messages.HTCAPTION // 允许拖动窗口
-	//	}
-
 	var (
 		titleHeight     int32 = 45 // 标题栏高度
 		borderWidth     int32 = 5  // 边框宽
@@ -131,6 +91,7 @@ func (m *BrowserWindow) boxDrag() {
 	)
 
 	m.box.SetOnMouseMove(func(sender lcl.IObject, shift types.TShiftState, x, y int32) {
+		lcl.Screen.SetCursor(types.CrDefault)
 		// 判断鼠标所在区域
 		rect := m.BoundsRect()
 		if x > borderWidth && y > borderWidth && x < rect.Width()-borderWidth && y < rect.Height()-borderWidth && y < titleHeight {
@@ -174,7 +135,6 @@ func (m *BrowserWindow) boxDrag() {
 				lcl.Screen.SetCursor(types.CrSizeWE)
 			default:
 				borderHT = 0 // 客户区
-				lcl.Screen.SetCursor(types.CrDefault)
 			}
 		}
 	})
@@ -288,7 +248,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addr.SetLeft(140)
 	m.addr.SetTop(50)
 	m.addr.SetHeight(33)
-	m.addr.SetWidth(m.Width() - (m.addr.Left() + 5))
+	m.addr.SetWidth(m.Width() - (m.addr.Left() + 50))
 	//addr.SetBorderStyle(types.BsNone)
 	m.addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	m.addr.Font().SetSize(14)

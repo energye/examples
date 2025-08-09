@@ -163,6 +163,9 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		if newChromium.afterCreate != nil {
 			newChromium.afterCreate(newChromium)
 		}
+		if url == "" {
+			newChromium.chromium.LoadStringWithStringFrame(defaultHTML, browser.GetMainFrame())
+		}
 	})
 	newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
 		userGesture, isRedirect bool, result *bool) {
@@ -210,7 +213,4 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	return newChromium
 }
 
-// 创建浏览器关联的 tab sheet
-func (m *BrowserWindow) createTabSheet() {
-
-}
+var defaultHTML = ``
