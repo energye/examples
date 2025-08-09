@@ -178,7 +178,7 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
 		if newChromium.tabSheet != nil {
 			if title == "about:blank" {
-				return
+				title = "新建标签页"
 			}
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.tabSheet.SetCaption(title)
@@ -190,12 +190,13 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading
 		tempUrl := browser.GetMainFrame().GetUrl()
-		if tempUrl != "about:blank" {
-			newChromium.currentURL = tempUrl
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				m.addr.SetText(tempUrl)
-			})
+		if tempUrl == "about:blank" {
+			tempUrl = ""
 		}
+		newChromium.currentURL = tempUrl
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			m.addr.SetText(tempUrl)
+		})
 		if isLoading {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("stop.png"))
@@ -205,7 +206,6 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
 			})
 		}
-		fmt.Println("isLoading", isLoading)
 	})
 	return newChromium
 }
