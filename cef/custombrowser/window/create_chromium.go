@@ -140,12 +140,12 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	newChromium.timer.SetInterval(200)
 	newChromium.timer.SetOnTimer(newChromium.createBrowser)
 
-	//newChromium.box.SetOnResize(newChromium.resize)
-	//newChromium.box.SetOnEnter(func(sender lcl.IObject) {
-	//	newChromium.chromium.Initialized()
-	//	newChromium.chromium.FrameIsFocused()
-	//	newChromium.chromium.SetFocus(true)
-	//})
+	m.content.SetOnResize(newChromium.resize)
+	m.content.SetOnEnter(func(sender lcl.IObject) {
+		newChromium.chromium.Initialized()
+		newChromium.chromium.FrameIsFocused()
+		newChromium.chromium.SetFocus(true)
+	})
 
 	newChromium.windowParent.SetOnExit(func(sender lcl.IObject) {
 		newChromium.chromium.SendCaptureLostEvent()
@@ -194,6 +194,8 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			m.addr.SetText(tempUrl)
 		})
+	})
+	newChromium.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
 	})
 	return newChromium
 }
