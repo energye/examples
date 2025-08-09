@@ -174,13 +174,12 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.Font().SetSize(12)
 	newTabSheet.Font().SetColor(colors.Cl3DFace)
 	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
-	newTabSheetRect.SetSize(230, 40)
+	newTabSheetRect.SetSize(40, 40)
 	newTabSheet.SetBoundsRect(newTabSheetRect)
 	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
-		fmt.Println("点击了 X")
 		currentChromium.closeBrowser()
 		m.chroms.Del(strconv.Itoa(int(currentChromium.windowId)))
 		if m.chroms.Count() > 0 {
@@ -212,7 +211,7 @@ func (m *BrowserWindow) recalculateTabSheet() {
 		minWidth, maxWidth int32 = 40, 230           // 最小宽度, 最大宽度
 		rightSize          int32 = 40 + 40 + 40 + 40 // 添加按钮，最小化，最大化，关闭按钮的预留位置
 		widht                    = m.Width()         // 当前窗口宽
-		leftSize           int32 = 5                 // 默认 间距
+		leftSize           int32 = 0                 // 默认 间距
 	)
 	areaWidth := widht - rightSize // 区域可用宽度
 	count := int32(m.chroms.Count())
@@ -229,7 +228,7 @@ func (m *BrowserWindow) recalculateTabSheet() {
 
 	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
 		if chrom.tabSheet != nil {
-			chrom.tabSheet.SetBounds(leftSize, 5, avgWidth, 40)
+			chrom.tabSheet.SetBounds(leftSize+5, 5, avgWidth, 40)
 			leftSize += avgWidth
 		}
 	})
@@ -249,14 +248,14 @@ func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
 
 // 更新 添加按钮位置
 func (m *BrowserWindow) updateAddBtnLeft() {
-	var leftSize int32 = 5
+	var leftSize int32 = 0
 	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
 		if chrom.tabSheet != nil {
-			leftSize += chrom.tabSheet.Width() + 5
+			leftSize += chrom.tabSheet.Width()
 		}
 	})
 	// 保持在最后
-	m.addBtn.SetLeft(leftSize)
+	m.addBtn.SetLeft(leftSize + 5)
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {

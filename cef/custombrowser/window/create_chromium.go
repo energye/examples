@@ -132,6 +132,7 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		newChromium.windowParent = windowParent
 	}
 	newChromium.windowParent.SetParent(m.content)
+	newChromium.windowParent.SetDoubleBuffered(true)
 	newChromium.windowParent.SetAlign(types.AlClient)
 	// 创建一个定时器, 用来createBrowser
 	newChromium.timer = lcl.NewTimer(m)
