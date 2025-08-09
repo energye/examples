@@ -25,6 +25,7 @@ type Chromium struct {
 	tabSheet     *wg.TButton
 	isActive     bool
 	currentURL   string
+	isLoading    bool
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
@@ -181,21 +182,30 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 			}
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.tabSheet.SetCaption(title)
+				newChromium.tabSheet.SetHint(title)
 				newChromium.tabSheet.Invalidate()
 			})
 		}
 	})
-	newChromium.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
-		tempUrl := frame.GetUrl()
-		if tempUrl == "about:blank" {
-			return
+	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
+		newChromium.isLoading = isLoading
+		tempUrl := browser.GetMainFrame().GetUrl()
+		if tempUrl != "about:blank" {
+			newChromium.currentURL = tempUrl
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.addr.SetText(tempUrl)
+			})
 		}
-		newChromium.currentURL = tempUrl
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			m.addr.SetText(tempUrl)
-		})
-	})
-	newChromium.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
+		if isLoading {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("stop.png"))
+			})
+		} else {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
+			})
+		}
+		fmt.Println("isLoading", isLoading)
 	})
 	return newChromium
 }

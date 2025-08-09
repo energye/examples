@@ -97,6 +97,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 
 	m.backBtn = wg.NewButton(m)
 	m.backBtn.SetParent(m.box)
+	m.backBtn.SetShowHint(true)
+	m.backBtn.SetHint("单击返回")
 	backBtnRect := types.TRect{Left: 5, Top: 47}
 	backBtnRect.SetSize(40, 40)
 	m.backBtn.SetBoundsRect(backBtnRect)
@@ -105,9 +107,17 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.backBtn.SetRadius(5)
 	m.backBtn.SetAlpha(255)
 	m.backBtn.SetIcon(getImageResourcePath("back.png"))
+	m.backBtn.SetOnClick(func(sender lcl.IObject) {
+		chrom := m.getActiveChrom()
+		if chrom != nil && chrom.chromium.CanGoBack() {
+			chrom.chromium.GoBack()
+		}
+	})
 
 	m.forwardBtn = wg.NewButton(m)
 	m.forwardBtn.SetParent(m.box)
+	m.forwardBtn.SetShowHint(true)
+	m.forwardBtn.SetHint("单击前进")
 	forwardBtnRect := types.TRect{Left: 50, Top: 47}
 	forwardBtnRect.SetSize(40, 40)
 	m.forwardBtn.SetBoundsRect(forwardBtnRect)
@@ -116,9 +126,17 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.forwardBtn.SetRadius(5)
 	m.forwardBtn.SetAlpha(255)
 	m.forwardBtn.SetIcon(getImageResourcePath("forward.png"))
+	m.forwardBtn.SetOnClick(func(sender lcl.IObject) {
+		chrom := m.getActiveChrom()
+		if chrom != nil && chrom.chromium.CanGoForward() {
+			chrom.chromium.GoForward()
+		}
+	})
 
 	m.refreshBtn = wg.NewButton(m)
 	m.refreshBtn.SetParent(m.box)
+	m.refreshBtn.SetShowHint(true)
+	m.refreshBtn.SetHint("单击刷新/停止")
 	refreshBtnRect := types.TRect{Left: 95, Top: 47}
 	refreshBtnRect.SetSize(40, 40)
 	m.refreshBtn.SetBoundsRect(refreshBtnRect)
@@ -127,6 +145,16 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.refreshBtn.SetRadius(5)
 	m.refreshBtn.SetAlpha(255)
 	m.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
+	m.refreshBtn.SetOnClick(func(sender lcl.IObject) {
+		chrom := m.getActiveChrom()
+		if chrom != nil {
+			if chrom.isLoading {
+				chrom.chromium.StopLoad()
+			} else {
+				chrom.chromium.Reload()
+			}
+		}
+	})
 
 	m.addr = lcl.NewMemo(m)
 	m.addr.SetParent(m.box)
@@ -251,6 +279,7 @@ func (m *BrowserWindow) recalculateTabSheet() {
 	m.updateAddBtnLeft()
 }
 
+// 获得当前激活的 chrom
 func (m *BrowserWindow) getActiveChrom() *Chromium {
 	var result *Chromium
 	m.chroms.Iterate(func(windowId string, chrom *Chromium) {
