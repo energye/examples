@@ -5,12 +5,12 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"strings"
 )
 
 type BrowserWindow struct {
 	lcl.TEngForm
 	box          lcl.IPanel
-	title        lcl.IPanel
 	content      lcl.IPanel
 	mainWindowId int32 // 窗口ID
 	canClose     bool
@@ -71,6 +71,37 @@ func (m *BrowserWindow) createTitleWidget() {
 		newChromium.createBrowser(nil)
 	})
 
+	//cus := wg.NewButton(m)
+	//cus.SetParent(m.box)
+	//cus.SetBoundsRect(types.TRect{Left: 108, Top: 48, Right: 250, Bottom: 90})
+	//cus.SetStartColor(colors.ClGray)
+	//cus.SetEndColor(colors.ClGray)
+	//cus.SetRadius(10)
+
+	addr := lcl.NewMemo(m)
+	addr.SetParent(m.box)
+	addr.SetLeft(110)
+	addr.SetTop(50)
+	addr.SetHeight(33)
+	addr.SetWidth(m.Width() - (addr.Left() + 5))
+	//addr.SetBorderStyle(types.BsNone)
+	addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
+	addr.Font().SetSize(14)
+	addr.Font().SetColor(colors.ClWhite)
+	addr.SetColor(colors.RGBToColor(56, 57, 60))
+	// 阻止 memo 换行
+	addr.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
+		k := *key
+		if k == 13 || k == 10 {
+			*key = 0
+		}
+	})
+	addr.SetOnChange(func(sender lcl.IObject) {
+		text := addr.Text()
+		text = strings.ReplaceAll(text, "\r", "")
+		text = strings.ReplaceAll(text, "\n", "")
+		addr.SetText(text)
+	})
 }
 func (m *BrowserWindow) OnChromiumAfterCreated(newChromium *Chromium) {
 	m.chroms[newChromium.windowId] = newChromium

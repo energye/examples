@@ -125,7 +125,7 @@ func (m *TMainForm) HookWndProcMessage() {
 }
 
 func (m *TMainForm) FormAfterCreate(sender lcl.IObject) {
-	m.HookWndProcMessage()
+	//m.HookWndProcMessage()
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
@@ -194,6 +194,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		//cus4.SetEndColor(colors.RGBToColor(80, 81, 82))
 		//cus4.SetRadius(35)
 		//cus4.SetAlpha(255)
+
+		cus5 := wg.NewButton(m)
+		cus5.SetParent(m)
+		cus5.SetCaption("XX")
+		cus5.Font().SetColor(colors.ClWhite)
+		rect5 := types.TRect{Left: 50, Top: 350}
+		rect5.SetSize(50, 50)
+		cus5.SetBoundsRect(rect5)
+		cus5.SetStartColor(colors.ClWhite)
+		cus5.SetEndColor(colors.ClWhite)
+		cus5.SetRadius(35)
+		cus5.SetAlpha(255)
+
 	}
 	{
 		if false {
