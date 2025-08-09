@@ -30,6 +30,7 @@ type BrowserWindow struct {
 	refreshBtn   *wg.TButton
 	forwardBtn   *wg.TButton
 	addr         lcl.IMemo
+	addrRightBtn *wg.TButton
 }
 
 var (
@@ -38,7 +39,7 @@ var (
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetWidth(1024)
-	m.SetHeight(768)
+	m.SetHeight(800)
 	m.SetDoubleBuffered(true)
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
@@ -276,6 +277,19 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		text = strings.ReplaceAll(text, "\n", "")
 		m.addr.SetText(text)
 	})
+
+	m.addrRightBtn = wg.NewButton(m)
+	m.addrRightBtn.SetParent(m.box)
+	m.addrRightBtn.SetShowHint(true)
+	m.addrRightBtn.SetHint("   GO  \nENERGY")
+	addrRightBtnRect := types.TRect{Left: m.addr.Left() + m.addr.Width() + 40/2, Top: 47}
+	addrRightBtnRect.SetSize(40, 40)
+	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
+	m.addrRightBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.addrRightBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.addrRightBtn.SetRadius(35)
+	m.addrRightBtn.SetAlpha(100)
+	m.addrRightBtn.SetIcon(getImageResourcePath("Go-Energy-35x35.png"))
 }
 
 // 浏览器创建完添加一个 tab Sheet
@@ -396,6 +410,7 @@ func (m *BrowserWindow) updateAddBtnLeft() {
 	})
 	// 保持在最后
 	m.addBtn.SetLeft(leftSize + 5)
+	m.addrRightBtn.SetLeft(m.addr.Left() + m.addr.Width() + 5)
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800, height=600, initial-scale=1.0">
+  <title>ENERGY - Go LCL + CEF 浏览器框架</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1d4ed8;
+      --accent: #8b5cf6;
+      --light: #f8fafc;
+      --gray: #64748b;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f0f7ff 0%, #dbeafe 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #1e293b;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      width: 100%;
+      max-width: 800px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(59, 130, 246, 0.2);
+      backdrop-filter: blur(12px);
+      position: relative;
+      z-index: 10;
+      transform: scale(1);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .logo {
+      font-size: 82px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 25px;
+      text-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      letter-spacing: -2px;
+      transition: all 0.3s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.03);
+      text-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .subtitle {
+      font-size: 26px;
+      color: var(--gray);
+      margin-bottom: 50px;
+      line-height: 1.6;
+      max-width: 700px;
+      font-weight: 400;
+    }
+
+    .highlight {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .frameworks {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin-bottom: 45px;
+    }
+
+    .framework-item {
+      background: white;
+      border-radius: 20px;
+      padding: 30px 25px;
+      width: 220px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .framework-item:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .framework-item:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .framework-item:hover:before {
+      opacity: 1;
+    }
+
+    .framework-icon {
+      font-size: 48px;
+      margin-bottom: 25px;
+      color: var(--primary);
+      display: flex;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .framework-item:hover .framework-icon {
+      transform: scale(1.2);
+    }
+
+    .framework-icon-circle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(139, 92, 246, 0.1));
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      transition: all 0.3s ease;
+    }
+
+    .framework-item:hover .framework-icon-circle {
+      transform: scale(1.1);
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+    }
+
+    .framework-title {
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 20px;
+      color: #1e293b;
+    }
+
+    .framework-desc {
+      color: #64748b;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 25px;
+      font-size: 15px;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bg-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+              radial-gradient(circle at 15% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 25%),
+              radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 25%);
+      z-index: 0;
+      animation: gradientShift 18s infinite alternate ease-in-out;
+    }
+
+    .info-badge {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      background: linear-gradient(45deg, var(--primary-light), var(--accent));
+      color: white;
+      padding: 8px 15px;
+      border-radius: 25px;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(45deg, var(--primary-light), var(--accent));
+      opacity: 0.3;
+      animation: float 10s infinite ease-in-out;
+    }
+
+    @keyframes gradientShift {
+      0% {background-position: 0% 0%;}
+      100% {background-position: 100% 100%;}
+    }
+
+    @keyframes float {
+      0% {transform: translateY(0) translateX(0) scale(0.8); opacity: 0.3;}
+      50% {transform: translateY(-100px) translateX(50px) scale(1); opacity: 0.5;}
+      100% {transform: translateY(-200px) translateX(100px) scale(0.8); opacity: 0.3;}
+    }
+  </style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+
+<div class="particles" id="particles"></div>
+
+<div class="container">
+  <div class="logo">ENERGY</div>
+  <div class="subtitle">基于 <span class="highlight">Go 语言</span>，使用 <span class="highlight">LCL</span> 桌面组件库和 <span class="highlight">CEF</span> 嵌入式框架的现代浏览器平台</div>
+
+  <div class="frameworks">
+    <div class="framework-item">
+      <div class="framework-icon-circle">
+        <div class="framework-icon">
+          <i class="fas fa-laptop-code fa-2x"></i>
+        </div>
+      </div>
+      <div class="framework-title">Lazarus LCL</div>
+      <div class="framework-desc">原生跨平台桌面应用开发组件库，提供高性能的本地UI组件</div>
+    </div>
+
+    <div class="framework-item">
+      <div class="framework-icon-circle">
+        <div class="framework-icon">
+          <i class="fab fa-chrome fa-2x"></i>
+        </div>
+      </div>
+      <div class="framework-title">Chromium CEF</div>
+      <div class="framework-desc">基于Chromium的嵌入式框架，提供先进的Web渲染能力</div>
+    </div>
+
+    <div class="framework-item">
+      <div class="framework-icon-circle">
+        <div class="framework-icon">
+          <i class="fas fa-bolt fa-2x"></i>
+        </div>
+      </div>
+      <div class="framework-title">高性能Go</div>
+      <div class="framework-desc">编译型静态语言，结合并发特性提供卓越的执行效率</div>
+    </div>
+  </div>
+
+  <div class="info-badge">
+    <i class="fas fa-sync-alt"></i>
+    最后更新: 2025/08/09 21:24:43
+  </div>
+</div>
+
+<div class="footer">
+  <i class="fas fa-code"></i>
+  GitCode 开发 · TianQi AI 智能助手
+</div>
+
+<script>
+  // 创建粒子背景
+  const particlesContainer = document.getElementById('particles');
+  for(let i = 0; i < 15; i++) {
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+
+    // 随机大小
+    const size = Math.random() * 60 + 20;
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+
+    // 随机位置
+    const top = Math.random() * 100;
+    const left = Math.random() * 100;
+    particle.style.top = `${top}%`;
+    particle.style.left = `${left}%`;
+
+    // 随机动画延迟
+    particle.style.animationDelay = `${Math.random() * 5}s`;
+    particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+
+    particlesContainer.appendChild(particle);
+  }
+
+  // 优雅的动效
+  const container = document.querySelector('.container');
+
+  window.addEventListener('load', () => {
+    container.style.transform = 'scale(1)';
+
+    // 卡片依次出现
+    const cards = document.querySelectorAll('.framework-item');
+    cards.forEach((card, index) => {
+      card.style.transitionDelay = `${index * 0.1}s`;
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+    });
+
+    setTimeout(() => {
+      cards.forEach(card => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
+    }, 500);
+  });
+</script>
+</body>
+</html>
