@@ -5,7 +5,10 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"net/url"
+	"path/filepath"
 	"strings"
+	"widget/wg"
 )
 
 type BrowserWindow struct {
@@ -17,6 +20,10 @@ type BrowserWindow struct {
 	oldWndPrc    uintptr
 	windowId     int
 	chroms       map[int32]*Chromium
+	addBtn       *wg.TButton
+	closeBtn     *wg.TButton
+	backBtn      *wg.TButton
+	addr         lcl.IMemo
 }
 
 var (
@@ -31,6 +38,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetColor(colors.RGBToColor(56, 57, 60))
 	m.ScreenCenter()
 	m.SetCaption("ENERGY 3.0 - 自定义浏览器")
+	constraints := m.Constraints()
+	constraints.SetMinWidth(800)
+	constraints.SetMinHeight(600)
 	m.chroms = make(map[int32]*Chromium)
 
 	m.box = lcl.NewPanel(m)
@@ -57,57 +67,135 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		newChromium.createBrowser(nil)
 	})
 
-	m.createTitleWidget()
+	m.createTitleWidgetControl()
 
 }
 
-func (m *BrowserWindow) createTitleWidget() {
-	btn := lcl.NewButton(m)
-	btn.SetParent(m)
-	btn.SetCaption("测试创建")
-	btn.SetOnClick(func(sender lcl.IObject) {
-		newChromium := m.createChromium("https://www.baidu.com")
+func (m *BrowserWindow) createTitleWidgetControl() {
+	m.addBtn = wg.NewButton(m)
+	m.addBtn.SetParent(m.box)
+	addBtnRect := types.TRect{Left: 5, Top: 5}
+	addBtnRect.SetSize(40, 40)
+	m.addBtn.SetBoundsRect(addBtnRect)
+	m.addBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.addBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.addBtn.SetRadius(5)
+	m.addBtn.SetAlpha(255)
+	m.addBtn.SetIcon(getImageResourcePath("add.png"))
+	m.addBtn.SetOnClick(func(sender lcl.IObject) {
+		tempUrl := m.addr.Text()
+		if _, err := url.Parse(tempUrl); err != nil {
+			tempUrl = "https://energye.github.io/"
+		}
+		newChromium := m.createChromium(tempUrl)
 		newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
 		newChromium.createBrowser(nil)
 	})
 
-	//cus := wg.NewButton(m)
-	//cus.SetParent(m.box)
-	//cus.SetBoundsRect(types.TRect{Left: 108, Top: 48, Right: 250, Bottom: 90})
-	//cus.SetStartColor(colors.ClGray)
-	//cus.SetEndColor(colors.ClGray)
-	//cus.SetRadius(10)
+	m.closeBtn = wg.NewButton(m)
+	m.closeBtn.SetParent(m.box)
+	closeBtnRect := types.TRect{Left: 5, Top: 45}
+	closeBtnRect.SetSize(40, 40)
+	m.closeBtn.SetBoundsRect(closeBtnRect)
+	m.closeBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.closeBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.closeBtn.SetRadius(5)
+	m.closeBtn.SetAlpha(255)
+	m.closeBtn.SetIcon(getImageResourcePath("stop.png"))
 
-	addr := lcl.NewMemo(m)
-	addr.SetParent(m.box)
-	addr.SetLeft(110)
-	addr.SetTop(50)
-	addr.SetHeight(33)
-	addr.SetWidth(m.Width() - (addr.Left() + 5))
+	m.backBtn = wg.NewButton(m)
+	m.backBtn.SetParent(m.box)
+	backBtnRect := types.TRect{Left: 50, Top: 45}
+	backBtnRect.SetSize(40, 40)
+	m.backBtn.SetBoundsRect(backBtnRect)
+	m.backBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.backBtn.SetRadius(5)
+	m.backBtn.SetAlpha(255)
+	m.backBtn.SetIcon(getImageResourcePath("stop.png"))
+
+	m.addr = lcl.NewMemo(m)
+	m.addr.SetParent(m.box)
+	m.addr.SetLeft(120)
+	m.addr.SetTop(50)
+	m.addr.SetHeight(33)
+	m.addr.SetWidth(m.Width() - (m.addr.Left() + 5))
 	//addr.SetBorderStyle(types.BsNone)
-	addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
-	addr.Font().SetSize(14)
-	addr.Font().SetColor(colors.ClWhite)
-	addr.SetColor(colors.RGBToColor(56, 57, 60))
+	m.addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
+	m.addr.Font().SetSize(14)
+	m.addr.Font().SetColor(colors.ClWhite)
+	m.addr.SetColor(colors.RGBToColor(56, 57, 60))
 	// 阻止 memo 换行
-	addr.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
+	m.addr.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
 		k := *key
 		if k == 13 || k == 10 {
 			*key = 0
 		}
 	})
-	addr.SetOnChange(func(sender lcl.IObject) {
-		text := addr.Text()
+	m.addr.SetOnChange(func(sender lcl.IObject) {
+		text := m.addr.Text()
 		text = strings.ReplaceAll(text, "\r", "")
 		text = strings.ReplaceAll(text, "\n", "")
-		addr.SetText(text)
+		m.addr.SetText(text)
 	})
 }
+
+// 浏览器创建完添加一个 tab Sheet
 func (m *BrowserWindow) OnChromiumAfterCreated(newChromium *Chromium) {
 	m.chroms[newChromium.windowId] = newChromium
 	fmt.Println("OnChromiumAfterCreated", "当前chromium数量:", len(m.chroms), "新chromiumID:", newChromium.windowId)
+	m.AddTabSheet(newChromium)
+}
+
+func (m *BrowserWindow) AddTabSheet(newChromium *Chromium) {
+	// 当前的设置为激活状态（颜色控制）
+	var leftSize int32 = 5
+	for _, chrom := range m.chroms {
+		if chrom.tabSheet != nil {
+			leftSize += chrom.tabSheet.Width() + 5
+		}
+	}
+	// 更新其它tabSheet 非激活状态(颜色控制)
+
+	// 创建新 tabSheet
+	newTabSheet := wg.NewButton(m)
+	newTabSheet.SetParent(m.box)
+	newTabSheet.SetShowHint(true)
+	newTabSheet.SetCaption("新建标签页")
+	newTabSheet.Font().SetSize(12)
+	newTabSheet.Font().SetColor(colors.Cl3DFace)
+	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
+	newTabSheetRect.SetSize(230, 40)
+	newTabSheet.SetBoundsRect(newTabSheetRect)
+	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
+	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
+	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
+	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
+		fmt.Println("点击了 X")
+	})
+	newTabSheet.SetIconFavorite(getImageResourcePath("icon.png"))
+	newTabSheet.SetIconClose(getImageResourcePath("sheet_close.png"))
+	newChromium.tabSheet = newTabSheet
+
+	// 更新添加按钮位置
+	m.updateAddBtnLeft()
+}
+
+func (m *BrowserWindow) updateAddBtnLeft() {
+	var leftSize int32 = 5
+	for _, chrom := range m.chroms {
+		if chrom.tabSheet != nil {
+			leftSize += chrom.tabSheet.Width() + 5
+		}
+	}
+	// 更新 添加按钮位置
+	m.addBtn.SetLeft(leftSize)
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
 	//m.HookWndProcMessage()
+}
+
+func getImageResourcePath(imageName string) string {
+	return filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", imageName)
 }

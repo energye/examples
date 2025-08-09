@@ -7,11 +7,13 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
+	"widget/wg"
 )
 
 type ChromiumAfterCreate func(newChromium *Chromium)
 
 type Chromium struct {
+	mainWindow   *BrowserWindow
 	windowId     int32 // 窗口ID
 	timer        lcl.ITimer
 	windowParent cef.ICEFWinControl
@@ -19,6 +21,7 @@ type Chromium struct {
 	canClose     bool
 	oldWndPrc    uintptr
 	afterCreate  ChromiumAfterCreate
+	tabSheet     *wg.TButton
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
@@ -82,7 +85,7 @@ func (m *Chromium) SetOnAfterCreated(fn ChromiumAfterCreate) {
 }
 
 func (m *BrowserWindow) createChromium(url string) *Chromium {
-	newChromium := &Chromium{}
+	newChromium := &Chromium{mainWindow: m}
 
 	newChromium.chromium = cef.NewChromium(m)
 	newChromium.chromium.SetDefaultUrl(url)
@@ -135,4 +138,9 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		*result = true
 	})
 	return newChromium
+}
+
+// 创建浏览器关联的 tab sheet
+func (m *BrowserWindow) createTabSheet() {
+
 }

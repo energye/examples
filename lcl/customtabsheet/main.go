@@ -199,6 +199,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus5.SetParent(m)
 		cus5.SetCaption("X")
 		cus5.Font().SetColor(colors.ClWhite)
+		cus5.Font().SetSize(14)
 		rect5 := types.TRect{Left: 50, Top: 450}
 		rect5.SetSize(50, 50)
 		cus5.SetBoundsRect(rect5)
@@ -206,6 +207,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus5.SetEndColor(colors.ClYellow)
 		cus5.SetRadius(35)
 		cus5.SetAlpha(255)
+
+		cus6 := wg.NewButton(m)
+		cus6.SetParent(m)
+		cus6.SetCaption("< X >")
+		cus6.Font().SetColor(colors.ClWhite)
+		cus6.Font().SetSize(14)
+		rect6 := types.TRect{Left: 150, Top: 450}
+		rect6.SetSize(50, 50)
+		cus6.SetBoundsRect(rect6)
+		cus6.SetStartColor(colors.ClGray)
+		cus6.SetEndColor(colors.ClLtGray)
+		cus6.SetRadius(5)
+		cus6.SetAlpha(255)
 
 	}
 	{
