@@ -463,7 +463,7 @@ func (m *BrowserWindow) updateAddBtnLeft() {
 			leftSize += chrom.tabSheet.Width()
 		}
 	}
-	// 保持在最后
+	// 添加浏览器按钮, 保持在最后
 	if m.addChromBtn != nil {
 		m.addChromBtn.SetLeft(leftSize + 10)
 	}

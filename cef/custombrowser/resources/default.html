@@ -1,281 +1,288 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
 
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
 
-    /* 背景装饰元素 */
-    .background-elements {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
+        /* 背景装饰元素 */
+        .background-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
 
-    .circle {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
-    }
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+        }
 
-    .circle:nth-child(1) {
-      width: 300px;
-      height: 300px;
-      top: 10%;
-      left: 15%;
-    }
+        .circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 15%;
+        }
 
-    .circle:nth-child(2) {
-      width: 200px;
-      height: 200px;
-      bottom: 20%;
-      right: 20%;
-    }
+        .circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            right: 20%;
+        }
 
-    .circle:nth-child(3) {
-      width: 150px;
-      height: 150px;
-      top: 40%;
-      right: 30%;
-    }
+        .circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 40%;
+            right: 30%;
+        }
 
-    /* 主内容区 */
-    .main-container {
-      text-align: center;
-      padding: 2rem;
-      max-width: 800px;
-      max-height: 600px;
-      z-index: 10;
-    }
+        /* 主内容区 */
+        .main-container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 600px;
+            z-index: 10;
+        }
 
-    .logo {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 2.5rem;
-    }
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
 
-    .logo-icon {
-      width: 120px;
-      height: 120px;
-      background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
-      margin-bottom: 1.5rem;
-      transform: rotate(45deg);
-      transition: all 0.3s ease;
-    }
+        .logo-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
+            margin-bottom: 1.5rem;
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
 
-    .logo-icon:hover {
-      transform: rotate(0deg) scale(1.05);
-      box-shadow: 0 15px 30px rgba(14, 165, 233, 0.4);
-    }
+        .logo-icon:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 15px 30px rgba(14, 165, 233, 0.4);
+        }
 
-    .logo-icon span {
-      transform: rotate(-45deg);
-      font-size: 3.5rem;
-      font-weight: 700;
-      color: white;
-    }
+        .logo-icon span {
+            transform: rotate(-45deg);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+        }
 
-    .logo-text {
-      font-size: 3.5rem;
-      font-weight: 800;
-      background: linear-gradient(to right, #38bdf8, #3b82f6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -1px;
-    }
+        .logo-text {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
 
 
-    .tech-stack {
-      display: flex;
-      justify-content: center;
-      gap: 2.5rem;
-      margin: 2.5rem 0;
-    }
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin: 2.5rem 0;
+        }
 
-    .tech-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.8rem;
-    }
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
 
-    .tech-icon {
-      width: 70px;
-      height: 70px;
-      background: rgba(30, 41, 59, 0.7);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      color: #38bdf8;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease;
-    }
+        .tech-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #38bdf8;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
 
-    .tech-icon:hover {
-      transform: translateY(-5px);
-      background: rgba(56, 189, 248, 0.15);
-    }
+        .tech-icon:hover {
+            transform: translateY(-5px);
+            background: rgba(56, 189, 248, 0.15);
+        }
 
-    .tech-name {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #94a3b8;
-    }
+        .tech-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
 
-    .description {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 2rem;
-      border: 1px solid rgba(56, 189, 248, 0.1);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      line-height: 1.7;
-    }
+        .description {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
 
-    .description p {
-      margin-bottom: 1.2rem;
-      font-size: 1.1rem;
-      color: #cbd5e1;
-    }
+        .description p {
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            color: #cbd5e1;
+        }
 
-    .highlight {
-      color: #38bdf8;
-      font-weight: 600;
-    }
+        .highlight {
+            color: #38bdf8;
+            font-weight: 600;
+        }
 
-    .feature i {
-      color: #3b82f6;
-      margin-right: 0.5rem;
-    }
+        .feature i {
+            color: #3b82f6;
+            margin-right: 0.5rem;
+        }
 
-    .footer {
-      margin-top: 3rem;
-      color: #64748b;
-      font-size: 0.9rem;
-    }
+        .footer {
+            margin-top: 3rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
 
-    /* 动画效果 */
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
+        /* 动画效果 */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
 
-    .floating {
-      animation: float 6s ease-in-out infinite;
-    }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
 
-    /* 响应式设计 */
-    @media (max-width: 768px) {
-      .tech-stack {
-        flex-wrap: wrap;
-        gap: 1.5rem;
-      }
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .tech-stack {
+                flex-wrap: wrap;
+                gap: 1.5rem;
+            }
 
-      .logo-text {
-        font-size: 2.8rem;
-      }
-    }
-  </style>
+            .logo-text {
+                font-size: 2.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
 <!-- 背景装饰元素 -->
 <div class="background-elements">
-  <div class="circle floating" style="animation-delay: 0s;"></div>
-  <div class="circle floating" style="animation-delay: 2s;"></div>
-  <div class="circle floating" style="animation-delay: 4s;"></div>
+    <div class="circle floating" style="animation-delay: 0s;"></div>
+    <div class="circle floating" style="animation-delay: 2s;"></div>
+    <div class="circle floating" style="animation-delay: 4s;"></div>
 </div>
 
 <div class="main-container">
-  <div class="logo">
-    <div class="logo-icon">
-      <span>E</span>
+    <div class="logo">
+        <div class="logo-icon">
+            <span>E</span>
+        </div>
+        <h1 class="logo-text">ENERGY</h1>
     </div>
-    <h1 class="logo-text">ENERGY</h1>
-  </div>
 
-  <div class="tech-stack">
-    <div class="tech-item">
-      <div class="tech-icon">
-        <i class="fab fa-golang"></i>
-      </div>
-      <div class="tech-name">Go语言</div>
+    <div class="tech-stack">
+        <div class="tech-item">
+            <div class="tech-icon">
+                <i class="fab fa-golang"></i>
+            </div>
+            <div class="tech-name">Go语言</div>
+        </div>
+        <div class="tech-item">
+            <div class="tech-icon">
+                <i class="fas fa-window-restore"></i>
+            </div>
+            <div class="tech-name">LCL</div>
+        </div>
+        <div class="tech-item">
+            <div class="tech-icon">
+                <i class="fas fa-compass"></i>
+            </div>
+            <div class="tech-name">CEF</div>
+        </div>
+        <div class="tech-item">
+            <div class="tech-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="tech-name">高性能</div>
+        </div>
     </div>
-    <div class="tech-item">
-      <div class="tech-icon">
-        <i class="fas fa-window-restore"></i>
-      </div>
-      <div class="tech-name">LCL</div>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">
-        <i class="fas fa-compass"></i>
-      </div>
-      <div class="tech-name">CEF</div>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">
-        <i class="fas fa-bolt"></i>
-      </div>
-      <div class="tech-name">高性能</div>
-    </div>
-  </div>
 
-  <div class="description">
-    <p>ENERGY是一个基于Go语言构建的现代化桌面应用框架，结合了<span class="highlight">LCL（Lazarus组件库）</span>的原生UI能力和<span class="highlight">CEF（Chromium Embedded Framework）</span>的Web渲染能力。</p>
-    <p>该框架旨在为开发者提供创建跨平台桌面应用程序的终极解决方案，兼具原生应用的性能和Web技术的灵活性。</p>
-  </div>
+    <div class="description">
+        <p>
+            ENERGY是一个基于Go语言构建的现代化桌面应用框架，结合了
+            <span class="highlight">LCL（Lazarus组件库）</span>的原生UI能力和
+            <span class="highlight">CEF（Chromium Embedded Framework）</span>的Web渲染能力。
+        </p>
+        <p>该框架旨在为开发者提供创建跨平台桌面应用程序的终极解决方案，兼具原生应用的性能和Web技术的灵活性。</p>
+    </div>
 
-  <div class="footer">
-    <p>© 2025 ENERGY Framework | 输入网址或开始创建您的应用程序</p>
-  </div>
+    <div class="footer">
+        <p>© 2025 ENERGY Framework | 输入网址或开始创建您的应用程序</p>
+    </div>
 </div>
 
 <script>
-  // 添加简单的交互效果
-  document.addEventListener('DOMContentLoaded', function() {
-    const techIcons = document.querySelectorAll('.tech-icon');
+    // 添加简单的交互效果
+    document.addEventListener('DOMContentLoaded', function () {
+        const techIcons = document.querySelectorAll('.tech-icon');
 
-    techIcons.forEach(icon => {
-      icon.addEventListener('mouseenter', () => {
-        icon.style.transform = 'translateY(-8px)';
-      });
+        techIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', () => {
+                icon.style.transform = 'translateY(-8px)';
+            });
 
-      icon.addEventListener('mouseleave', () => {
-        icon.style.transform = 'translateY(0)';
-      });
+            icon.addEventListener('mouseleave', () => {
+                icon.style.transform = 'translateY(0)';
+            });
+        });
     });
-  });
 </script>
 </body>
 </html>
