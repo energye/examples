@@ -53,6 +53,7 @@ func (m *Chromium) resize(sender lcl.IObject) {
 		}
 	}
 }
+
 func (m *Chromium) closeQuery(sender lcl.IObject, canClose *bool) {
 	fmt.Println("closeQuery")
 	*canClose = m.canClose
@@ -63,6 +64,7 @@ func (m *Chromium) closeQuery(sender lcl.IObject, canClose *bool) {
 }
 
 func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
+	fmt.Println("chromium.Close")
 	if tool.IsDarwin() {
 		m.windowParent.DestroyChildWindow()
 		*aAction = cefTypes.CbaClose
@@ -75,6 +77,7 @@ func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aA
 }
 
 func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
+	fmt.Println("chromium.BeforeClose")
 	m.canClose = true
 	if tool.IsDarwin() {
 		//m.Close()
@@ -108,6 +111,12 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		m.isActive = false
 	}
 	m.tabSheet.Invalidate()
+}
+
+func (m *Chromium) closeBrowser() {
+	m.windowParent.SetVisible(false)
+	m.chromium.CloseBrowser(true)
+	m.tabSheet.Free()
 }
 
 func (m *BrowserWindow) createChromium(url string) *Chromium {

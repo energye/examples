@@ -24,6 +24,7 @@ func main() {
 	})
 	app := application.NewApplication()
 	app.SetEnableGPU(true)
+	app.SetLocale("zh-CN")
 	if tool.IsWindows() {
 		// win32 使用 lcl 窗口
 		app.SetExternalMessagePump(false)
