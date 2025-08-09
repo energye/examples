@@ -147,6 +147,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.box.SetBevelOuter(types.BvNone)
 
 	{
+		click := func(sender lcl.IObject) {
+			fmt.Println(lcl.AsGraphicControl(sender).Caption())
+		}
 		cus := wg.NewButton(m)
 		cus.SetParent(m)
 		cus.SetShowHint(true)
@@ -163,6 +166,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		})
 		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\icon.png")
 		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\close.png")
+		cus.SetOnClick(click)
 
 		cus2 := wg.NewButton(m)
 		cus2.SetParent(m)
@@ -174,6 +178,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus2.Font().SetColor(colors.ClWhite)
 		cus2.SetRadius(20)
 		cus2.SetAlpha(255)
+		cus2.SetOnClick(click)
 
 		cus3 := wg.NewButton(m)
 		cus3.SetParent(m)
@@ -184,6 +189,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus3.Font().SetColor(colors.ClYellow)
 		cus3.SetRadius(8)
 		cus3.SetAlpha(255)
+		cus3.SetOnClick(click)
 
 		cus4 := wg.NewButton(m)
 		cus4.SetParent(m)
@@ -194,6 +200,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus4.SetEndColor(colors.RGBToColor(80, 81, 82))
 		cus4.SetRadius(35)
 		cus4.SetAlpha(255)
+		cus4.SetOnClick(click)
 
 		cus5 := wg.NewButton(m)
 		cus5.SetParent(m)
@@ -207,6 +214,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus5.SetEndColor(colors.ClYellow)
 		cus5.SetRadius(35)
 		cus5.SetAlpha(255)
+		cus5.SetOnClick(click)
 
 		cus6 := wg.NewButton(m)
 		cus6.SetParent(m)
@@ -220,6 +228,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus6.SetEndColor(colors.ClLtGray)
 		cus6.SetRadius(5)
 		cus6.SetAlpha(255)
+		cus6.SetOnClick(click)
 
 	}
 	{

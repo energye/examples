@@ -23,8 +23,9 @@ type BrowserWindow struct {
 	windowId     int
 	chroms       utils.ArrayMap[*Chromium]
 	addBtn       *wg.TButton
-	closeBtn     *wg.TButton
 	backBtn      *wg.TButton
+	refreshBtn   *wg.TButton
+	forwardBtn   *wg.TButton
 	addr         lcl.IMemo
 }
 
@@ -48,6 +49,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetParent(m)
 	m.box.SetBevelOuter(types.BvNone)
 	m.box.SetDoubleBuffered(true)
+	m.box.SetParentBackground(true)
 	m.box.SetWidth(m.Width())
 	m.box.SetHeight(m.Height())
 	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
@@ -93,31 +95,42 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		newChromium.createBrowser(nil)
 	})
 
-	m.closeBtn = wg.NewButton(m)
-	m.closeBtn.SetParent(m.box)
-	closeBtnRect := types.TRect{Left: 5, Top: 45}
-	closeBtnRect.SetSize(40, 40)
-	m.closeBtn.SetBoundsRect(closeBtnRect)
-	m.closeBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.closeBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.closeBtn.SetRadius(5)
-	m.closeBtn.SetAlpha(255)
-	m.closeBtn.SetIcon(getImageResourcePath("stop.png"))
-
 	m.backBtn = wg.NewButton(m)
 	m.backBtn.SetParent(m.box)
-	backBtnRect := types.TRect{Left: 50, Top: 45}
+	backBtnRect := types.TRect{Left: 5, Top: 47}
 	backBtnRect.SetSize(40, 40)
 	m.backBtn.SetBoundsRect(backBtnRect)
 	m.backBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
 	m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 	m.backBtn.SetRadius(5)
 	m.backBtn.SetAlpha(255)
-	m.backBtn.SetIcon(getImageResourcePath("stop.png"))
+	m.backBtn.SetIcon(getImageResourcePath("back.png"))
+
+	m.forwardBtn = wg.NewButton(m)
+	m.forwardBtn.SetParent(m.box)
+	forwardBtnRect := types.TRect{Left: 50, Top: 47}
+	forwardBtnRect.SetSize(40, 40)
+	m.forwardBtn.SetBoundsRect(forwardBtnRect)
+	m.forwardBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.forwardBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.forwardBtn.SetRadius(5)
+	m.forwardBtn.SetAlpha(255)
+	m.forwardBtn.SetIcon(getImageResourcePath("forward.png"))
+
+	m.refreshBtn = wg.NewButton(m)
+	m.refreshBtn.SetParent(m.box)
+	refreshBtnRect := types.TRect{Left: 95, Top: 47}
+	refreshBtnRect.SetSize(40, 40)
+	m.refreshBtn.SetBoundsRect(refreshBtnRect)
+	m.refreshBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.refreshBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.refreshBtn.SetRadius(5)
+	m.refreshBtn.SetAlpha(255)
+	m.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
 
 	m.addr = lcl.NewMemo(m)
 	m.addr.SetParent(m.box)
-	m.addr.SetLeft(120)
+	m.addr.SetLeft(140)
 	m.addr.SetTop(50)
 	m.addr.SetHeight(33)
 	m.addr.SetWidth(m.Width() - (m.addr.Left() + 5))
@@ -185,6 +198,7 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		if m.chroms.Count() > 0 {
 			lastChrom := m.chroms.Values()[m.chroms.Count()-1]
 			lastChrom.updateTabSheetActive(true)
+			m.updateTabSheetActive(lastChrom)
 		}
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
