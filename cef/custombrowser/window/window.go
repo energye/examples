@@ -25,12 +25,15 @@ type BrowserWindow struct {
 	oldWndPrc    uintptr
 	windowId     int
 	chroms       utils.ArrayMap[*Chromium]
-	addBtn       *wg.TButton
+	addChromBtn  *wg.TButton
 	backBtn      *wg.TButton
 	refreshBtn   *wg.TButton
 	forwardBtn   *wg.TButton
 	addr         lcl.IMemo
 	addrRightBtn *wg.TButton
+	minBtn       *wg.TButton
+	maxBtn       *wg.TButton
+	closeBtn     *wg.TButton
 }
 
 var (
@@ -166,84 +169,129 @@ func (m *BrowserWindow) boxDrag() {
 }
 
 func (m *BrowserWindow) createTitleWidgetControl() {
-	m.addBtn = wg.NewButton(m)
-	m.addBtn.SetParent(m.box)
+	// 添加 chromium 按钮
+	m.addChromBtn = wg.NewButton(m)
+	m.addChromBtn.SetParent(m.box)
 	addBtnRect := types.TRect{Left: 5, Top: 5}
 	addBtnRect.SetSize(40, 40)
-	m.addBtn.SetBoundsRect(addBtnRect)
-	m.addBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.addBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.addBtn.SetRadius(5)
-	m.addBtn.SetAlpha(255)
-	m.addBtn.SetIcon(getImageResourcePath("add.png"))
-	m.addBtn.SetOnClick(func(sender lcl.IObject) {
+	m.addChromBtn.SetBoundsRect(addBtnRect)
+	m.addChromBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.addChromBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.addChromBtn.SetRadius(5)
+	m.addChromBtn.SetAlpha(255)
+	m.addChromBtn.SetIcon(getImageResourcePath("add.png"))
+	m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
 		m.addr.SetText("")
 		newChromium := m.createChromium("")
 		newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
 		newChromium.createBrowser(nil)
 	})
-
-	m.backBtn = wg.NewButton(m)
-	m.backBtn.SetParent(m.box)
-	m.backBtn.SetShowHint(true)
-	m.backBtn.SetHint("单击返回")
-	backBtnRect := types.TRect{Left: 5, Top: 47}
-	backBtnRect.SetSize(40, 40)
-	m.backBtn.SetBoundsRect(backBtnRect)
-	m.backBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.backBtn.SetRadius(5)
-	m.backBtn.SetAlpha(255)
-	m.backBtn.SetIcon(getImageResourcePath("back.png"))
-	m.backBtn.SetOnClick(func(sender lcl.IObject) {
-		chrom := m.getActiveChrom()
-		if chrom != nil && chrom.chromium.CanGoBack() {
-			chrom.chromium.GoBack()
-		}
-	})
-
-	m.forwardBtn = wg.NewButton(m)
-	m.forwardBtn.SetParent(m.box)
-	m.forwardBtn.SetShowHint(true)
-	m.forwardBtn.SetHint("单击前进")
-	forwardBtnRect := types.TRect{Left: 50, Top: 47}
-	forwardBtnRect.SetSize(40, 40)
-	m.forwardBtn.SetBoundsRect(forwardBtnRect)
-	m.forwardBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.forwardBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.forwardBtn.SetRadius(5)
-	m.forwardBtn.SetAlpha(255)
-	m.forwardBtn.SetIcon(getImageResourcePath("forward.png"))
-	m.forwardBtn.SetOnClick(func(sender lcl.IObject) {
-		chrom := m.getActiveChrom()
-		if chrom != nil && chrom.chromium.CanGoForward() {
-			chrom.chromium.GoForward()
-		}
-	})
-
-	m.refreshBtn = wg.NewButton(m)
-	m.refreshBtn.SetParent(m.box)
-	m.refreshBtn.SetShowHint(true)
-	m.refreshBtn.SetHint("单击刷新/停止")
-	refreshBtnRect := types.TRect{Left: 95, Top: 47}
-	refreshBtnRect.SetSize(40, 40)
-	m.refreshBtn.SetBoundsRect(refreshBtnRect)
-	m.refreshBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.refreshBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.refreshBtn.SetRadius(5)
-	m.refreshBtn.SetAlpha(255)
-	m.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
-	m.refreshBtn.SetOnClick(func(sender lcl.IObject) {
-		chrom := m.getActiveChrom()
-		if chrom != nil {
-			if chrom.isLoading {
-				chrom.chromium.StopLoad()
-			} else {
-				chrom.chromium.Reload()
+	// 窗口 最小化，最大化，关闭按钮
+	// minBtn
+	// maxBtn
+	// closeBtn
+	{
+		m.minBtn = wg.NewButton(m)
+		m.minBtn.SetParent(m.box)
+		minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
+		minBtnRect.SetSize(40, 40)
+		m.minBtn.SetBoundsRect(minBtnRect)
+		m.minBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.minBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.minBtn.SetRadius(5)
+		m.minBtn.SetAlpha(255)
+		m.minBtn.SetIcon(getImageResourcePath("btn-min.png"))
+		m.minBtn.SetOnClick(func(sender lcl.IObject) {
+		})
+		m.maxBtn = wg.NewButton(m)
+		m.maxBtn.SetParent(m.box)
+		maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
+		maxBtnRect.SetSize(40, 40)
+		m.maxBtn.SetBoundsRect(maxBtnRect)
+		m.maxBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.maxBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.maxBtn.SetRadius(5)
+		m.maxBtn.SetAlpha(255)
+		m.maxBtn.SetIcon(getImageResourcePath("btn-max.png"))
+		m.maxBtn.SetOnClick(func(sender lcl.IObject) {
+		})
+		m.closeBtn = wg.NewButton(m)
+		m.closeBtn.SetParent(m.box)
+		closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
+		closeBtnRect.SetSize(40, 40)
+		m.closeBtn.SetBoundsRect(closeBtnRect)
+		m.closeBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.closeBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.closeBtn.SetRadius(5)
+		m.closeBtn.SetAlpha(255)
+		m.closeBtn.SetIcon(getImageResourcePath("btn-close.png"))
+		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
+		})
+	}
+	{
+		//后退按钮
+		m.backBtn = wg.NewButton(m)
+		m.backBtn.SetParent(m.box)
+		m.backBtn.SetShowHint(true)
+		m.backBtn.SetHint("单击返回")
+		backBtnRect := types.TRect{Left: 5, Top: 47}
+		backBtnRect.SetSize(40, 40)
+		m.backBtn.SetBoundsRect(backBtnRect)
+		m.backBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.backBtn.SetRadius(5)
+		m.backBtn.SetAlpha(255)
+		m.backBtn.SetIcon(getImageResourcePath("back.png"))
+		m.backBtn.SetOnClick(func(sender lcl.IObject) {
+			chrom := m.getActiveChrom()
+			if chrom != nil && chrom.chromium.CanGoBack() {
+				chrom.chromium.GoBack()
 			}
-		}
-	})
-
+		})
+		// 前进按钮
+		m.forwardBtn = wg.NewButton(m)
+		m.forwardBtn.SetParent(m.box)
+		m.forwardBtn.SetShowHint(true)
+		m.forwardBtn.SetHint("单击前进")
+		forwardBtnRect := types.TRect{Left: 50, Top: 47}
+		forwardBtnRect.SetSize(40, 40)
+		m.forwardBtn.SetBoundsRect(forwardBtnRect)
+		m.forwardBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.forwardBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.forwardBtn.SetRadius(5)
+		m.forwardBtn.SetAlpha(255)
+		m.forwardBtn.SetIcon(getImageResourcePath("forward.png"))
+		m.forwardBtn.SetOnClick(func(sender lcl.IObject) {
+			chrom := m.getActiveChrom()
+			if chrom != nil && chrom.chromium.CanGoForward() {
+				chrom.chromium.GoForward()
+			}
+		})
+		// 刷新按钮
+		m.refreshBtn = wg.NewButton(m)
+		m.refreshBtn.SetParent(m.box)
+		m.refreshBtn.SetShowHint(true)
+		m.refreshBtn.SetHint("单击刷新/停止")
+		refreshBtnRect := types.TRect{Left: 95, Top: 47}
+		refreshBtnRect.SetSize(40, 40)
+		m.refreshBtn.SetBoundsRect(refreshBtnRect)
+		m.refreshBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.refreshBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.refreshBtn.SetRadius(5)
+		m.refreshBtn.SetAlpha(255)
+		m.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
+		m.refreshBtn.SetOnClick(func(sender lcl.IObject) {
+			chrom := m.getActiveChrom()
+			if chrom != nil {
+				if chrom.isLoading {
+					chrom.chromium.StopLoad()
+				} else {
+					chrom.chromium.Reload()
+				}
+			}
+		})
+	}
+	// 地址栏
 	m.addr = lcl.NewMemo(m)
 	m.addr.SetParent(m.box)
 	m.addr.SetLeft(140)
@@ -278,6 +326,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.addr.SetText(text)
 	})
 
+	// 地址栏右边的 logo 按钮
 	m.addrRightBtn = wg.NewButton(m)
 	m.addrRightBtn.SetParent(m.box)
 	m.addrRightBtn.SetShowHint(true)
@@ -351,10 +400,10 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 // 重新计算 tab sheet left 和 width
 func (m *BrowserWindow) recalculateTabSheet() {
 	var (
-		minWidth, maxWidth int32 = 40, 230           // 最小宽度, 最大宽度
-		rightSize          int32 = 40 + 40 + 40 + 40 // 添加按钮，最小化，最大化，关闭按钮的预留位置
-		widht                    = m.Width()         // 当前窗口宽
-		leftSize           int32 = 0                 // 默认 间距
+		minWidth, maxWidth int32 = 40, 230       // 最小宽度, 最大宽度
+		rightSize          int32 = 40 * 6        // 添加按钮，最小化，最大化，关闭按钮的预留位置
+		widht                    = m.box.Width() // 当前窗口宽
+		leftSize           int32 = 0             // 默认 间距
 	)
 	areaWidth := widht - rightSize // 区域可用宽度
 	count := int32(m.chroms.Count())
@@ -362,10 +411,10 @@ func (m *BrowserWindow) recalculateTabSheet() {
 		count = 1
 	}
 	avgWidth := areaWidth / int32(count)
-	if avgWidth < minWidth {
+	if avgWidth <= minWidth {
 		avgWidth = minWidth
 	}
-	if avgWidth > maxWidth {
+	if avgWidth >= maxWidth {
 		avgWidth = maxWidth
 	}
 
@@ -409,8 +458,13 @@ func (m *BrowserWindow) updateAddBtnLeft() {
 		}
 	})
 	// 保持在最后
-	m.addBtn.SetLeft(leftSize + 5)
+	m.addChromBtn.SetLeft(leftSize + 5)
+	// 地址栏右侧按钮
 	m.addrRightBtn.SetLeft(m.addr.Left() + m.addr.Width() + 5)
+	// 窗口 最小化、最大化，关闭按钮
+	m.minBtn.SetLeft(m.box.Width() - 45*3)
+	m.maxBtn.SetLeft(m.box.Width() - 45*2)
+	m.closeBtn.SetLeft(m.box.Width() - 45)
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
