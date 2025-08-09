@@ -129,7 +129,7 @@ func (m *TMainForm) FormAfterCreate(sender lcl.IObject) {
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	m.SetCaption("ENERGY 自定义(自绘)控件")
+	m.SetCaption("ENERGY 自绘(自定义)按钮")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(800)
 	m.SetHeight(600)
