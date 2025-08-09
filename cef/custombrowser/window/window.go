@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"github.com/energye/examples/cef/utils"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/pkgs/win"
+	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"github.com/energye/lcl/types/messages"
 	"net/url"
 	"path/filepath"
 	"strconv"
@@ -49,10 +52,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetParent(m)
 	m.box.SetBevelOuter(types.BvNone)
 	m.box.SetDoubleBuffered(true)
-	m.box.SetParentBackground(true)
 	m.box.SetWidth(m.Width())
 	m.box.SetHeight(m.Height())
+	m.box.SetColor(colors.RGBToColor(56, 57, 60))
 	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	m.boxDrag()
 
 	m.content = lcl.NewPanel(m)
 	m.content.SetParent(m.box)
@@ -74,6 +78,129 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	m.SetOnResize(func(sender lcl.IObject) {
 		m.recalculateTabSheet()
+	})
+}
+
+// box 容器 窗口 拖拽 大小调整
+func (m *BrowserWindow) boxDrag() {
+	//case messages.WM_NCHITTEST: // 新增：处理鼠标命中测试
+	//	x := int32(lParam & 0xFFFF)
+	//	y := int32(lParam >> 16)
+	//	var rect types.TRect
+	//	win.GetWindowRect(m.Handle(), &rect)
+	//
+	//	borderWidth := int32(5) // 边缘检测宽度
+	//	left := x - rect.Left
+	//	right := rect.Right - x
+	//	top := y - rect.Top
+	//	bottom := rect.Bottom - y
+	//
+	//	// 检测角落区域
+	//	if left < borderWidth && top < borderWidth {
+	//	return messages.HTTOPLEFT
+	//	} else if right < borderWidth && top < borderWidth {
+	//	return messages.HTTOPRIGHT
+	//	} else if left < borderWidth && bottom < borderWidth {
+	//	return messages.HTBOTTOMLEFT
+	//	} else if right < borderWidth && bottom < borderWidth {
+	//	return messages.HTBOTTOMRIGHT
+	//	}
+	//
+	//	// 检测边缘区域
+	//	if left < borderWidth {
+	//	return messages.HTLEFT
+	//	} else if right < borderWidth {
+	//	return messages.HTRIGHT
+	//	} else if top < borderWidth {
+	//	return messages.HTTOP
+	//	} else if bottom < borderWidth {
+	//	return messages.HTBOTTOM
+	//	}
+	//
+	//	// 检测标题栏区域（假设标题栏高度为30）
+	//	titleBarHeight := int32(30)
+	//	if top < titleBarHeight {
+	//	return messages.HTCAPTION // 允许拖动窗口
+	//	}
+
+	var (
+		titleHeight     int32 = 45 // 标题栏高度
+		borderWidth     int32 = 5  // 边框宽
+		isDown, isTitle bool       // 鼠标按下和抬起
+		borderHT        uintptr
+	)
+
+	m.box.SetOnMouseMove(func(sender lcl.IObject, shift types.TShiftState, x, y int32) {
+		// 判断鼠标所在区域
+		rect := m.BoundsRect()
+		if x > borderWidth && y > borderWidth && x < rect.Width()-borderWidth && y < rect.Height()-borderWidth && y < titleHeight {
+			// 标题栏部分
+			if isDown {
+				if win.ReleaseCapture() {
+					win.PostMessage(m.Handle(), messages.WM_NCLBUTTONDOWN, messages.HTCAPTION, 0)
+				}
+			}
+			borderHT = 0 // 重置边框标记
+			isTitle = true
+		} else {
+			isTitle = false
+			// 边框区域判断 (8个区域)
+			switch {
+			// 角落区域 (优先判断)
+			case x < borderWidth && y < borderWidth:
+				borderHT = messages.HTTOPLEFT
+				lcl.Screen.SetCursor(types.CrSizeNWSE)
+			case x > rect.Width()-borderWidth && y < borderWidth:
+				borderHT = messages.HTTOPRIGHT
+				lcl.Screen.SetCursor(types.CrSizeNESW)
+			case x < borderWidth && y > rect.Height()-borderWidth:
+				borderHT = messages.HTBOTTOMLEFT
+				lcl.Screen.SetCursor(types.CrSizeNESW)
+			case x > rect.Width()-borderWidth && y > rect.Height()-borderWidth:
+				borderHT = messages.HTBOTTOMRIGHT
+				lcl.Screen.SetCursor(types.CrSizeNWSE)
+			// 边缘区域
+			case y < borderWidth:
+				borderHT = messages.HTTOP
+				lcl.Screen.SetCursor(types.CrSizeNS)
+			case y > rect.Height()-borderWidth:
+				borderHT = messages.HTBOTTOM
+				lcl.Screen.SetCursor(types.CrSizeNS)
+			case x < borderWidth:
+				borderHT = messages.HTLEFT
+				lcl.Screen.SetCursor(types.CrSizeWE)
+			case x > rect.Width()-borderWidth:
+				borderHT = messages.HTRIGHT
+				lcl.Screen.SetCursor(types.CrSizeWE)
+			default:
+				borderHT = 0 // 客户区
+				lcl.Screen.SetCursor(types.CrDefault)
+			}
+		}
+	})
+	m.box.SetOnDblClick(func(sender lcl.IObject) {
+		if isTitle {
+			if m.WindowState() == types.WsNormal {
+				m.SetWindowState(types.WsMaximized)
+			} else {
+				m.SetWindowState(types.WsNormal)
+				if tool.IsDarwin() { //要这样重复设置2次不然不启作用
+					m.SetWindowState(types.WsMaximized)
+					m.SetWindowState(types.WsNormal)
+				}
+			}
+		}
+	})
+	m.box.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
+		isDown = true
+		if borderHT != 0 {
+			if win.ReleaseCapture() {
+				win.PostMessage(m.Handle(), messages.WM_NCLBUTTONDOWN, borderHT, 0)
+			}
+		}
+	})
+	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
+		isDown = false
 	})
 }
 
@@ -215,7 +342,7 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.Font().SetSize(12)
 	newTabSheet.Font().SetColor(colors.Cl3DFace)
 	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
-	newTabSheetRect.SetSize(40, 40)
+	newTabSheetRect.SetSize(0, 0)
 	newTabSheet.SetBoundsRect(newTabSheetRect)
 	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
@@ -312,7 +439,7 @@ func (m *BrowserWindow) updateAddBtnLeft() {
 }
 
 func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
-	//m.HookWndProcMessage()
+	m.HookWndProcMessage()
 }
 
 func getImageResourcePath(imageName string) string {

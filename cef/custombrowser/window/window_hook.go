@@ -41,45 +41,45 @@ func (m *BrowserWindow) wndProc(hwnd types.HWND, message uint32, wParam, lParam 
 			return 0 // 移除标准边框
 		}
 
-	case messages.WM_NCHITTEST: // 新增：处理鼠标命中测试
-		x := int32(lParam & 0xFFFF)
-		y := int32(lParam >> 16)
-		var rect types.TRect
-		win.GetWindowRect(m.Handle(), &rect)
-
-		borderWidth := int32(5) // 边缘检测宽度
-		left := x - rect.Left
-		right := rect.Right - x
-		top := y - rect.Top
-		bottom := rect.Bottom - y
-
-		// 检测角落区域
-		if left < borderWidth && top < borderWidth {
-			return messages.HTTOPLEFT
-		} else if right < borderWidth && top < borderWidth {
-			return messages.HTTOPRIGHT
-		} else if left < borderWidth && bottom < borderWidth {
-			return messages.HTBOTTOMLEFT
-		} else if right < borderWidth && bottom < borderWidth {
-			return messages.HTBOTTOMRIGHT
-		}
-
-		// 检测边缘区域
-		if left < borderWidth {
-			return messages.HTLEFT
-		} else if right < borderWidth {
-			return messages.HTRIGHT
-		} else if top < borderWidth {
-			return messages.HTTOP
-		} else if bottom < borderWidth {
-			return messages.HTBOTTOM
-		}
-
-		// 检测标题栏区域（假设标题栏高度为30）
-		titleBarHeight := int32(30)
-		if top < titleBarHeight {
-			return messages.HTCAPTION // 允许拖动窗口
-		}
+		//case messages.WM_NCHITTEST: // 新增：处理鼠标命中测试
+		//	x := int32(lParam & 0xFFFF)
+		//	y := int32(lParam >> 16)
+		//	var rect types.TRect
+		//	win.GetWindowRect(m.Handle(), &rect)
+		//
+		//	borderWidth := int32(5) // 边缘检测宽度
+		//	left := x - rect.Left
+		//	right := rect.Right - x
+		//	top := y - rect.Top
+		//	bottom := rect.Bottom - y
+		//
+		//	// 检测角落区域
+		//	if left < borderWidth && top < borderWidth {
+		//		return messages.HTTOPLEFT
+		//	} else if right < borderWidth && top < borderWidth {
+		//		return messages.HTTOPRIGHT
+		//	} else if left < borderWidth && bottom < borderWidth {
+		//		return messages.HTBOTTOMLEFT
+		//	} else if right < borderWidth && bottom < borderWidth {
+		//		return messages.HTBOTTOMRIGHT
+		//	}
+		//
+		//	// 检测边缘区域
+		//	if left < borderWidth {
+		//		return messages.HTLEFT
+		//	} else if right < borderWidth {
+		//		return messages.HTRIGHT
+		//	} else if top < borderWidth {
+		//		return messages.HTTOP
+		//	} else if bottom < borderWidth {
+		//		return messages.HTBOTTOM
+		//	}
+		//
+		//	// 检测标题栏区域（假设标题栏高度为30）
+		//	titleBarHeight := int32(30)
+		//	if top < titleBarHeight {
+		//		return messages.HTCAPTION // 允许拖动窗口
+		//	}
 	}
 
 	return win.CallWindowProc(m.oldWndPrc, uintptr(hwnd), message, wParam, lParam)
