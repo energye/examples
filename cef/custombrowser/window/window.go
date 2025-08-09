@@ -432,7 +432,7 @@ func (m *BrowserWindow) recalculateTabSheet() {
 	}
 
 	// 更新添加按钮位置
-	m.updateAddBtnLeft()
+	m.updateBtnLeft()
 }
 
 // 获得当前激活的 chrom
@@ -456,7 +456,7 @@ func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
 }
 
 // 更新 添加按钮位置
-func (m *BrowserWindow) updateAddBtnLeft() {
+func (m *BrowserWindow) updateBtnLeft() {
 	var leftSize int32 = 0
 	for _, chrom := range m.chroms {
 		if chrom.tabSheet != nil {
