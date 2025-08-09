@@ -373,7 +373,12 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		currentChromium.closeBrowser()
 		// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
 		idx := currentChromium.windowId - 1
+		// 删除
 		m.chroms = append(m.chroms[:idx], m.chroms[idx+1:]...)
+		// 重新设置每个 chromium 的 windowID, 在下次删除时能对应上
+		for id, chrom := range m.chroms {
+			chrom.windowId = int32(id + 1)
+		}
 		if len(m.chroms) > 0 {
 			lastChrom := m.chroms[len(m.chroms)-1]
 			lastChrom.updateTabSheetActive(true)
