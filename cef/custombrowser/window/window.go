@@ -231,6 +231,9 @@ func (m *BrowserWindow) recalculateTabSheet() {
 			chrom.tabSheet.SetBounds(leftSize+5, 5, avgWidth, 40)
 			leftSize += avgWidth
 		}
+		if chrom.isActive {
+			chrom.resize(nil)
+		}
 	})
 
 	// 更新添加按钮位置
