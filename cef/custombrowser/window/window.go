@@ -73,7 +73,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.content.SetHeight(m.Height() - (m.content.Top() + 5))
 
 	newChromium := m.createChromium("")
-	newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
+	newChromium.SetOnCreateTabSheet(m.OnChromiumCreateTabSheet)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
 		newChromium.createBrowser(nil)
 	})
@@ -179,11 +179,11 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addChromBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 	m.addChromBtn.SetRadius(5)
 	m.addChromBtn.SetAlpha(255)
-	m.addChromBtn.SetIcon(getImageResourcePath("add.png"))
+	m.addChromBtn.SetIcon(getResourcePath("add.png"))
 	m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
 		m.addr.SetText("")
 		newChromium := m.createChromium("")
-		newChromium.SetOnAfterCreated(m.OnChromiumAfterCreated)
+		newChromium.SetOnCreateTabSheet(m.OnChromiumCreateTabSheet)
 		newChromium.createBrowser(nil)
 	})
 	// 窗口 最小化，最大化，关闭按钮
@@ -200,7 +200,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.minBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.minBtn.SetRadius(5)
 		m.minBtn.SetAlpha(255)
-		m.minBtn.SetIcon(getImageResourcePath("btn-min.png"))
+		m.minBtn.SetIcon(getResourcePath("btn-min.png"))
 		m.minBtn.SetOnClick(func(sender lcl.IObject) {
 		})
 		m.maxBtn = wg.NewButton(m)
@@ -212,7 +212,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.maxBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.maxBtn.SetRadius(5)
 		m.maxBtn.SetAlpha(255)
-		m.maxBtn.SetIcon(getImageResourcePath("btn-max.png"))
+		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
 		m.maxBtn.SetOnClick(func(sender lcl.IObject) {
 		})
 		m.closeBtn = wg.NewButton(m)
@@ -224,7 +224,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.closeBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.closeBtn.SetRadius(5)
 		m.closeBtn.SetAlpha(255)
-		m.closeBtn.SetIcon(getImageResourcePath("btn-close.png"))
+		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
 		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
 		})
 	}
@@ -241,7 +241,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.backBtn.SetRadius(5)
 		m.backBtn.SetAlpha(255)
-		m.backBtn.SetIcon(getImageResourcePath("back.png"))
+		m.backBtn.SetIcon(getResourcePath("back.png"))
 		m.backBtn.SetOnClick(func(sender lcl.IObject) {
 			chrom := m.getActiveChrom()
 			if chrom != nil && chrom.chromium.CanGoBack() {
@@ -260,7 +260,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.forwardBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.forwardBtn.SetRadius(5)
 		m.forwardBtn.SetAlpha(255)
-		m.forwardBtn.SetIcon(getImageResourcePath("forward.png"))
+		m.forwardBtn.SetIcon(getResourcePath("forward.png"))
 		m.forwardBtn.SetOnClick(func(sender lcl.IObject) {
 			chrom := m.getActiveChrom()
 			if chrom != nil && chrom.chromium.CanGoForward() {
@@ -279,7 +279,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.refreshBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 		m.refreshBtn.SetRadius(5)
 		m.refreshBtn.SetAlpha(255)
-		m.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
+		m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
 		m.refreshBtn.SetOnClick(func(sender lcl.IObject) {
 			chrom := m.getActiveChrom()
 			if chrom != nil {
@@ -338,13 +338,13 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addrRightBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 	m.addrRightBtn.SetRadius(35)
 	m.addrRightBtn.SetAlpha(100)
-	m.addrRightBtn.SetIcon(getImageResourcePath("Go-Energy-35x35.png"))
+	m.addrRightBtn.SetIcon(getResourcePath("Go-Energy-35x35.png"))
 }
 
 // 浏览器创建完添加一个 tab Sheet
-func (m *BrowserWindow) OnChromiumAfterCreated(newChromium *Chromium) {
+func (m *BrowserWindow) OnChromiumCreateTabSheet(newChromium *Chromium) {
 	m.chroms.Add(strconv.Itoa(int(newChromium.windowId)), newChromium)
-	fmt.Println("OnChromiumAfterCreated", "当前chromium数量:", len(m.chroms.Keys()), "新chromiumID:", newChromium.windowId)
+	fmt.Println("OnChromiumCreateTabSheet", "当前chromium数量:", len(m.chroms.Keys()), "新chromiumID:", newChromium.windowId)
 	m.AddTabSheet(newChromium)
 }
 
@@ -381,8 +381,8 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
 	})
-	newTabSheet.SetIconFavorite(getImageResourcePath("icon.png"))
-	newTabSheet.SetIconClose(getImageResourcePath("sheet_close.png"))
+	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
+	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
 	newTabSheet.SetOnClick(func(sender lcl.IObject) {
 		m.updateTabSheetActive(currentChromium)
 		currentChromium.updateTabSheetActive(true)
@@ -471,6 +471,6 @@ func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
 	m.HookWndProcMessage()
 }
 
-func getImageResourcePath(imageName string) string {
+func getResourcePath(imageName string) string {
 	return filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", imageName)
 }
