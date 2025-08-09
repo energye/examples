@@ -193,14 +193,6 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading
-		tempUrl := browser.GetMainFrame().GetUrl()
-		if tempUrl == "about:blank" || strings.Index(tempUrl, "data:text/html") != -1 {
-			tempUrl = ""
-		}
-		newChromium.currentURL = tempUrl
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			m.addr.SetText(tempUrl)
-		})
 		if isLoading {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("stop.png"))
@@ -210,6 +202,17 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 				newChromium.mainWindow.refreshBtn.SetIcon(getImageResourcePath("refresh.png"))
 			})
 		}
+	})
+	newChromium.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
+		tempUrl := browser.GetMainFrame().GetUrl()
+		if tempUrl == "about:blank" || strings.Index(tempUrl, "data:text/html") != -1 {
+			tempUrl = ""
+		}
+		newChromium.currentURL = tempUrl
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			m.addr.SetText(tempUrl)
+			m.addr.SetFocus()
+		})
 	})
 	return newChromium
 }
