@@ -465,7 +465,7 @@ func (m *BrowserWindow) updateAddBtnLeft() {
 	}
 	// 保持在最后
 	if m.addChromBtn != nil {
-		m.addChromBtn.SetLeft(leftSize + 5)
+		m.addChromBtn.SetLeft(leftSize + 10)
 	}
 	// 地址栏右侧按钮
 	if m.addrRightBtn != nil {
