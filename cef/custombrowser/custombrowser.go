@@ -10,11 +10,18 @@ import (
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
+	"os"
+	"path/filepath"
 )
 
 func init() {
 	TestLoadLibPath()
 }
+
+var (
+	wd, _     = os.Getwd()
+	cacheRoot = filepath.Join(wd, "EnergyCache")
+)
 
 func main() {
 	//全局初始化 每个应用都必须调用的
@@ -29,6 +36,7 @@ func main() {
 		// win32 使用 lcl 窗口
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(true)
+		app.SetRootCache(cacheRoot)
 	}
 	// 主进程启动
 	mainStart := app.StartMainProcess()

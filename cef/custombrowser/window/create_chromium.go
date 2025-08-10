@@ -192,7 +192,6 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 			m.OnChromiumCreateTabSheet(newChromium)
 			newChromium.createBrowser(nil)
 		})
-		//newChromium.chromium.LoadURLWithStringFrame(targetUrl, frame)
 	})
 	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
 		if newChromium.tabSheetBtn != nil {
