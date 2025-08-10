@@ -57,13 +57,13 @@ func main() {
 		app.GetChromiumVersionInfo(chromiumVersion)
 		app.GetCEFVersionInfo(cefVersion)
 		fmt.Println("ChromeVersion:", app.ChromeVersion())
-		fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("Major: %v\nMinor: %v\nBuild: %v\nPatch: %v",
+		fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
 			chromiumVersion.VersionMajor,
 			chromiumVersion.VersionMinor,
 			chromiumVersion.VersionBuild,
 			chromiumVersion.VersionPatch))
 		fmt.Println("CefVersion:", app.LibCefVersion())
-		fmt.Println("CefVersionInfo:", fmt.Sprintf("Major: %v\nMinor: %v\nBuild: %v\nCommitNumber: %v",
+		fmt.Println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
 			cefVersion.VersionMajor,
 			cefVersion.VersionMinor,
 			cefVersion.VersionPatch,
