@@ -428,6 +428,9 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
 	})
+	newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
+		//currentChromium.chromium.Browser().GetHost().sa
+	})
 	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
 	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
 	newTabSheet.SetOnClick(func(sender lcl.IObject) {

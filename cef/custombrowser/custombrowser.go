@@ -50,24 +50,27 @@ func main() {
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	if mainStart {
-		var (
-			chromiumVersion = &cef.TChromiumVersionInfo{}
-			cefVersion      = &cef.TCefVersionInfo{}
-		)
-		app.GetChromiumVersionInfo(chromiumVersion)
-		app.GetCEFVersionInfo(cefVersion)
-		fmt.Println("ChromeVersion:", app.ChromeVersion())
-		fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
-			chromiumVersion.VersionMajor,
-			chromiumVersion.VersionMinor,
-			chromiumVersion.VersionBuild,
-			chromiumVersion.VersionPatch))
-		fmt.Println("CefVersion:", app.LibCefVersion())
-		fmt.Println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
-			cefVersion.VersionMajor,
-			cefVersion.VersionMinor,
-			cefVersion.VersionPatch,
-			cefVersion.CommitNumber))
+		{
+			// 输出版本信息
+			var (
+				chromiumVersion = &cef.TChromiumVersionInfo{}
+				cefVersion      = &cef.TCefVersionInfo{}
+			)
+			app.GetChromiumVersionInfo(chromiumVersion)
+			app.GetCEFVersionInfo(cefVersion)
+			fmt.Println("ChromeVersion:", app.ChromeVersion())
+			fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
+				chromiumVersion.VersionMajor,
+				chromiumVersion.VersionMinor,
+				chromiumVersion.VersionBuild,
+				chromiumVersion.VersionPatch))
+			fmt.Println("CefVersion:", app.LibCefVersion())
+			fmt.Println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
+				cefVersion.VersionMajor,
+				cefVersion.VersionMinor,
+				cefVersion.VersionPatch,
+				cefVersion.CommitNumber))
+		}
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
 			fmt.Println("Run END. Release")
