@@ -288,6 +288,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 							defer resp.Body.Close()
 							data, err := io.ReadAll(resp.Body)
 							if err == nil {
+								// 检测图片真实格式
 								if imageFormat, err := utils.DetectImageFormatByte(data); err == nil {
 									saveIcoPath := filepath.Join(SiteResource, host+"_favicon."+imageFormat)
 									_ = os.MkdirAll(SiteResource, fs.ModeDir)
