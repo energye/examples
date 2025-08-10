@@ -434,7 +434,7 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	})
 	newTabSheet.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
 		fmt.Println("TabSheet.OnMouseDown button:", button)
-		CW.Show()
+		//CW.Show()
 	})
 	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
 	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))

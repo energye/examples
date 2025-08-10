@@ -23,13 +23,14 @@ type CommonWindow struct {
 }
 
 func (m *CommonWindow) FormCreate(sender lcl.IObject) {
-	m.SetWidth(1)
-	m.SetHeight(1)
+	m.SetWidth(400)
+	m.SetHeight(400)
 	//m.SetLeft(-1)
 	//m.SetTop(-1)
+	m.WorkAreaCenter()
 	m.SetBorderStyleToFormBorderStyle(types.BsNone)
 	m.SetDoubleBuffered(true)
-	//m.SetShowInTaskBar(types.StNever)
+	m.SetShowInTaskBar(types.StNever)
 
 	m.chromium = cef.NewChromium(m)
 	m.chromiumEvent()
@@ -79,7 +80,7 @@ func (m *CommonWindow) chromiumEvent() {
 	m.chromium.SetOnGetScreenInfo(func(sender lcl.IObject, browser cef.ICefBrowser, screenInfo *cef.TCefScreenInfo, outResult *bool) {
 		var scale = float64(m.bufferPanel.ScreenScale())
 		var rect = &cef.TCefRect{}
-		screenInfo = new(cef.TCefScreenInfo)
+		*screenInfo = cef.TCefScreenInfo{}
 		rect.Width = cef.MiscFunc.DeviceToLogicalWithIntDouble(m.bufferPanel.Width(), scale)
 		rect.Height = cef.MiscFunc.DeviceToLogicalWithIntDouble(m.bufferPanel.Height(), scale)
 		screenInfo.DeviceScaleFactor = float32(scale)
