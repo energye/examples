@@ -1,8 +1,10 @@
 package window
 
 import (
+	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
+	"github.com/energye/examples/cef/utils"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -273,6 +275,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 				break
 			}
 		}
+		fmt.Println("OnFavIconUrlChange:", icoURL)
 		if icoURL != "" {
 			if tempURL, err := url.Parse(icoURL); err == nil {
 				_, ok := newChromium.siteFavIcon[tempURL.Host]
@@ -285,15 +288,17 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 							defer resp.Body.Close()
 							data, err := io.ReadAll(resp.Body)
 							if err == nil {
-								saveIcoPath := filepath.Join(SiteResource, host+"_favicon.ico")
-								_ = os.MkdirAll(SiteResource, fs.ModeDir)
-								if err = os.WriteFile(saveIcoPath, data, fs.ModePerm); err == nil {
-									newChromium.siteFavIcon[tempURL.Host] = saveIcoPath
-									// 在此保证更新一次图标
-									lcl.RunOnMainThreadAsync(func(id uint32) {
-										newChromium.tabSheetBtn.SetIconFavorite(saveIcoPath)
-										newChromium.tabSheetBtn.Invalidate()
-									})
+								if imageFormat, err := utils.DetectImageFormatByte(data); err == nil {
+									saveIcoPath := filepath.Join(SiteResource, host+"_favicon."+imageFormat)
+									_ = os.MkdirAll(SiteResource, fs.ModeDir)
+									if err = os.WriteFile(saveIcoPath, data, fs.ModePerm); err == nil {
+										newChromium.siteFavIcon[tempURL.Host] = saveIcoPath
+										// 在此保证更新一次图标
+										lcl.RunOnMainThreadAsync(func(id uint32) {
+											newChromium.tabSheetBtn.SetIconFavorite(saveIcoPath)
+											newChromium.tabSheetBtn.Invalidate()
+										})
+									}
 								}
 							}
 						}

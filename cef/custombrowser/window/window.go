@@ -404,6 +404,9 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
+	newTabSheet.IsScaled = true
+	newTabSheet.ScaledWidth = 16
+	newTabSheet.ScaledHeight = 16
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
 		currentChromium.closeBrowser()
 		// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
