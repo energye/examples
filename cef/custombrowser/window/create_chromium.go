@@ -225,6 +225,9 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 			})
 		}
 	})
+	newChromium.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
+		// 在此获取 网页的 ico 图标
+	})
 	return newChromium
 }
 
