@@ -412,6 +412,9 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 			lastChrom := m.chroms[len(m.chroms)-1]
 			lastChrom.updateTabSheetActive(true)
 			m.updateTabSheetActive(lastChrom)
+		} else {
+			// 没有 chrom 清空和还原控制按钮、地址栏
+			m.resetControlBtn()
 		}
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
@@ -430,6 +433,19 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 
 	// 重新计算 tab sheet left 和 width
 	m.recalculateTabSheet()
+}
+
+// 清空地址栏 和 还原控制按钮
+func (m *BrowserWindow) resetControlBtn() {
+	m.addr.SetText("")
+	m.backBtn.IsDisable = true
+	m.forwardBtn.IsDisable = true
+	m.backBtn.SetIcon(getResourcePath("back_disable.png"))
+	m.backBtn.Invalidate()
+	m.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
+	m.forwardBtn.Invalidate()
+	m.refreshBtn.SetIcon("refresh.png")
+	m.refreshBtn.Invalidate()
 }
 
 // 重新计算 tab sheet left 和 width
