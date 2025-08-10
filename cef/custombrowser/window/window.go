@@ -46,12 +46,12 @@ var (
 )
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
-	m.SetWidth(1024)
+	m.SetWidth(1200)
 	m.SetHeight(800)
 	m.SetDoubleBuffered(true)
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
-	m.ScreenCenter()
+	m.WorkAreaCenter()
 	m.SetCaption("ENERGY-3.0-浏览器")
 	constraints := m.Constraints()
 	constraints.SetMinWidth(800)
@@ -367,7 +367,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addrRightBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
 	m.addrRightBtn.SetRadius(35)
 	m.addrRightBtn.SetAlpha(100)
-	m.addrRightBtn.SetIcon(getResourcePath("Go-Energy-35x35.png"))
+	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
 	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
 		if chrom := m.getActiveChrom(); chrom != nil {
 			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
