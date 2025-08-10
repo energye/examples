@@ -27,8 +27,8 @@ type BrowserWindow struct {
 	addChromBtn  *wg.TButton // 添加浏览器按钮
 	// 浏览器控制按钮
 	backBtn    *wg.TButton
-	refreshBtn *wg.TButton
 	forwardBtn *wg.TButton
+	refreshBtn *wg.TButton
 	// 地址栏
 	addr         lcl.IMemo
 	addrRightBtn *wg.TButton
@@ -380,8 +380,8 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	// 当前的设置为激活状态（颜色控制）
 	var leftSize int32 = 5
 	for _, chrom := range m.chroms {
-		if chrom.tabSheet != nil {
-			leftSize += chrom.tabSheet.Width() + 5
+		if chrom.tabSheetBtn != nil {
+			leftSize += chrom.tabSheetBtn.Width() + 5
 		}
 	}
 
@@ -422,8 +422,8 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		m.updateTabSheetActive(currentChromium)
 		currentChromium.updateTabSheetActive(true)
 	})
-	currentChromium.isActive = true        // 设置默认激活
-	currentChromium.tabSheet = newTabSheet // 绑定到当前 chromium
+	currentChromium.isActive = true           // 设置默认激活
+	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
 
 	// 更新其它tabSheet 非激活状态(颜色控制)
 	m.updateTabSheetActive(currentChromium)
@@ -454,8 +454,8 @@ func (m *BrowserWindow) recalculateTabSheet() {
 	}
 
 	for _, chrom := range m.chroms {
-		if chrom.tabSheet != nil {
-			chrom.tabSheet.SetBounds(leftSize+5, 5, avgWidth, 40)
+		if chrom.tabSheetBtn != nil {
+			chrom.tabSheetBtn.SetBounds(leftSize+5, 5, avgWidth, 40)
 			leftSize += avgWidth
 		}
 	}
@@ -488,8 +488,8 @@ func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
 func (m *BrowserWindow) updateBtnLeft() {
 	var leftSize int32 = 0
 	for _, chrom := range m.chroms {
-		if chrom.tabSheet != nil {
-			leftSize += chrom.tabSheet.Width()
+		if chrom.tabSheetBtn != nil {
+			leftSize += chrom.tabSheetBtn.Width()
 		}
 	}
 	// 添加浏览器按钮, 保持在最后

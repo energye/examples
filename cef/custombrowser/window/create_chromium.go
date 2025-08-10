@@ -15,19 +15,19 @@ import (
 type ChromiumCreateTabSheet func(newChromium *Chromium)
 
 type Chromium struct {
-	mainWindow     *BrowserWindow
-	windowId       int32 // 窗口ID
-	timer          lcl.ITimer
-	windowParent   cef.ICEFWinControl
-	chromium       cef.IChromium
-	canClose       bool
-	oldWndPrc      uintptr
-	createTabSheet ChromiumCreateTabSheet
-	tabSheet       *wg.TButton
-	isActive       bool
-	currentURL     string
-	isLoading      bool
-	isClose        bool
+	mainWindow                         *BrowserWindow
+	windowId                           int32 // 窗口ID
+	timer                              lcl.ITimer
+	windowParent                       cef.ICEFWinControl
+	chromium                           cef.IChromium
+	canClose                           bool
+	oldWndPrc                          uintptr
+	createTabSheet                     ChromiumCreateTabSheet
+	tabSheetBtn                        *wg.TButton
+	isActive                           bool
+	currentURL                         string
+	isLoading, canGoBack, canGoForward bool
+	isClose                            bool
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
@@ -81,13 +81,13 @@ func (m *Chromium) SetOnCreateTabSheet(fn ChromiumCreateTabSheet) {
 }
 
 func (m *Chromium) updateTabSheetActive(isActive bool) {
-	if m.tabSheet == nil {
+	if m.tabSheetBtn == nil {
 		return
 	}
 	if isActive {
 		activeColor := colors.RGBToColor(86, 88, 93)
-		m.tabSheet.SetStartColor(activeColor)
-		m.tabSheet.SetEndColor(activeColor)
+		m.tabSheetBtn.SetStartColor(activeColor)
+		m.tabSheetBtn.SetEndColor(activeColor)
 		m.windowParent.SetVisible(true)
 		m.isActive = true
 		lcl.RunOnMainThreadAsync(func(id uint32) {
@@ -95,19 +95,43 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		})
 	} else {
 		notActiveColor := colors.RGBToColor(56, 57, 60)
-		m.tabSheet.SetStartColor(notActiveColor)
-		m.tabSheet.SetEndColor(notActiveColor)
+		m.tabSheetBtn.SetStartColor(notActiveColor)
+		m.tabSheetBtn.SetEndColor(notActiveColor)
 		m.windowParent.SetVisible(false)
 		m.isActive = false
 	}
-	m.tabSheet.Invalidate()
+	m.tabSheetBtn.Invalidate()
+	// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
+	m.updateBrowserControlBtn()
+}
+
+// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
+func (m *Chromium) updateBrowserControlBtn() {
+	m.mainWindow.backBtn.IsDisable = !m.canGoBack
+	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
+	lcl.RunOnMainThreadAsync(func(id uint32) {
+		if !m.canGoBack {
+			// 禁用
+			m.mainWindow.backBtn.SetIcon(getResourcePath("back_disable.png"))
+		} else {
+			m.mainWindow.backBtn.SetIcon(getResourcePath("back.png"))
+		}
+		m.mainWindow.backBtn.Invalidate()
+		if !m.canGoForward {
+			// 禁用
+			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
+		} else {
+			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward.png"))
+		}
+		m.mainWindow.forwardBtn.Invalidate()
+	})
 }
 
 func (m *Chromium) closeBrowser() {
 	m.chromium.StopLoad()
 	m.windowParent.SetVisible(false)
 	m.chromium.CloseBrowser(true)
-	m.tabSheet.Free()
+	m.tabSheetBtn.Free()
 }
 
 func (m *BrowserWindow) createChromium(url string) *Chromium {
@@ -169,19 +193,21 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		newChromium.chromium.LoadURLWithStringFrame(targetUrl, frame)
 	})
 	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
-		if newChromium.tabSheet != nil {
+		if newChromium.tabSheetBtn != nil {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
 			}
 			lcl.RunOnMainThreadAsync(func(id uint32) {
-				newChromium.tabSheet.SetCaption(title)
-				newChromium.tabSheet.SetHint(title)
-				newChromium.tabSheet.Invalidate()
+				newChromium.tabSheetBtn.SetCaption(title)
+				newChromium.tabSheetBtn.SetHint(title)
+				newChromium.tabSheetBtn.Invalidate()
 			})
 		}
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading
+		newChromium.canGoBack = canGoBack
+		newChromium.canGoForward = canGoForward
 		if isLoading {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("stop.png"))
@@ -191,6 +217,7 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("refresh.png"))
 			})
 		}
+		newChromium.updateBrowserControlBtn()
 	})
 	newChromium.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
 		tempUrl := browser.GetMainFrame().GetUrl()
