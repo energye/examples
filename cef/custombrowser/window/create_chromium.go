@@ -183,7 +183,14 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
 		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		*result = true
-		newChromium.chromium.LoadURLWithStringFrame(targetUrl, frame)
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			// 创建新的 tab
+			m.addr.SetText("")
+			newChromium := m.createChromium(targetUrl)
+			m.OnChromiumCreateTabSheet(newChromium)
+			newChromium.createBrowser(nil)
+		})
+		//newChromium.chromium.LoadURLWithStringFrame(targetUrl, frame)
 	})
 	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
 		if newChromium.tabSheetBtn != nil {

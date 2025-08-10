@@ -366,6 +366,11 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addrRightBtn.SetRadius(35)
 	m.addrRightBtn.SetAlpha(100)
 	m.addrRightBtn.SetIcon(getResourcePath("Go-Energy-35x35.png"))
+	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
+		if chrom := m.getActiveChrom(); chrom != nil {
+			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
+		}
+	})
 }
 
 // 浏览器创建完添加一个 tab Sheet
