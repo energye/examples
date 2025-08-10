@@ -9,6 +9,7 @@ import (
 	"github.com/energye/lcl/types/colors"
 	"github.com/energye/lcl/types/messages"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"widget/wg"
@@ -22,16 +23,22 @@ type BrowserWindow struct {
 	canClose     bool
 	oldWndPrc    uintptr
 	windowId     int
-	chroms       []*Chromium
-	addChromBtn  *wg.TButton
-	backBtn      *wg.TButton
-	refreshBtn   *wg.TButton
-	forwardBtn   *wg.TButton
+	chroms       []*Chromium // 当前的chrom列表
+	addChromBtn  *wg.TButton // 添加浏览器按钮
+	// 浏览器控制按钮
+	backBtn    *wg.TButton
+	refreshBtn *wg.TButton
+	forwardBtn *wg.TButton
+	// 地址栏
 	addr         lcl.IMemo
 	addrRightBtn *wg.TButton
-	minBtn       *wg.TButton
-	maxBtn       *wg.TButton
-	closeBtn     *wg.TButton
+	// 窗口控制按钮
+	minBtn   *wg.TButton
+	maxBtn   *wg.TButton
+	closeBtn *wg.TButton
+	// 窗口大小变化记录
+	previousWindowPlacement types.TRect
+	windowState             types.TWindowState
 }
 
 var (
@@ -184,10 +191,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)
 	})
-	// 窗口 最小化，最大化，关闭按钮
-	// minBtn
-	// maxBtn
-	// closeBtn
+	// 窗口控制按钮 最小化，最大化，关闭
 	{
 		m.minBtn = wg.NewButton(m)
 		m.minBtn.SetParent(m.box)
@@ -200,6 +204,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.minBtn.SetAlpha(255)
 		m.minBtn.SetIcon(getResourcePath("btn-min.png"))
 		m.minBtn.SetOnClick(func(sender lcl.IObject) {
+			m.Minimize()
 		})
 		m.maxBtn = wg.NewButton(m)
 		m.maxBtn.SetParent(m.box)
@@ -212,6 +217,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.maxBtn.SetAlpha(255)
 		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
 		m.maxBtn.SetOnClick(func(sender lcl.IObject) {
+			m.Maximize()
 		})
 		m.closeBtn = wg.NewButton(m)
 		m.closeBtn.SetParent(m.box)
@@ -224,10 +230,15 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.closeBtn.SetAlpha(255)
 		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
 		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
+			for _, chrom := range m.chroms {
+				chrom.closeBrowser()
+			}
+			m.Close()
 		})
 	}
+	// 浏览器控制按钮
 	{
-		//后退按钮
+		// 后退
 		m.backBtn = wg.NewButton(m)
 		m.backBtn.SetParent(m.box)
 		m.backBtn.SetShowHint(true)
@@ -317,6 +328,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 			}
 		}
 	})
+	// 阻止 memo 换行
 	m.addr.SetOnChange(func(sender lcl.IObject) {
 		text := m.addr.Text()
 		text = strings.ReplaceAll(text, "\r", "")
@@ -483,6 +495,23 @@ func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
 	m.HookWndProcMessage()
 }
 
-func getResourcePath(imageName string) string {
-	return filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", imageName)
+var (
+	wd, _ = os.Getwd()
+)
+
+func getResourcePath(name string) string {
+	var sourcePath string
+	sourcePath = filepath.Join("./", "resources", name)
+	if tool.IsExist(sourcePath) {
+		return sourcePath
+	}
+	sourcePath = filepath.Join(wd, "resources", name)
+	if tool.IsExist(sourcePath) {
+		return sourcePath
+	}
+	sourcePath = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", name)
+	if tool.IsExist(sourcePath) {
+		return sourcePath
+	}
+	return ""
 }
