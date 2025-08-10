@@ -111,15 +111,17 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 func (m *Chromium) updateBrowserControlBtn() {
 	m.mainWindow.backBtn.IsDisable = !m.canGoBack
 	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
+	backDisable := !m.canGoBack
+	forwardDisable := !m.canGoForward
 	lcl.RunOnMainThreadAsync(func(id uint32) {
-		if !m.canGoBack {
+		if backDisable {
 			// 禁用
 			m.mainWindow.backBtn.SetIcon(getResourcePath("back_disable.png"))
 		} else {
 			m.mainWindow.backBtn.SetIcon(getResourcePath("back.png"))
 		}
 		m.mainWindow.backBtn.Invalidate()
-		if !m.canGoForward {
+		if forwardDisable {
 			// 禁用
 			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
 		} else {
