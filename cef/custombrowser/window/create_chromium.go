@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/utils"
@@ -275,7 +274,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 				break
 			}
 		}
-		fmt.Println("OnFavIconUrlChange:", icoURL)
+		//fmt.Println("OnFavIconUrlChange:", icoURL)
 		if icoURL != "" {
 			if tempURL, err := url.Parse(icoURL); err == nil {
 				_, ok := newChromium.siteFavIcon[tempURL.Host]
