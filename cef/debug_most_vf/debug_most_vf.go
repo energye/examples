@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
-	"github.com/energye/examples/cef/debug_most/application"
+	"github.com/energye/examples/cef/application"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
@@ -53,6 +53,9 @@ func main() {
 		// 这是一个解决“GPU不可用错误”问题的方法 linux
 		// https://bitbucket.org/chromiumembedded/cef/issues/2964/gpu-is-not-usable-error-during-cef
 		app.SetDisableZygote(true)
+	} else {
+		app.SetMultiThreadedMessageLoop(false)
+		app.SetExternalMessagePump(false)
 	}
 	app.SetOnContextInitialized(func() {
 		fmt.Println("SetOnContextInitialized")
