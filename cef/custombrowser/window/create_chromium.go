@@ -1,13 +1,18 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"io"
+	"io/fs"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"widget/wg"
 )
@@ -24,6 +29,7 @@ type Chromium struct {
 	isActive                           bool
 	currentURL                         string
 	currentTitle                       string
+	siteFavIcon                        map[string]string
 	isLoading, canGoBack, canGoForward bool
 	isClose                            bool
 }
@@ -34,9 +40,9 @@ func (m *Chromium) createBrowser(sender lcl.IObject) {
 	}
 	m.timer.SetEnabled(false)
 	rect := m.windowParent.Parent().ClientRect()
-	init := m.chromium.Initialized()
+	m.chromium.Initialized()
 	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
-	fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
+	//fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
 	if !created {
 		m.timer.SetEnabled(true)
 	} else {
@@ -56,7 +62,7 @@ func (m *Chromium) resize(sender lcl.IObject) {
 }
 
 func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
-	fmt.Println("chromium.Close")
+	//fmt.Println("chromium.Close")
 	if tool.IsDarwin() {
 		m.windowParent.DestroyChildWindow()
 		*aAction = cefTypes.CbaClose
@@ -69,7 +75,7 @@ func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aA
 }
 
 func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
-	fmt.Println("chromium.BeforeClose")
+	//fmt.Println("chromium.BeforeClose")
 	m.canClose = true
 	m.isClose = true
 }
@@ -129,15 +135,15 @@ func (m *Chromium) closeBrowser() {
 	m.tabSheetBtn.Free()
 }
 
-func (m *BrowserWindow) createChromium(url string) *Chromium {
-	newChromium := &Chromium{mainWindow: m}
+func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
+	newChromium := &Chromium{mainWindow: m, siteFavIcon: make(map[string]string)}
 
 	newChromium.chromium = cef.NewChromium(m)
-	if url == "" {
+	if defaultUrl == "" {
 		defaultHtmlPath := getResourcePath("default.html")
 		newChromium.chromium.SetDefaultUrl("file://" + defaultHtmlPath)
 	} else {
-		newChromium.chromium.SetDefaultUrl(url)
+		newChromium.chromium.SetDefaultUrl(defaultUrl)
 	}
 	if tool.IsWindows() {
 		newChromium.windowParent = cef.NewWindowParent(m)
@@ -172,12 +178,12 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 	newChromium.chromium.SetOnBeforeClose(newChromium.chromiumBeforeClose)
 
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
-		fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
+		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		newChromium.windowParent.UpdateSize()
 	})
 	newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
 		userGesture, isRedirect bool, result *bool) {
-		fmt.Println("SetOnBeforeBrowse", browser.GetIdentifier(), browser.GetHost().HasDevTools())
+		//fmt.Println("SetOnBeforeBrowse", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		newChromium.windowParent.UpdateSize()
 	})
 	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
@@ -211,6 +217,7 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		newChromium.isLoading = isLoading
 		newChromium.canGoBack = canGoBack
 		newChromium.canGoForward = canGoForward
+		//fmt.Println("OnLoadingStateChange isLoading:", isLoading)
 		if isLoading {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("stop.png"))
@@ -220,6 +227,27 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("refresh.png"))
 			})
 		}
+		if !isLoading {
+			// 加载完 尝试获取已缓存的图标
+			loadUrl := browser.GetMainFrame().GetUrl()
+			go func() {
+				// 设置图标到 tab sheet
+				if tempURL, err := url.Parse(loadUrl); err == nil {
+					if icoPath, ok := newChromium.siteFavIcon[tempURL.Host]; ok {
+						lcl.RunOnMainThreadAsync(func(id uint32) {
+							newChromium.tabSheetBtn.SetIconFavorite(icoPath)
+							newChromium.tabSheetBtn.Invalidate()
+						})
+						return
+					}
+				}
+				// 使用默认图标
+				lcl.RunOnMainThreadAsync(func(id uint32) {
+					newChromium.tabSheetBtn.SetIconFavorite(getResourcePath("icon.png"))
+					newChromium.tabSheetBtn.Invalidate()
+				})
+			}()
+		}
 		newChromium.updateBrowserControlBtn()
 	})
 	newChromium.chromium.SetOnLoadStart(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, transitionType cefTypes.TCefTransitionType) {
@@ -227,6 +255,7 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 		if isDefaultResourceHTML(tempUrl) {
 			tempUrl = ""
 		}
+		//fmt.Println("OnLoadStart URL:", tempUrl)
 		newChromium.currentURL = tempUrl
 		if newChromium.isActive {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
@@ -235,12 +264,48 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 			})
 		}
 	})
-	newChromium.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
-		// 在此获取 网页的 ico 图标
+	newChromium.chromium.SetOnFavIconUrlChange(func(sender lcl.IObject, browser cef.ICefBrowser, iconUrls lcl.IStrings) {
+		var icoURL string
+		for i := 0; i < int(iconUrls.Count()); i++ {
+			tempUrl := iconUrls.Strings(int32(i))
+			if strings.LastIndex(strings.ToLower(tempUrl), ".ico") != -1 {
+				icoURL = tempUrl
+				break
+			}
+		}
+		if icoURL != "" {
+			if tempURL, err := url.Parse(icoURL); err == nil {
+				_, ok := newChromium.siteFavIcon[tempURL.Host]
+				if !ok {
+					// 下载 favicon.ico
+					go func() {
+						resp, err := http.Get(icoURL)
+						if err == nil {
+							host := resp.Request.Host
+							defer resp.Body.Close()
+							data, err := io.ReadAll(resp.Body)
+							if err == nil {
+								saveIcoPath := filepath.Join(SiteResource, host+"_favicon.ico")
+								_ = os.MkdirAll(SiteResource, fs.ModeDir)
+								if err = os.WriteFile(saveIcoPath, data, fs.ModePerm); err == nil {
+									newChromium.siteFavIcon[tempURL.Host] = saveIcoPath
+									// 在此保证更新一次图标
+									lcl.RunOnMainThreadAsync(func(id uint32) {
+										newChromium.tabSheetBtn.SetIconFavorite(saveIcoPath)
+										newChromium.tabSheetBtn.Invalidate()
+									})
+								}
+							}
+						}
+					}()
+				}
+			}
+		}
 	})
 	return newChromium
 }
 
+// 过滤 掉一些特定的 url , 在浏览器首页加载时使用的
 func isDefaultResourceHTML(v string) bool {
 	return v == "about:blank" || v == "DevTools" ||
 		(strings.Index(v, "file://") != -1 && strings.Index(v, "resources") != -1) ||

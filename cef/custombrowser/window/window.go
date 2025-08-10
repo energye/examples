@@ -546,7 +546,9 @@ func (m *BrowserWindow) FormAfterCreate(sender lcl.IObject) {
 }
 
 var (
-	wd, _ = os.Getwd()
+	wd, _        = os.Getwd()
+	CacheRoot    string
+	SiteResource string
 )
 
 func getResourcePath(name string) string {
