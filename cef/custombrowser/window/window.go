@@ -444,7 +444,7 @@ func (m *BrowserWindow) resetControlBtn() {
 	m.backBtn.Invalidate()
 	m.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
 	m.forwardBtn.Invalidate()
-	m.refreshBtn.SetIcon("refresh.png")
+	m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
 	m.refreshBtn.Invalidate()
 }
 
