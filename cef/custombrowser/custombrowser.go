@@ -33,6 +33,8 @@ func main() {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
+	fmt.Println("ProcessType:", app.ProcessType())
+
 	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
 	if tool.IsWindows() {
@@ -41,55 +43,34 @@ func main() {
 		app.SetMultiThreadedMessageLoop(true)
 		app.SetRootCache(cacheRoot)
 	}
-	//	app.SetOnWebKitInitialized(func() {
-	//		var myParamValue string
-	//		v8Handler := cef.NewEngV8Handler()
-	//		v8Handler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
-	//			fmt.Println("v8Handler.Execute", name)
-	//			var result bool
-	//			if name == "GetMyParam" {
-	//				result = true
-	//				myParamValue = myParamValue + " " + time.Now().String()
-	//				*retval = cef.V8ValueRef.NewString(myParamValue)
-	//			} else if name == "SetMyParam" {
-	//				if arguments.Count() > 0 {
-	//					newValue := arguments.Get(0)
-	//					fmt.Println("value is string:", newValue.IsString())
-	//					fmt.Println("value:", newValue.GetStringValue())
-	//					myParamValue = newValue.GetStringValue()
-	//					newValue.Free()
-	//				}
-	//				result = true
-	//			}
-	//			return result
-	//		})
-	//		var jsCode = `
-	//            let test;
-	//            if (!test) {
-	//                test = {};
-	//            }
-	//            (function () {
-	//                test.__defineGetter__('myparam', function () {
-	//                    native function GetMyParam();
-	//                    return GetMyParam();
-	//                });
-	//                test.__defineSetter__('myparam', function (b) {
-	//                    native function SetMyParam();
-	//					b = b + ' TEST';
-	//                    if (b) SetMyParam(b);
-	//                });
-	//            })();
-	//`
-	//		cef.MiscFunc.CefRegisterExtension("v8/test", jsCode, cef.AsEngV8Handler(v8Handler.AsIntfV8Handler()))
-	//	})
 
+	app.SetOnAlreadyRunningAppRelaunch(func(commandLine cef.ICefCommandLine, currentDirectory string, result *bool) {
+		*result = true
+	})
 	// 主进程启动
 	mainStart := app.StartMainProcess()
-	fmt.Println("mainStart:", mainStart, app.ProcessType())
 	if mainStart {
+		var (
+			chromiumVersion = &cef.TChromiumVersionInfo{}
+			cefVersion      = &cef.TCefVersionInfo{}
+		)
+		app.GetChromiumVersionInfo(chromiumVersion)
+		app.GetCEFVersionInfo(cefVersion)
+		fmt.Println("ChromeVersion:", app.ChromeVersion())
+		fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("Major: %v\nMinor: %v\nBuild: %v\nPatch: %v",
+			chromiumVersion.VersionMajor,
+			chromiumVersion.VersionMinor,
+			chromiumVersion.VersionBuild,
+			chromiumVersion.VersionPatch))
+		fmt.Println("CefVersion:", app.LibCefVersion())
+		fmt.Println("CefVersionInfo:", fmt.Sprintf("Major: %v\nMinor: %v\nBuild: %v\nCommitNumber: %v",
+			cefVersion.VersionMajor,
+			cefVersion.VersionMinor,
+			cefVersion.VersionPatch,
+			cefVersion.CommitNumber))
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
-			fmt.Println("Release")
+			fmt.Println("Run END. Release")
 			if tool.IsLinux() {
 				api.WidgetSetFinalization()
 			}

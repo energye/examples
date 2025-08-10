@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tool"
@@ -379,7 +378,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 func (m *BrowserWindow) OnChromiumCreateTabSheet(newChromium *Chromium) {
 	m.chroms = append(m.chroms, newChromium)
 	newChromium.windowId = int32(len(m.chroms))
-	fmt.Println("OnChromiumCreateTabSheet", "当前chromium数量:", len(m.chroms), "新chromiumID:", newChromium.windowId)
+	//fmt.Println("OnChromiumCreateTabSheet", "当前chromium数量:", len(m.chroms), "新chromiumID:", newChromium.windowId)
 	m.AddTabSheet(newChromium)
 }
 
