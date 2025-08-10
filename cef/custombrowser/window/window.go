@@ -65,6 +65,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetHeight(m.Height())
 	m.box.SetColor(colors.RGBToColor(56, 57, 60))
 	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+
+	// 窗口 拖拽 大小调整
 	m.boxDrag()
 
 	m.content = lcl.NewPanel(m)
