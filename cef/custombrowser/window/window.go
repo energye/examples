@@ -534,11 +534,11 @@ var (
 
 func getResourcePath(name string) string {
 	var sourcePath string
-	sourcePath = filepath.Join("./", "resources", name)
+	sourcePath = filepath.Join(wd, "resources", name)
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}
-	sourcePath = filepath.Join(wd, "resources", name)
+	sourcePath = filepath.Join("./", "resources", name)
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}

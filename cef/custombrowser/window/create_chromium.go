@@ -12,8 +12,6 @@ import (
 	"widget/wg"
 )
 
-type ChromiumCreateTabSheet func(newChromium *Chromium)
-
 type Chromium struct {
 	mainWindow                         *BrowserWindow
 	windowId                           int32 // 窗口ID
@@ -22,7 +20,6 @@ type Chromium struct {
 	chromium                           cef.IChromium
 	canClose                           bool
 	oldWndPrc                          uintptr
-	createTabSheet                     ChromiumCreateTabSheet
 	tabSheetBtn                        *wg.TButton
 	isActive                           bool
 	currentURL                         string
@@ -74,10 +71,6 @@ func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrows
 	fmt.Println("chromium.BeforeClose")
 	m.canClose = true
 	m.isClose = true
-}
-
-func (m *Chromium) SetOnCreateTabSheet(fn ChromiumCreateTabSheet) {
-	m.createTabSheet = fn
 }
 
 func (m *Chromium) updateTabSheetActive(isActive bool) {
