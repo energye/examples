@@ -87,6 +87,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	m.SetOnResize(func(sender lcl.IObject) {
 		m.recalculateTabSheet()
+		m.updateWindowControlBtn()
 	})
 }
 
@@ -173,6 +174,16 @@ func (m *BrowserWindow) boxDrag() {
 	})
 }
 
+func (m *BrowserWindow) updateWindowControlBtn() {
+	if m.WindowState() == types.WsMaximized {
+		m.maxBtn.SetHint("向下还原")
+		m.maxBtn.SetIcon(getResourcePath("btn-max-re.png"))
+	} else if m.WindowState() == types.WsNormal {
+		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
+		m.maxBtn.SetHint("最大化")
+	}
+}
+
 func (m *BrowserWindow) createTitleWidgetControl() {
 	// 添加 chromium 按钮
 	m.addChromBtn = wg.NewButton(m)
@@ -195,6 +206,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	{
 		m.minBtn = wg.NewButton(m)
 		m.minBtn.SetParent(m.box)
+		m.minBtn.SetShowHint(true)
+		m.minBtn.SetHint("最小化")
 		minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
 		minBtnRect.SetSize(40, 40)
 		m.minBtn.SetBoundsRect(minBtnRect)
@@ -208,6 +221,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		})
 		m.maxBtn = wg.NewButton(m)
 		m.maxBtn.SetParent(m.box)
+		m.maxBtn.SetShowHint(true)
+		m.maxBtn.SetHint("最大化")
 		maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
 		maxBtnRect.SetSize(40, 40)
 		m.maxBtn.SetBoundsRect(maxBtnRect)
@@ -221,6 +236,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		})
 		m.closeBtn = wg.NewButton(m)
 		m.closeBtn.SetParent(m.box)
+		m.closeBtn.SetShowHint(true)
+		m.closeBtn.SetHint("关闭")
 		closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
 		closeBtnRect.SetSize(40, 40)
 		m.closeBtn.SetBoundsRect(closeBtnRect)
