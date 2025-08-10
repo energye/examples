@@ -9,7 +9,7 @@ import (
 	"unsafe"
 )
 
-func (m *BrowserWindow) wndProc(hwnd types.HWND, message uint32, wParam, lParam uintptr) uintptr {
+func (m *Window) wndProc(hwnd types.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
 	case messages.WM_DPICHANGED:
 		if !lcl.Application.Scaled() {
@@ -85,7 +85,7 @@ func (m *BrowserWindow) wndProc(hwnd types.HWND, message uint32, wParam, lParam 
 	return win.CallWindowProc(m.oldWndPrc, uintptr(hwnd), message, wParam, lParam)
 }
 
-func (m *BrowserWindow) HookWndProcMessage() {
+func (m *Window) HookWndProcMessage() {
 	wndProcCallback := syscall.NewCallback(m.wndProc)
 	m.oldWndPrc = win.SetWindowLongPtr(m.Handle(), win.GWL_WNDPROC, wndProcCallback)
 	// trigger WM_NCCALCSIZE

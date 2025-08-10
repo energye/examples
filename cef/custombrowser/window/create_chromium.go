@@ -271,10 +271,23 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		var icoURL string
 		for i := 0; i < int(iconUrls.Count()); i++ {
 			tempUrl := iconUrls.Strings(int32(i))
+			//println("OnFavIconUrlChange:", tempUrl)
 			if strings.LastIndex(strings.ToLower(tempUrl), ".ico") != -1 {
 				icoURL = tempUrl
 				break
 			}
+			if strings.LastIndex(strings.ToLower(tempUrl), ".png") != -1 {
+				icoURL = tempUrl
+				break
+			}
+		}
+		browserUrl := browser.GetMainFrame().GetUrl()
+		var host string
+		if tempUrl, err := url.Parse(browserUrl); err != nil {
+			println("[ERROR] ICON Parse URL:", err.Error())
+			return
+		} else {
+			host = tempUrl.Host
 		}
 		//fmt.Println("OnFavIconUrlChange:", icoURL)
 		if icoURL != "" {
@@ -285,7 +298,6 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 					go func() {
 						resp, err := http.Get(icoURL)
 						if err == nil {
-							host := resp.Request.Host
 							defer resp.Body.Close()
 							data, err := io.ReadAll(resp.Body)
 							if err == nil {

@@ -34,7 +34,7 @@ func main() {
 	})
 	app := application.NewApplication()
 	fmt.Println("ProcessType:", app.ProcessType())
-
+	app.SetWindowlessRenderingEnabled(true)
 	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
 	if tool.IsWindows() {
@@ -82,7 +82,7 @@ func main() {
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
-		lcl.Application.NewForm(&window.BW)
+		lcl.Application.NewForms(&window.BW, &window.CW)
 		lcl.Application.Run()
 	}
 }
