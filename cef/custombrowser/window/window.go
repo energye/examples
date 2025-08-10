@@ -52,7 +52,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
 	m.ScreenCenter()
-	m.SetCaption("ENERGY 3.0 - 自定义浏览器")
+	m.SetCaption("ENERGY-3.0-浏览器")
 	constraints := m.Constraints()
 	constraints.SetMinWidth(800)
 	constraints.SetMinHeight(600)
@@ -451,6 +451,16 @@ func (m *BrowserWindow) resetControlBtn() {
 	m.forwardBtn.Invalidate()
 	m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
 	m.refreshBtn.Invalidate()
+	m.updateWindowCaption("")
+}
+
+func (m *BrowserWindow) updateWindowCaption(title string) {
+	lcl.RunOnMainThreadAsync(func(id uint32) {
+		if title == "" {
+			title = "ENERGY-3.0-浏览器"
+		}
+		m.SetCaption(title)
+	})
 }
 
 // 重新计算 tab sheet left 和 width

@@ -23,6 +23,7 @@ type Chromium struct {
 	tabSheetBtn                        *wg.TButton
 	isActive                           bool
 	currentURL                         string
+	currentTitle                       string
 	isLoading, canGoBack, canGoForward bool
 	isClose                            bool
 }
@@ -86,6 +87,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			m.mainWindow.addr.SetText(m.currentURL)
 		})
+		m.mainWindow.updateWindowCaption(m.currentTitle)
 	} else {
 		notActiveColor := colors.RGBToColor(56, 57, 60)
 		m.tabSheetBtn.SetStartColor(notActiveColor)
@@ -203,6 +205,8 @@ func (m *BrowserWindow) createChromium(url string) *Chromium {
 				newChromium.tabSheetBtn.Invalidate()
 			})
 		}
+		newChromium.currentTitle = title
+		m.updateWindowCaption(title)
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading
