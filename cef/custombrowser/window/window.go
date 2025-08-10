@@ -1,8 +1,6 @@
 package window
 
 import (
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tool"
@@ -93,14 +91,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		m.updateWindowControlBtn()
 	})
 
-	// test
-	delegate := cef.NewEngPanelDelegate()
-	panel := cef.PanelRef.CreatePanel(cef.AsEngPanelDelegate(delegate.AsIntfPanelDelegate()))
-	panel.SetToBoxLayout(cef.TCefBoxLayoutSettings{
-		BetweenChildSpacing: 2,
-		Horizontal:          1,
-		CrossAxisAlignment:  cefTypes.CEF_AXIS_ALIGNMENT_CENTER,
-	})
 }
 
 // box 容器 窗口 拖拽 大小调整
