@@ -160,31 +160,38 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		windowParent.SetChromium(newChromium.chromium)
 		newChromium.windowParent = windowParent
 	}
+
 	newChromium.windowParent.SetParent(m.content)
 	newChromium.windowParent.SetDoubleBuffered(true)
 	newChromium.windowParent.SetAlign(types.AlClient)
+
 	// 创建一个定时器, 用来createBrowser
 	newChromium.timer = lcl.NewTimer(m)
 	newChromium.timer.SetEnabled(false)
 	newChromium.timer.SetInterval(200)
 	newChromium.timer.SetOnTimer(newChromium.createBrowser)
 
-	m.content.SetOnResize(newChromium.resize)
-	m.content.SetOnEnter(func(sender lcl.IObject) {
-		newChromium.chromium.Initialized()
-		newChromium.chromium.FrameIsFocused()
-		newChromium.chromium.SetFocus(true)
+	// window parent event
+	newChromium.windowParent.SetOnEnter(func(sender lcl.IObject) {
+		if !newChromium.chromium.FrameIsFocused() {
+			newChromium.chromium.SetFocus(true)
+		}
 	})
-
 	newChromium.windowParent.SetOnExit(func(sender lcl.IObject) {
 		newChromium.chromium.SendCaptureLostEvent()
 	})
+
+	// chromium event
 
 	// 2. 触发后控制延迟关闭, 在UI线程中调用 windowParent.Free() 释放对象，然后触发 chromium.SetOnBeforeClose
 	newChromium.chromium.SetOnClose(newChromium.chromiumClose)
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	newChromium.chromium.SetOnBeforeClose(newChromium.chromiumBeforeClose)
-
+	newChromium.chromium.SetOnGotFocus(func(sender lcl.IObject, browser cef.ICefBrowser) {
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			newChromium.windowParent.SetFocus()
+		})
+	})
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		newChromium.windowParent.UpdateSize()

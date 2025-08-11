@@ -93,6 +93,19 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.content.SetWidth(m.Width() - 10)
 	m.content.SetHeight(m.Height() - (m.content.Top() + 5))
 
+	m.content.SetOnResize(func(sender lcl.IObject) {
+		if chrom := m.getActiveChrom(); chrom != nil {
+			chrom.resize(sender)
+		}
+	})
+	m.content.SetOnEnter(func(sender lcl.IObject) {
+		if chrom := m.getActiveChrom(); chrom != nil {
+			chrom.chromium.Initialized()
+			chrom.chromium.FrameIsFocused()
+			chrom.chromium.SetFocus(true)
+		}
+	})
+
 	newChromium := m.createChromium("")
 	m.OnChromiumCreateTabSheet(newChromium)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
@@ -402,6 +415,9 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.SetOnClick(func(sender lcl.IObject) {
 		m.updateTabSheetActive(currentChromium)
 		currentChromium.updateTabSheetActive(true)
+		currentChromium.chromium.Initialized()
+		currentChromium.chromium.FrameIsFocused()
+		currentChromium.chromium.SetFocus(true)
 	})
 	currentChromium.isActive = true           // 设置默认激活
 	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
