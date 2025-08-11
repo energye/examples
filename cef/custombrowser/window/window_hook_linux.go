@@ -1,5 +1,7 @@
 package window
 
-func (m *Window) HookWndProcMessage() {
+import "github.com/energye/lcl/types"
 
+func (m *Window) HookWndProcMessage() {
+	m.SetBorderStyleToFormBorderStyle(types.BsNone)
 }
