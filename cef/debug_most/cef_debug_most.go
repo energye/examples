@@ -79,7 +79,7 @@ func main() {
 			app.SetMultiThreadedMessageLoop(true)
 		} else if api.Widget().IsGTK3() {
 			// gtk3 使用 vf 窗口
-			println("当前 demo 为 CEF LCL GTK2")
+			println("当前 demo 为 CEF LCL GTK2, EXIT.")
 			os.Exit(1)
 		}
 		// 这是一个解决“GPU不可用错误”问题的方法 linux
@@ -349,8 +349,9 @@ func (m *BrowserWindow) closeQuery(sender lcl.IObject, canClose *bool) {
 	*canClose = m.canClose
 	if !m.canClose {
 		m.canClose = true
-		m.chromium.CloseBrowser(true)
-		//m.SetVisible(false)
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			m.chromium.CloseBrowser(true)
+		})
 	}
 }
 
@@ -373,7 +374,7 @@ func (m *BrowserWindow) chromiumBeforeClose(sender lcl.IObject, browser cef.ICef
 	fmt.Println("chromiumBeforeClose id:", browser.GetIdentifier(), "mainWindowId:", m.mainWindowId)
 	if browser.GetIdentifier() == m.mainWindowId {
 		m.canClose = true
-		if tool.IsDarwin() {
+		if tool.IsDarwin() || tool.IsLinux() {
 			m.Close()
 		} else {
 			rtl.PostMessage(m.Handle(), messages.WM_CLOSE, 0, 0)
