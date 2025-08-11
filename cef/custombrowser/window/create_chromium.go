@@ -208,9 +208,11 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	newChromium.chromium.SetOnBeforeClose(newChromium.chromiumBeforeClose)
 	newChromium.chromium.SetOnGotFocus(func(sender lcl.IObject, browser cef.ICefBrowser) {
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			newChromium.windowParent.SetFocus()
-		})
+		if tool.IsLinux() {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				newChromium.windowParent.SetFocus()
+			})
+		}
 	})
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())

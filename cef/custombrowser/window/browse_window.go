@@ -372,6 +372,10 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.ScaledHeight = 16
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
 		currentChromium.closeBrowser()
+		var isCloseCurrentActive bool
+		if activeChrom := m.getActiveChrom(); activeChrom != nil && activeChrom == currentChromium {
+			isCloseCurrentActive = true
+		}
 		// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
 		idx := currentChromium.windowId - 1
 		// 删除
@@ -381,9 +385,15 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 			chrom.windowId = int32(id + 1)
 		}
 		if len(m.chroms) > 0 {
-			lastChrom := m.chroms[len(m.chroms)-1]
-			lastChrom.updateTabSheetActive(true)
-			m.updateTabSheetActive(lastChrom)
+			// 判断关闭时tabSheet是否为当前激活的
+			// 如果是当前激活的，激活最后一个
+			if isCloseCurrentActive {
+				// 激活最后一个
+				lastChrom := m.chroms[len(m.chroms)-1]
+				lastChrom.updateTabSheetActive(true)
+				// 其它的不激活
+				m.updateOtherTabSheetNoActive(lastChrom)
+			}
 		} else {
 			// 没有 chrom 清空和还原控制按钮、地址栏
 			m.resetControlBtn()
@@ -401,17 +411,17 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
 	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
 	newTabSheet.SetOnClick(func(sender lcl.IObject) {
-		m.updateTabSheetActive(currentChromium)
+		// tab sheet 按钮点击
+		// 更新其它 tabSheetBtn 不激活, 当前为激活显示
+		m.updateOtherTabSheetNoActive(currentChromium)
+		// 更新当前 chromium tabSheetBtn激活
 		currentChromium.updateTabSheetActive(true)
-		currentChromium.chromium.Initialized()
-		currentChromium.chromium.FrameIsFocused()
-		currentChromium.chromium.SetFocus(true)
 	})
 	currentChromium.isActive = true           // 设置默认激活
 	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
 
 	// 更新其它tabSheet 非激活状态(颜色控制)
-	m.updateTabSheetActive(currentChromium)
+	m.updateOtherTabSheetNoActive(currentChromium)
 
 	// 重新计算 tab sheet left 和 width
 	m.recalculateTabSheet()
@@ -484,7 +494,7 @@ func (m *BrowserWindow) getActiveChrom() *Chromium {
 }
 
 // 更新其它 tab sheet 状态
-func (m *BrowserWindow) updateTabSheetActive(currentChromium *Chromium) {
+func (m *BrowserWindow) updateOtherTabSheetNoActive(currentChromium *Chromium) {
 	for _, chrom := range m.chroms {
 		if chrom != currentChromium {
 			chrom.updateTabSheetActive(false)
