@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
-	"github.com/energye/examples/cef/debug_most/utils"
+	"github.com/energye/examples/cef/utils"
 	"io/ioutil"
 	"net/url"
 	"path/filepath"

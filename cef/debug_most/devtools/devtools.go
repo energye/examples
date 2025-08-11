@@ -3,7 +3,7 @@ package devtools
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/examples/cef/debug_most/utils"
+	"github.com/energye/examples/cef/utils"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
