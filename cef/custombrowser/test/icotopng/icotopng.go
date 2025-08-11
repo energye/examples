@@ -14,6 +14,7 @@ func main() {
 	}
 	defer icoFile.Close()
 
+	//buf := &bytes.Buffer{}
 	// 2. 解码ICO（自动选择最佳尺寸）
 	img, err := utils.Decode(icoFile)
 	if err != nil {
@@ -26,6 +27,7 @@ func main() {
 		panic(err)
 	}
 	defer pngFile.Close()
+	//buf := &bytes.Buffer{}
 
 	// 4. 编码为PNG格式
 	if err := png.Encode(pngFile, img); err != nil {

@@ -295,7 +295,6 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	// 阻止 memo 换行
 	m.addr.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
 		k := *key
-		fmt.Println("addr.onkeypress", k)
 		if k == 13 || k == 10 {
 			*key = 0
 			tempUrl := strings.TrimSpace(m.addr.Text())

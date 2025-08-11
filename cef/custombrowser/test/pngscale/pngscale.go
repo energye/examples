@@ -29,14 +29,7 @@ func main() {
 	scaledImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
 
 	// 4. 使用 CatmullRom 插值（比双线性更平滑）
-	draw.CatmullRom.Scale(
-		scaledImg,
-		scaledImg.Bounds(),
-		img,
-		originalBounds,
-		draw.Over,
-		nil,
-	)
+	draw.CatmullRom.Scale(scaledImg, scaledImg.Bounds(), img, originalBounds, draw.Over, nil)
 
 	// 5. 保存结果
 	outFile, err := os.Create("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\test\\output.png")
