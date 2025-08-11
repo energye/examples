@@ -43,6 +43,19 @@ func main() {
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(true)
 		app.SetRootCache(cacheRoot)
+	} else if tool.IsLinux() {
+		if api.Widget().IsGTK2() {
+			// gtk2 使用 lcl 窗口
+			app.SetExternalMessagePump(false)
+			app.SetMultiThreadedMessageLoop(true)
+		} else if api.Widget().IsGTK3() {
+			// gtk3 使用 vf 窗口
+			println("当前 demo 为 CEF LCL GTK2, EXIT.")
+			os.Exit(1)
+		}
+		// 这是一个解决“GPU不可用错误”问题的方法 linux
+		// https://bitbucket.org/chromiumembedded/cef/issues/2964/gpu-is-not-usable-error-during-cef
+		app.SetDisableZygote(true)
 	}
 
 	app.SetOnAlreadyRunningAppRelaunch(func(commandLine cef.ICefCommandLine, currentDirectory string, result *bool) {
@@ -55,11 +68,7 @@ func main() {
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
 			fmt.Println("Run END. Release")
-			if tool.IsLinux() {
-				api.WidgetSetFinalization()
-			}
 		})
-		api.WidgetSetInitialization()
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
