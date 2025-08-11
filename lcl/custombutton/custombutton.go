@@ -9,6 +9,8 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"github.com/energye/lcl/types/messages"
+	"os"
+	"path/filepath"
 	"syscall"
 	"time"
 	"unsafe"
@@ -30,6 +32,11 @@ var MainForm TMainForm
 
 //go:embed resources
 var resources embed.FS
+
+var (
+	wd, _       = os.Getwd()
+	examplePath = filepath.Join(wd, "lcl", "custombutton")
+)
 
 func main() {
 	lcl.Init(nil, nil)
@@ -164,8 +171,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus.SetOnCloseClick(func(sender lcl.IObject) {
 			fmt.Println("点击了 X")
 		})
-		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\custombutton\\resources\\icon.png")
-		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\custombutton\\resources\\close.png")
+		cus.SetIconFavorite(filepath.Join(examplePath, "resources", "icon.png"))
+		cus.SetIconClose(filepath.Join(examplePath, "resources", "close.png"))
 		cus.SetOnClick(click)
 
 		cus2 := wg.NewButton(m)
