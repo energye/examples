@@ -1,7 +1,9 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"github.com/energye/assetserve"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
@@ -17,6 +19,9 @@ import (
 func init() {
 	TestLoadLibPath()
 }
+
+//go:embed resources
+var resources embed.FS
 
 var (
 	wd, _            = os.Getwd()
@@ -64,6 +69,7 @@ func main() {
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	if mainStart {
+		httpServer()
 		CEFINfo(app)
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
@@ -98,4 +104,12 @@ func CEFINfo(app cef.ICefApplication) {
 		cefVersion.VersionMinor,
 		cefVersion.VersionPatch,
 		cefVersion.CommitNumber))
+}
+
+func httpServer() {
+	server := assetserve.NewAssetsHttpServer()
+	server.PORT = 22022
+	server.AssetsFSName = "resources" //必须设置目录名
+	server.Assets = resources
+	go server.StartHttpServer()
 }
