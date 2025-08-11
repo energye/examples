@@ -42,12 +42,13 @@ func main() {
 	app.SetWindowlessRenderingEnabled(true)
 	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
+	app.SetRootCache(cacheRoot)
+	app.SetCache(cacheRoot)
 
 	if tool.IsWindows() {
 		// win32 使用 lcl 窗口
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(true)
-		app.SetRootCache(cacheRoot)
 	} else if tool.IsLinux() {
 		if api.Widget().IsGTK2() {
 			// gtk2 使用 lcl 窗口

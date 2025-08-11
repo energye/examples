@@ -276,7 +276,6 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		var icoURL string
 		for i := 0; i < int(iconUrls.Count()); i++ {
 			tempUrl := iconUrls.Strings(int32(i))
-			//println("OnFavIconUrlChange:", tempUrl)
 			if strings.LastIndex(strings.ToLower(tempUrl), ".ico") != -1 {
 				icoURL = tempUrl
 				break
@@ -287,14 +286,14 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			}
 		}
 		browserUrl := browser.GetMainFrame().GetUrl()
+		//println("OnFavIconUrlChange icoURL:", icoURL, "browserUrl:", browserUrl)
 		var host string
 		if tempUrl, err := url.Parse(browserUrl); err != nil {
-			println("[ERROR] ICON Parse URL:", err.Error())
+			println("[ERROR] OnFavIconUrlChange ICON Parse URL:", err.Error())
 			return
 		} else {
 			host = tempUrl.Host
 		}
-		//fmt.Println("OnFavIconUrlChange:", icoURL)
 		if icoURL != "" {
 			if tempURL, err := url.Parse(icoURL); err == nil {
 				_, ok := newChromium.siteFavIcon[tempURL.Host]
@@ -309,7 +308,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 								// 检测图片真实格式
 								if imageFormat, err := utils.DetectImageFormatByte(data); err == nil {
 									saveIcoPath := filepath.Join(SiteResource, host+"_favicon."+imageFormat)
-									_ = os.MkdirAll(SiteResource, fs.ModeDir)
+									if err = os.MkdirAll(SiteResource, fs.ModePerm); err != nil {
+										println("[ERROR] OnFavIconUrlChange MkdirAll:", err.Error())
+									}
 									if err = os.WriteFile(saveIcoPath, data, fs.ModePerm); err == nil {
 										newChromium.siteFavIcon[tempURL.Host] = saveIcoPath
 										// 在此保证更新一次图标
@@ -317,7 +318,11 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 											newChromium.tabSheetBtn.SetIconFavorite(saveIcoPath)
 											newChromium.tabSheetBtn.Invalidate()
 										})
+									} else {
+										println("[ERROR] OnFavIconUrlChange WriteFile:", err.Error())
 									}
+								} else {
+									println("[ERROR] OnFavIconUrlChange DetectImageFormatByte:", err.Error())
 								}
 							}
 						}
