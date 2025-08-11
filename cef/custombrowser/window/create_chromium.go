@@ -142,6 +142,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	newChromium := &Chromium{mainWindow: m, siteFavIcon: make(map[string]string)}
 
 	newChromium.chromium = cef.NewChromium(m)
+	newChromium.chromium.SetRuntimeStyle(cefTypes.CEF_RUNTIME_STYLE_ALLOY)
 	options := newChromium.chromium.Options()
 	options.SetChromeStatusBubble(cefTypes.STATE_DISABLED)
 	options.SetWebgl(cefTypes.STATE_ENABLED)

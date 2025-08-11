@@ -55,6 +55,18 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetColor(colors.RGBToColor(56, 57, 60))
 	m.WorkAreaCenter()
 	m.SetCaption("ENERGY-3.0-浏览器")
+
+	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
+		stream := lcl.NewMemoryStream()
+		lcl.StreamHelper.Write(stream, iconData)
+		stream.SetPosition(0)
+		png := lcl.NewPortableNetworkGraphic()
+		png.LoadFromStreamWithStream(stream)
+		lcl.Application.Icon().Assign(png)
+		png.Free()
+		stream.Free()
+	}
+
 	constraints := m.Constraints()
 	constraints.SetMinWidth(800)
 	constraints.SetMinHeight(600)
@@ -93,7 +105,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		m.recalculateTabSheet()
 		m.updateWindowControlBtn()
 	})
-
+	m.SetOnShow(func(sender lcl.IObject) {
+		m.SetFocus()
+		m.SetActiveDefaultControl(m)
+	})
 }
 
 // box 容器 窗口 拖拽 大小调整
@@ -279,6 +294,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	// 阻止 memo 换行
 	m.addr.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
 		k := *key
+		fmt.Println("addr.onkeypress", k)
 		if k == 13 || k == 10 {
 			*key = 0
 			tempUrl := strings.TrimSpace(m.addr.Text())
