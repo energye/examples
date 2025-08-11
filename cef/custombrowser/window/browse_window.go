@@ -3,11 +3,9 @@ package window
 import (
 	"fmt"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
-	"github.com/energye/lcl/types/messages"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -38,6 +36,11 @@ type BrowserWindow struct {
 	// 窗口大小变化记录
 	previousWindowPlacement types.TRect
 	windowState             types.TWindowState
+	//
+	titleHeight        int32 // 标题栏高度
+	borderWidth        int32 // 边框宽
+	isDown, isTitleBar bool  // 鼠标按下和抬起
+	borderHT           uintptr
 }
 
 var (
@@ -95,63 +98,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 // box 容器 窗口 拖拽 大小调整
 func (m *BrowserWindow) boxDrag() {
-	var (
-		titleHeight     int32 = 45 // 标题栏高度
-		borderWidth     int32 = 5  // 边框宽
-		isDown, isTitle bool       // 鼠标按下和抬起
-		borderHT        uintptr
-	)
+	m.titleHeight = 45 // 标题栏高度
+	m.borderWidth = 5  // 边框宽
 
-	m.box.SetOnMouseMove(func(sender lcl.IObject, shift types.TShiftState, x, y int32) {
-		lcl.Screen.SetCursor(types.CrDefault)
-		// 判断鼠标所在区域
-		rect := m.BoundsRect()
-		if x > borderWidth && y > borderWidth && x < rect.Width()-borderWidth && y < rect.Height()-borderWidth && y < titleHeight {
-			// 标题栏部分
-			if isDown {
-				if win.ReleaseCapture() {
-					win.PostMessage(m.Handle(), messages.WM_NCLBUTTONDOWN, messages.HTCAPTION, 0)
-				}
-			}
-			borderHT = 0 // 重置边框标记
-			isTitle = true
-		} else {
-			isTitle = false
-			// 边框区域判断 (8个区域)
-			switch {
-			// 角落区域 (优先判断)
-			case x < borderWidth && y < borderWidth:
-				borderHT = messages.HTTOPLEFT
-				lcl.Screen.SetCursor(types.CrSizeNWSE)
-			case x > rect.Width()-borderWidth && y < borderWidth:
-				borderHT = messages.HTTOPRIGHT
-				lcl.Screen.SetCursor(types.CrSizeNESW)
-			case x < borderWidth && y > rect.Height()-borderWidth:
-				borderHT = messages.HTBOTTOMLEFT
-				lcl.Screen.SetCursor(types.CrSizeNESW)
-			case x > rect.Width()-borderWidth && y > rect.Height()-borderWidth:
-				borderHT = messages.HTBOTTOMRIGHT
-				lcl.Screen.SetCursor(types.CrSizeNWSE)
-			// 边缘区域
-			case y < borderWidth:
-				borderHT = messages.HTTOP
-				lcl.Screen.SetCursor(types.CrSizeNS)
-			case y > rect.Height()-borderWidth:
-				borderHT = messages.HTBOTTOM
-				lcl.Screen.SetCursor(types.CrSizeNS)
-			case x < borderWidth:
-				borderHT = messages.HTLEFT
-				lcl.Screen.SetCursor(types.CrSizeWE)
-			case x > rect.Width()-borderWidth:
-				borderHT = messages.HTRIGHT
-				lcl.Screen.SetCursor(types.CrSizeWE)
-			default:
-				borderHT = 0 // 客户区
-			}
-		}
-	})
+	m.box.SetOnMouseMove(m.boxMouseMove)
 	m.box.SetOnDblClick(func(sender lcl.IObject) {
-		if isTitle {
+		if m.isTitleBar {
 			if m.WindowState() == types.WsNormal {
 				m.SetWindowState(types.WsMaximized)
 			} else {
@@ -163,16 +115,9 @@ func (m *BrowserWindow) boxDrag() {
 			}
 		}
 	})
-	m.box.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
-		isDown = true
-		if borderHT != 0 {
-			if win.ReleaseCapture() {
-				win.PostMessage(m.Handle(), messages.WM_NCLBUTTONDOWN, borderHT, 0)
-			}
-		}
-	})
+	m.box.SetOnMouseDown(m.boxMouseDown)
 	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
-		isDown = false
+		m.isDown = false
 	})
 }
 
@@ -567,7 +512,11 @@ func getResourcePath(name string) string {
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}
-	sourcePath = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", name)
+	if tool.IsWindows() {
+		sourcePath = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", name)
+	} else if tool.IsLinux() {
+		sourcePath = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/custombrowser/resources", name)
+	}
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}
