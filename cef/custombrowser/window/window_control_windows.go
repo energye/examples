@@ -51,6 +51,20 @@ func (m *BrowserWindow) IsFullScreen() bool {
 	return m.windowState == types.WsFullScreen
 }
 
+func (m *BrowserWindow) boxDblClick(sender lcl.IObject) {
+	if m.isTitleBar {
+		if m.WindowState() == types.WsNormal {
+			m.SetWindowState(types.WsMaximized)
+		} else {
+			m.SetWindowState(types.WsNormal)
+			if tool.IsDarwin() { //要这样重复设置2次不然不启作用
+				m.SetWindowState(types.WsMaximized)
+				m.SetWindowState(types.WsNormal)
+			}
+		}
+	}
+}
+
 func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
 	lcl.Screen.SetCursor(types.CrDefault)
 	// 判断鼠标所在区域

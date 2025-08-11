@@ -54,8 +54,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
 	m.WorkAreaCenter()
-	m.SetCaption("ENERGY-3.0-浏览器")
-
+	//m.SetCaption("ENERGY-3.0-浏览器")
 	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
 		stream := lcl.NewMemoryStream()
 		lcl.StreamHelper.Write(stream, iconData)
@@ -115,19 +114,7 @@ func (m *BrowserWindow) boxDrag() {
 	m.borderWidth = 5  // 边框宽
 
 	m.box.SetOnMouseMove(m.boxMouseMove)
-	m.box.SetOnDblClick(func(sender lcl.IObject) {
-		if m.isTitleBar {
-			if m.WindowState() == types.WsNormal {
-				m.SetWindowState(types.WsMaximized)
-			} else {
-				m.SetWindowState(types.WsNormal)
-				if tool.IsDarwin() { //要这样重复设置2次不然不启作用
-					m.SetWindowState(types.WsMaximized)
-					m.SetWindowState(types.WsNormal)
-				}
-			}
-		}
-	})
+	m.box.SetOnDblClick(m.bboxDblClick)
 	m.box.SetOnMouseDown(m.boxMouseDown)
 	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		m.isDown = false
@@ -445,7 +432,7 @@ func (m *BrowserWindow) updateWindowCaption(title string) {
 		if title == "" {
 			title = "ENERGY-3.0-浏览器"
 		}
-		m.SetCaption(title)
+		//m.SetCaption(title)
 	})
 }
 
