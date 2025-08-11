@@ -27,12 +27,18 @@ type Chromium struct {
 	canClose                           bool
 	oldWndPrc                          uintptr
 	tabSheetBtn                        *wg.TButton
+	tabSheet                           lcl.IPanel
 	isActive                           bool
 	currentURL                         string
 	currentTitle                       string
 	siteFavIcon                        map[string]string
 	isLoading, canGoBack, canGoForward bool
 	isClose                            bool
+	afterCreate                        func()
+}
+
+func (m *Chromium) SetAfterCreate(fn func()) {
+	m.afterCreate = fn
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
@@ -195,12 +201,14 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		newChromium.windowParent.UpdateSize()
+		if newChromium.afterCreate != nil {
+			newChromium.afterCreate()
+		}
 	})
-	newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
-		userGesture, isRedirect bool, result *bool) {
-		//fmt.Println("SetOnBeforeBrowse", browser.GetIdentifier(), browser.GetHost().HasDevTools())
-		newChromium.windowParent.UpdateSize()
-	})
+	//newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
+	//	userGesture, isRedirect bool, result *bool) {
+	//	//newChromium.windowParent.UpdateSize()
+	//})
 	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
 		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
 		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
@@ -219,14 +227,16 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
 			}
-			lcl.RunOnMainThreadAsync(func(id uint32) {
+			// goroutine  ??
+			go lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.tabSheetBtn.SetCaption(title)
 				newChromium.tabSheetBtn.SetHint(title)
 				newChromium.tabSheetBtn.Invalidate()
 			})
 		}
 		newChromium.currentTitle = title
-		m.updateWindowCaption(title)
+		// goroutine  ??
+		go m.updateWindowCaption(title)
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading

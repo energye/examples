@@ -161,22 +161,24 @@ func (m *BrowserWindow) updateWindowControlBtn() {
 
 func (m *BrowserWindow) createTitleWidgetControl() {
 	// 添加 chromium 按钮
-	m.addChromBtn = wg.NewButton(m)
-	m.addChromBtn.SetParent(m.box)
-	addBtnRect := types.TRect{Left: 5, Top: 5}
-	addBtnRect.SetSize(40, 40)
-	m.addChromBtn.SetBoundsRect(addBtnRect)
-	m.addChromBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.addChromBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
-	m.addChromBtn.SetRadius(5)
-	m.addChromBtn.SetAlpha(255)
-	m.addChromBtn.SetIcon(getResourcePath("add.png"))
-	m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
-		m.addr.SetText("")
-		newChromium := m.createChromium("")
-		m.OnChromiumCreateTabSheet(newChromium)
-		newChromium.createBrowser(nil)
-	})
+	{
+		m.addChromBtn = wg.NewButton(m)
+		m.addChromBtn.SetParent(m.box)
+		addBtnRect := types.TRect{Left: 5, Top: 5}
+		addBtnRect.SetSize(40, 40)
+		m.addChromBtn.SetBoundsRect(addBtnRect)
+		m.addChromBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+		m.addChromBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.addChromBtn.SetRadius(5)
+		m.addChromBtn.SetAlpha(255)
+		m.addChromBtn.SetIcon(getResourcePath("add.png"))
+		m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
+			m.addr.SetText("")
+			newChromium := m.createChromium("")
+			m.OnChromiumCreateTabSheet(newChromium)
+			newChromium.createBrowser(nil)
+		})
+	}
 	// 窗口控制按钮 最小化，最大化，关闭
 	{
 		m.minBtn = wg.NewButton(m)
@@ -305,7 +307,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addr.Font().SetColor(colors.ClWhite)
 	m.addr.SetColor(colors.RGBToColor(56, 57, 60))
 	// 阻止 memo 换行
-	m.addr.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
+	m.addr.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
 		k := *key
 		fmt.Println("addr.onkeypress", k)
 		if k == 13 || k == 10 {
