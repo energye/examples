@@ -68,10 +68,28 @@ func (m *Chromium) resize(sender lcl.IObject) {
 	}
 }
 
+func (m *Chromium) closeBrowser() {
+	m.chromium.StopLoad()
+	m.tabSheet.SetVisible(false)
+	m.chromium.CloseBrowser(true)
+	m.tabSheetBtn.Free()
+}
+
+func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
+	//fmt.Println("chromium.BeforeClose")
+	m.canClose = true
+	m.isClose = true
+	lcl.RunOnMainThreadAsync(func(id uint32) {
+		m.tabSheet.Free()
+	})
+}
+
 func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
 	//fmt.Println("chromium.Close")
 	if tool.IsDarwin() {
 		m.windowParent.DestroyChildWindow()
+		*aAction = cefTypes.CbaClose
+	} else if tool.IsLinux() {
 		*aAction = cefTypes.CbaClose
 	} else {
 		*aAction = cefTypes.CbaDelay
@@ -79,12 +97,6 @@ func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aA
 			m.windowParent.Free()
 		})
 	}
-}
-
-func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
-	//fmt.Println("chromium.BeforeClose")
-	m.canClose = true
-	m.isClose = true
 }
 
 func (m *Chromium) updateTabSheetActive(isActive bool) {
@@ -136,14 +148,6 @@ func (m *Chromium) updateBrowserControlBtn() {
 		}
 		m.mainWindow.forwardBtn.Invalidate()
 	})
-}
-
-func (m *Chromium) closeBrowser() {
-	m.chromium.StopLoad()
-	m.tabSheet.SetVisible(false)
-	m.chromium.CloseBrowser(true)
-	m.tabSheetBtn.Free()
-	m.tabSheet.Free()
 }
 
 func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
