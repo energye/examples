@@ -1,6 +1,7 @@
 package window
 
 import (
+	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
