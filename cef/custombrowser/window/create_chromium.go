@@ -95,7 +95,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		activeColor := colors.RGBToColor(86, 88, 93)
 		m.tabSheetBtn.SetStartColor(activeColor)
 		m.tabSheetBtn.SetEndColor(activeColor)
-		m.windowParent.SetVisible(true)
+		m.tabSheet.SetVisible(true)
 		m.isActive = true
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			m.mainWindow.addr.SetText(m.currentURL)
@@ -105,7 +105,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		notActiveColor := colors.RGBToColor(56, 57, 60)
 		m.tabSheetBtn.SetStartColor(notActiveColor)
 		m.tabSheetBtn.SetEndColor(notActiveColor)
-		m.windowParent.SetVisible(false)
+		m.tabSheet.SetVisible(false)
 		m.isActive = false
 	}
 	m.tabSheetBtn.Invalidate()
@@ -146,12 +146,24 @@ func (m *Chromium) closeBrowser() {
 
 func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	newChromium := &Chromium{mainWindow: m, siteFavIcon: make(map[string]string)}
-
-	newChromium.chromium = cef.NewChromium(m)
-	newChromium.chromium.SetRuntimeStyle(cefTypes.CEF_RUNTIME_STYLE_ALLOY)
-	options := newChromium.chromium.Options()
-	options.SetChromeStatusBubble(cefTypes.STATE_DISABLED)
-	options.SetWebgl(cefTypes.STATE_ENABLED)
+	{
+		newChromium.tabSheet = lcl.NewPanel(m)
+		newChromium.tabSheet.SetParent(m.box)
+		newChromium.tabSheet.SetBevelOuter(types.BvNone)
+		newChromium.tabSheet.SetDoubleBuffered(true)
+		newChromium.tabSheet.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+		newChromium.tabSheet.SetTop(90)
+		newChromium.tabSheet.SetLeft(5)
+		newChromium.tabSheet.SetWidth(m.Width() - 10)
+		newChromium.tabSheet.SetHeight(m.Height() - (newChromium.tabSheet.Top() + 5))
+	}
+	{
+		newChromium.chromium = cef.NewChromium(m)
+		newChromium.chromium.SetRuntimeStyle(cefTypes.CEF_RUNTIME_STYLE_ALLOY)
+		options := newChromium.chromium.Options()
+		options.SetChromeStatusBubble(cefTypes.STATE_DISABLED)
+		options.SetWebgl(cefTypes.STATE_ENABLED)
+	}
 
 	if defaultUrl == "" {
 		defaultHtmlPath := getResourcePath("default.html")
@@ -167,7 +179,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.windowParent = windowParent
 	}
 
-	newChromium.windowParent.SetParent(m.content)
+	newChromium.windowParent.SetParent(newChromium.tabSheet)
 	newChromium.windowParent.SetDoubleBuffered(true)
 	newChromium.windowParent.SetAlign(types.AlClient)
 
@@ -200,7 +212,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	})
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
-		newChromium.windowParent.UpdateSize()
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			newChromium.windowParent.UpdateSize()
+		})
 		if newChromium.afterCreate != nil {
 			newChromium.afterCreate()
 		}

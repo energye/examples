@@ -15,8 +15,8 @@ import (
 
 type BrowserWindow struct {
 	Window
-	box          lcl.IPanel
-	content      lcl.IPanel
+	box lcl.IPanel
+	//content      lcl.IPanel
 	mainWindowId int32 // 窗口ID
 	canClose     bool
 	windowId     int
@@ -83,28 +83,28 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// 窗口 拖拽 大小调整
 	m.boxDrag()
 
-	m.content = lcl.NewPanel(m)
-	m.content.SetParent(m.box)
-	m.content.SetBevelOuter(types.BvNone)
-	m.content.SetDoubleBuffered(true)
-	m.content.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-	m.content.SetTop(90)
-	m.content.SetLeft(5)
-	m.content.SetWidth(m.Width() - 10)
-	m.content.SetHeight(m.Height() - (m.content.Top() + 5))
+	//m.content = lcl.NewPanel(m)
+	//m.content.SetParent(m.box)
+	//m.content.SetBevelOuter(types.BvNone)
+	//m.content.SetDoubleBuffered(true)
+	//m.content.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	//m.content.SetTop(90)
+	//m.content.SetLeft(5)
+	//m.content.SetWidth(m.Width() - 10)
+	//m.content.SetHeight(m.Height() - (m.content.Top() + 5))
 
-	m.content.SetOnResize(func(sender lcl.IObject) {
-		if chrom := m.getActiveChrom(); chrom != nil {
-			chrom.resize(sender)
-		}
-	})
-	m.content.SetOnEnter(func(sender lcl.IObject) {
-		if chrom := m.getActiveChrom(); chrom != nil {
-			chrom.chromium.Initialized()
-			chrom.chromium.FrameIsFocused()
-			chrom.chromium.SetFocus(true)
-		}
-	})
+	//m.content.SetOnResize(func(sender lcl.IObject) {
+	//	if chrom := m.getActiveChrom(); chrom != nil {
+	//		chrom.resize(sender)
+	//	}
+	//})
+	//m.content.SetOnEnter(func(sender lcl.IObject) {
+	//	if chrom := m.getActiveChrom(); chrom != nil {
+	//		chrom.chromium.Initialized()
+	//		chrom.chromium.FrameIsFocused()
+	//		chrom.chromium.SetFocus(true)
+	//	}
+	//})
 
 	newChromium := m.createChromium("")
 	m.OnChromiumCreateTabSheet(newChromium)
@@ -115,8 +115,13 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.createTitleWidgetControl()
 
 	m.SetOnResize(func(sender lcl.IObject) {
+		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
+		// 更新窗口控制按钮状态
 		m.updateWindowControlBtn()
+		for _, chrom := range m.chroms {
+			chrom.resize(sender)
+		}
 	})
 	m.SetOnShow(func(sender lcl.IObject) {
 		m.SetFocus()
@@ -149,6 +154,7 @@ func (m *BrowserWindow) boxDrag() {
 	})
 }
 
+// 更新窗口控制按钮状态
 func (m *BrowserWindow) updateWindowControlBtn() {
 	if m.WindowState() == types.WsMaximized {
 		m.maxBtn.SetHint("向下还原")
