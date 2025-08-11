@@ -101,6 +101,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 			m.mainWindow.addr.SetText(m.currentURL)
 		})
 		m.mainWindow.updateWindowCaption(m.currentTitle)
+		m.resize(nil)
 	} else {
 		notActiveColor := colors.RGBToColor(56, 57, 60)
 		m.tabSheetBtn.SetStartColor(notActiveColor)
@@ -139,9 +140,10 @@ func (m *Chromium) updateBrowserControlBtn() {
 
 func (m *Chromium) closeBrowser() {
 	m.chromium.StopLoad()
-	m.windowParent.SetVisible(false)
+	m.tabSheet.SetVisible(false)
 	m.chromium.CloseBrowser(true)
 	m.tabSheetBtn.Free()
+	m.tabSheet.Free()
 }
 
 func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
