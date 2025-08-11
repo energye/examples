@@ -164,8 +164,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		cus.SetOnCloseClick(func(sender lcl.IObject) {
 			fmt.Println("点击了 X")
 		})
-		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\icon.png")
-		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\customtabsheet\\resources\\close.png")
+		cus.SetIconFavorite("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\custombutton\\resources\\icon.png")
+		cus.SetIconClose("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\lcl\\custombutton\\resources\\close.png")
 		cus.SetOnClick(click)
 
 		cus2 := wg.NewButton(m)
