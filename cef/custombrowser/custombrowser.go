@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/energye/assetserve"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
@@ -107,10 +106,10 @@ func CEFINfo(app cef.ICefApplication) {
 		cefVersion.CommitNumber))
 }
 
-func httpServer() {
-	server := assetserve.NewAssetsHttpServer()
-	server.PORT = 22022
-	server.AssetsFSName = "resources" //必须设置目录名
-	server.Assets = resources
-	go server.StartHttpServer()
-}
+//func httpServer() {
+//	server := assetserve.NewAssetsHttpServer()
+//	server.PORT = 22022
+//	server.AssetsFSName = "resources" //必须设置目录名
+//	server.Assets = resources
+//	go server.StartHttpServer()
+//}
