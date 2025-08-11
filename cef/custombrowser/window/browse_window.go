@@ -114,7 +114,7 @@ func (m *BrowserWindow) boxDrag() {
 	m.borderWidth = 5  // 边框宽
 
 	m.box.SetOnMouseMove(m.boxMouseMove)
-	m.box.SetOnDblClick(m.bboxDblClick)
+	m.box.SetOnDblClick(m.boxDblClick)
 	m.box.SetOnMouseDown(m.boxMouseDown)
 	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		m.isDown = false

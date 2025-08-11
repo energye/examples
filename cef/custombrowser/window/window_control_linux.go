@@ -1,6 +1,7 @@
 package window
 
 import (
+	"fmt"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -38,8 +39,8 @@ func (m *BrowserWindow) IsFullScreen() bool {
 	return m.windowState == types.WsFullScreen
 }
 
-func (m *BrowserWindow) bboxDblClick(sender lcl.IObject) {
-
+func (m *BrowserWindow) boxDblClick(sender lcl.IObject) {
+	fmt.Println()
 }
 
 func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
