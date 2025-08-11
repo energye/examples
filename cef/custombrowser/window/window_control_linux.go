@@ -92,7 +92,10 @@ func (m *BrowserWindow) boxMouseDown(sender lcl.IObject, button types.TMouseButt
 	if button == types.MbLeft {
 		m.isDown = true
 		if m.isTitleBar {
-			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), api.GDK_WINDOW_EDGE_NORTH_WEST)
+			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.GDK_WINDOW_EDGE_NORTH_WEST)
+			lcl.Mouse.SetCapture(m.Handle())
+		} else if m.borderHT != 0 {
+
 		}
 	}
 }
