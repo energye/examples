@@ -2,6 +2,7 @@ package window
 
 import (
 	"fmt"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -40,7 +41,7 @@ func (m *BrowserWindow) IsFullScreen() bool {
 }
 
 func (m *BrowserWindow) boxDblClick(sender lcl.IObject) {
-	fmt.Println()
+	fmt.Println("boxDblClick isTitleBar", m.isTitleBar)
 }
 
 func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
@@ -49,11 +50,6 @@ func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState
 	rect := m.BoundsRect()
 	if x > m.borderWidth && y > m.borderWidth && x < rect.Width()-m.borderWidth && y < rect.Height()-m.borderWidth && y < m.titleHeight {
 		// 标题栏部分
-		if m.isDown {
-			//if win.ReleaseCapture() {
-			//	win.PostMessage(m.Handle(), messages.WM_NCLBUTTONDOWN, messages.HTCAPTION, 0)
-			//}
-		}
 		m.borderHT = 0 // 重置边框标记
 		m.isTitleBar = true
 	} else {
@@ -93,5 +89,10 @@ func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState
 }
 
 func (m *BrowserWindow) boxMouseDown(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
-
+	if button == types.MbLeft {
+		m.isDown = true
+		if m.isTitleBar {
+			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), api.GDK_WINDOW_EDGE_NORTH_WEST)
+		}
+	}
 }

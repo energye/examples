@@ -118,6 +118,8 @@ func (m *BrowserWindow) boxDrag() {
 	m.box.SetOnMouseDown(m.boxMouseDown)
 	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		m.isDown = false
+		lcl.Mouse.DragImmediate()
+		fmt.Println()
 	})
 }
 
