@@ -101,7 +101,6 @@ func main() {
 				api.WidgetSetFinalization()
 			}
 		})
-		api.WidgetSetInitialization()
 		// LCL窗口
 		lcl.Application.Initialize()
 		lcl.Application.SetMainFormOnTaskBar(true)
