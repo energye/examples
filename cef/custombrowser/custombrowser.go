@@ -70,7 +70,7 @@ func main() {
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	if mainStart {
-		httpServer()
+		//httpServer()
 		CEFINfo(app)
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {

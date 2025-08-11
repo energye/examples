@@ -289,7 +289,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addr.SetWidth(m.Width() - (m.addr.Left() + 50))
 	//addr.SetBorderStyle(types.BsNone)
 	m.addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
-	m.addr.Font().SetSize(14)
+	m.addr.Font().SetSize(16)
 	m.addr.Font().SetColor(colors.ClWhite)
 	m.addr.SetColor(colors.RGBToColor(56, 57, 60))
 	// 阻止 memo 换行
