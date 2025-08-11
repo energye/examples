@@ -342,13 +342,18 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 							if err == nil {
 								// 检测图片真实格式
 								if imageFormat, err := utils.DetectImageFormatByte(data); err == nil {
+									// png 或 ico 缩放至 16x16
 									saveIcoPath := filepath.Join(SiteResource, host+"_favicon."+imageFormat)
+									// 缩放图片
+
+									// 创建保存目录
 									if err = os.MkdirAll(SiteResource, fs.ModePerm); err != nil {
 										println("[ERROR] OnFavIconUrlChange MkdirAll:", err.Error())
 									}
+									// 保存 logo
 									if err = os.WriteFile(saveIcoPath, data, fs.ModePerm); err == nil {
 										newChromium.siteFavIcon[tempURL.Host] = saveIcoPath
-										// 在此保证更新一次图标
+										// 在此保证更新一次图标到 tabSheetBtn
 										lcl.RunOnMainThreadAsync(func(id uint32) {
 											newChromium.tabSheetBtn.SetIconFavorite(saveIcoPath)
 											newChromium.tabSheetBtn.Invalidate()
