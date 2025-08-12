@@ -67,6 +67,7 @@ func main() {
 	app.SetLocale("zh-CN")
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
+	app.SetDeleteCache(true)
 
 	if tool.IsWindows() {
 		// win32 使用 lcl 窗口

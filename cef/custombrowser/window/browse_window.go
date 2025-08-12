@@ -52,9 +52,29 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetWidth(1200)
 	m.SetHeight(800)
 	m.SetDoubleBuffered(true)
+	{
+		centerOnMonitor := func(monitor lcl.IMonitor) {
+			m.SetLeft(monitor.Left() + (monitor.Width()-m.Width())/2)
+			m.SetTop(monitor.Top() + (monitor.Height()-m.Height())/2)
+		}
+		mousePos := lcl.Mouse.CursorPos()
+		var (
+			i         int32 = 0
+			defaultOK       = true
+		)
+		for ; i < lcl.Screen.MonitorCount(); i++ {
+			if tempMonitor := lcl.Screen.Monitors(i); tempMonitor.WorkareaRect().PtInRect(mousePos) {
+				defaultOK = false
+				centerOnMonitor(tempMonitor)
+				break
+			}
+		}
+		if defaultOK {
+			centerOnMonitor(lcl.Screen.PrimaryMonitor())
+		}
+	}
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(colors.RGBToColor(56, 57, 60))
-	m.WorkAreaCenter()
 	//m.SetCaption("ENERGY-3.0-浏览器")
 	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
 		stream := lcl.NewMemoryStream()
@@ -83,10 +103,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// 窗口 拖拽 大小调整
 	m.boxDrag()
 
-	newChromium := m.createChromium("")
-	m.OnChromiumCreateTabSheet(newChromium)
+	//newChromium := m.createChromium("")
+	//m.OnChromiumCreateTabSheet(newChromium)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
-		newChromium.createBrowser(nil)
+		//newChromium.createBrowser(nil)
 	})
 
 	m.createTitleWidgetControl()
