@@ -28,7 +28,6 @@ type Chromium struct {
 	timer                              lcl.ITimer
 	windowParent                       cef.ICEFWinControl
 	chromium                           cef.IChromium
-	canClose                           bool
 	oldWndPrc                          uintptr
 	tabSheetBtn                        *wg.TButton
 	tabSheet                           lcl.IPanel
@@ -37,7 +36,7 @@ type Chromium struct {
 	currentTitle                       string
 	siteFavIcon                        map[string]string
 	isLoading, canGoBack, canGoForward bool
-	isClose                            bool
+	isCloseing                         bool
 	afterCreate                        func()
 }
 
@@ -73,18 +72,21 @@ func (m *Chromium) resize(sender lcl.IObject) {
 }
 
 func (m *Chromium) closeBrowser() {
+	if m.isCloseing {
+		return
+	}
+	m.isCloseing = true
 	m.chromium.StopLoad()
 	m.tabSheet.SetVisible(false)
 	m.chromium.CloseBrowser(true)
 	m.windowParent.Free()
 	m.tabSheetBtn.Free()
 	m.tabSheet.Free()
+	println("Chromium.CloseBrowser")
 }
 
 func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
 	println("chromium.OnBeforeClose windowId:", m.windowId)
-	m.canClose = true
-	m.isClose = true
 	lcl.RunOnMainThreadAsync(func(id uint32) {
 		m.mainWindow.removeTabSheetBrowse(m)
 	})
@@ -308,7 +310,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		if isDefaultResourceHTML(tempUrl) {
 			tempUrl = ""
 		}
-		//fmt.Println("OnLoadStart URL:", tempUrl)
+		//println("OnLoadStart URL:", tempUrl)
 		newChromium.currentURL = tempUrl
 		if newChromium.isActive {
 			lcl.RunOnMainThreadAsync(func(id uint32) {

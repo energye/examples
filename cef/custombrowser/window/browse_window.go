@@ -41,6 +41,7 @@ type BrowserWindow struct {
 	// 窗口关闭锁，一个一个关闭
 	browserCloseLock    sync.Mutex
 	isWindowButtonClose bool // 点击的窗口关闭按钮
+	isChromCloseing     bool // 当前是否有正在关闭的 chrom
 }
 
 var (
@@ -204,10 +205,13 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.closeBtn.SetAlpha(255)
 		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
 		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
-			for _, chrom := range m.chroms {
-				chrom.closeBrowser()
+			if len(m.chroms) == 0 {
+				m.Close()
+			} else {
+				for _, chrom := range m.chroms {
+					chrom.closeBrowser()
+				}
 			}
-			//m.Close()
 			m.isWindowButtonClose = true
 		})
 	}
@@ -342,7 +346,6 @@ func (m *BrowserWindow) OnChromiumCreateTabSheet(newChromium *Chromium) {
 func (m *BrowserWindow) removeTabSheetBrowse(chromium *Chromium) {
 	m.browserCloseLock.Lock()
 	defer m.browserCloseLock.Unlock()
-	chromium.closeBrowser()
 	var isCloseCurrentActive bool
 	if activeChrom := m.getActiveChrom(); activeChrom != nil && activeChrom == chromium {
 		isCloseCurrentActive = true
@@ -371,7 +374,13 @@ func (m *BrowserWindow) removeTabSheetBrowse(chromium *Chromium) {
 	}
 	// 重新计算 tab sheet left 和 width
 	m.recalculateTabSheet()
+
+	// 正在关闭浏览器完成
+	m.isChromCloseing = false
+
+	// 点击窗口的关闭按钮时尝试关闭窗口
 	if m.isWindowButtonClose {
+		// 尝试关闭窗口, 所有 chrom 都关闭后再关闭窗口
 		m.Close()
 	}
 }
@@ -398,11 +407,25 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
 	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
-	//newTabSheet.IsScaled = true
-	//newTabSheet.ScaledWidth = 16
-	//newTabSheet.ScaledHeight = 16
+	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
+	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
-		currentChromium.closeBrowser()
+		if m.isChromCloseing {
+			// 当前有正在关闭的浏览器
+			println("有正在关闭的浏览器")
+			return
+		}
+		m.isChromCloseing = true
+		go lcl.RunOnMainThreadAsync(func(id uint32) {
+			currentChromium.closeBrowser()
+		})
+	})
+	newTabSheet.SetOnClick(func(sender lcl.IObject) {
+		// tab sheet 按钮点击
+		// 更新其它 tabSheetBtn 不激活, 当前为激活显示
+		m.updateOtherTabSheetNoActive(currentChromium)
+		// 更新当前 chromium tabSheetBtn激活
+		currentChromium.updateTabSheetActive(true)
 	})
 	//newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
 	//
@@ -411,15 +434,6 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	//	//fmt.Println("TabSheet.OnMouseDown button:", button)
 	//	//CW.Show()
 	//})
-	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
-	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
-	newTabSheet.SetOnClick(func(sender lcl.IObject) {
-		// tab sheet 按钮点击
-		// 更新其它 tabSheetBtn 不激活, 当前为激活显示
-		m.updateOtherTabSheetNoActive(currentChromium)
-		// 更新当前 chromium tabSheetBtn激活
-		currentChromium.updateTabSheetActive(true)
-	})
 	currentChromium.isActive = true           // 设置默认激活
 	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
 
