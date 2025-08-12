@@ -103,10 +103,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// 窗口 拖拽 大小调整
 	m.boxDrag()
 
-	//newChromium := m.createChromium("")
-	//m.OnChromiumCreateTabSheet(newChromium)
+	newChromium := m.createChromium("")
+	m.OnChromiumCreateTabSheet(newChromium)
 	m.TForm.SetOnActivate(func(sender lcl.IObject) {
-		//newChromium.createBrowser(nil)
+		newChromium.createBrowser(nil)
 	})
 
 	m.createTitleWidgetControl()

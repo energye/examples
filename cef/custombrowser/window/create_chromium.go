@@ -85,8 +85,15 @@ func (m *Chromium) closeBrowser() {
 	println("Chromium.CloseBrowser")
 }
 
+func isURLDevtools(url string) bool {
+	return strings.Index(url, "devtools://") != -1
+}
+
 func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
-	println("chromium.OnBeforeClose windowId:", m.windowId)
+	println("chromium.OnBeforeClose windowId:", m.windowId, m.chromium.DocumentURL())
+	if isURLDevtools(browser.GetMainFrame().GetUrl()) {
+		return
+	}
 	lcl.RunOnMainThreadAsync(func(id uint32) {
 		m.mainWindow.removeTabSheetBrowse(m)
 	})
@@ -94,6 +101,9 @@ func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrows
 
 func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
 	println("chromium.OnClose windowId:", m.windowId)
+	if isURLDevtools(browser.GetMainFrame().GetUrl()) {
+		return
+	}
 	if tool.IsDarwin() {
 		m.windowParent.DestroyChildWindow()
 		*aAction = cefTypes.CbaClose
@@ -176,7 +186,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		//newChromium.chromium.SetRuntimeStyle(cefTypes.CEF_RUNTIME_STYLE_ALLOY)
 		options := newChromium.chromium.Options()
 		options.SetChromeStatusBubble(cefTypes.STATE_DISABLED)
-		options.SetWebgl(cefTypes.STATE_ENABLED)
+		//options.SetWebgl(cefTypes.STATE_ENABLED)
 	}
 
 	if defaultUrl == "" {
@@ -220,6 +230,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	newChromium.chromium.SetOnBeforeClose(newChromium.chromiumBeforeClose)
 	newChromium.chromium.SetOnGotFocus(func(sender lcl.IObject, browser cef.ICefBrowser) {
+		if isURLDevtools(browser.GetMainFrame().GetUrl()) {
+			return
+		}
 		if tool.IsLinux() {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.windowParent.SetFocus()
@@ -227,6 +240,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		}
 	})
 	newChromium.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
+		if isURLDevtools(browser.GetMainFrame().GetUrl()) {
+			return
+		}
 		//fmt.Println("SetOnAfterCreated", browser.GetIdentifier(), browser.GetHost().HasDevTools())
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			newChromium.windowParent.UpdateSize()
@@ -243,6 +259,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
 		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
 		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+		if isURLDevtools(targetUrl) {
+			return
+		}
 		*result = true
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			// 创建新的 tab
