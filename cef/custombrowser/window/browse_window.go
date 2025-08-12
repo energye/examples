@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -19,7 +18,6 @@ type BrowserWindow struct {
 	box lcl.IPanel
 	//content      lcl.IPanel
 	mainWindowId int32 // 窗口ID
-	canClose     bool
 	windowId     int
 	chroms       []*Chromium // 当前的chrom列表
 	addChromBtn  *wg.TButton // 添加浏览器按钮
@@ -34,14 +32,15 @@ type BrowserWindow struct {
 	minBtn   *wg.TButton
 	maxBtn   *wg.TButton
 	closeBtn *wg.TButton
-	//
+	// 标题栏相关
 	titleHeight           int32 // 标题栏高度
 	borderWidth           int32 // 边框宽
 	isDown                bool  // 鼠标按下和抬起
 	isTitleBar, isDarging bool  // 窗口标题栏
 	borderHT              uintptr
 	// 窗口关闭锁，一个一个关闭
-	browserCloseLock sync.Mutex
+	browserCloseLock    sync.Mutex
+	isWindowButtonClose bool // 点击的窗口关闭按钮
 }
 
 var (
@@ -111,8 +110,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		println("window.OnClose")
 	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-		println("window.OnCloseQuery")
-		*canClose = false
+		println("window.OnCloseQuery 当前浏览器数量:", len(m.chroms))
+		*canClose = len(m.chroms) == 0
 	})
 }
 
@@ -209,6 +208,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 				chrom.closeBrowser()
 			}
 			//m.Close()
+			m.isWindowButtonClose = true
 		})
 	}
 	// 浏览器控制按钮
@@ -371,6 +371,9 @@ func (m *BrowserWindow) removeTabSheetBrowse(chromium *Chromium) {
 	}
 	// 重新计算 tab sheet left 和 width
 	m.recalculateTabSheet()
+	if m.isWindowButtonClose {
+		m.Close()
+	}
 }
 
 func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
