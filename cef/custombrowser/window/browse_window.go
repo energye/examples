@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -116,7 +115,6 @@ func (m *BrowserWindow) boxDrag() {
 	m.box.SetOnMouseDown(m.boxMouseDown)
 	m.box.SetOnMouseUp(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		m.isDown = false
-		fmt.Println("SetOnMouseUp")
 	})
 }
 
@@ -386,13 +384,13 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
 	})
-	newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
-
-	})
-	newTabSheet.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
-		fmt.Println("TabSheet.OnMouseDown button:", button)
-		//CW.Show()
-	})
+	//newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
+	//
+	//})
+	//newTabSheet.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
+	//	//fmt.Println("TabSheet.OnMouseDown button:", button)
+	//	//CW.Show()
+	//})
 	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
 	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
 	newTabSheet.SetOnClick(func(sender lcl.IObject) {
