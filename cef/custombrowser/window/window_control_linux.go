@@ -6,7 +6,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/messages"
 )
 
 func (m *BrowserWindow) Minimize() {
@@ -58,29 +57,29 @@ func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState
 		switch {
 		// 角落区域 (优先判断)
 		case x < m.borderWidth && y < m.borderWidth:
-			m.borderHT = messages.HTTOPLEFT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_NORTH_WEST) // messages.HTTOPLEFT
 			lcl.Screen.SetCursor(types.CrSizeNWSE)
 		case x > rect.Width()-m.borderWidth && y < m.borderWidth:
-			m.borderHT = messages.HTTOPRIGHT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_NORTH_EAST) // messages.HTTOPRIGHT
 			lcl.Screen.SetCursor(types.CrSizeNESW)
 		case x < m.borderWidth && y > rect.Height()-m.borderWidth:
-			m.borderHT = messages.HTBOTTOMLEFT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_SOUTH_WEST) // messages.HTBOTTOMLEFT
 			lcl.Screen.SetCursor(types.CrSizeNESW)
 		case x > rect.Width()-m.borderWidth && y > rect.Height()-m.borderWidth:
-			m.borderHT = messages.HTBOTTOMRIGHT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_SOUTH_EAST) // messages.HTBOTTOMRIGHT
 			lcl.Screen.SetCursor(types.CrSizeNWSE)
 		// 边缘区域
 		case y < m.borderWidth:
-			m.borderHT = messages.HTTOP
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_NORTH) // messages.HTTOP
 			lcl.Screen.SetCursor(types.CrSizeNS)
 		case y > rect.Height()-m.borderWidth:
-			m.borderHT = messages.HTBOTTOM
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_SOUTH) // messages.HTBOTTOM
 			lcl.Screen.SetCursor(types.CrSizeNS)
 		case x < m.borderWidth:
-			m.borderHT = messages.HTLEFT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_WEST) // messages.HTLEFT
 			lcl.Screen.SetCursor(types.CrSizeWE)
 		case x > rect.Width()-m.borderWidth:
-			m.borderHT = messages.HTRIGHT
+			m.borderHT = uintptr(api.GDK_WINDOW_EDGE_EAST) // messages.HTRIGHT
 			lcl.Screen.SetCursor(types.CrSizeWE)
 		default:
 			m.borderHT = 0 // 客户区
@@ -95,7 +94,8 @@ func (m *BrowserWindow) boxMouseDown(sender lcl.IObject, button types.TMouseButt
 			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.GDK_WINDOW_EDGE_NORTH_WEST)
 			lcl.Mouse.SetCapture(m.Handle())
 		} else if m.borderHT != 0 {
-
+			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.TGdkWindowEdge(m.borderHT))
+			lcl.Mouse.SetCapture(m.Handle())
 		}
 	}
 }
