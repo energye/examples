@@ -302,11 +302,11 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	// 地址栏
 	m.addr = lcl.NewMemo(m)
 	m.addr.SetParent(m.box)
-	m.addr.SetLeft(140)
-	m.addr.SetTop(50)
+	m.addr.SetLeft(160)
+	m.addr.SetTop(52)
 	m.addr.SetHeight(33)
-	m.addr.SetWidth(m.Width() - (m.addr.Left() + 50))
-	//addr.SetBorderStyle(types.BsNone)
+	m.addr.SetWidth(m.Width() - (m.addr.Left() + 80))
+	m.addr.SetBorderStyle(types.BsNone)
 	m.addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	m.addr.Font().SetSize(16)
 	m.addr.Font().SetColor(colors.ClWhite)
@@ -340,13 +340,13 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	m.addrRightBtn.SetParent(m.box)
 	m.addrRightBtn.SetShowHint(true)
 	m.addrRightBtn.SetHint("   GO  \nENERGY")
-	addrRightBtnRect := types.TRect{Left: m.addr.Left() + m.addr.Width() + 40/2, Top: 47}
+	addrRightBtnRect := types.TRect{Left: m.box.Width() - (40 + 5), Top: 47}
 	addrRightBtnRect.SetSize(40, 40)
 	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
 	m.addrRightBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.addrRightBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+	m.addrRightBtn.SetEndColor(colors.RGBToColor(50, 60, 70))
 	m.addrRightBtn.SetRadius(35)
-	m.addrRightBtn.SetAlpha(100)
+	m.addrRightBtn.SetAlpha(255)
 	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
 	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
 		if chrom := m.getActiveChrom(); chrom != nil {
@@ -553,7 +553,7 @@ func (m *BrowserWindow) updateBtnLeft() {
 	}
 	// 地址栏右侧按钮
 	if m.addrRightBtn != nil {
-		m.addrRightBtn.SetLeft(m.addr.Left() + m.addr.Width() + 5)
+		m.addrRightBtn.SetLeft(m.box.Width() - (m.addrRightBtn.Width() + 5))
 	}
 	// 窗口 最小化、最大化，关闭按钮
 	if m.minBtn != nil {

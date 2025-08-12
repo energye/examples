@@ -6,6 +6,7 @@ import (
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/api/libname"
@@ -67,7 +68,7 @@ func main() {
 	app.SetLocale("zh-CN")
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
-	app.SetDeleteCache(true)
+	//app.SetDeleteCache(true)
 
 	if tool.IsWindows() {
 		// win32 使用 lcl 窗口
