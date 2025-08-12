@@ -1,0 +1,35 @@
+{
+  "name": "ENERGY 浏览器",
+  "projectPath": "@",
+  "frameworkPath": "",
+  "assetsDir": "assets",
+  "outputFilename": "energy-browse",
+  "libemfs": "libs",
+  "info": {
+    "manifest": "@/energy-browse.manifest",
+    "icon": "@/resources/window-icon_256x256.ico",
+    "companyName": "ENERGY",
+    "productName": "energy-browse",
+    "fileVersion": "1.0.0",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright.....",
+    "comments": "ENERGY3.0 浏览器",
+    "fileDescription": "ENERGY3.0 浏览器"
+  },
+  "nsis": {
+    "include": [],
+    "exclude": ["cache"],
+    "shortCutName": "ENERGY3.0 浏览器",
+    "icon": "@/resources/window-icon_256x256.ico",
+    "unIcon": "@/resources/window-icon_256x256.ico",
+    "license": "",
+    "language": "english",
+    "requestExecutionLevel": "admin",
+    "compress": "7za",
+    "compressName": "framework.7z"
+  },
+  "author": {
+    "name": "yanghy",
+    "email": "snxamdf@126.com"
+  }
+}
