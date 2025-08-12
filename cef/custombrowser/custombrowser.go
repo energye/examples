@@ -6,9 +6,9 @@ import (
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
-	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/exception"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"os"
@@ -16,7 +16,31 @@ import (
 )
 
 func init() {
-	TestLoadLibPath()
+	var name string
+	if tool.IsWindows() {
+		name = "liblcl.dll"
+	} else if tool.IsLinux() {
+		name = "liblcl.so"
+	}
+	if name != "" {
+		// 当前目录
+		liblcl := filepath.Join(wd, name)
+		if tool.IsExist(liblcl) {
+			libname.LibName = liblcl
+			return
+		}
+		// 测试编译输出目录
+		if tool.IsWindows() {
+			liblcl = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout", name)
+		} else if tool.IsLinux() {
+			liblcl = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/gen/gout", name)
+		}
+		if tool.IsExist(liblcl) {
+			libname.LibName = liblcl
+			return
+		}
+	}
+
 }
 
 //go:embed resources

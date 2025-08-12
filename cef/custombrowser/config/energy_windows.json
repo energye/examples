@@ -9,12 +9,12 @@
     "manifest": "@/energy-browse.manifest",
     "icon": "@/resources/window-icon_256x256.ico",
     "companyName": "ENERGY",
-    "productName": "energy-browse",
+    "productName": "ENERGY 浏览器",
     "fileVersion": "1.0.0",
     "productVersion": "1.0.0",
-    "copyright": "Copyright.....",
-    "comments": "ENERGY3.0 浏览器",
-    "fileDescription": "ENERGY3.0 浏览器"
+    "copyright": "https://github.com/energye/energy",
+    "comments": "ENERGY Browse Build In Energy 3.0",
+    "fileDescription": "ENERGY 浏览器"
   },
   "nsis": {
     "include": [],
