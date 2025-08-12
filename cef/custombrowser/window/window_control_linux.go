@@ -12,12 +12,14 @@ func (m *BrowserWindow) Minimize() {
 }
 
 func (m *BrowserWindow) Maximize() {
-	if m.WindowState() == types.WsNormal {
+	if m.windowState == types.WsNormal {
 		m.normalBounds = m.BoundsRect()
+		m.windowState = types.WsMaximized
 		m.SetWindowState(types.WsMaximized)
 		workAreaRect := lcl.Screen.WorkAreaRect()
 		m.SetBoundsRect(workAreaRect)
-	} else if m.WindowState() == types.WsMaximized {
+	} else if m.windowState == types.WsMaximized {
+		m.windowState = types.WsNormal
 		m.SetWindowState(types.WsNormal)
 		m.SetBoundsRect(m.normalBounds)
 	}
@@ -58,8 +60,9 @@ func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState
 		m.isTitleBar = true
 		if m.isDown {
 			m.isDown = false
-			if m.WindowState() == types.WsMaximized {
+			if m.windowState == types.WsMaximized {
 				// 拖拽时 最大化状态重新计算窗口 Rect
+				m.windowState = types.WsNormal
 				m.SetWindowState(types.WsNormal)
 				workAreaRect := lcl.Screen.WorkAreaRect()
 				curPos := lcl.Mouse.CursorPos()
