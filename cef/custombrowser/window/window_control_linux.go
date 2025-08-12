@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
@@ -13,22 +12,26 @@ func (m *BrowserWindow) Minimize() {
 }
 
 func (m *BrowserWindow) Maximize() {
+	if m.WindowState() == types.WsNormal {
+		m.normalBounds = m.BoundsRect()
+		m.SetWindowState(types.WsMaximized)
+		workAreaRect := lcl.Screen.WorkAreaRect()
+		m.SetBoundsRect(workAreaRect)
+	} else if m.WindowState() == types.WsMaximized {
+		m.SetWindowState(types.WsNormal)
+		m.SetBoundsRect(m.normalBounds)
+	}
 }
 
 func (m *BrowserWindow) FullScreen() {
-	if m.WindowState() == types.WsMinimized || m.WindowState() == types.WsMaximized {
-
-	}
 	m.windowState = types.WsFullScreen
-	m.previousWindowPlacement = m.BoundsRect()
-	//monitorRect := m.Monitor().BoundsRect()
 }
 
 func (m *BrowserWindow) ExitFullScreen() {
 	if m.IsFullScreen() {
 		m.windowState = types.WsNormal
 		m.SetWindowState(types.WsNormal)
-		m.SetBoundsRect(m.previousWindowPlacement)
+		m.SetBoundsRect(m.normalBounds)
 	}
 }
 
@@ -40,7 +43,9 @@ func (m *BrowserWindow) IsFullScreen() bool {
 }
 
 func (m *BrowserWindow) boxDblClick(sender lcl.IObject) {
-	fmt.Println("boxDblClick isTitleBar", m.isTitleBar)
+	lcl.RunOnMainThreadAsync(func(id uint32) {
+		m.Maximize()
+	})
 }
 
 func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
@@ -51,6 +56,28 @@ func (m *BrowserWindow) boxMouseMove(sender lcl.IObject, shift types.TShiftState
 		// 标题栏部分
 		m.borderHT = 0 // 重置边框标记
 		m.isTitleBar = true
+		if m.isDown {
+			m.isDown = false
+			if m.WindowState() == types.WsMaximized {
+				// 拖拽时 最大化状态重新计算窗口 Rect
+				m.SetWindowState(types.WsNormal)
+				workAreaRect := lcl.Screen.WorkAreaRect()
+				curPos := lcl.Mouse.CursorPos()
+				rect := m.normalBounds
+				rect.Top = workAreaRect.Top
+				rect.Left = curPos.X - (rect.Width() / 2)
+				if rect.Left < workAreaRect.Left {
+					rect.Left = workAreaRect.Left
+				}
+				rect.SetWidth(m.normalBounds.Width())
+				rect.SetHeight(m.normalBounds.Height())
+				m.SetBoundsRect(rect)
+			}
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.GDK_WINDOW_EDGE_NORTH_WEST)
+				lcl.Mouse.SetCapture(m.Handle())
+			})
+		}
 	} else {
 		m.isTitleBar = false
 		// 边框区域判断 (8个区域)
@@ -91,8 +118,8 @@ func (m *BrowserWindow) boxMouseDown(sender lcl.IObject, button types.TMouseButt
 	if button == types.MbLeft {
 		m.isDown = true
 		if m.isTitleBar {
-			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.GDK_WINDOW_EDGE_NORTH_WEST)
-			lcl.Mouse.SetCapture(m.Handle())
+			//lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.GDK_WINDOW_EDGE_NORTH_WEST)
+			//lcl.Mouse.SetCapture(m.Handle())
 		} else if m.borderHT != 0 {
 			lcl.DragWindow(m.Handle(), m.Left(), m.Top(), 1, api.TGdkWindowEdge(m.borderHT))
 			lcl.Mouse.SetCapture(m.Handle())

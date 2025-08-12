@@ -8,9 +8,6 @@ import (
 type Window struct {
 	lcl.TEngForm
 	oldWndPrc    uintptr
-	dx, dy       int32 // down x,y
-	mx, my       int32 // move x,y
-	wx, wy       int32 // window point
 	normalBounds types.TRect
 	windowState  types.TWindowState
 }

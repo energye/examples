@@ -33,14 +33,12 @@ type BrowserWindow struct {
 	minBtn   *wg.TButton
 	maxBtn   *wg.TButton
 	closeBtn *wg.TButton
-	// 窗口大小变化记录
-	previousWindowPlacement types.TRect
-	windowState             types.TWindowState
 	//
-	titleHeight        int32 // 标题栏高度
-	borderWidth        int32 // 边框宽
-	isDown, isTitleBar bool  // 鼠标按下和抬起
-	borderHT           uintptr
+	titleHeight           int32 // 标题栏高度
+	borderWidth           int32 // 边框宽
+	isDown                bool  // 鼠标按下和抬起
+	isTitleBar, isDarging bool  // 窗口标题栏
+	borderHT              uintptr
 }
 
 var (
