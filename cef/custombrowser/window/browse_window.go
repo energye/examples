@@ -446,7 +446,7 @@ func (m *BrowserWindow) updateWindowCaption(title string) {
 		if title == "" {
 			title = "ENERGY-3.0-浏览器"
 		}
-		//m.SetCaption(title)
+		m.SetCaption(title)
 	})
 }
 
