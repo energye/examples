@@ -1,6 +1,7 @@
 package window
 
 import (
+	"fmt"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"widget/wg"
 )
 
@@ -38,6 +40,8 @@ type BrowserWindow struct {
 	isDown                bool  // 鼠标按下和抬起
 	isTitleBar, isDarging bool  // 窗口标题栏
 	borderHT              uintptr
+	// 窗口关闭锁，一个一个关闭
+	browserCloseLock sync.Mutex
 }
 
 var (
@@ -102,6 +106,13 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnShow(func(sender lcl.IObject) {
 		m.SetFocus()
 		m.SetActiveDefaultControl(m)
+	})
+	m.SetOnClose(func(sender lcl.IObject, closeAction *types.TCloseAction) {
+		println("window.OnClose")
+	})
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+		println("window.OnCloseQuery")
+		*canClose = false
 	})
 }
 
@@ -197,7 +208,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 			for _, chrom := range m.chroms {
 				chrom.closeBrowser()
 			}
-			m.Close()
+			//m.Close()
 		})
 	}
 	// 浏览器控制按钮
@@ -328,6 +339,40 @@ func (m *BrowserWindow) OnChromiumCreateTabSheet(newChromium *Chromium) {
 	m.AddTabSheet(newChromium)
 }
 
+func (m *BrowserWindow) removeTabSheetBrowse(chromium *Chromium) {
+	m.browserCloseLock.Lock()
+	defer m.browserCloseLock.Unlock()
+	chromium.closeBrowser()
+	var isCloseCurrentActive bool
+	if activeChrom := m.getActiveChrom(); activeChrom != nil && activeChrom == chromium {
+		isCloseCurrentActive = true
+	}
+	// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
+	idx := chromium.windowId - 1
+	// 删除
+	m.chroms = append(m.chroms[:idx], m.chroms[idx+1:]...)
+	// 重新设置每个 chromium 的 windowID, 在下次删除时能对应上
+	for id, chrom := range m.chroms {
+		chrom.windowId = int32(id + 1)
+	}
+	if len(m.chroms) > 0 {
+		// 判断关闭时tabSheet是否为当前激活的
+		// 如果是当前激活的，激活最后一个
+		if isCloseCurrentActive {
+			// 激活最后一个
+			lastChrom := m.chroms[len(m.chroms)-1]
+			lastChrom.updateTabSheetActive(true)
+			// 其它的不激活
+			m.updateOtherTabSheetNoActive(lastChrom)
+		}
+	} else {
+		// 没有 chrom 清空和还原控制按钮、地址栏
+		m.resetControlBtn()
+	}
+	// 重新计算 tab sheet left 和 width
+	m.recalculateTabSheet()
+}
+
 func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	// 当前的设置为激活状态（颜色控制）
 	var leftSize int32 = 5
@@ -355,34 +400,6 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 	//newTabSheet.ScaledHeight = 16
 	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
 		currentChromium.closeBrowser()
-		var isCloseCurrentActive bool
-		if activeChrom := m.getActiveChrom(); activeChrom != nil && activeChrom == currentChromium {
-			isCloseCurrentActive = true
-		}
-		// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
-		idx := currentChromium.windowId - 1
-		// 删除
-		m.chroms = append(m.chroms[:idx], m.chroms[idx+1:]...)
-		// 重新设置每个 chromium 的 windowID, 在下次删除时能对应上
-		for id, chrom := range m.chroms {
-			chrom.windowId = int32(id + 1)
-		}
-		if len(m.chroms) > 0 {
-			// 判断关闭时tabSheet是否为当前激活的
-			// 如果是当前激活的，激活最后一个
-			if isCloseCurrentActive {
-				// 激活最后一个
-				lastChrom := m.chroms[len(m.chroms)-1]
-				lastChrom.updateTabSheetActive(true)
-				// 其它的不激活
-				m.updateOtherTabSheetNoActive(lastChrom)
-			}
-		} else {
-			// 没有 chrom 清空和还原控制按钮、地址栏
-			m.resetControlBtn()
-		}
-		// 重新计算 tab sheet left 和 width
-		m.recalculateTabSheet()
 	})
 	//newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
 	//

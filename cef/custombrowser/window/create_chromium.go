@@ -76,20 +76,22 @@ func (m *Chromium) closeBrowser() {
 	m.chromium.StopLoad()
 	m.tabSheet.SetVisible(false)
 	m.chromium.CloseBrowser(true)
+	m.windowParent.Free()
 	m.tabSheetBtn.Free()
+	m.tabSheet.Free()
 }
 
 func (m *Chromium) chromiumBeforeClose(sender lcl.IObject, browser cef.ICefBrowser) {
-	//fmt.Println("chromium.BeforeClose")
+	println("chromium.OnBeforeClose windowId:", m.windowId)
 	m.canClose = true
 	m.isClose = true
 	lcl.RunOnMainThreadAsync(func(id uint32) {
-		m.tabSheet.Free()
+		m.mainWindow.removeTabSheetBrowse(m)
 	})
 }
 
 func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aAction *cefTypes.TCefCloseBrowserAction) {
-	//fmt.Println("chromium.Close")
+	println("chromium.OnClose windowId:", m.windowId)
 	if tool.IsDarwin() {
 		m.windowParent.DestroyChildWindow()
 		*aAction = cefTypes.CbaClose

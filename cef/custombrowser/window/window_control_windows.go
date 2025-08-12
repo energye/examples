@@ -31,7 +31,7 @@ func (m *BrowserWindow) FullScreen() {
 		}
 	}
 	m.windowState = types.WsFullScreen
-	m.previousWindowPlacement = m.BoundsRect()
+	m.normalBounds = m.BoundsRect()
 	monitorRect := m.Monitor().BoundsRect()
 	win.SetWindowPos(m.Handle(), win.HWND_TOP, monitorRect.Left, monitorRect.Top, monitorRect.Width(), monitorRect.Height(), win.SWP_NOOWNERZORDER|win.SWP_FRAMECHANGED)
 }
@@ -40,7 +40,7 @@ func (m *BrowserWindow) ExitFullScreen() {
 	if m.IsFullScreen() {
 		m.windowState = types.WsNormal
 		m.SetWindowState(types.WsNormal)
-		m.SetBoundsRect(m.previousWindowPlacement)
+		m.SetBoundsRect(m.normalBounds)
 	}
 }
 
