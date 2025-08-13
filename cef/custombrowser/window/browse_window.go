@@ -301,24 +301,6 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	}
 	// 地址栏
 	m.createAddrBar()
-	// 地址栏右边的 logo 按钮
-	m.addrRightBtn = wg.NewButton(m)
-	m.addrRightBtn.SetParent(m.box)
-	m.addrRightBtn.SetShowHint(true)
-	m.addrRightBtn.SetHint("   GO  \nENERGY")
-	addrRightBtnRect := types.TRect{Left: m.box.Width() - (40 + 5), Top: 47}
-	addrRightBtnRect.SetSize(40, 40)
-	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
-	m.addrRightBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-	m.addrRightBtn.SetEndColor(colors.RGBToColor(50, 60, 70))
-	m.addrRightBtn.SetRadius(35)
-	m.addrRightBtn.SetAlpha(255)
-	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
-	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
-		if chrom := m.getActiveChrom(); chrom != nil {
-			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
-		}
-	})
 }
 
 // 浏览器创建完添加一个 tab Sheet
@@ -516,10 +498,6 @@ func (m *BrowserWindow) updateBtnLeft() {
 	// 添加浏览器按钮, 保持在最后
 	if m.addChromBtn != nil {
 		m.addChromBtn.SetLeft(leftSize + 10)
-	}
-	// 地址栏右侧按钮
-	if m.addrRightBtn != nil {
-		m.addrRightBtn.SetLeft(m.box.Width() - (m.addrRightBtn.Width() + 5))
 	}
 	// 窗口 最小化、最大化，关闭按钮
 	if m.minBtn != nil {

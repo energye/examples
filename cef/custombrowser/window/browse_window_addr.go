@@ -13,7 +13,10 @@ func (m *BrowserWindow) createAddrBar() {
 	color := colors.RGBToColor(86, 88, 93)
 	top := int32(50)
 	// 地址栏 + 自绘 panel 主要重写形状和背景
-
+	var (
+		addrLeft  *wg.TButton
+		addrRight *wg.TButton
+	)
 	m.addr = lcl.NewMemo(m)
 	m.addr.SetParent(m.box)
 	m.addr.SetLeft(160)
@@ -53,7 +56,32 @@ func (m *BrowserWindow) createAddrBar() {
 		m.addr.SetText(text)
 	})
 
-	addrLeft := wg.NewButton(m)
+	addrFocus := func(sender lcl.IObject) {
+		m.addr.SetSelStart(int32(len(m.addr.Text())))
+		m.addr.SetFocus()
+	}
+
+	addrEnter := func(sender lcl.IObject) {
+		dkColor := wg.DarkenColor(color, -0.2)
+		m.addr.SetColor(dkColor)
+		addrLeft.SetStartColor(dkColor)
+		addrLeft.SetEndColor(dkColor)
+		addrRight.SetStartColor(dkColor)
+		addrRight.SetEndColor(dkColor)
+		addrLeft.Invalidate()
+		addrRight.Invalidate()
+	}
+	addrLeave := func(sender lcl.IObject) {
+		m.addr.SetColor(color)
+		addrLeft.SetStartColor(color)
+		addrLeft.SetEndColor(color)
+		addrRight.SetStartColor(color)
+		addrRight.SetEndColor(color)
+		addrLeft.Invalidate()
+		addrRight.Invalidate()
+	}
+
+	addrLeft = wg.NewButton(m)
 	addrLeft.SetParent(m.box)
 	addrLeftRect := types.TRect{Left: 140, Top: top}
 	addrLeftRect.SetSize(30, 30)
@@ -64,12 +92,11 @@ func (m *BrowserWindow) createAddrBar() {
 	addrLeft.SetAlpha(255)
 	addrLeft.IsDisable = true
 	addrLeft.RoundedCorner = addrLeft.RoundedCorner.Exclude(wg.RcRightBottom).Exclude(wg.RcRightTop)
-	addrLeft.SetOnClick(func(sender lcl.IObject) {
-		m.addr.SetSelStart(int32(len(m.addr.Text())))
-		m.addr.SetFocus()
-	})
+	addrLeft.SetOnClick(addrFocus)
+	addrLeft.SetOnMouseEnter(addrEnter)
+	addrLeft.SetOnMouseLeave(addrLeave)
 
-	addrRight := wg.NewButton(m)
+	addrRight = wg.NewButton(m)
 	addrRight.SetParent(m.box)
 	addrRightRect := types.TRect{Left: m.addr.Left() + m.addr.Width(), Top: top}
 	addrRightRect.SetSize(30, 30)
@@ -80,16 +107,35 @@ func (m *BrowserWindow) createAddrBar() {
 	addrRight.SetAlpha(255)
 	addrRight.IsDisable = true
 	addrRight.RoundedCorner = addrRight.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcLeftTop)
-	addrRight.SetOnClick(func(sender lcl.IObject) {
-		m.addr.SetSelStart(int32(len(m.addr.Text())))
-		m.addr.SetFocus()
+	addrRight.SetOnClick(addrFocus)
+	addrRight.SetOnMouseEnter(addrEnter)
+	addrRight.SetOnMouseLeave(addrLeave)
+
+	// 地址栏右边的 logo 按钮
+	m.addrRightBtn = wg.NewButton(m)
+	m.addrRightBtn.SetParent(m.box)
+	m.addrRightBtn.SetShowHint(true)
+	m.addrRightBtn.SetHint("   GO  \nENERGY")
+	addrRightBtnRect := types.TRect{Left: m.box.Width() - (40 + 5), Top: 47}
+	addrRightBtnRect.SetSize(40, 40)
+	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
+	m.addrRightBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.addrRightBtn.SetEndColor(colors.RGBToColor(50, 60, 70))
+	m.addrRightBtn.SetRadius(35)
+	m.addrRightBtn.SetAlpha(255)
+	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
+	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
+		if chrom := m.getActiveChrom(); chrom != nil {
+			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
+		}
 	})
 
 	m.addr.SetOnResize(func(sender lcl.IObject) {
 		addrRight.SetLeft(m.addr.Left() + m.addr.Width())
+		// 地址栏右侧按钮
+		m.addrRightBtn.SetLeft(m.box.Width() - (m.addrRightBtn.Width() + 5))
 	})
 
-	//m.addr.SetOnMouseEnter(func(sender lcl.IObject) {
-	//
-	//})
+	m.addr.SetOnMouseEnter(addrEnter)
+	m.addr.SetOnMouseLeave(addrLeave)
 }
