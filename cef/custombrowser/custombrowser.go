@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
@@ -44,8 +43,8 @@ func init() {
 
 }
 
-//go:embed resources
-var resources embed.FS
+///go:embed resources
+//var resources embed.FS
 
 var (
 	wd, _            = os.Getwd()
