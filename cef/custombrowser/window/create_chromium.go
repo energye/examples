@@ -135,7 +135,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		m.mainWindow.updateWindowCaption(m.currentTitle)
 		m.resize(nil)
 	} else {
-		notActiveColor := colors.RGBToColor(56, 57, 60)
+		notActiveColor := bgColor //colors.RGBToColor(56, 57, 60)
 		m.tabSheetBtn.SetStartColor(notActiveColor)
 		m.tabSheetBtn.SetEndColor(notActiveColor)
 		m.tabSheet.SetVisible(false)
@@ -178,7 +178,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.tabSheet.SetBevelOuter(types.BvNone)
 		newChromium.tabSheet.SetDoubleBuffered(true)
 		newChromium.tabSheet.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-		newChromium.tabSheet.SetTop(85)
+		newChromium.tabSheet.SetTop(90)
 		newChromium.tabSheet.SetLeft(5)
 		newChromium.tabSheet.SetWidth(m.box.Width() - 10)
 		newChromium.tabSheet.SetHeight(m.box.Height() - (newChromium.tabSheet.Top() + 5))

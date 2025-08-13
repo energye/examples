@@ -44,7 +44,8 @@ type BrowserWindow struct {
 }
 
 var (
-	BW BrowserWindow
+	BW      BrowserWindow
+	bgColor = colors.RGBToColor(56, 57, 60)
 )
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
@@ -73,7 +74,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		}
 	}
 	//m.SetColor(colors.ClYellow)
-	m.SetColor(colors.RGBToColor(56, 57, 60))
+	m.SetColor(bgColor)
 	//m.SetCaption("ENERGY-3.0-浏览器")
 	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
 		stream := lcl.NewMemoryStream()
@@ -96,7 +97,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetDoubleBuffered(true)
 	m.box.SetWidth(m.Width())
 	m.box.SetHeight(m.Height())
-	m.box.SetColor(colors.RGBToColor(56, 57, 60))
+	m.box.SetColor(bgColor)
 	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 
 	// 窗口 拖拽 大小调整
@@ -167,8 +168,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		addBtnRect := types.TRect{Left: 5, Top: 5}
 		addBtnRect.SetSize(40, 40)
 		m.addChromBtn.SetBoundsRect(addBtnRect)
-		m.addChromBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.addChromBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.addChromBtn.SetStartColor(bgColor)
+		m.addChromBtn.SetEndColor(bgColor)
 		m.addChromBtn.SetRadius(5)
 		m.addChromBtn.SetAlpha(255)
 		m.addChromBtn.SetIcon(getResourcePath("add.png"))
@@ -189,8 +190,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
 		minBtnRect.SetSize(40, 40)
 		m.minBtn.SetBoundsRect(minBtnRect)
-		m.minBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.minBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.minBtn.SetStartColor(bgColor)
+		m.minBtn.SetEndColor(bgColor)
 		m.minBtn.SetRadius(5)
 		m.minBtn.SetAlpha(255)
 		m.minBtn.SetIcon(getResourcePath("btn-min.png"))
@@ -204,8 +205,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
 		maxBtnRect.SetSize(40, 40)
 		m.maxBtn.SetBoundsRect(maxBtnRect)
-		m.maxBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.maxBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.maxBtn.SetStartColor(bgColor)
+		m.maxBtn.SetEndColor(bgColor)
 		m.maxBtn.SetRadius(5)
 		m.maxBtn.SetAlpha(255)
 		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
@@ -219,8 +220,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
 		closeBtnRect.SetSize(40, 40)
 		m.closeBtn.SetBoundsRect(closeBtnRect)
-		m.closeBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.closeBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.closeBtn.SetStartColor(bgColor)
+		m.closeBtn.SetEndColor(bgColor)
 		m.closeBtn.SetRadius(5)
 		m.closeBtn.SetAlpha(255)
 		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
@@ -245,8 +246,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		backBtnRect := types.TRect{Left: 5, Top: 47}
 		backBtnRect.SetSize(40, 40)
 		m.backBtn.SetBoundsRect(backBtnRect)
-		m.backBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.backBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.backBtn.SetStartColor(bgColor)
+		m.backBtn.SetEndColor(bgColor)
 		m.backBtn.SetRadius(5)
 		m.backBtn.SetAlpha(255)
 		m.backBtn.SetIcon(getResourcePath("back.png"))
@@ -264,8 +265,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		forwardBtnRect := types.TRect{Left: 50, Top: 47}
 		forwardBtnRect.SetSize(40, 40)
 		m.forwardBtn.SetBoundsRect(forwardBtnRect)
-		m.forwardBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.forwardBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.forwardBtn.SetStartColor(bgColor)
+		m.forwardBtn.SetEndColor(bgColor)
 		m.forwardBtn.SetRadius(5)
 		m.forwardBtn.SetAlpha(255)
 		m.forwardBtn.SetIcon(getResourcePath("forward.png"))
@@ -283,8 +284,8 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		refreshBtnRect := types.TRect{Left: 95, Top: 47}
 		refreshBtnRect.SetSize(40, 40)
 		m.refreshBtn.SetBoundsRect(refreshBtnRect)
-		m.refreshBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
-		m.refreshBtn.SetEndColor(colors.RGBToColor(56, 57, 60))
+		m.refreshBtn.SetStartColor(bgColor)
+		m.refreshBtn.SetEndColor(bgColor)
 		m.refreshBtn.SetRadius(5)
 		m.refreshBtn.SetAlpha(255)
 		m.refreshBtn.SetIcon(getResourcePath("refresh.png"))

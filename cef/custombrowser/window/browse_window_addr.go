@@ -12,6 +12,7 @@ import (
 func (m *BrowserWindow) createAddrBar() {
 	color := colors.RGBToColor(86, 88, 93)
 	top := int32(50)
+	height := int32(33)
 	// 地址栏 + 自绘 panel 主要重写形状和背景
 	var (
 		addrLeft  *wg.TButton
@@ -21,13 +22,12 @@ func (m *BrowserWindow) createAddrBar() {
 	m.addr.SetParent(m.box)
 	m.addr.SetLeft(160)
 	m.addr.SetTop(top)
-	m.addr.SetHeight(30)
+	m.addr.SetHeight(height)
 	m.addr.SetWidth(m.Width() - (m.addr.Left() + 80))
 	m.addr.SetBorderStyle(types.BsNone)
 	m.addr.SetColor(color)
 	m.addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	m.addr.Font().SetSize(17)
-	m.addr.Font().SetHeight(-22)
 	m.addr.Font().SetColor(colors.ClWhite)
 	m.addr.SetWordWrap(false)
 	m.addr.SetWantReturns(false)
@@ -84,7 +84,7 @@ func (m *BrowserWindow) createAddrBar() {
 	addrLeft = wg.NewButton(m)
 	addrLeft.SetParent(m.box)
 	addrLeftRect := types.TRect{Left: 140, Top: top}
-	addrLeftRect.SetSize(30, 30)
+	addrLeftRect.SetSize(30, height)
 	addrLeft.SetBoundsRect(addrLeftRect)
 	addrLeft.SetStartColor(color)
 	addrLeft.SetEndColor(color)
@@ -99,7 +99,7 @@ func (m *BrowserWindow) createAddrBar() {
 	addrRight = wg.NewButton(m)
 	addrRight.SetParent(m.box)
 	addrRightRect := types.TRect{Left: m.addr.Left() + m.addr.Width(), Top: top}
-	addrRightRect.SetSize(30, 30)
+	addrRightRect.SetSize(30, height)
 	addrRight.SetBoundsRect(addrRightRect)
 	addrRight.SetStartColor(color)
 	addrRight.SetEndColor(color)
@@ -119,7 +119,7 @@ func (m *BrowserWindow) createAddrBar() {
 	addrRightBtnRect := types.TRect{Left: m.box.Width() - (40 + 5), Top: 47}
 	addrRightBtnRect.SetSize(40, 40)
 	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
-	m.addrRightBtn.SetStartColor(colors.RGBToColor(56, 57, 60))
+	m.addrRightBtn.SetStartColor(bgColor)
 	m.addrRightBtn.SetEndColor(colors.RGBToColor(50, 60, 70))
 	m.addrRightBtn.SetRadius(35)
 	m.addrRightBtn.SetAlpha(255)
