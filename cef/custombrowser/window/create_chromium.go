@@ -6,6 +6,7 @@ import (
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/utils"
 	"github.com/energye/examples/cef/utils/draw"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -23,9 +24,9 @@ import (
 )
 
 type Chromium struct {
-	mainWindow                         *BrowserWindow
-	windowId                           int32 // 窗口ID
-	timer                              lcl.ITimer
+	mainWindow *BrowserWindow
+	windowId   int32 // 窗口ID
+	//timer                              lcl.ITimer
 	windowParent                       cef.ICEFWinControl
 	chromium                           cef.IChromium
 	oldWndPrc                          uintptr
@@ -45,21 +46,22 @@ func (m *Chromium) SetAfterCreate(fn func()) {
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
-	if m.timer == nil {
-		return
-	}
-	m.timer.SetEnabled(false)
+	//if m.timer == nil {
+	//	return
+	//}
+	//m.timer.SetEnabled(false)
 	rect := m.windowParent.Parent().ClientRect()
 	m.chromium.Initialized()
-	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
+	m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
 	//fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
-	if !created {
-		m.timer.SetEnabled(true)
-	} else {
-		m.windowParent.UpdateSize()
-		m.timer.Free()
-		m.timer = nil
-	}
+	//if !created {
+	//	m.timer.SetEnabled(true)
+	//} else {
+	//	m.windowParent.UpdateSize()
+	//	m.timer.Free()
+	//	m.timer = nil
+	//}
+	m.windowParent.UpdateSize()
 }
 
 func (m *Chromium) resize(sender lcl.IObject) {
@@ -176,7 +178,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.tabSheet.SetBevelOuter(types.BvNone)
 		newChromium.tabSheet.SetDoubleBuffered(true)
 		newChromium.tabSheet.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-		newChromium.tabSheet.SetTop(90)
+		newChromium.tabSheet.SetTop(85)
 		newChromium.tabSheet.SetLeft(5)
 		newChromium.tabSheet.SetWidth(m.box.Width() - 10)
 		newChromium.tabSheet.SetHeight(m.box.Height() - (newChromium.tabSheet.Top() + 5))
@@ -208,10 +210,10 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	newChromium.windowParent.SetAlign(types.AlClient)
 
 	// 创建一个定时器, 用来createBrowser
-	newChromium.timer = lcl.NewTimer(m)
-	newChromium.timer.SetEnabled(false)
-	newChromium.timer.SetInterval(200)
-	newChromium.timer.SetOnTimer(newChromium.createBrowser)
+	//newChromium.timer = lcl.NewTimer(m)
+	//newChromium.timer.SetEnabled(false)
+	//newChromium.timer.SetInterval(200)
+	//newChromium.timer.SetOnTimer(newChromium.createBrowser)
 
 	// window parent event
 	newChromium.windowParent.SetOnEnter(func(sender lcl.IObject) {
@@ -263,6 +265,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			return
 		}
 		*result = true
+		println("chromium.OnBeforePopup isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			// 创建新的 tab
 			m.addr.SetText("")
@@ -332,6 +335,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		if newChromium.isActive {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.addr.SetText(tempUrl)
+				m.addr.SetSelStart(int32(len(tempUrl)))
 				m.addr.SetFocus()
 			})
 		}

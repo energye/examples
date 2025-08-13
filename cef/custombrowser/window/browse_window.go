@@ -1,6 +1,7 @@
 package window
 
 import (
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -172,6 +173,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		m.addChromBtn.SetAlpha(255)
 		m.addChromBtn.SetIcon(getResourcePath("add.png"))
 		m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
+			println("add chromium isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 			m.addr.SetText("")
 			newChromium := m.createChromium("")
 			m.OnChromiumCreateTabSheet(newChromium)
