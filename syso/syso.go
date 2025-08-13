@@ -56,6 +56,8 @@ func TestLoadLibPath() {
 			liblcl = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout", name)
 		} else if tool.IsLinux() {
 			liblcl = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/gen/gout", name)
+		} else if tool.IsDarwin() {
+			liblcl = filepath.Join("/Users/yanghy/app/workspace/gen/gout", name)
 		}
 		if tool.IsExist(liblcl) {
 			libname.LibName = liblcl
