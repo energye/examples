@@ -59,10 +59,10 @@ func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
 	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("[ERROR] exception:", exception, "message:", message)
+		println("[ERROR] exception:", exception, "message:", message)
 	})
 	app := application.NewApplication()
-	fmt.Println("ProcessType:", app.ProcessType())
+	//println("ProcessType:", app.ProcessType())
 	app.SetWindowlessRenderingEnabled(true)
 	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
@@ -99,7 +99,7 @@ func main() {
 		CEFINfo(app)
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
-			fmt.Println("Run END. Release")
+			println("Run END. Release")
 		})
 		// LCL窗口
 		lcl.Application.Initialize()
@@ -118,14 +118,14 @@ func CEFINfo(app cef.ICefApplication) {
 	)
 	app.GetChromiumVersionInfo(chromiumVersion)
 	app.GetCEFVersionInfo(cefVersion)
-	fmt.Println("ChromeVersion:", app.ChromeVersion())
-	fmt.Println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
+	println("ChromeVersion:", app.ChromeVersion())
+	println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
 		chromiumVersion.VersionMajor,
 		chromiumVersion.VersionMinor,
 		chromiumVersion.VersionBuild,
 		chromiumVersion.VersionPatch))
-	fmt.Println("CefVersion:", app.LibCefVersion())
-	fmt.Println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
+	println("CefVersion:", app.LibCefVersion())
+	println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
 		cefVersion.VersionMajor,
 		cefVersion.VersionMinor,
 		cefVersion.VersionPatch,

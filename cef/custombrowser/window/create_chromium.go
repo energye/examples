@@ -276,16 +276,14 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
 			}
-			// goroutine  ??
-			go lcl.RunOnMainThreadAsync(func(id uint32) {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.tabSheetBtn.SetCaption(title)
 				newChromium.tabSheetBtn.SetHint(title)
 				newChromium.tabSheetBtn.Invalidate()
 			})
 		}
 		newChromium.currentTitle = title
-		// goroutine  ??
-		go m.updateWindowCaption(title)
+		m.updateWindowCaption(title)
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading
