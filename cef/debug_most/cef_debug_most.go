@@ -117,14 +117,14 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium = cef.NewChromium(m)
 	var assetsHtml string
 	if tool.IsDarwin() {
-		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+		assetsHtml = "file:///Users/yanghy/app/workspace/examples/cef/debug_most/assets/index.html"
+		assetsHtml = "https://www.baidu.com"
 	} else if tool.IsLinux() {
 		assetsHtml = "file:///home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/debug_most/assets/index.html"
 		//assetsHtml = "https://www.baidu.com"
 	} else if tool.IsWindows() {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
 		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
-		//assetsHtml = "https://webgpu.github.io/webgpu-samples/?sample=renderBundles"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
@@ -336,7 +336,6 @@ func (m *BrowserWindow) show(sender lcl.IObject) {
 }
 
 func (m *BrowserWindow) resize(sender lcl.IObject) {
-	fmt.Println("resize")
 	if m.chromium != nil {
 		m.chromium.NotifyMoveOrResizeStarted()
 		if m.windowParent != nil {
