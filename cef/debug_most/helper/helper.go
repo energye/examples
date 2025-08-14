@@ -1,16 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/examples/cef/debug_most/application"
+	"github.com/energye/examples/cef/debug_most/helper/internal"
+	"github.com/energye/lcl/api/exception"
 )
 
 func main() {
-	//全局配置初始化
 	cef.Init(nil, nil)
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
+	})
 	//创建Cef应用
-	app := application.NewApplication()
-	//启动子进程
-	app.StartSubProcess()
-	app.Free()
+	app := internal.InitApplication()
+	ok := app.StartSubProcess()
+	println("sub process start:", ok)
 }
