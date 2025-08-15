@@ -7,10 +7,10 @@ import (
 	"github.com/energye/examples/cef/application"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"os"
+	"runtime"
 )
 
 func init() {
@@ -20,20 +20,18 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("[ERROR] exception:", exception, "message:", message)
-	})
+	runtime.LockOSThread()
+	// MacOS使用扩展消息泵
+	cef.AddCrDelegate()
 	app := application.NewApplication()
 	if tool.IsDarwin() {
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(false)
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
-		// MacOS使用扩展消息泵
-		cef.AddCrDelegate()
-		scheduler := cef.NewWorkScheduler(nil)
-		cef.SetGlobalCEFWorkSchedule(scheduler)
-		app.SetOnScheduleMessagePumpWork(nil)
+		//scheduler := cef.NewWorkScheduler(nil)
+		//cef.SetGlobalCEFWorkSchedule(scheduler)
+		//app.SetOnScheduleMessagePumpWork(nil)
 		if app.ProcessType() != cefTypes.PtBrowser {
 			// MacOS 多进程时，需要调用StartSubProcess来启动子进程
 			subStart := app.StartSubProcess()
@@ -70,6 +68,7 @@ func main() {
 			ok := chromium.CreateBrowserWithStringBrowserViewComponentRequestContextDictionaryValue(url, viewComponent, nil, nil)
 			fmt.Println("SetOnWindowCreated CreateBrowserByBrowserViewComponent:", true)
 			if ok {
+				windowComponent.CenterWindow(cef.TCefSize{800, 600})
 				windowComponent.AddChildView(viewComponent.BrowserView())
 				viewComponent.RequestFocus()
 				windowComponent.Show()
@@ -77,6 +76,9 @@ func main() {
 		})
 		chromium.SetOnBeforeClose(func(sender lcl.IObject, browser cef.ICefBrowser) {
 			app.QuitMessageLoop()
+		})
+		chromium.SetOnBeforeContextMenu(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, model cef.ICefMenuModel) {
+			model.Clear()
 		})
 		windowComponent.CreateTopLevelWindow()
 	})
