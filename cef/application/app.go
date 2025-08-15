@@ -15,8 +15,8 @@ var (
 )
 
 func NewApplication() cef.ICefApplication {
-	exception.SetOnException(func(idType int32, message string) {
-		fmt.Println("ERROR method id:", idType, "message:", message)
+	exception.SetOnException(func(exception int32, message string) {
+		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	if GlobalCEFApp == nil {
 		GlobalCEFApp = cef.NewApplication()
