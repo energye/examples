@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
@@ -42,9 +43,6 @@ func init() {
 
 }
 
-///go:embed resources
-//var resources embed.FS
-
 var (
 	wd, _            = os.Getwd()
 	cacheRoot        = filepath.Join(wd, "EnergyCache")         // 浏览器缓存目录
@@ -56,11 +54,11 @@ func main() {
 	window.SiteResource = siteResourceRoot
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	exception.SetOnException(func(exception int32, message string) {
-		println("[ERROR] exception:", exception, "message:", message)
-	})
+	if tool.IsDarwin() {
+		cef.AddCrDelegate()
+	}
+
 	app := application.NewApplication()
-	//println("ProcessType:", app.ProcessType())
 	app.SetWindowlessRenderingEnabled(true)
 	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
@@ -68,7 +66,24 @@ func main() {
 	app.SetCache(cacheRoot)
 	//app.SetDeleteCache(true)
 
-	if tool.IsWindows() {
+	if tool.IsDarwin() {
+		app.InitLibLocationFromArgs()
+		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
+		app.SetUseMockKeyChain(true)
+		app.SetExternalMessagePump(true)
+		app.SetMultiThreadedMessageLoop(false)
+		if app.ProcessType() == cefTypes.PtBrowser {
+			scheduler := cef.NewWorkScheduler(nil)
+			cef.SetGlobalCEFWorkSchedule(scheduler)
+			app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
+				scheduler.ScheduleMessagePumpWork(delayMs)
+			})
+		} else {
+			startSub := app.StartSubProcess()
+			fmt.Println("startSub:", startSub)
+			return
+		}
+	} else if tool.IsWindows() {
 		// win32 使用 lcl 窗口
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(true)
@@ -93,11 +108,13 @@ func main() {
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	if mainStart {
-		//httpServer()
 		CEFINfo(app)
 		// 结束应用后释放资源
 		api.SetReleaseCallback(func() {
-			println("Run END. Release")
+			fmt.Println("Release")
+			if tool.IsLinux() {
+				api.WidgetSetFinalization()
+			}
 		})
 		// LCL窗口
 		lcl.Application.Initialize()
@@ -113,11 +130,3 @@ func CEFINfo(app cef.ICefApplication) {
 	println("ChromeVersion:", app.ChromeVersion())
 	println("CefVersion:", app.LibCefVersion())
 }
-
-//func httpServer() {
-//	server := assetserve.NewAssetsHttpServer()
-//	server.PORT = 22022
-//	server.AssetsFSName = "resources" //必须设置目录名
-//	server.Assets = resources
-//	go server.StartHttpServer()
-//}

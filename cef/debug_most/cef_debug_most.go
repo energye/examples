@@ -20,7 +20,6 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"os"
 	"path/filepath"
-	"strings"
 	"unsafe"
 )
 
@@ -49,7 +48,6 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	println(strings.Join(os.Args, " "))
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()
 	}
