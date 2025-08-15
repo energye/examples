@@ -38,7 +38,7 @@ func ContextMenu(chromium cef.IChromium) {
 			nextMenuId = cefTypes.MENU_ID_USER_FIRST
 		}
 		nextMenuId++
-		return nextMenuId
+		return cefTypes.TCefMenuId(nextMenuId)
 	}
 	chromium.SetOnBeforeContextMenu(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, params cef.ICefContextMenuParams, model cef.ICefMenuModel) {
 		fmt.Println("OnBeforeContextMenu")

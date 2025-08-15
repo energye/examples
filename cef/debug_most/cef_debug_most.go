@@ -8,7 +8,8 @@ import (
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
-	"github.com/energye/examples/cef/messagepump"
+	"github.com/energye/examples/cef/debug_most/scheme"
+	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -19,6 +20,7 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"os"
 	"path/filepath"
+	"strings"
 	"unsafe"
 )
 
@@ -47,25 +49,24 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-
-	//var scheduler cef.ICEFWorkScheduler
+	println(strings.Join(os.Args, " "))
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()
-		//scheduler = cef.NewWorkScheduler(nil)
-		//cef.SetGlobalCEFWorkSchedule(scheduler)
 	}
-
 	app := application.NewApplication()
 	app.SetLogSeverity(cefTypes.LOGSEVERITY_VERBOSE)
-	app.SetDisableFeatures("GPU")
-	app.SetEnableGPU(false)
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
-	fmt.Println("ProcessType:", app.ProcessType())
-	///v8context.Context(app)
-	//app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-	//scheme.ApplicationOnRegCustomSchemes(registrar)
-	//})
+	//fmt.Println("ProcessType:", app.ProcessType())
+	v8context.Context(app)
+	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+		scheme.ApplicationOnRegCustomSchemes(registrar)
+	})
+	app.SetOnBeforeChildProcessLaunch(func(commandLine cef.ICefCommandLine) {
+		fmt.Println("SetOnBeforeChildProcessLaunch")
+		//commandLine.AppendSwitch("--enable-gpu-memory-buffer-compositor-resources")
+		//commandLine.AppendSwitch("--enable-main-frame-before-activation")
+	})
 	if tool.IsDarwin() {
 		app.InitLibLocationFromArgs()
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
@@ -73,15 +74,15 @@ func main() {
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
 		if app.ProcessType() == cefTypes.PtBrowser {
-			messagepump.GlobalCEFApp = app
-			messagepump.InitMessagePump()
+			scheduler := cef.NewWorkScheduler(nil)
+			cef.SetGlobalCEFWorkSchedule(scheduler)
+			//messagepump.GlobalCEFApp = app
+			//messagepump.InitMessagePump()
 			app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
-				fmt.Println("IsMainThread:", messagepump.IsMainThread(), "delayMs:", delayMs)
+				//fmt.Println("IsMainThread:", messagepump.IsMainThread(), "delayMs:", delayMs)
 				//fmt.Println("OnScheduleMessagePumpWork delayMs:", delayMs)
-				//scheduler.ScheduleMessagePumpWork(delayMs)
+				scheduler.ScheduleMessagePumpWork(delayMs)
 				//messagepump.OnScheduleMessagePumpWork(delayMs)
-				//app.DoMessageLoopWork()
-				messagepump.OnScheduleMessagePumpWork(delayMs)
 			})
 		} else {
 			startSub := app.StartSubProcess()
@@ -186,7 +187,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnClose(m.chromiumClose)
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	m.chromium.SetOnBeforeClose(m.chromiumBeforeClose)
-	return
 	// 上下文菜单
 	contextmenu.ContextMenu(m.chromium)
 	// cookie
@@ -233,10 +233,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			*outResult = true
 		}
 	})
-	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
-		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
-		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
-		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		fmt.Printf("beforePopup: %+v\n", windowInfo)
 		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
 		fmt.Println(browser.GetIdentifier())
