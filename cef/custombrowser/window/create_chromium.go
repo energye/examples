@@ -257,10 +257,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	//	userGesture, isRedirect bool, result *bool) {
 	//	//newChromium.windowParent.UpdateSize()
 	//})
-	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame,
-		popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool,
-		popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings,
-		extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		if isURLDevtools(targetUrl) {
 			return
 		}

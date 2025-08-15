@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/energye/cef/cef"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/custombrowser/window"
@@ -111,24 +110,8 @@ func main() {
 
 func CEFINfo(app cef.ICefApplication) {
 	// 输出版本信息
-	var (
-		chromiumVersion = &cef.TChromiumVersionInfo{}
-		cefVersion      = &cef.TCefVersionInfo{}
-	)
-	app.GetChromiumVersionInfo(chromiumVersion)
-	app.GetCEFVersionInfo(cefVersion)
 	println("ChromeVersion:", app.ChromeVersion())
-	println("ChromiumVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  Patch: %v",
-		chromiumVersion.VersionMajor,
-		chromiumVersion.VersionMinor,
-		chromiumVersion.VersionBuild,
-		chromiumVersion.VersionPatch))
 	println("CefVersion:", app.LibCefVersion())
-	println("CefVersionInfo:", fmt.Sprintf("\n  Major: %v\n  Minor: %v\n  Build: %v\n  CommitNumber: %v",
-		cefVersion.VersionMajor,
-		cefVersion.VersionMinor,
-		cefVersion.VersionPatch,
-		cefVersion.CommitNumber))
 }
 
 //func httpServer() {
