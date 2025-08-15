@@ -25,6 +25,8 @@ func main() {
 	})
 	app := application.NewApplication()
 	if tool.IsDarwin() {
+		app.SetExternalMessagePump(false)
+		app.SetMultiThreadedMessageLoop(false)
 		app.SetUseMockKeyChain(true)
 		app.InitLibLocationFromArgs()
 		// MacOS使用扩展消息泵
