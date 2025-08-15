@@ -9,11 +9,9 @@ import (
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
 	"github.com/energye/examples/cef/debug_most/scheme"
-	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/tool"
@@ -35,8 +33,11 @@ type BrowserWindow struct {
 }
 
 var (
-	BW   BrowserWindow
-	help string //= "true" // go build -ldflags="-X main.help=true"
+	BW               BrowserWindow
+	help             string //= "true" // go build -ldflags="-X main.help=true"
+	wd, _            = os.Getwd()
+	cacheRoot        = filepath.Join(wd, "EnergyCache")         // 浏览器缓存目录
+	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource") // 网站资源缓存目录
 )
 
 func init() {
@@ -46,32 +47,35 @@ func init() {
 func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
-	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("[ERROR] exception:", exception, "message:", message)
-	})
+
+	var scheduler cef.ICEFWorkScheduler
+	if tool.IsDarwin() {
+		cef.AddCrDelegate()
+		scheduler = cef.NewWorkScheduler(nil)
+		cef.SetGlobalCEFWorkSchedule(scheduler)
+	}
+
 	app := application.NewApplication()
+	app.SetLogSeverity(0)
+	app.SetDisableFeatures("GPU")
+	app.SetEnableGPU(false)
 	app.SetEnableGPU(true)
-	v8context.Context(app)
+	app.SetRootCache(cacheRoot)
+	app.SetCache(cacheRoot)
+	fmt.Println("ProcessType:", app.ProcessType())
+	///v8context.Context(app)
 	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
 		scheme.ApplicationOnRegCustomSchemes(registrar)
 	})
 	if tool.IsDarwin() {
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
 		app.SetUseMockKeyChain(true)
-		app.InitLibLocationFromArgs()
-		cef.AddCrDelegate()
-		scheduler := cef.NewWorkScheduler(nil)
-		cef.SetGlobalCEFWorkSchedule(scheduler)
-		app.SetOnScheduleMessagePumpWork(nil)
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
-		if app.ProcessType() != cefTypes.PtBrowser {
-			// MacOS 多进程时，需要调用StartSubProcess来启动子进程
-			subStart := app.StartSubProcess()
-			fmt.Println("subStart:", subStart, app.ProcessType())
-			app.Free()
-			return
-		}
+		app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
+			//fmt.Println("OnScheduleMessagePumpWork delayMs:", delayMs)
+			scheduler.ScheduleMessagePumpWork(delayMs)
+		})
 	} else if tool.IsLinux() {
 		if api.Widget().IsGTK2() {
 			// gtk2 使用 lcl 窗口
@@ -90,6 +94,7 @@ func main() {
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(true)
 	}
+
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	fmt.Println("mainStart:", mainStart, app.ProcessType())
@@ -118,7 +123,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	var assetsHtml string
 	if tool.IsDarwin() {
 		assetsHtml = "file:///Users/yanghy/app/workspace/examples/cef/debug_most/assets/index.html"
-		assetsHtml = "https://www.baidu.com"
+		//assetsHtml = "https://www.baidu.com"
+		//assetsHtml = "https://www.bilibili.com/"
+		//assetsHtml = "https://www.google.com/"
 	} else if tool.IsLinux() {
 		assetsHtml = "file:///home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/debug_most/assets/index.html"
 		//assetsHtml = "https://www.baidu.com"
@@ -141,10 +148,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// 创建一个定时器, 用来createBrowser
 	m.timer = lcl.NewTimer(m)
 	m.timer.SetEnabled(false)
-	m.timer.SetInterval(200)
+	m.timer.SetInterval(500)
 	m.timer.SetOnTimer(m.createBrowser)
 	// 在show时创建chromium browser
-	if tool.IsLinux() {
+	if tool.IsLinux() || tool.IsDarwin() {
 		// Linux需要一个可见的表单来创建浏览器，因此我们需要使用 TForm。OnActivate事件而不是TForm.OnShow
 		m.TForm.SetOnActivate(m.active)
 	} else {
@@ -180,6 +187,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Println("OnLoadStart:", frame.GetUrl())
 	})
 	m.chromium.SetOnLoadEnd(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, httpStatusCode int32) {
+		fmt.Println("OnLoadEnd")
 		requestCtx := browser.GetHost().GetRequestContext()
 		manager := requestCtx.GetCookieManager(nil)
 		// 使用 chromium 事件
@@ -189,21 +197,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		manager.Release()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
-		fmt.Println("SetOnAfterCreated 1")
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			fmt.Println("SetOnAfterCreated 2")
-		})
-		fmt.Println("SetOnAfterCreated 3")
-		if m.mainWindowId == 0 {
-			m.mainWindowId = browser.GetIdentifier()
-		}
-		m.windowParent.UpdateSize()
-		scheme.ChromiumAfterCreated(browser)
-	})
-	m.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
-		userGesture, isRedirect bool, result *bool) {
-		fmt.Println("SetOnBeforeBrowser")
-		m.windowParent.UpdateSize()
+		fmt.Println("SetOnAfterCreated isMainThread:", api.CurrentThreadId() == api.MainThreadId())
+		m.timer.SetEnabled(true)
 	})
 	m.chromium.SetOnDragEnter(func(sender lcl.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cefTypes.TCefDragOperations, outResult *bool) {
 		if mask&cefTypes.DRAG_OPERATION_LINK == cefTypes.DRAG_OPERATION_LINK {
@@ -263,6 +258,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			}
 		}
 		intfHeaderMap.Release()
+		fmt.Println("headerMap END")
 	})
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {
@@ -313,10 +309,10 @@ func (m *BrowserWindow) createBrowser(sender lcl.IObject) {
 	}
 	m.timer.SetEnabled(false)
 	rect := m.ClientRect()
-	init := m.chromium.Initialized()
 	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
+	init := m.chromium.Initialized()
 	fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
-	if !created {
+	if !created && !init {
 		m.timer.SetEnabled(true)
 	} else {
 		m.windowParent.UpdateSize()
