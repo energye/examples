@@ -528,6 +528,8 @@ func getResourcePath(name string) string {
 		sourcePath = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\custombrowser\\resources", name)
 	} else if tool.IsLinux() {
 		sourcePath = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/custombrowser/resources", name)
+	} else if tool.IsDarwin() {
+		sourcePath = filepath.Join("/Users/yanghy/app/workspace/examples/cef/custombrowser/resources", name)
 	}
 	if tool.IsExist(sourcePath) {
 		return sourcePath
