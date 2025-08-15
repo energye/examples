@@ -8,7 +8,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
-	"github.com/energye/examples/cef/debug_most/scheme"
+	"github.com/energye/examples/cef/messagepump"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -48,34 +48,46 @@ func main() {
 	//全局初始化 每个应用都必须调用的
 	cef.Init(nil, nil)
 
-	var scheduler cef.ICEFWorkScheduler
+	//var scheduler cef.ICEFWorkScheduler
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()
-		scheduler = cef.NewWorkScheduler(nil)
-		cef.SetGlobalCEFWorkSchedule(scheduler)
+		//scheduler = cef.NewWorkScheduler(nil)
+		//cef.SetGlobalCEFWorkSchedule(scheduler)
 	}
 
 	app := application.NewApplication()
-	app.SetLogSeverity(0)
+	app.SetLogSeverity(cefTypes.LOGSEVERITY_VERBOSE)
 	app.SetDisableFeatures("GPU")
 	app.SetEnableGPU(false)
-	app.SetEnableGPU(true)
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
 	fmt.Println("ProcessType:", app.ProcessType())
 	///v8context.Context(app)
-	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-		scheme.ApplicationOnRegCustomSchemes(registrar)
-	})
+	//app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+	//scheme.ApplicationOnRegCustomSchemes(registrar)
+	//})
 	if tool.IsDarwin() {
+		app.InitLibLocationFromArgs()
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
 		app.SetUseMockKeyChain(true)
 		app.SetExternalMessagePump(true)
 		app.SetMultiThreadedMessageLoop(false)
-		app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
-			//fmt.Println("OnScheduleMessagePumpWork delayMs:", delayMs)
-			scheduler.ScheduleMessagePumpWork(delayMs)
-		})
+		if app.ProcessType() == cefTypes.PtBrowser {
+			messagepump.GlobalCEFApp = app
+			messagepump.InitMessagePump()
+			app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
+				fmt.Println("IsMainThread:", messagepump.IsMainThread(), "delayMs:", delayMs)
+				//fmt.Println("OnScheduleMessagePumpWork delayMs:", delayMs)
+				//scheduler.ScheduleMessagePumpWork(delayMs)
+				//messagepump.OnScheduleMessagePumpWork(delayMs)
+				//app.DoMessageLoopWork()
+				messagepump.OnScheduleMessagePumpWork(delayMs)
+			})
+		} else {
+			startSub := app.StartSubProcess()
+			fmt.Println("startSub:", startSub)
+			return
+		}
 	} else if tool.IsLinux() {
 		if api.Widget().IsGTK2() {
 			// gtk2 使用 lcl 窗口
@@ -126,6 +138,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//assetsHtml = "https://www.baidu.com"
 		//assetsHtml = "https://www.bilibili.com/"
 		//assetsHtml = "https://www.google.com/"
+		//assetsHtml = "https://www.lazarus-ide.org"
 	} else if tool.IsLinux() {
 		assetsHtml = "file:///home/yanghy/app/gopath/src/github.com/energye/workspace/examples/cef/debug_most/assets/index.html"
 		//assetsHtml = "https://www.baidu.com"
@@ -157,6 +170,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	} else {
 		m.TForm.SetOnShow(m.show)
 	}
+
 	m.TForm.SetOnResize(m.resize)
 	m.windowParent.SetOnEnter(func(sender lcl.IObject) {
 		m.chromium.Initialized()
@@ -172,7 +186,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnClose(m.chromiumClose)
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	m.chromium.SetOnBeforeClose(m.chromiumBeforeClose)
-
+	return
 	// 上下文菜单
 	contextmenu.ContextMenu(m.chromium)
 	// cookie
