@@ -75,7 +75,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	}
 	//m.SetColor(colors.ClYellow)
 	m.SetColor(bgColor)
-	//m.SetCaption("ENERGY-3.0-浏览器")
+	m.SetCaption("ENERGY-3.0-浏览器")
 	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
 		stream := lcl.NewMemoryStream()
 		lcl.StreamHelper.Write(stream, iconData)
@@ -133,6 +133,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 		println("window.OnCloseQuery 当前浏览器数量:", len(m.chroms))
 		*canClose = len(m.chroms) == 0
+		if tool.IsDarwin() {
+			for _, chrom := range m.chroms {
+				chrom.closeBrowser()
+			}
+			*canClose = true
+		}
 	})
 }
 
@@ -151,6 +157,9 @@ func (m *BrowserWindow) boxDrag() {
 
 // 更新窗口控制按钮状态
 func (m *BrowserWindow) updateWindowControlBtn() {
+	if m.maxBtn == nil {
+		return
+	}
 	if m.WindowState() == types.WsMaximized {
 		m.maxBtn.SetHint("向下还原")
 		m.maxBtn.SetIcon(getResourcePath("btn-max-re.png"))
@@ -183,58 +192,63 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	}
 	// 窗口控制按钮 最小化，最大化，关闭
 	{
-		m.minBtn = wg.NewButton(m)
-		m.minBtn.SetParent(m.box)
-		m.minBtn.SetShowHint(true)
-		m.minBtn.SetHint("最小化")
-		minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
-		minBtnRect.SetSize(40, 40)
-		m.minBtn.SetBoundsRect(minBtnRect)
-		m.minBtn.SetStartColor(bgColor)
-		m.minBtn.SetEndColor(bgColor)
-		m.minBtn.SetRadius(5)
-		m.minBtn.SetAlpha(255)
-		m.minBtn.SetIcon(getResourcePath("btn-min.png"))
-		m.minBtn.SetOnClick(func(sender lcl.IObject) {
-			m.Minimize()
-		})
-		m.maxBtn = wg.NewButton(m)
-		m.maxBtn.SetParent(m.box)
-		m.maxBtn.SetShowHint(true)
-		m.maxBtn.SetHint("最大化")
-		maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
-		maxBtnRect.SetSize(40, 40)
-		m.maxBtn.SetBoundsRect(maxBtnRect)
-		m.maxBtn.SetStartColor(bgColor)
-		m.maxBtn.SetEndColor(bgColor)
-		m.maxBtn.SetRadius(5)
-		m.maxBtn.SetAlpha(255)
-		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
-		m.maxBtn.SetOnClick(func(sender lcl.IObject) {
-			m.Maximize()
-		})
-		m.closeBtn = wg.NewButton(m)
-		m.closeBtn.SetParent(m.box)
-		m.closeBtn.SetShowHint(true)
-		m.closeBtn.SetHint("关闭")
-		closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
-		closeBtnRect.SetSize(40, 40)
-		m.closeBtn.SetBoundsRect(closeBtnRect)
-		m.closeBtn.SetStartColor(bgColor)
-		m.closeBtn.SetEndColor(bgColor)
-		m.closeBtn.SetRadius(5)
-		m.closeBtn.SetAlpha(255)
-		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
-		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
-			if len(m.chroms) == 0 {
-				m.Close()
-			} else {
-				for _, chrom := range m.chroms {
-					chrom.closeBrowser()
+		createWindowControlBtn := func() {
+			m.minBtn = wg.NewButton(m)
+			m.minBtn.SetParent(m.box)
+			m.minBtn.SetShowHint(true)
+			m.minBtn.SetHint("最小化")
+			minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
+			minBtnRect.SetSize(40, 40)
+			m.minBtn.SetBoundsRect(minBtnRect)
+			m.minBtn.SetStartColor(bgColor)
+			m.minBtn.SetEndColor(bgColor)
+			m.minBtn.SetRadius(5)
+			m.minBtn.SetAlpha(255)
+			m.minBtn.SetIcon(getResourcePath("btn-min.png"))
+			m.minBtn.SetOnClick(func(sender lcl.IObject) {
+				m.Minimize()
+			})
+			m.maxBtn = wg.NewButton(m)
+			m.maxBtn.SetParent(m.box)
+			m.maxBtn.SetShowHint(true)
+			m.maxBtn.SetHint("最大化")
+			maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
+			maxBtnRect.SetSize(40, 40)
+			m.maxBtn.SetBoundsRect(maxBtnRect)
+			m.maxBtn.SetStartColor(bgColor)
+			m.maxBtn.SetEndColor(bgColor)
+			m.maxBtn.SetRadius(5)
+			m.maxBtn.SetAlpha(255)
+			m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
+			m.maxBtn.SetOnClick(func(sender lcl.IObject) {
+				m.Maximize()
+			})
+			m.closeBtn = wg.NewButton(m)
+			m.closeBtn.SetParent(m.box)
+			m.closeBtn.SetShowHint(true)
+			m.closeBtn.SetHint("关闭")
+			closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
+			closeBtnRect.SetSize(40, 40)
+			m.closeBtn.SetBoundsRect(closeBtnRect)
+			m.closeBtn.SetStartColor(bgColor)
+			m.closeBtn.SetEndColor(bgColor)
+			m.closeBtn.SetRadius(5)
+			m.closeBtn.SetAlpha(255)
+			m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
+			m.closeBtn.SetOnClick(func(sender lcl.IObject) {
+				if len(m.chroms) == 0 {
+					m.Close()
+				} else {
+					for _, chrom := range m.chroms {
+						chrom.closeBrowser()
+					}
 				}
-			}
-			m.isWindowButtonClose = true
-		})
+				m.isWindowButtonClose = true
+			})
+		}
+		if !tool.IsDarwin() {
+			createWindowControlBtn()
+		}
 	}
 	// 浏览器控制按钮
 	{
@@ -396,13 +410,6 @@ func (m *BrowserWindow) AddTabSheet(currentChromium *Chromium) {
 		// 更新当前 chromium tabSheetBtn激活
 		currentChromium.updateTabSheetActive(true)
 	})
-	//newTabSheet.SetOnMouseLeave(func(sender lcl.IObject) {
-	//
-	//})
-	//newTabSheet.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
-	//	//fmt.Println("TabSheet.OnMouseDown button:", button)
-	//	//CW.Show()
-	//})
 	currentChromium.isActive = true           // 设置默认激活
 	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
 
@@ -428,6 +435,9 @@ func (m *BrowserWindow) resetControlBtn() {
 }
 
 func (m *BrowserWindow) updateWindowCaption(title string) {
+	if tool.IsDarwin() {
+		return
+	}
 	lcl.RunOnMainThreadAsync(func(id uint32) {
 		if title == "" {
 			title = "ENERGY-3.0-浏览器"
@@ -535,4 +545,8 @@ func getResourcePath(name string) string {
 		return sourcePath
 	}
 	return ""
+}
+
+func printIsMainThread() {
+	println("isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 }
