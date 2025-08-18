@@ -245,6 +245,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		settings.StandardFontFamily = "微软雅黑"
 		windowInfo.Bounds = cef.TCefRect{X: 400, Y: 10, Width: 400, Height: 400}
 		windowInfo.WindowName = "杨杨红红岩岩"
+		*result = true
 	})
 
 	m.chromium.SetOnDownloadUpdated(func(sender lcl.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
