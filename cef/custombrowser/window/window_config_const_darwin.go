@@ -51,12 +51,12 @@ type NSControlSize C.NSControlSize
 
 // ControlStyle 的Go包装
 type ControlStyle struct {
-	Width       float64
-	Height      float64
-	BezelStyle  NSBezelStyle
-	ControlSize NSControlSize
-	Font        unsafe.Pointer
-	position    ToolbarPosition
+	Width          float64
+	Height         float64
+	BezelStyle     NSBezelStyle
+	ControlSize    NSControlSize
+	Font           unsafe.Pointer
+	IsNavigational bool
 }
 
 // ToolbarCallbackContext 的Go包装

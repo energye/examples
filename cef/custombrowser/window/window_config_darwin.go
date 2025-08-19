@@ -16,6 +16,18 @@ import (
 	"unsafe"
 )
 
+func controlStyleToOC(style ControlStyle) C.ControlStyle {
+	cStyle := C.ControlStyle{
+		width:          C.CGFloat(style.Width),
+		height:         C.CGFloat(style.Height),
+		bezelStyle:     C.NSBezelStyle(style.BezelStyle),
+		controlSize:    C.NSControlSize(style.ControlSize),
+		font:           (*C.NSFont)(style.Font),
+		IsNavigational: C.BOOL(style.IsNavigational),
+	}
+	return cStyle
+}
+
 // Go包装函数
 func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callbackContext ToolbarCallbackContext) {
 	C.ConfigureWindow(C.ulong(nsWindowHandle), C.ToolbarConfiguration(config), C.ToolbarCallbackContext{
@@ -38,13 +50,7 @@ func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string,
 		defer C.free(unsafe.Pointer(cTooltip))
 	}
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cStyle)
 }
@@ -62,13 +68,7 @@ func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, toolti
 		defer C.free(unsafe.Pointer(cTooltip))
 	}
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cStyle)
 }
@@ -83,13 +83,7 @@ func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string,
 		defer C.free(unsafe.Pointer(cPlaceholder))
 	}
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cStyle)
 }
@@ -104,13 +98,7 @@ func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder strin
 		defer C.free(unsafe.Pointer(cPlaceholder))
 	}
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cStyle)
 }
@@ -126,13 +114,7 @@ func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []strin
 		defer C.free(unsafe.Pointer(cItems[i]))
 	}
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarCombobox(C.ulong(nsWindowHandle), cIdentifier, (**C.char)(unsafe.Pointer(&cItems[0])), C.int(len(items)), cStyle)
 }
@@ -141,13 +123,7 @@ func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, style Contr
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
-	cStyle := C.ControlStyle{
-		width:       C.CGFloat(style.Width),
-		height:      C.CGFloat(style.Height),
-		bezelStyle:  C.NSBezelStyle(style.BezelStyle),
-		controlSize: C.NSControlSize(style.ControlSize),
-		font:        (*C.NSFont)(style.Font),
-	}
+	cStyle := controlStyleToOC(style)
 
 	C.AddToolbarCustomView(C.ulong(nsWindowHandle), cIdentifier, cStyle)
 }
@@ -202,11 +178,12 @@ func SetToolbarControlEnabled(nsWindowHandle uintptr, identifier string, enabled
 func CreateDefaultControlStyle() ControlStyle {
 	cStyle := C.CreateDefaultControlStyle()
 	return ControlStyle{
-		Width:       float64(cStyle.width),
-		Height:      float64(cStyle.height),
-		BezelStyle:  NSBezelStyle(cStyle.bezelStyle),
-		ControlSize: NSControlSize(cStyle.controlSize),
-		Font:        unsafe.Pointer(cStyle.font),
+		Width:          float64(cStyle.width),
+		Height:         float64(cStyle.height),
+		BezelStyle:     NSBezelStyle(cStyle.bezelStyle),
+		ControlSize:    NSControlSize(cStyle.controlSize),
+		Font:           unsafe.Pointer(cStyle.font),
+		IsNavigational: false,
 	}
 }
 
@@ -303,6 +280,7 @@ func (m *Window) TestTool() {
 	defaultStyle.Height = 24
 	defaultStyle.BezelStyle = BezelStyleTexturedRounded // 边框样式
 	defaultStyle.ControlSize = ControlSizeLarge         // 控件大小
+	defaultStyle.IsNavigational = true
 
 	itemCount := int(C.GetToolbarItemCount(C.ulong(windowHandle)))
 	fmt.Println("当前控件总数：", itemCount)

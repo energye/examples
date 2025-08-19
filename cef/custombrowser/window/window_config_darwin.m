@@ -148,9 +148,10 @@
     // 处理动态控件
     NSView *control = [self controlForIdentifier:itemIdentifier];
     if (control) {
+
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
         item.view = control;
-        item.navigational = TRUE; // 显示在左边了？？
+//         item.navigational = TRUE; // 显示在左边了？？
 //         item.priority = NSToolbarItemVisibilityPriorityHigh;
 
         // 应用存储的样式
@@ -158,6 +159,9 @@
         if (styleValue) {
             ControlStyle style;
             [styleValue getValue:&style];
+            item.navigational = style.IsNavigational;
+            NSLog(@"toolbar %d %@", style.IsNavigational, itemIdentifier);
+
             [self updateControlStyle:itemIdentifier withStyle:style];
         }
 
@@ -262,7 +266,6 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 #pragma mark - 动态控件创建函数
 
 void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style) {
-// void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style, NSUInteger index) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -297,10 +300,6 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
-//     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:index];
-    // 强制刷新工具栏
-//     [window.toolbar setVisible:NO];
-//     [window.toolbar setVisible:YES];
 }
 
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlStyle style) {

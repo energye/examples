@@ -32,6 +32,7 @@ typedef struct {
     NSBezelStyle bezelStyle;
     NSControlSize controlSize;
     NSFont *font;
+    BOOL IsNavigational;
 } ControlStyle;
 
 // 动态添加控件
