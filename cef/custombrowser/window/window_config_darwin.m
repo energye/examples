@@ -129,6 +129,7 @@
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
     NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
+
     return identifiers;
 }
 
@@ -149,6 +150,8 @@
     if (control) {
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
         item.view = control;
+        item.navigational = TRUE; // 显示在左边了？？
+//         item.priority = NSToolbarItemVisibilityPriorityHigh;
 
         // 应用存储的样式
         NSValue *styleValue = _controlStyles[itemIdentifier];
@@ -236,7 +239,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     toolbarDelegate.configuration = config;
     [toolbarDelegate setCallbackContext:callbackContext];
 
-    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"MainIDE.ToolBar"];
+    NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
     toolbar.allowsUserCustomization = (config & ToolbarConfigurationAllowUserCustomization) != 0;
     toolbar.autosavesConfiguration = (config & ToolbarConfigurationAutoSaveConfiguration) != 0;
@@ -259,6 +262,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 #pragma mark - 动态控件创建函数
 
 void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style) {
+// void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style, NSUInteger index) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -293,6 +297,10 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+//     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:index];
+    // 强制刷新工具栏
+//     [window.toolbar setVisible:NO];
+//     [window.toolbar setVisible:YES];
 }
 
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlStyle style) {
@@ -564,6 +572,30 @@ void AddToolbarSpace(unsigned long nsWindowHandle) {
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:spaceId atIndex:window.toolbar.items.count];
+}
+
+void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width) {
+    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+
+    // 创建固定空格标识符
+    NSString *spaceIdentifier = [NSString stringWithFormat:@"FixedSpace_%.0f", width];
+
+    // 创建固定宽度的视图
+    NSView *spaceView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, 1)];
+    spaceView.translatesAutoresizingMaskIntoConstraints = NO;
+    [spaceView.widthAnchor constraintEqualToConstant:width].active = YES;
+
+    // 添加到委托
+    [delegate addControl:spaceView forIdentifier:spaceIdentifier withStyle:CreateDefaultControlStyle()];
+
+    // 添加到工具栏
+    [window.toolbar insertItemWithItemIdentifier:spaceIdentifier atIndex:window.toolbar.items.count];
+}
+
+long GetToolbarItemCount(unsigned long nsWindowHandle) {
+    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+    return window.toolbar.items.count;
 }
 
 #pragma mark - 控件管理函数

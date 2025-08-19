@@ -35,6 +35,7 @@ typedef struct {
 } ControlStyle;
 
 // 动态添加控件
+//void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style, NSUInteger index);
 void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style);
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlStyle style);
 void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlStyle style);
@@ -58,6 +59,8 @@ void UpdateToolbarItemStyle(unsigned long nsWindowHandle, const char *identifier
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index);
 void AddToolbarFlexibleSpace(unsigned long nsWindowHandle);
 void AddToolbarSpace(unsigned long nsWindowHandle);
+void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width);
+long GetToolbarItemCount(unsigned long nsWindowHandle);
 
 #ifdef __cplusplus
 }

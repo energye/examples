@@ -16,38 +16,6 @@ import (
 	"unsafe"
 )
 
-// 定义Go对应的类型和常量
-type ToolbarConfiguration C.ToolbarConfiguration
-
-const (
-	ToolbarConfigurationNone                   ToolbarConfiguration = C.ToolbarConfigurationNone
-	ToolbarConfigurationAllowUserCustomization ToolbarConfiguration = C.ToolbarConfigurationAllowUserCustomization
-	ToolbarConfigurationAutoSaveConfiguration  ToolbarConfiguration = C.ToolbarConfigurationAutoSaveConfiguration
-	ToolbarConfigurationShowSeparator          ToolbarConfiguration = C.ToolbarConfigurationShowSeparator
-	ToolbarConfigurationDisplayModeIconOnly    ToolbarConfiguration = C.ToolbarConfigurationDisplayModeIconOnly
-	ToolbarConfigurationDisplayModeTextOnly    ToolbarConfiguration = C.ToolbarConfigurationDisplayModeTextOnly
-	ToolbarConfigurationDisplayModeIconAndText ToolbarConfiguration = C.ToolbarConfigurationDisplayModeIconAndText
-)
-
-type NSBezelStyle C.NSBezelStyle
-type NSControlSize C.NSControlSize
-
-// ControlStyle 的Go包装
-type ControlStyle struct {
-	Width       float64
-	Height      float64
-	BezelStyle  NSBezelStyle
-	ControlSize NSControlSize
-	Font        unsafe.Pointer
-}
-
-// ToolbarCallbackContext 的Go包装
-type ToolbarCallbackContext struct {
-	ClickCallback       C.ControlCallback
-	TextChangedCallback C.ControlCallback
-	UserData            unsafe.Pointer
-}
-
 // Go包装函数
 func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callbackContext ToolbarCallbackContext) {
 	C.ConfigureWindow(C.ulong(nsWindowHandle), C.ToolbarConfiguration(config), C.ToolbarCallbackContext{
@@ -192,6 +160,10 @@ func AddToolbarSpace(nsWindowHandle uintptr) {
 	C.AddToolbarSpace(C.ulong(nsWindowHandle))
 }
 
+func AddToolbarSpaceByWidth(nsWindowHandle uintptr, width float32) {
+	C.AddToolbarSpaceByWidth(C.ulong(nsWindowHandle), C.CGFloat(width))
+}
+
 func RemoveToolbarItem(nsWindowHandle uintptr, identifier string) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
@@ -261,14 +233,47 @@ func CreateControlStyle(width, height float64, bezelStyle NSBezelStyle, controlS
 func onButtonClicked(identifier *C.char, value *C.char, userData unsafe.Pointer) {
 	id := C.GoString(identifier)
 	val := C.GoString(value)
-	fmt.Printf("Button clicked: %s, Value: %s\n", id, val)
+	fmt.Println("clicked id:", id, "val:", val, "userData:", uintptr(userData))
 }
 
 //export onTextChanged
 func onTextChanged(identifier *C.char, value *C.char, userData unsafe.Pointer) {
 	id := C.GoString(identifier)
 	val := C.GoString(value)
-	fmt.Printf("Text changed: %s, Value: %s\n", id, val)
+	fmt.Println("clicked id:", id, "val:", val, "userData:", uintptr(userData))
+}
+
+// //export releaseFont
+//
+//	func releaseFont(font *C.NSFont) {
+//		C.CFRelease(C.CFTypeRef(font))
+//	}
+//
+// 定义工具栏位置枚举
+type ToolbarPosition int
+
+const (
+	ToolbarLeft   ToolbarPosition = iota // 左侧
+	ToolbarCenter                        // 中间
+	ToolbarRight                         // 右侧
+)
+
+// 计算插入索引
+func calculateInsertIndex(nsWindowHandle uintptr, position ToolbarPosition) int {
+	// 获取当前工具栏项数（需要新增一个Objective-C函数获取项数）
+	itemCount := int(C.GetToolbarItemCount(C.ulong(nsWindowHandle)))
+
+	switch position {
+	case ToolbarLeft:
+		return 0 // 左侧：插入到最前面
+	case ToolbarCenter:
+		// 中间：插入到现有项数的一半位置（向下取整）
+		return itemCount / 2
+	case ToolbarRight:
+		return itemCount // 右侧：插入到末尾
+	default:
+		return itemCount // 默认右侧
+	}
 }
 
 func (m *Window) TestTool() {
@@ -277,6 +282,7 @@ func (m *Window) TestTool() {
 	if windowHandle == 0 {
 		log.Fatal("Failed to get window handle")
 	}
+	fmt.Println("windowHandle:", windowHandle)
 
 	// 创建回调上下文
 	callbackContext := ToolbarCallbackContext{
@@ -287,17 +293,22 @@ func (m *Window) TestTool() {
 
 	// 配置窗口工具栏
 	config := ToolbarConfigurationAllowUserCustomization |
-		ToolbarConfigurationAutoSaveConfiguration |
+		//ToolbarConfigurationAutoSaveConfiguration |
 		ToolbarConfigurationDisplayModeIconAndText
 
 	ConfigureWindow(windowHandle, config, callbackContext)
 
 	// 创建默认样式
 	defaultStyle := CreateDefaultControlStyle()
+	defaultStyle.Height = 24
+	defaultStyle.BezelStyle = BezelStyleTexturedRounded // 边框样式
+	defaultStyle.ControlSize = ControlSizeLarge         // 控件大小
 
+	itemCount := int(C.GetToolbarItemCount(C.ulong(windowHandle)))
+	fmt.Println("当前控件总数：", itemCount)
 	// 添加按钮
 	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultStyle)
-	AddToolbarSpace(windowHandle)
+	AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加图片按钮
 	AddToolbarImageButton(windowHandle, "settings-button", "NSPreferencesGeneral", "Open settings", defaultStyle)
@@ -305,7 +316,8 @@ func (m *Window) TestTool() {
 
 	// 添加文本框
 	textFieldStyle := defaultStyle
-	textFieldStyle.Width = 200
+	textFieldStyle.Width = 400
+	textFieldStyle.Height = 24
 	AddToolbarTextField(windowHandle, "search-field", "Search...", textFieldStyle)
 	AddToolbarSpace(windowHandle)
 
@@ -322,3 +334,15 @@ func (m *Window) TestTool() {
 	value := GetToolbarControlValue(windowHandle, "search-field")
 	fmt.Printf("Search field value: %s\n", value)
 }
+
+//现代 macOS 工具栏开发最佳实践总结
+//
+//理解“统一工具栏”：从 macOS 11 (Big Sur) 开始，工具栏和标题栏在视觉上融合。使用 isNavigational 和 allowedAligned 属性来正确放置你的项。
+//明确项的角色：
+//导航类 (isNavigational = true)：如前进、后退、侧边栏切换。靠左放置。
+//主要操作/搜索 (principalItem)：如搜索栏。居中放置。
+//内容相关操作 (allowedAligned = .trailing)：如分享、排序、查看选项。靠右放置。
+//灵活空间 (.flexibleSpace, .space)：用于布局和对齐。
+//优先使用 SF Symbols：确保图标在不同主题和状态下的一致性。
+//善用分组：对于相关的操作（如视图切换：列表、图标、分栏），使用 NSToolbarItemGroup 并以 collapsed 模式显示，以节省空间。
+//响应式显示：正确设置 visibilityPriority，确保在窗口变窄时，最重要的项仍然可见，不重要的项会被自动隐藏到溢出菜单中。
