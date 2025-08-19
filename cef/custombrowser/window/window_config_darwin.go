@@ -28,7 +28,6 @@ func controlStyleToOC(style ControlStyle) C.ControlStyle {
 	return cStyle
 }
 
-// Go包装函数
 func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callbackContext ToolbarCallbackContext) {
 	C.ConfigureWindow(C.ulong(nsWindowHandle), C.ToolbarConfiguration(config), C.ToolbarCallbackContext{
 		clickCallback:       callbackContext.ClickCallback,
@@ -111,20 +110,18 @@ func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []strin
 	cItems := make([]*C.char, len(items))
 	for i, item := range items {
 		cItems[i] = C.CString(item)
-		defer C.free(unsafe.Pointer(cItems[i]))
 	}
-
 	cStyle := controlStyleToOC(style)
-
 	C.AddToolbarCombobox(C.ulong(nsWindowHandle), cIdentifier, (**C.char)(unsafe.Pointer(&cItems[0])), C.int(len(items)), cStyle)
+	for i, _ := range items {
+		C.free(unsafe.Pointer(cItems[i]))
+	}
 }
 
 func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, style ControlStyle) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
-
 	cStyle := controlStyleToOC(style)
-
 	C.AddToolbarCustomView(C.ulong(nsWindowHandle), cIdentifier, cStyle)
 }
 
