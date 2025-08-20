@@ -10,12 +10,13 @@
     ToolbarCallbackContext _callbackContext;
 }
 
-@property (nonatomic, assign) ToolbarConfiguration configuration;
+// @property (nonatomic, assign) ToolbarConfiguration configuration;
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
 - (NSView *)controlForIdentifier:(NSString *)identifier;
 - (void)removeControlForIdentifier:(NSString *)identifier;
 - (void)setCallbackContext:(ToolbarCallbackContext)context;
+- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
 @end
@@ -31,7 +32,7 @@
         _callbackContext.clickCallback = NULL;
         _callbackContext.textChangedCallback = NULL;
         _callbackContext.userData = NULL;
-        _configuration = ToolbarConfigurationNone;
+        // _configuration = ToolbarConfigurationNone;
     }
     return self;
 }
@@ -247,22 +248,16 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 
     // 创建工具栏
     MainToolbarDelegate *toolbarDelegate = [[MainToolbarDelegate alloc] init];
-    toolbarDelegate.configuration = config;
+    //toolbarDelegate.configuration = config;
     [toolbarDelegate setCallbackContext:callbackContext];
 
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
-    toolbar.allowsUserCustomization = (config & ToolbarConfigurationAllowUserCustomization) != 0;
-    toolbar.autosavesConfiguration = (config & ToolbarConfigurationAutoSaveConfiguration) != 0;
-
+    window.toolbarStyle = config.Style;
     // 设置显示模式
-    if (config & ToolbarConfigurationDisplayModeIconOnly) {
-        toolbar.displayMode = NSToolbarDisplayModeIconOnly;
-    } else if (config & ToolbarConfigurationDisplayModeIconAndText) {
-        toolbar.displayMode = NSToolbarDisplayModeIconAndLabel;
-    } else if (config & ToolbarConfigurationDisplayModeTextOnly) {
-        toolbar.displayMode = NSToolbarDisplayModeLabelOnly;
-    }
+    toolbar.allowsUserCustomization = config.IsAllowsUserCustomization;
+    toolbar.autosavesConfiguration = config.IsAutoSavesConfiguration;
+    toolbar.displayMode = config.DisplayMode;
 
     window.toolbar = toolbar;
 

@@ -8,15 +8,23 @@ extern "C" {
 typedef void (*ControlCallback)(const char *identifier, const char *value, const void *userData);
 
 // 工具栏配置选项
-typedef NS_OPTIONS(NSUInteger, ToolbarConfiguration) {
-    ToolbarConfigurationNone = 0,
-    ToolbarConfigurationAllowUserCustomization = 1 << 0,
-    ToolbarConfigurationAutoSaveConfiguration = 1 << 1,
-    ToolbarConfigurationShowSeparator = 1 << 2,
-    ToolbarConfigurationDisplayModeIconOnly = 1 << 3,
-    ToolbarConfigurationDisplayModeTextOnly = 1 << 4,
-    ToolbarConfigurationDisplayModeIconAndText = 1 << 5
-};
+//typedef NS_OPTIONS(NSUInteger, ToolbarConfiguration) {
+//    ToolbarConfigurationNone = 0,
+//    ToolbarConfigurationAllowUserCustomization = 1 << 0,
+//    ToolbarConfigurationAutoSaveConfiguration = 1 << 1,
+//    ToolbarConfigurationShowSeparator = 1 << 2,
+//    ToolbarConfigurationDisplayModeIconOnly = 1 << 3,
+//    ToolbarConfigurationDisplayModeTextOnly = 1 << 4,
+//    ToolbarConfigurationDisplayModeIconAndText = 1 << 5
+//};
+
+// 工具栏配置选项
+typedef struct {
+    BOOL IsAllowsUserCustomization;
+    BOOL IsAutoSavesConfiguration;
+    NSUInteger DisplayMode;
+    NSUInteger Style;
+} ToolbarConfiguration;
 
 // 回调上下文结构体，替代全局回调
 typedef struct {

@@ -8,17 +8,23 @@ package window
 import "C"
 import "unsafe"
 
-// ToolbarConfiguration 定义Go对应的类型和常量
-type ToolbarConfiguration C.ToolbarConfiguration
+type ToolbarDisplayMode = int
 
 const (
-	ToolbarConfigurationNone                   ToolbarConfiguration = C.ToolbarConfigurationNone
-	ToolbarConfigurationAllowUserCustomization ToolbarConfiguration = C.ToolbarConfigurationAllowUserCustomization
-	ToolbarConfigurationAutoSaveConfiguration  ToolbarConfiguration = C.ToolbarConfigurationAutoSaveConfiguration
-	ToolbarConfigurationShowSeparator          ToolbarConfiguration = C.ToolbarConfigurationShowSeparator
-	ToolbarConfigurationDisplayModeIconOnly    ToolbarConfiguration = C.ToolbarConfigurationDisplayModeIconOnly
-	ToolbarConfigurationDisplayModeTextOnly    ToolbarConfiguration = C.ToolbarConfigurationDisplayModeTextOnly
-	ToolbarConfigurationDisplayModeIconAndText ToolbarConfiguration = C.ToolbarConfigurationDisplayModeIconAndText
+	NSToolbarDisplayModeDefault      ToolbarDisplayMode = 0
+	NSToolbarDisplayModeIconAndLabel ToolbarDisplayMode = 1
+	NSToolbarDisplayModeIconOnly     ToolbarDisplayMode = 2
+	NSToolbarDisplayModeLabelOnly    ToolbarDisplayMode = 3
+)
+
+type ToolbarStyle = int
+
+const (
+	NSWindowToolbarStyleAutomatic      ToolbarStyle = 0
+	NSWindowToolbarStyleExpanded       ToolbarStyle = 1
+	NSWindowToolbarStylePreference     ToolbarStyle = 2
+	NSWindowToolbarStyleUnified        ToolbarStyle = 3
+	NSWindowToolbarStyleUnifiedCompact ToolbarStyle = 4
 )
 
 // 边框样式
@@ -65,4 +71,12 @@ type ToolbarCallbackContext struct {
 	ClickCallback       C.ControlCallback
 	TextChangedCallback C.ControlCallback
 	UserData            unsafe.Pointer
+}
+
+// ToolbarConfiguration 的Go包装
+type ToolbarConfiguration struct {
+	IsAllowsUserCustomization bool
+	IsAutoSavesConfiguration  bool
+	DisplayMode               ToolbarDisplayMode
+	Style                     ToolbarStyle
 }
