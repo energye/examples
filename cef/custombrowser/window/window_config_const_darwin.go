@@ -49,8 +49,8 @@ const (
 type NSBezelStyle C.NSBezelStyle
 type NSControlSize C.NSControlSize
 
-// ControlStyle 的Go包装
-type ControlStyle struct {
+// ControlProperty 的Go包装
+type ControlProperty struct {
 	Width          float64
 	Height         float64
 	BezelStyle     NSBezelStyle

@@ -33,16 +33,15 @@ typedef struct {
     NSControlSize controlSize;
     NSFont *font;
     BOOL IsNavigational;
-} ControlStyle;
+} ControlProperty;
 
 // 动态添加控件
-//void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style, NSUInteger index);
-void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style);
-void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlStyle style);
-void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlStyle style);
-void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlStyle style);
-void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlStyle style);
-void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlStyle style);
+void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
+void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property);
+void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
+void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
+void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property);
+void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 
 // 控件管理
 const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier);
@@ -50,13 +49,13 @@ void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled);
 
 // 公共函数
-ControlStyle CreateDefaultControlStyle();
-ControlStyle CreateControlStyle(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
+ControlProperty CreateDefaultControlProperty();
+ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
 void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ToolbarCallbackContext callbackContext);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
-void UpdateToolbarItemStyle(unsigned long nsWindowHandle, const char *identifier, ControlStyle style);
+void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index);
 void AddToolbarFlexibleSpace(unsigned long nsWindowHandle);
 void AddToolbarSpace(unsigned long nsWindowHandle);

@@ -6,17 +6,17 @@
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
     NSMutableDictionary<NSString *, NSView *> *_controls;
     NSMutableArray<NSString *> *_dynamicIdentifiers;
-    NSMutableDictionary<NSString *, NSValue *> *_controlStyles;
+    NSMutableDictionary<NSString *, NSValue *> *_controlProperty;
     ToolbarCallbackContext _callbackContext;
 }
 
 @property (nonatomic, assign) ToolbarConfiguration configuration;
 
-- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withStyle:(ControlStyle)style;
+- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
 - (NSView *)controlForIdentifier:(NSString *)identifier;
 - (void)removeControlForIdentifier:(NSString *)identifier;
 - (void)setCallbackContext:(ToolbarCallbackContext)context;
-- (void)updateControlStyle:(NSString *)identifier withStyle:(ControlStyle)style;
+- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
 @end
 
@@ -27,7 +27,7 @@
     if (self) {
         _controls = [NSMutableDictionary dictionary];
         _dynamicIdentifiers = [NSMutableArray array];
-        _controlStyles = [NSMutableDictionary dictionary];
+        _controlProperty = [NSMutableDictionary dictionary];
         _callbackContext.clickCallback = NULL;
         _callbackContext.textChangedCallback = NULL;
         _callbackContext.userData = NULL;
@@ -36,11 +36,11 @@
     return self;
 }
 
-- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withStyle:(ControlStyle)style {
+- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property {
     _controls[identifier] = control;
     // 存储控件样式
-    NSValue *styleValue = [NSValue value:&style withObjCType:@encode(ControlStyle)];
-    _controlStyles[identifier] = styleValue;
+    NSValue *propertyValue = [NSValue value:&property withObjCType:@encode(ControlProperty)];
+    _controlProperty[identifier] = propertyValue;
 
     if (![_dynamicIdentifiers containsObject:identifier]) {
         [_dynamicIdentifiers addObject:identifier];
@@ -55,7 +55,7 @@
     // 从控件字典中移除
     [_controls removeObjectForKey:identifier];
     // 从样式字典中移除
-    [_controlStyles removeObjectForKey:identifier];
+    [_controlProperty removeObjectForKey:identifier];
     // 从标识符数组中移除
     [_dynamicIdentifiers removeObject:identifier];
 }
@@ -64,21 +64,21 @@
     _callbackContext = context;
 }
 
-- (void)updateControlStyle:(NSString *)identifier withStyle:(ControlStyle)style {
+- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property {
     NSView *control = [self controlForIdentifier:identifier];
     if (!control) return;
 
     // 更新存储的样式
-    NSValue *styleValue = [NSValue value:&style withObjCType:@encode(ControlStyle)];
-    _controlStyles[identifier] = styleValue;
+    NSValue *propertyValue = [NSValue value:&property withObjCType:@encode(ControlProperty)];
+    _controlProperty[identifier] = propertyValue;
 
     // 应用样式到控件
     if ([control isKindOfClass:[NSControl class]]) {
         NSControl *ctrl = (NSControl *)control;
-        ctrl.controlSize = style.controlSize;
+        ctrl.controlSize = property.controlSize;
 
         // 宽度约束
-        if (style.width > 0) {
+        if (property.width > 0) {
             // 移除现有宽度约束
             for (NSLayoutConstraint *constraint in control.constraints) {
                 if (constraint.firstAttribute == NSLayoutAttributeWidth) {
@@ -87,11 +87,11 @@
                 }
             }
             // 添加新宽度约束
-            [control.widthAnchor constraintEqualToConstant:style.width].active = YES;
+            [control.widthAnchor constraintEqualToConstant:property.width].active = YES;
         }
 
         // 高度约束
-        if (style.height > 0) {
+        if (property.height > 0) {
             // 移除现有高度约束
             for (NSLayoutConstraint *constraint in control.constraints) {
                 if (constraint.firstAttribute == NSLayoutAttributeHeight) {
@@ -100,22 +100,22 @@
                 }
             }
             // 添加新高度约束
-            [control.heightAnchor constraintEqualToConstant:style.height].active = YES;
+            [control.heightAnchor constraintEqualToConstant:property.height].active = YES;
         }
 
         // 特定控件类型的样式
         if ([control isKindOfClass:[NSButton class]]) {
             NSButton *button = (NSButton *)control;
-            button.bezelStyle = style.bezelStyle;
-            if (style.font) {
-                button.font = style.font;
+            button.bezelStyle = property.bezelStyle;
+            if (property.font) {
+                button.font = property.font;
             }
         } else if ([control isKindOfClass:[NSTextField class]] ||
                    [control isKindOfClass:[NSSearchField class]] ||
                    [control isKindOfClass:[NSComboBox class]]) {
             NSTextField *textField = (NSTextField *)control;
-            if (style.font) {
-                textField.font = style.font;
+            if (property.font) {
+                textField.font = property.font;
             }
         }
     }
@@ -155,14 +155,14 @@
 //         item.priority = NSToolbarItemVisibilityPriorityHigh;
 
         // 应用存储的样式
-        NSValue *styleValue = _controlStyles[itemIdentifier];
-        if (styleValue) {
-            ControlStyle style;
-            [styleValue getValue:&style];
-            item.navigational = style.IsNavigational;
-            NSLog(@"toolbar %d %@", style.IsNavigational, itemIdentifier);
+        NSValue *propertyValue = _controlProperty[itemIdentifier];
+        if (propertyValue) {
+            ControlProperty property;
+            [propertyValue getValue:&property];
+            item.navigational = property.IsNavigational;
+            NSLog(@"toolbar %d %@", property.IsNavigational, itemIdentifier);
 
-            [self updateControlStyle:itemIdentifier withStyle:style];
+            [self updateControlProperty:itemIdentifier withProperty:property];
         }
 
         return item;
@@ -207,25 +207,25 @@
 #pragma mark - 公共函数实现
 
 // 创建默认控件样式
-ControlStyle CreateDefaultControlStyle() {
-    ControlStyle style;
-    style.width = 0; // 0表示自动大小
-    style.height = 0;
-    style.bezelStyle = NSBezelStyleTexturedRounded;
-    style.controlSize = NSControlSizeRegular;
-    style.font = nil;
-    return style;
+ControlProperty CreateDefaultControlProperty() {
+    ControlProperty property;
+    property.width = 0; // 0表示自动大小
+    property.height = 0;
+    property.bezelStyle = NSBezelStyleTexturedRounded;
+    property.controlSize = NSControlSizeRegular;
+    property.font = nil;
+    return property;
 }
 
 // 创建自定义控件样式
-ControlStyle CreateControlStyle(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font) {
-    ControlStyle style;
-    style.width = width;
-    style.height = height;
-    style.bezelStyle = bezelStyle;
-    style.controlSize = controlSize;
-    style.font = (__bridge NSFont *)font;
-    return style;
+ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font) {
+    ControlProperty property;
+    property.width = width;
+    property.height = height;
+    property.bezelStyle = bezelStyle;
+    property.controlSize = controlSize;
+    property.font = (__bridge NSFont *)font;
+    return property;
 }
 
 // 获取窗口指针
@@ -265,7 +265,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 
 #pragma mark - 动态控件创建函数
 
-void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlStyle style) {
+void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -275,34 +275,34 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
 
     // 创建按钮
     NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
-    button.bezelStyle = style.bezelStyle;
-    button.controlSize = style.controlSize;
+    button.bezelStyle = property.bezelStyle;
+    button.controlSize = property.controlSize;
     if (tooltipStr) {
         button.toolTip = tooltipStr;
     }
-    if (style.font) {
-        button.font = style.font;
+    if (property.font) {
+        button.font = property.font;
     }
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [button.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [button.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:button forIdentifier:idStr withStyle:style];
+    [delegate addControl:button forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlStyle style) {
+void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -314,35 +314,35 @@ void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier,
     NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageNameStr]
                                          target:delegate
                                          action:@selector(buttonClicked:)];
-    button.bezelStyle = style.bezelStyle;
-    button.controlSize = style.controlSize;
+    button.bezelStyle = property.bezelStyle;
+    button.controlSize = property.controlSize;
     button.imagePosition = NSImageOnly;
     if (tooltipStr) {
         button.toolTip = tooltipStr;
     }
-    if (style.font) {
-        button.font = style.font;
+    if (property.font) {
+        button.font = property.font;
     }
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [button.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [button.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:button forIdentifier:idStr withStyle:style];
+    [delegate addControl:button forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlStyle style) {
+void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -353,30 +353,30 @@ void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, c
     NSTextField *textField = [[NSTextField alloc] init];
     textField.placeholderString = placeholderStr;
     textField.delegate = delegate;
-    textField.controlSize = style.controlSize;
-    if (style.font) {
-        textField.font = style.font;
+    textField.controlSize = property.controlSize;
+    if (property.font) {
+        textField.font = property.font;
     }
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [textField.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [textField.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [textField.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [textField.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(textField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:textField forIdentifier:idStr withStyle:style];
+    [delegate addControl:textField forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlStyle style) {
+void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -387,30 +387,30 @@ void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier,
     NSSearchField *searchField = [[NSSearchField alloc] init];
     searchField.placeholderString = placeholderStr;
     searchField.delegate = delegate;
-    searchField.controlSize = style.controlSize;
-    if (style.font) {
-        searchField.font = style.font;
+    searchField.controlSize = property.controlSize;
+    if (property.font) {
+        searchField.font = property.font;
     }
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [searchField.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [searchField.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [searchField.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [searchField.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:searchField forIdentifier:idStr withStyle:style];
+    [delegate addControl:searchField forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlStyle style) {
+void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -419,9 +419,9 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
     // 创建下拉框
     NSComboBox *comboBox = [[NSComboBox alloc] init];
     comboBox.delegate = delegate;
-    comboBox.controlSize = style.controlSize;
-    if (style.font) {
-        comboBox.font = style.font;
+    comboBox.controlSize = property.controlSize;
+    if (property.font) {
+        comboBox.font = property.font;
     }
 
     // 添加选项
@@ -435,24 +435,24 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
     }
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [comboBox.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [comboBox.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [comboBox.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [comboBox.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(comboBox, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:comboBox forIdentifier:idStr withStyle:style];
+    [delegate addControl:comboBox forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlStyle style) {
+void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
@@ -462,18 +462,18 @@ void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, 
     NSView *container = [[NSView alloc] init];
 
     // 设置尺寸约束
-    if (style.width > 0) {
-        [container.widthAnchor constraintEqualToConstant:style.width].active = YES;
+    if (property.width > 0) {
+        [container.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
-    if (style.height > 0) {
-        [container.heightAnchor constraintEqualToConstant:style.height].active = YES;
+    if (property.height > 0) {
+        [container.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
 
     // 关联标识符
     objc_setAssociatedObject(container, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 
     // 添加到委托
-    [delegate addControl:container forIdentifier:idStr withStyle:style];
+    [delegate addControl:container forIdentifier:idStr withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
@@ -502,14 +502,14 @@ void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier) {
     }
 }
 
-void UpdateToolbarItemStyle(unsigned long nsWindowHandle, const char *identifier, ControlStyle style) {
+void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identifier, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
 
     if (!delegate) return;
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-    [delegate updateControlStyle:idStr withStyle:style];
+    [delegate updateControlProperty:idStr withProperty:property];
 }
 
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index) {
@@ -550,8 +550,8 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
     NSString *flexSpaceId = NSToolbarFlexibleSpaceItemIdentifier;
 
     // 添加到委托（使用nil控件，因为这是系统项）
-    ControlStyle style = CreateDefaultControlStyle();
-    [delegate addControl:nil forIdentifier:flexSpaceId withStyle:style];
+    ControlProperty property = CreateDefaultControlProperty();
+    [delegate addControl:nil forIdentifier:flexSpaceId withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:flexSpaceId atIndex:window.toolbar.items.count];
@@ -566,8 +566,8 @@ void AddToolbarSpace(unsigned long nsWindowHandle) {
     NSString *spaceId = NSToolbarSpaceItemIdentifier;
 
     // 添加到委托（使用nil控件，因为这是系统项）
-    ControlStyle style = CreateDefaultControlStyle();
-    [delegate addControl:nil forIdentifier:spaceId withStyle:style];
+    ControlProperty property = CreateDefaultControlProperty();
+    [delegate addControl:nil forIdentifier:spaceId withProperty:property];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:spaceId atIndex:window.toolbar.items.count];
@@ -586,7 +586,7 @@ void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width) {
     [spaceView.widthAnchor constraintEqualToConstant:width].active = YES;
 
     // 添加到委托
-    [delegate addControl:spaceView forIdentifier:spaceIdentifier withStyle:CreateDefaultControlStyle()];
+    [delegate addControl:spaceView forIdentifier:spaceIdentifier withProperty:CreateDefaultControlProperty()];
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:spaceIdentifier atIndex:window.toolbar.items.count];
