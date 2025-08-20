@@ -311,6 +311,11 @@ func (m *Window) TestTool() {
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
 	AddToolbarSearchField(windowHandle, "search-field", "Search...", textFieldProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
+
+	// 添加图片按钮
+	imageButtonProperty := defaultProperty
+	imageButtonProperty.IsNavigational = false
+	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	return
 	// 添加下拉框

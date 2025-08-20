@@ -169,7 +169,7 @@
 
             NSLog(@"toolbar %d %@", property.IsNavigational, itemIdentifier);
 
-            [self updateControlProperty:itemIdentifier withProperty:property];
+            // [self updateControlProperty:itemIdentifier withProperty:property];
         }
 
         return item;
@@ -316,8 +316,13 @@ void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier,
     NSString *imageNameStr = [NSString stringWithUTF8String:imageName];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
 
+    NSLog(@"Loading toolbar image: %@", imageNameStr);
+
     // 创建图片按钮
-    NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageNameStr]
+//     NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageNameStr]
+//                                          target:delegate
+//                                          action:@selector(buttonClicked:)];
+    NSButton *button = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:imageNameStr accessibilityDescription:nil]
                                          target:delegate
                                          action:@selector(buttonClicked:)];
     button.bezelStyle = property.bezelStyle;
