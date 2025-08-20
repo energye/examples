@@ -8,12 +8,36 @@ extern "C" {
 // 回调设置
 typedef void (*ControlCallback)(const char *identifier, const char *value, const void *userData);
 
-
 // 主线程回调函数-测试或使用
 typedef void (*RunOnMainThreadCallback)(long id);
 void RegisterRunOnMainThreadCallback(RunOnMainThreadCallback callback);
 void ExecuteRunOnMainThread(long id);
 static RunOnMainThreadCallback _runOnMainThreadCallback = nil;
+
+enum {
+    TCCClicked = 1,
+    TCCTextDidChange = 2,
+    TCCTextDidEndEditing = 3,
+    TCCSelectionChanged = 4,
+    TCCSelectionDidChange = 5
+};
+
+// 通用事件回调事件参数
+typedef struct {
+    long type_; // 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
+    const char *identifier; // 控件标识
+    const char *value; // 控件值
+    long index; // 值索引
+    void *owner; // 控件所属对象
+    void *sender; // 控件
+} ToolbarCallbackContext;
+
+// 通用事件回调事件类型
+typedef void (*ControlEventCallback)(ToolbarCallbackContext *context);
+// 创建事件对象
+ToolbarCallbackContext* CreateToolbarCallbackContext(long type, const NSString* identifier, const NSString* value, long index, void* owner, void* sender);
+// 释放事件对象
+void FreeToolbarCallbackContext(ToolbarCallbackContext* context);
 
 // 工具栏配置选项
 typedef struct {
@@ -24,14 +48,6 @@ typedef struct {
     NSUInteger      DisplayMode;
     NSUInteger      Style;
 } ToolbarConfiguration;
-
-// 回调上下文结构体，替代全局回调
-typedef struct {
-    ControlCallback clickCallback;
-    ControlCallback textChangedCallback;
-    ControlCallback textSubmitCallback;
-    void *userData; // 用户自定义数据指针
-} ToolbarCallbackContext;
 
 // 控件样式结构体
 typedef struct {
@@ -61,7 +77,7 @@ void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifie
 // 公共函数
 ControlProperty CreateDefaultControlProperty();
 ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
-void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ToolbarCallbackContext callbackContext);
+void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void *owner);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);

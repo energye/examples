@@ -5,9 +5,7 @@ package window
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #include "window_config_darwin.h"
 
-extern void onButtonClicked(char *identifier, char *value, void *userData);
-extern void onTextChanged(char *identifier, char *value, void *userData);
-extern void onTextSubmit(char *identifier, char *value, void *userData);
+extern void onControlEvent(ToolbarCallbackContext *cContext);
 extern void onRunOnMainThread(long id);
 
 */
@@ -46,14 +44,10 @@ func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguratio
 	return cConfig
 }
 
-func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callbackContext ToolbarCallbackContext) {
+func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, owner unsafe.Pointer) {
 	cConfig := ToolbarConfigurationToOC(config)
-	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, C.ToolbarCallbackContext{
-		clickCallback:       callbackContext.ClickCallback,
-		textChangedCallback: callbackContext.TextChangedCallback,
-		textSubmitCallback:  callbackContext.TextSubmitCallback,
-		userData:            callbackContext.UserData,
-	})
+	callback := (C.ControlEventCallback)(C.onControlEvent)
+	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, callback, owner)
 }
 
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, style ControlProperty) {
@@ -227,25 +221,17 @@ func CreateControlProperty(width, height float64, bezelStyle NSBezelStyle, contr
 
 // 导出Go回调函数供C调用
 
-//export onButtonClicked
-func onButtonClicked(identifier *C.char, value *C.char, userData unsafe.Pointer) {
-	id := C.GoString(identifier)
-	val := C.GoString(value)
-	fmt.Println("onButtonClicked id:", id, "val:", val, "userData:", uintptr(userData))
-}
-
-//export onTextChanged
-func onTextChanged(identifier *C.char, value *C.char, userData unsafe.Pointer) {
-	id := C.GoString(identifier)
-	val := C.GoString(value)
-	fmt.Println("onTextChanged id:", id, "val:", val, "userData:", uintptr(userData))
-}
-
-//export onTextSubmit
-func onTextSubmit(identifier *C.char, value *C.char, userData unsafe.Pointer) {
-	id := C.GoString(identifier)
-	val := C.GoString(value)
-	fmt.Println("onTextSubmit id:", id, "val:", val, "userData:", uintptr(userData))
+//export onControlEvent
+func onControlEvent(cContext *C.ToolbarCallbackContext) {
+	event := ToolbarCallbackContext{
+		Type:       TccType(cContext.type_),
+		Identifier: C.GoString(cContext.identifier),
+		Value:      C.GoString(cContext.value),
+		Index:      int(cContext.index),
+		Owner:      cContext.owner,
+		Sender:     cContext.sender,
+	}
+	fmt.Println("onControlEvent:", event)
 }
 
 //export onRunOnMainThread
@@ -290,12 +276,12 @@ func (m *Window) TestTool() {
 	fmt.Println("windowHandle:", windowHandle)
 
 	// 创建回调上下文
-	callbackContext := ToolbarCallbackContext{
-		ClickCallback:       (C.ControlCallback)(C.onButtonClicked),
-		TextChangedCallback: (C.ControlCallback)(C.onTextChanged),
-		TextSubmitCallback:  (C.ControlCallback)(C.onTextSubmit),
-		UserData:            unsafe.Pointer(windowHandle),
-	}
+	//callbackContext := ToolbarCallbackContext{
+	//	ClickCallback:       (C.ControlCallback)(C.onButtonClicked),
+	//	TextChangedCallback: (C.ControlCallback)(C.onTextChanged),
+	//	TextSubmitCallback:  (C.ControlCallback)(C.onTextSubmit),
+	//	UserData:            unsafe.Pointer(windowHandle),
+	//}
 
 	// 配置窗口工具栏
 	config := ToolbarConfiguration{
@@ -303,7 +289,7 @@ func (m *Window) TestTool() {
 		Transparent: true,
 	}
 
-	ConfigureWindow(windowHandle, config, callbackContext)
+	ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
 
 	// 创建默认样式
 	defaultProperty := CreateDefaultControlProperty()

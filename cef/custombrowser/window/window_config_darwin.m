@@ -2,6 +2,32 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
+// 创建工具栏事件回调上下文
+ToolbarCallbackContext* CreateToolbarCallbackContext(long type, const NSString* identifier, const NSString* value, long index, void* owner, void* sender) {
+    // 分配内存空间
+    ToolbarCallbackContext* context = (ToolbarCallbackContext*)malloc(sizeof(ToolbarCallbackContext));
+    if (!context) return NULL;  // 内存分配失败
+    // 初始化基本字段
+    context->type_ = type;
+    context->index = index;
+    context->owner = owner;
+    context->sender = sender;
+    // 深拷贝字符串字段
+    context->identifier = identifier ? strdup([identifier UTF8String]) : strdup("");
+    context->value = value ? strdup([value UTF8String]) : strdup("");
+    return context;
+}
+
+// 释放工具栏事件回调上下文
+void FreeToolbarCallbackContext(ToolbarCallbackContext* context) {
+    if (!context) return;
+    // 释放字符串内存
+    free((void*)context->identifier);
+    free((void*)context->value);
+    // 释放结构体
+    free(context);
+}
+
 static char kToolbarDelegateKey;
 
 // 工具栏委托类
@@ -9,7 +35,8 @@ static char kToolbarDelegateKey;
     NSMutableDictionary<NSString *, NSView *> *_controls;
     NSMutableArray<NSString *> *_dynamicIdentifiers;
     NSMutableDictionary<NSString *, NSValue *> *_controlProperty;
-    ToolbarCallbackContext _callbackContext;
+    ControlEventCallback _callback;
+    void *_owner; // nsWindowHandle
 }
 
 // @property (nonatomic, assign) ToolbarConfiguration configuration;
@@ -17,7 +44,8 @@ static char kToolbarDelegateKey;
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
 - (NSView *)controlForIdentifier:(NSString *)identifier;
 - (void)removeControlForIdentifier:(NSString *)identifier;
-- (void)setCallbackContext:(ToolbarCallbackContext)context;
+- (void)setCallback:(ControlEventCallback)callback;
+- (void)setOwner:(void *)owner;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
 @end
@@ -30,11 +58,8 @@ static char kToolbarDelegateKey;
         _controls = [NSMutableDictionary dictionary];
         _dynamicIdentifiers = [NSMutableArray array];
         _controlProperty = [NSMutableDictionary dictionary];
-        _callbackContext.clickCallback = NULL;
-        _callbackContext.textChangedCallback = NULL;
-        _callbackContext.textSubmitCallback = NULL;
-        _callbackContext.userData = NULL;
-        // _configuration = ToolbarConfigurationNone;
+        _callback = NULL;
+        _owner = NULL;
     }
     return self;
 }
@@ -68,8 +93,12 @@ static char kToolbarDelegateKey;
     [_dynamicIdentifiers removeObject:identifier];
 }
 
-- (void)setCallbackContext:(ToolbarCallbackContext)context {
-    _callbackContext = context;
+- (void)setCallback:(ControlEventCallback)callback {
+    _callback = callback;
+}
+
+- (void)setOwner:(void *)owner; {
+    _owner = owner;
 }
 
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property {
@@ -188,42 +217,66 @@ static char kToolbarDelegateKey;
 #pragma mark - 事件处理
 
 - (void)buttonClicked:(NSButton *)sender {
-    if (_callbackContext.clickCallback) {
+    NSLog(@"buttonClicked");
+    if (_callback) {
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
-            _callbackContext.clickCallback([identifier UTF8String], "", _callbackContext.userData);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _owner, sender);
+            _callback(context);
+            FreeToolbarCallbackContext(context);
         }
     }
 }
 
 - (void)comboBoxSelectionChanged:(NSComboBox *)sender {
     NSLog(@"comboBoxSelectionChanged");
-    if (_callbackContext.clickCallback) {
+    if (_callback) {
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
-            _callbackContext.clickCallback([identifier UTF8String], [[sender stringValue] UTF8String], _callbackContext.userData);
+            NSInteger selectedIndex = [sender indexOfSelectedItem];
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _owner, sender);
+            _callback(context);
+            FreeToolbarCallbackContext(context);
         }
     }
 }
 
-- (void)controlTextDidChange:(NSNotification *)notification {
-    if (_callbackContext.textChangedCallback) {
+// 用户选择发生变化时触发
+- (void)comboBoxSelectionDidChange:(NSNotification *)notification {
+    NSLog(@"comboBoxSelectionChanged");
+    if (_callback) {
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            NSString *value = [control stringValue];
-            _callbackContext.textChangedCallback([identifier UTF8String], [value UTF8String], _callbackContext.userData);
+            NSInteger selectedIndex = [control indexOfSelectedItem];
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _owner, control);
+            _callback(context);
+            FreeToolbarCallbackContext(context);
+        }
+    }
+}
+
+
+- (void)controlTextDidChange:(NSNotification *)notification {
+    if (_callback) {
+        id control = notification.object;
+        NSString *identifier = objc_getAssociatedObject(control, @"identifier");
+        if (identifier) {
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _owner, control);
+            _callback(context);
+            FreeToolbarCallbackContext(context);
         }
     }
 }
 
 - (void)controlTextDidEndEditing:(NSNotification *)notification {
-    if (_callbackContext.textSubmitCallback) {
+    if (_callback) {
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            NSString *value = [control stringValue];
-            _callbackContext.textSubmitCallback([identifier UTF8String], [value UTF8String], _callbackContext.userData);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _owner, control);
+            _callback(context);
+            FreeToolbarCallbackContext(context);
         }
     }
 }
@@ -269,13 +322,14 @@ static void initializeDelegateMap() {
 
 
 // 配置窗口
-void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ToolbarCallbackContext callbackContext) {
+void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void *owner) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
 
     // 创建工具栏
     MainToolbarDelegate *toolbarDelegate = [[MainToolbarDelegate alloc] init];
     //toolbarDelegate.configuration = config;
-    [toolbarDelegate setCallbackContext:callbackContext];
+    [toolbarDelegate setCallback:callback];
+    [toolbarDelegate setOwner:owner];
 
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
@@ -458,6 +512,7 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
     NSComboBox *comboBox = [[NSComboBox alloc] init];
     comboBox.delegate = delegate;
     comboBox.controlSize = property.controlSize;
+    [comboBox setEditable:NO];
     if (property.font) {
         comboBox.font = property.font;
     }

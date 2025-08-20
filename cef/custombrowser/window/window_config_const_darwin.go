@@ -17,6 +17,16 @@ const (
 	NSToolbarDisplayModeLabelOnly    ToolbarDisplayMode = 3
 )
 
+type TccType = int
+
+const (
+	TCCClicked            TccType = 1
+	TCCTextDidChange      TccType = 2
+	TCCTextDidEndEditing  TccType = 3
+	TCCSelectionChanged   TccType = 4
+	TCCSelectionDidChange TccType = 5
+)
+
 type ToolbarStyle = int
 
 const (
@@ -113,14 +123,6 @@ type ControlProperty struct {
 	IsCenteredItem bool
 }
 
-// ToolbarCallbackContext 的Go包装
-type ToolbarCallbackContext struct {
-	ClickCallback       C.ControlCallback
-	TextChangedCallback C.ControlCallback
-	TextSubmitCallback  C.ControlCallback
-	UserData            unsafe.Pointer
-}
-
 // ToolbarConfiguration 的Go包装
 type ToolbarConfiguration struct {
 	IsAllowsUserCustomization bool
@@ -129,4 +131,13 @@ type ToolbarConfiguration struct {
 	SeparatorStyle            TitlebarSeparatorStyle
 	DisplayMode               ToolbarDisplayMode
 	Style                     ToolbarStyle
+}
+
+type ToolbarCallbackContext struct {
+	Type       TccType        // 事件类型
+	Identifier string         // 控件标识
+	Value      string         // 控件值
+	Index      int            // 值索引
+	Owner      unsafe.Pointer // 所属对象
+	Sender     unsafe.Pointer // 控件对象
 }
