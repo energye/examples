@@ -46,18 +46,22 @@ typedef struct {
 	BOOL            Transparent;
 	NSUInteger      SeparatorStyle;
     NSUInteger      DisplayMode;
+    NSUInteger      SizeMode;
     NSUInteger      Style;
 } ToolbarConfiguration;
 
 // 控件样式结构体
 typedef struct {
-    CGFloat width;
-    CGFloat height;
-    NSBezelStyle bezelStyle;
-    NSControlSize controlSize;
-    NSFont *font;
-    BOOL IsNavigational;
-    BOOL IsCenteredItem;
+    CGFloat         width;
+    CGFloat         height;
+    CGFloat         minWidth;
+    CGFloat         maxWidth;
+    NSBezelStyle    bezelStyle;
+    NSControlSize   controlSize;
+    NSFont          *font;
+    BOOL            IsNavigational;
+    BOOL            IsCenteredItem;
+    NSInteger       VisibilityPriority;
 } ControlProperty;
 
 // 动态添加控件

@@ -161,7 +161,9 @@ static char kToolbarDelegateKey;
 #pragma mark - Toolbar Delegate
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
-    return [_dynamicIdentifiers copy];
+    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
+    NSLog(@"toolbarDefaultItemIdentifiers");
+    return identifiers;
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
@@ -169,6 +171,7 @@ static char kToolbarDelegateKey;
     // 添加系统标识符
     [identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
     [identifiers addObject:NSToolbarSpaceItemIdentifier];
+    NSLog(@"toolbarAllowedItemIdentifiers");
     return identifiers;
 }
 
@@ -200,8 +203,8 @@ static char kToolbarDelegateKey;
             item.navigational = property.IsNavigational; // 导航模式 靠左
             if (property.IsCenteredItem) {
                 toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
-                item.visibilityPriority = NSToolbarItemVisibilityPriorityHigh; // 高可见优先级
             }
+             item.visibilityPriority = property.VisibilityPriority; // 可见优先级
 
             NSLog(@"toolbar %d %@ %d", property.IsNavigational, itemIdentifier, property.IsCenteredItem);
 
@@ -291,9 +294,12 @@ ControlProperty CreateDefaultControlProperty() {
     ControlProperty property;
     property.width = 0; // 0表示自动大小
     property.height = 0;
+    property.minWidth = 0;
+    property.maxWidth = 0;
     property.bezelStyle = NSBezelStyleTexturedRounded;
     property.controlSize = NSControlSizeRegular;
     property.font = nil;
+    property.VisibilityPriority = NSToolbarItemVisibilityPriorityStandard;
     return property;
 }
 
@@ -343,6 +349,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     toolbar.allowsUserCustomization = config.IsAllowsUserCustomization;
     toolbar.autosavesConfiguration = config.IsAutoSavesConfiguration;
     toolbar.displayMode = config.DisplayMode;
+    toolbar.sizeMode = config.SizeMode; //NSToolbarSizeModeRegular; // 或 NSToolbarSizeModeSmall
 
     window.toolbar = toolbar;
 
@@ -642,6 +649,10 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
     // 添加到委托（使用nil控件，因为这是系统项）
 //     ControlProperty property = CreateDefaultControlProperty();
 //     [delegate addControl:nil forIdentifier:flexSpaceId withProperty:property];
+ // 确保灵活空间标识符在动态标识符列表中
+//     if (![delegate.dynamicIdentifiers containsObject:flexSpaceId]) {
+//         [delegate.dynamicIdentifiers addObject:flexSpaceId];
+//     }
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:flexSpaceId atIndex:window.toolbar.items.count];
 }

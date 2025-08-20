@@ -21,13 +21,14 @@ import (
 
 func controlPropertyToOC(property ControlProperty) C.ControlProperty {
 	cProperty := C.ControlProperty{
-		width:          C.CGFloat(property.Width),
-		height:         C.CGFloat(property.Height),
-		bezelStyle:     C.NSBezelStyle(property.BezelStyle),
-		controlSize:    C.NSControlSize(property.ControlSize),
-		font:           (*C.NSFont)(property.Font),
-		IsNavigational: C.BOOL(property.IsNavigational),
-		IsCenteredItem: C.BOOL(property.IsCenteredItem),
+		width:              C.CGFloat(property.Width),
+		height:             C.CGFloat(property.Height),
+		bezelStyle:         C.NSBezelStyle(property.BezelStyle),
+		controlSize:        C.NSControlSize(property.ControlSize),
+		font:               (*C.NSFont)(property.Font),
+		IsNavigational:     C.BOOL(property.IsNavigational),
+		IsCenteredItem:     C.BOOL(property.IsCenteredItem),
+		VisibilityPriority: C.NSInteger(property.VisibilityPriority),
 	}
 	return cProperty
 }
@@ -39,6 +40,7 @@ func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguratio
 		Transparent:               C.BOOL(config.Transparent),
 		SeparatorStyle:            C.NSUInteger(config.SeparatorStyle),
 		DisplayMode:               C.NSUInteger(config.DisplayMode),
+		SizeMode:                  C.NSUInteger(config.SizeMode),
 		Style:                     C.NSUInteger(config.Style),
 	}
 	return cConfig
@@ -194,28 +196,14 @@ func SetToolbarControlHidden(nsWindowHandle uintptr, identifier string, hidden b
 func CreateDefaultControlProperty() ControlProperty {
 	cProperty := C.CreateDefaultControlProperty()
 	return ControlProperty{
-		Width:       float64(cProperty.width),
-		Height:      float64(cProperty.height),
-		BezelStyle:  NSBezelStyle(cProperty.bezelStyle),
-		ControlSize: NSControlSize(cProperty.controlSize),
-		Font:        unsafe.Pointer(cProperty.font),
-	}
-}
-
-func CreateControlProperty(width, height float64, bezelStyle NSBezelStyle, controlSize NSControlSize, font unsafe.Pointer) ControlProperty {
-	cProperty := C.CreateControlProperty(
-		C.CGFloat(width),
-		C.CGFloat(height),
-		C.NSBezelStyle(bezelStyle),
-		C.NSControlSize(controlSize),
-		font,
-	)
-	return ControlProperty{
-		Width:       float64(cProperty.width),
-		Height:      float64(cProperty.height),
-		BezelStyle:  NSBezelStyle(cProperty.bezelStyle),
-		ControlSize: NSControlSize(cProperty.controlSize),
-		Font:        unsafe.Pointer(cProperty.font),
+		Width:              float64(cProperty.width),
+		Height:             float64(cProperty.height),
+		MinWidth:           float64(cProperty.minWidth),
+		MaxWidth:           float64(cProperty.maxWidth),
+		BezelStyle:         NSBezelStyle(cProperty.bezelStyle),
+		ControlSize:        NSControlSize(cProperty.controlSize),
+		Font:               unsafe.Pointer(cProperty.font),
+		VisibilityPriority: int(cProperty.VisibilityPriority),
 	}
 }
 
@@ -287,6 +275,7 @@ func (m *Window) TestTool() {
 	config := ToolbarConfiguration{
 		DisplayMode: NSToolbarDisplayModeIconOnly,
 		Transparent: true,
+		SizeMode:    NSToolbarSizeModeSmall,
 	}
 
 	ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
@@ -301,27 +290,32 @@ func (m *Window) TestTool() {
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
 	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
-	textFieldProperty := defaultProperty
-	textFieldProperty.Height = 28
-	textFieldProperty.IsNavigational = false
-	textFieldProperty.IsCenteredItem = true
+	textProperty := defaultProperty
+	//textProperty.Height = 28
+	textProperty.IsNavigational = true
+	textProperty.IsCenteredItem = true
+	textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityUser
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
-	AddToolbarSearchField(windowHandle, "search-field", "Search...", textFieldProperty)
-	AddToolbarFlexibleSpace(windowHandle)
+	//AddToolbarFlexibleSpace(windowHandle)
+	AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加下拉框
 	comboProperty := defaultProperty
 	comboProperty.IsNavigational = false
 	comboProperty.Width = 100
-	comboItems := []string{"Option 1", "Option 2", "Option 3"}
-	AddToolbarCombobox(windowHandle, "options-combo", comboItems, comboProperty)
+	//comboItems := []string{"Option 1", "Option 2", "Option 3"}
+	//AddToolbarCombobox(windowHandle, "options-combo", comboItems, comboProperty)
 
 	// 添加图片按钮
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
+	imageButtonProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
 	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	SetToolbarControlHidden(windowHandle, "go-back", false)

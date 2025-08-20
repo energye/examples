@@ -80,6 +80,14 @@ const (
 	NSTitlebarSeparatorStyleShadow    TitlebarSeparatorStyle = 3
 )
 
+type ToolbarSizeMode = int
+
+const (
+	NSToolbarSizeModeDefault ToolbarSizeMode = 0
+	NSToolbarSizeModeRegular ToolbarSizeMode = 1
+	NSToolbarSizeModeSmall   ToolbarSizeMode = 2
+)
+
 type NSBezelStyle C.NSBezelStyle
 type NSControlSize C.NSControlSize
 
@@ -114,13 +122,16 @@ type ControlItemSearch struct {
 
 // ControlProperty 的Go包装
 type ControlProperty struct {
-	Width          float64
-	Height         float64
-	BezelStyle     NSBezelStyle
-	ControlSize    NSControlSize
-	Font           unsafe.Pointer
-	IsNavigational bool
-	IsCenteredItem bool
+	Width              float64
+	Height             float64
+	MinWidth           float64
+	MaxWidth           float64
+	BezelStyle         NSBezelStyle
+	ControlSize        NSControlSize
+	Font               unsafe.Pointer
+	IsNavigational     bool
+	IsCenteredItem     bool
+	VisibilityPriority ItemVisibilityPriority
 }
 
 // ToolbarConfiguration 的Go包装
@@ -130,6 +141,7 @@ type ToolbarConfiguration struct {
 	Transparent               bool
 	SeparatorStyle            TitlebarSeparatorStyle
 	DisplayMode               ToolbarDisplayMode
+	SizeMode                  ToolbarSizeMode
 	Style                     ToolbarStyle
 }
 
