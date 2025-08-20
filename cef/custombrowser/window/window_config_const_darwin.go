@@ -117,6 +117,7 @@ type ControlProperty struct {
 type ToolbarCallbackContext struct {
 	ClickCallback       C.ControlCallback
 	TextChangedCallback C.ControlCallback
+	TextSubmitCallback  C.ControlCallback
 	UserData            unsafe.Pointer
 }
 

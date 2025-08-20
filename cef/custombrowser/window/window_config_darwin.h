@@ -29,6 +29,7 @@ typedef struct {
 typedef struct {
     ControlCallback clickCallback;
     ControlCallback textChangedCallback;
+    ControlCallback textSubmitCallback;
     void *userData; // 用户自定义数据指针
 } ToolbarCallbackContext;
 

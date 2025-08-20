@@ -7,13 +7,13 @@ package window
 
 extern void onButtonClicked(char *identifier, char *value, void *userData);
 extern void onTextChanged(char *identifier, char *value, void *userData);
+extern void onTextSubmit(char *identifier, char *value, void *userData);
 extern void onRunOnMainThread(long id);
 
 */
 import "C"
 import (
 	"fmt"
-	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"log"
 	"sync"
@@ -51,6 +51,7 @@ func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callba
 	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, C.ToolbarCallbackContext{
 		clickCallback:       callbackContext.ClickCallback,
 		textChangedCallback: callbackContext.TextChangedCallback,
+		textSubmitCallback:  callbackContext.TextSubmitCallback,
 		userData:            callbackContext.UserData,
 	})
 }
@@ -230,14 +231,21 @@ func CreateControlProperty(width, height float64, bezelStyle NSBezelStyle, contr
 func onButtonClicked(identifier *C.char, value *C.char, userData unsafe.Pointer) {
 	id := C.GoString(identifier)
 	val := C.GoString(value)
-	fmt.Println("clicked id:", id, "val:", val, "userData:", uintptr(userData))
+	fmt.Println("onButtonClicked id:", id, "val:", val, "userData:", uintptr(userData))
 }
 
 //export onTextChanged
 func onTextChanged(identifier *C.char, value *C.char, userData unsafe.Pointer) {
 	id := C.GoString(identifier)
 	val := C.GoString(value)
-	fmt.Println("clicked id:", id, "val:", val, "userData:", uintptr(userData))
+	fmt.Println("onTextChanged id:", id, "val:", val, "userData:", uintptr(userData))
+}
+
+//export onTextSubmit
+func onTextSubmit(identifier *C.char, value *C.char, userData unsafe.Pointer) {
+	id := C.GoString(identifier)
+	val := C.GoString(value)
+	fmt.Println("onTextSubmit id:", id, "val:", val, "userData:", uintptr(userData))
 }
 
 //export onRunOnMainThread
@@ -285,6 +293,7 @@ func (m *Window) TestTool() {
 	callbackContext := ToolbarCallbackContext{
 		ClickCallback:       (C.ControlCallback)(C.onButtonClicked),
 		TextChangedCallback: (C.ControlCallback)(C.onTextChanged),
+		TextSubmitCallback:  (C.ControlCallback)(C.onTextSubmit),
 		UserData:            unsafe.Pointer(windowHandle),
 	}
 
@@ -308,10 +317,6 @@ func (m *Window) TestTool() {
 	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
-	// 添加图片按钮
-	//AddToolbarImageButton(windowHandle, "settings-button", "NSPreferencesGeneral", "Open settings", defaultProperty)
-	//AddToolbarFlexibleSpace(windowHandle)
-
 	// 添加文本框
 	textFieldProperty := defaultProperty
 	textFieldProperty.Height = 28
@@ -321,6 +326,13 @@ func (m *Window) TestTool() {
 	AddToolbarSearchField(windowHandle, "search-field", "Search...", textFieldProperty)
 	AddToolbarFlexibleSpace(windowHandle)
 
+	// 添加下拉框
+	comboProperty := defaultProperty
+	comboProperty.IsNavigational = false
+	comboProperty.Width = 100
+	comboItems := []string{"Option 1", "Option 2", "Option 3"}
+	AddToolbarCombobox(windowHandle, "options-combo", comboItems, comboProperty)
+
 	// 添加图片按钮
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
@@ -328,18 +340,21 @@ func (m *Window) TestTool() {
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	SetToolbarControlHidden(windowHandle, "go-back", false)
 	go func() {
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 2)
 		RunOnManThread(func() {
-			windowHandle := uintptr(lcl.PlatformWindow(m.Instance()))
-			fmt.Println("RunOnManThread", api.MainThreadId() == api.CurrentThreadId())
-			SetToolbarControlHidden(windowHandle, "go-back", true)
-			SetToolbarControlValue(windowHandle, "search-field", "Initial value")
+			//SetToolbarControlHidden(windowHandle, "go-back", true)
+			SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
+		})
+		time.Sleep(time.Second * 2)
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
+		})
+		time.Sleep(time.Second * 2)
+		lcl.RunOnMainThreadSync(func() {
+			SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadSync 设置 Initial value")
+
 		})
 	}()
-	return
-	// 添加下拉框
-	comboItems := []string{"Option 1", "Option 2", "Option 3"}
-	AddToolbarCombobox(windowHandle, "options-combo", comboItems, defaultProperty)
 
 	fmt.Println("Toolbar created successfully!")
 

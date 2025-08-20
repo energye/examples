@@ -32,6 +32,7 @@ static char kToolbarDelegateKey;
         _controlProperty = [NSMutableDictionary dictionary];
         _callbackContext.clickCallback = NULL;
         _callbackContext.textChangedCallback = NULL;
+        _callbackContext.textSubmitCallback = NULL;
         _callbackContext.userData = NULL;
         // _configuration = ToolbarConfigurationNone;
     }
@@ -196,6 +197,7 @@ static char kToolbarDelegateKey;
 }
 
 - (void)comboBoxSelectionChanged:(NSComboBox *)sender {
+    NSLog(@"comboBoxSelectionChanged");
     if (_callbackContext.clickCallback) {
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
@@ -214,6 +216,18 @@ static char kToolbarDelegateKey;
         }
     }
 }
+
+- (void)controlTextDidEndEditing:(NSNotification *)notification {
+    if (_callbackContext.textSubmitCallback) {
+        id control = notification.object;
+        NSString *identifier = objc_getAssociatedObject(control, @"identifier");
+        if (identifier) {
+            NSString *value = [control stringValue];
+            _callbackContext.textSubmitCallback([identifier UTF8String], [value UTF8String], _callbackContext.userData);
+        }
+    }
+}
+
 
 @end
 
