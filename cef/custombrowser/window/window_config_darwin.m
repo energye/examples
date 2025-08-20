@@ -129,7 +129,9 @@
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
     NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
-
+    // 添加系统标识符
+    [identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
+    [identifiers addObject:NSToolbarSpaceItemIdentifier];
     return identifiers;
 }
 
@@ -150,16 +152,21 @@
     if (control) {
 
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+        item.minSize = NSZeroSize;
+        item.maxSize = NSZeroSize;
         item.view = control;
-//         item.navigational = TRUE; // 显示在左边了？？
-//         item.priority = NSToolbarItemVisibilityPriorityHigh;
 
         // 应用存储的样式
         NSValue *propertyValue = _controlProperty[itemIdentifier];
         if (propertyValue) {
             ControlProperty property;
             [propertyValue getValue:&property];
-            item.navigational = property.IsNavigational;
+            item.navigational = property.IsNavigational; // 导航模式 靠左
+            if (property.IsCenteredItem) {
+                toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
+                item.visibilityPriority = NSToolbarItemVisibilityPriorityHigh; // 高可见优先级
+            }
+
             NSLog(@"toolbar %d %@", property.IsNavigational, itemIdentifier);
 
             [self updateControlProperty:itemIdentifier withProperty:property];
@@ -544,15 +551,11 @@ void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifi
 void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-
     if (!delegate) return;
-
     NSString *flexSpaceId = NSToolbarFlexibleSpaceItemIdentifier;
-
     // 添加到委托（使用nil控件，因为这是系统项）
-    ControlProperty property = CreateDefaultControlProperty();
-    [delegate addControl:nil forIdentifier:flexSpaceId withProperty:property];
-
+//     ControlProperty property = CreateDefaultControlProperty();
+//     [delegate addControl:nil forIdentifier:flexSpaceId withProperty:property];
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:flexSpaceId atIndex:window.toolbar.items.count];
 }
@@ -560,15 +563,11 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
 void AddToolbarSpace(unsigned long nsWindowHandle) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-
     if (!delegate) return;
-
     NSString *spaceId = NSToolbarSpaceItemIdentifier;
-
     // 添加到委托（使用nil控件，因为这是系统项）
-    ControlProperty property = CreateDefaultControlProperty();
-    [delegate addControl:nil forIdentifier:spaceId withProperty:property];
-
+//     ControlProperty property = CreateDefaultControlProperty();
+//     [delegate addControl:nil forIdentifier:spaceId withProperty:property];
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:spaceId atIndex:window.toolbar.items.count];
 }

@@ -33,6 +33,7 @@ typedef struct {
     NSControlSize controlSize;
     NSFont *font;
     BOOL IsNavigational;
+    BOOL IsCenteredItem;
 } ControlProperty;
 
 // 动态添加控件

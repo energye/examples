@@ -24,6 +24,7 @@ func controlPropertyToOC(property ControlProperty) C.ControlProperty {
 		controlSize:    C.NSControlSize(property.ControlSize),
 		font:           (*C.NSFont)(property.Font),
 		IsNavigational: C.BOOL(property.IsNavigational),
+		IsCenteredItem: C.BOOL(property.IsCenteredItem),
 	}
 	return cProperty
 }
@@ -175,12 +176,11 @@ func SetToolbarControlEnabled(nsWindowHandle uintptr, identifier string, enabled
 func CreateDefaultControlProperty() ControlProperty {
 	cProperty := C.CreateDefaultControlProperty()
 	return ControlProperty{
-		Width:          float64(cProperty.width),
-		Height:         float64(cProperty.height),
-		BezelStyle:     NSBezelStyle(cProperty.bezelStyle),
-		ControlSize:    NSControlSize(cProperty.controlSize),
-		Font:           unsafe.Pointer(cProperty.font),
-		IsNavigational: false,
+		Width:       float64(cProperty.width),
+		Height:      float64(cProperty.height),
+		BezelStyle:  NSBezelStyle(cProperty.bezelStyle),
+		ControlSize: NSControlSize(cProperty.controlSize),
+		Font:        unsafe.Pointer(cProperty.font),
 	}
 }
 
@@ -275,27 +275,29 @@ func (m *Window) TestTool() {
 	// 创建默认样式
 	defaultProperty := CreateDefaultControlProperty()
 	defaultProperty.Height = 24
-	defaultProperty.BezelStyle = BezelStyleTexturedRounded // 边框样式
-	defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
+	//defaultProperty.BezelStyle = BezelStyleTexturedRounded // 边框样式
+	//defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
 	defaultProperty.IsNavigational = true
 
-	itemCount := int(C.GetToolbarItemCount(C.ulong(windowHandle)))
-	fmt.Println("当前控件总数：", itemCount)
+	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
 	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
-	AddToolbarFlexibleSpace(windowHandle)
+	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加图片按钮
-	AddToolbarImageButton(windowHandle, "settings-button", "NSPreferencesGeneral", "Open settings", defaultProperty)
-	AddToolbarFlexibleSpace(windowHandle)
+	//AddToolbarImageButton(windowHandle, "settings-button", "NSPreferencesGeneral", "Open settings", defaultProperty)
+	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
 	textFieldProperty := defaultProperty
-	textFieldProperty.Width = 400
-	textFieldProperty.Height = 24
+	//textFieldProperty.Width = 400
+	//textFieldProperty.Height = 24
+	textFieldProperty.IsNavigational = false
+	textFieldProperty.IsCenteredItem = true
 	AddToolbarTextField(windowHandle, "search-field", "Search...", textFieldProperty)
-	AddToolbarSpace(windowHandle)
-
+	AddToolbarFlexibleSpace(windowHandle)
+	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
+	return
 	// 添加下拉框
 	comboItems := []string{"Option 1", "Option 2", "Option 3"}
 	AddToolbarCombobox(windowHandle, "options-combo", comboItems, defaultProperty)
