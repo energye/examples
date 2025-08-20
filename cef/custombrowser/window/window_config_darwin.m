@@ -37,6 +37,7 @@ static char kToolbarDelegateKey;
     NSMutableDictionary<NSString *, NSValue *> *_controlProperty;
     ControlEventCallback _callback;
     void *_owner; // nsWindowHandle
+    NSMutableDictionary<NSString *, NSLayoutConstraint *> *_widthConstraints;
 }
 
 // @property (nonatomic, assign) ToolbarConfiguration configuration;
@@ -48,6 +49,9 @@ static char kToolbarDelegateKey;
 - (void)setOwner:(void *)owner;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
+- (void)windowDidResize:(NSNotification *)notification;
+- (void)updateTextFieldWidthsForWindow:(NSWindow *)window;
+
 @end
 
 @implementation MainToolbarDelegate
@@ -58,16 +62,73 @@ static char kToolbarDelegateKey;
         _controls = [NSMutableDictionary dictionary];
         _dynamicIdentifiers = [NSMutableArray array];
         _controlProperty = [NSMutableDictionary dictionary];
+        _widthConstraints = [NSMutableDictionary dictionary];
         _callback = NULL;
         _owner = NULL;
+        // 监听窗口大小变化
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(windowDidResize:)
+                                                     name:NSWindowDidResizeNotification
+                                                   object:nil];
     }
     return self;
 }
 
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super dealloc];
     NSLog(@"MainToolbarDelegate dealloc 释放");
 }
+
+
+- (void)windowDidResize:(NSNotification *)notification {
+    NSWindow *window = notification.object;
+    NSLog(@"windowDidResize");
+    // [self updateTextFieldWidthsForWindow:window];
+}
+
+- (void)updateTextFieldWidthsForWindow:(NSWindow *)window {
+    CGFloat windowWidth = window.frame.size.width;
+    CGFloat availableWidth = windowWidth - 180; // 减去交通灯区域和边距
+
+    NSToolbar *toolbar = window.toolbar;
+    if (![toolbar isKindOfClass:[NSToolbar class]]) {
+        NSLog(@"updateTextFieldWidthsForWindow not kind NSToolbar class");
+        return ;
+    }
+    NSLog(@"updateTextFieldWidthsForWindow 1");
+    NSView *control;
+    for (NSToolbarItem *item in toolbar.items) {
+        if (![item.itemIdentifier isEqualToString:@"search-field"]) continue;
+        control = item.view;
+    }
+    if(!control){
+        NSLog(@"updateTextFieldWidthsForWindow not control");
+        return;
+    }
+    NSLog(@"updateTextFieldWidthsForWindow 2");
+
+    // 计算新宽度
+    CGFloat newWidth = availableWidth;
+
+    // 获取控件属性
+    NSLog(@"updateTextFieldWidthsForWindow 3");
+
+    // 更新宽度约束
+    NSLayoutConstraint *widthConstraint = _widthConstraints[@"search-field"];
+    if (!widthConstraint) {
+        NSLog(@"updateTextFieldWidthsForWindow 4");
+        // 创建新的宽度约束
+        widthConstraint = [control.widthAnchor constraintEqualToConstant:newWidth];
+        NSLog(@"updateTextFieldWidthsForWindow 5");
+        widthConstraint.active = YES;
+        _widthConstraints[@"search-field"] = widthConstraint;
+    } else {
+        // 更新现有约束
+        widthConstraint.constant = newWidth;
+    }
+}
+
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property {
     _controls[identifier] = control;
@@ -225,8 +286,11 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _owner, sender);
-            _callback(context);
-            FreeToolbarCallbackContext(context);
+            @try{
+                _callback(context);
+            } @finally {
+                FreeToolbarCallbackContext(context);
+            }
         }
     }
 }
@@ -238,8 +302,11 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _owner, sender);
-            _callback(context);
-            FreeToolbarCallbackContext(context);
+            @try{
+                _callback(context);
+            } @finally {
+                FreeToolbarCallbackContext(context);
+            }
         }
     }
 }
@@ -253,8 +320,11 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _owner, control);
-            _callback(context);
-            FreeToolbarCallbackContext(context);
+            @try{
+                _callback(context);
+            } @finally {
+                FreeToolbarCallbackContext(context);
+            }
         }
     }
 }
@@ -266,8 +336,11 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _owner, control);
-            _callback(context);
-            FreeToolbarCallbackContext(context);
+            @try{
+                _callback(context);
+            } @finally {
+                FreeToolbarCallbackContext(context);
+            }
         }
     }
 }
@@ -278,8 +351,11 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _owner, control);
-            _callback(context);
-            FreeToolbarCallbackContext(context);
+            @try{
+                _callback(context);
+            } @finally {
+                FreeToolbarCallbackContext(context);
+            }
         }
     }
 }
@@ -457,12 +533,24 @@ void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, c
         textField.font = property.font;
     }
 
+    // 设置自动调整大小的属性
+    [textField setContentHuggingPriority:NSLayoutPriorityDefaultLow
+                          forOrientation:NSLayoutConstraintOrientationHorizontal];
+    [textField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+                                        forOrientation:NSLayoutConstraintOrientationHorizontal];
+
     // 设置尺寸约束
     if (property.width > 0) {
         [textField.widthAnchor constraintEqualToConstant:property.width].active = YES;
     }
     if (property.height > 0) {
         [textField.heightAnchor constraintEqualToConstant:property.height].active = YES;
+    }
+    if (property.minWidth > 0) {
+        [textField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+    }
+    if (property.maxWidth > 0) {
+        [textField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
     }
 
     // 关联标识符
