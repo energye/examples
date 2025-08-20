@@ -52,8 +52,55 @@ const (
 	ControlSizeLarge   NSControlSize = C.NSControlSizeLarge
 )
 
+type ItemVisibilityPriority = int
+
+const (
+	NSToolbarItemVisibilityPriorityStandard ItemVisibilityPriority = 0
+	NSToolbarItemVisibilityPriorityLow      ItemVisibilityPriority = -1000
+	NSToolbarItemVisibilityPriorityHigh     ItemVisibilityPriority = 1000
+	NSToolbarItemVisibilityPriorityUser     ItemVisibilityPriority = 2000
+)
+
+type TitlebarSeparatorStyle = int
+
+const (
+	NSTitlebarSeparatorStyleAutomatic TitlebarSeparatorStyle = 0
+	NSTitlebarSeparatorStyleNone      TitlebarSeparatorStyle = 1
+	NSTitlebarSeparatorStyleLine      TitlebarSeparatorStyle = 2
+	NSTitlebarSeparatorStyleShadow    TitlebarSeparatorStyle = 3
+)
+
 type NSBezelStyle C.NSBezelStyle
 type NSControlSize C.NSControlSize
+
+type ControlItemBase struct {
+	Identifier   string
+	Priority     int
+	Navigational bool
+}
+
+type ControlItemUI struct {
+	ControlItemBase
+	IconName string
+	Title    string
+	Tips     string
+	Bordered bool
+}
+
+type ControlItemAction struct {
+	ControlItemUI
+	OnAction func(identifier, value string, userData uintptr)
+}
+
+type ControlItem ControlItemAction
+
+type ControlItemSearch struct {
+	ControlItemAction
+	SendWhole         bool
+	SendImmediately   bool
+	ResignsWithCancel bool
+	PreferredWidth    float32
+}
 
 // ControlProperty 的Go包装
 type ControlProperty struct {
@@ -77,6 +124,8 @@ type ToolbarCallbackContext struct {
 type ToolbarConfiguration struct {
 	IsAllowsUserCustomization bool
 	IsAutoSavesConfiguration  bool
+	Transparent               bool
+	SeparatorStyle            TitlebarSeparatorStyle
 	DisplayMode               ToolbarDisplayMode
 	Style                     ToolbarStyle
 }

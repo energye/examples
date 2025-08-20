@@ -153,8 +153,7 @@
     if (control) {
 
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-        item.minSize = NSZeroSize;
-        item.maxSize = NSZeroSize;
+
         item.view = control;
 
         // 应用存储的样式
@@ -253,8 +252,13 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
-    window.toolbarStyle = config.Style;
     // 设置显示模式
+    window.titlebarAppearsTransparent = config.Transparent;
+    if (config.Transparent) {
+//         window.backgroundColor = [NSColor clearColor];
+    }
+    window.toolbarStyle = config.Style;
+    window.titlebarSeparatorStyle = config.SeparatorStyle;
     toolbar.allowsUserCustomization = config.IsAllowsUserCustomization;
     toolbar.autosavesConfiguration = config.IsAutoSavesConfiguration;
     toolbar.displayMode = config.DisplayMode;

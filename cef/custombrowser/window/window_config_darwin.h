@@ -20,10 +20,12 @@ typedef void (*ControlCallback)(const char *identifier, const char *value, const
 
 // 工具栏配置选项
 typedef struct {
-    BOOL IsAllowsUserCustomization;
-    BOOL IsAutoSavesConfiguration;
-    NSUInteger DisplayMode;
-    NSUInteger Style;
+    BOOL            IsAllowsUserCustomization;
+    BOOL            IsAutoSavesConfiguration;
+	BOOL            Transparent;
+	NSUInteger      SeparatorStyle;
+    NSUInteger      DisplayMode;
+    NSUInteger      Style;
 } ToolbarConfiguration;
 
 // 回调上下文结构体，替代全局回调

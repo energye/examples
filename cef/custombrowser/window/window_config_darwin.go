@@ -33,6 +33,8 @@ func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguratio
 	cConfig := C.ToolbarConfiguration{
 		IsAllowsUserCustomization: C.BOOL(config.IsAllowsUserCustomization),
 		IsAutoSavesConfiguration:  C.BOOL(config.IsAutoSavesConfiguration),
+		Transparent:               C.BOOL(config.Transparent),
+		SeparatorStyle:            C.NSUInteger(config.SeparatorStyle),
 		DisplayMode:               C.NSUInteger(config.DisplayMode),
 		Style:                     C.NSUInteger(config.Style),
 	}
@@ -277,7 +279,10 @@ func (m *Window) TestTool() {
 	}
 
 	// 配置窗口工具栏
-	config := ToolbarConfiguration{}
+	config := ToolbarConfiguration{
+		DisplayMode: NSToolbarDisplayModeIconOnly,
+		Transparent: true,
+	}
 
 	ConfigureWindow(windowHandle, config, callbackContext)
 
@@ -290,7 +295,7 @@ func (m *Window) TestTool() {
 
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
-	//AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加图片按钮
@@ -303,7 +308,8 @@ func (m *Window) TestTool() {
 	textFieldProperty.Height = 28
 	textFieldProperty.IsNavigational = false
 	textFieldProperty.IsCenteredItem = true
-	AddToolbarTextField(windowHandle, "search-field", "Search...", textFieldProperty)
+	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
+	AddToolbarSearchField(windowHandle, "search-field", "Search...", textFieldProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	return
