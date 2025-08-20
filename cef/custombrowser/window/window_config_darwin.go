@@ -314,7 +314,6 @@ func (m *Window) TestTool() {
 
 	// 添加文本框
 	textFieldProperty := defaultProperty
-	//textFieldProperty.Width = 400
 	textFieldProperty.Height = 28
 	textFieldProperty.IsNavigational = false
 	textFieldProperty.IsCenteredItem = true
@@ -327,11 +326,14 @@ func (m *Window) TestTool() {
 	imageButtonProperty.IsNavigational = false
 	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
+	SetToolbarControlHidden(windowHandle, "go-back", false)
 	go func() {
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 3)
 		RunOnManThread(func() {
+			windowHandle := uintptr(lcl.PlatformWindow(m.Instance()))
 			fmt.Println("RunOnManThread", api.MainThreadId() == api.CurrentThreadId())
-			//SetToolbarControlEnabled(windowHandle, "go-back", true)
+			SetToolbarControlHidden(windowHandle, "go-back", true)
+			SetToolbarControlValue(windowHandle, "search-field", "Initial value")
 		})
 	}()
 	return

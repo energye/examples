@@ -72,7 +72,6 @@ void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width);
 long GetToolbarItemCount(unsigned long nsWindowHandle);
 
 
-
 #ifdef __cplusplus
 }
 #endif

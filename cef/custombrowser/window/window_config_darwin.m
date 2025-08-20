@@ -2,6 +2,8 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
+static char kToolbarDelegateKey;
+
 // 工具栏委托类
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
     NSMutableDictionary<NSString *, NSView *> *_controls;
@@ -34,6 +36,11 @@
         // _configuration = ToolbarConfigurationNone;
     }
     return self;
+}
+
+- (void)dealloc {
+    [super dealloc];
+    NSLog(@"MainToolbarDelegate dealloc 释放");
 }
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property {
@@ -240,6 +247,13 @@ void *GetNSWindowFromNSView(unsigned long nsViewHandle) {
     return (__bridge void *)[view window];
 }
 
+// 在某个初始化函数中初始化 map table
+__attribute__((constructor))
+static void initializeDelegateMap() {
+    NSLog(@"initializeDelegateMap");
+}
+
+
 // 配置窗口
 void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ToolbarCallbackContext callbackContext) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
@@ -254,7 +268,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     // 设置显示模式
     window.titlebarAppearsTransparent = config.Transparent;
     if (config.Transparent) {
-//         window.backgroundColor = [NSColor clearColor];
+        //  window.backgroundColor = [NSColor clearColor];
     }
     window.toolbarStyle = config.Style;
     window.titlebarSeparatorStyle = config.SeparatorStyle;
@@ -265,14 +279,14 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     window.toolbar = toolbar;
 
     // 保留委托对象
-    objc_setAssociatedObject(window, "MainToolbarDelegate", toolbarDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(window, &kToolbarDelegateKey, toolbarDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 #pragma mark - 动态控件创建函数
 
 void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *titleStr = [NSString stringWithUTF8String:title];
@@ -309,7 +323,7 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
 
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *imageNameStr = [NSString stringWithUTF8String:imageName];
@@ -354,7 +368,7 @@ void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier,
 
 void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
@@ -388,7 +402,7 @@ void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, c
 
 void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
@@ -422,7 +436,7 @@ void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier,
 
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
 
@@ -464,7 +478,7 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
 
 void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     NSString *idStr = [NSString stringWithUTF8String:identifier];
 
@@ -493,7 +507,7 @@ void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, 
 
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     if (!delegate) return;
 
@@ -514,7 +528,7 @@ void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier) {
 
 void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identifier, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     if (!delegate) return;
 
@@ -524,7 +538,7 @@ void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identif
 
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     if (!delegate) return;
 
@@ -553,7 +567,7 @@ void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifi
 
 void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
     if (!delegate) return;
     NSString *flexSpaceId = NSToolbarFlexibleSpaceItemIdentifier;
     // 添加到委托（使用nil控件，因为这是系统项）
@@ -565,7 +579,7 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle) {
 
 void AddToolbarSpace(unsigned long nsWindowHandle) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
     if (!delegate) return;
     NSString *spaceId = NSToolbarSpaceItemIdentifier;
     // 添加到委托（使用nil控件，因为这是系统项）
@@ -577,7 +591,7 @@ void AddToolbarSpace(unsigned long nsWindowHandle) {
 
 void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
     // 创建固定空格标识符
     NSString *spaceIdentifier = [NSString stringWithFormat:@"FixedSpace_%.0f", width];
@@ -599,18 +613,28 @@ long GetToolbarItemCount(unsigned long nsWindowHandle) {
     return window.toolbar.items.count;
 }
 
+// 循环工具栏每项获取 NSControl，通过代理获取有问题啊。
+NSView* GetToolbarControl(unsigned long nsWindowHandle, const char *identifier) {
+    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    NSToolbar *toolbar = window.toolbar;
+    if (![toolbar isKindOfClass:[NSToolbar class]]) {
+        NSLog(@"GetToolbarControl not kind NSToolbar class");
+        return nil;
+    }
+    for (NSToolbarItem *item in toolbar.items) {
+        if (![item.itemIdentifier isEqualToString:idStr]) continue;
+        return item.view;
+    }
+    return nil;
+}
+
 #pragma mark - 控件管理函数
 
 const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-
-    if (!delegate) return NULL;
-
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSView *control = [delegate controlForIdentifier:idStr];
-
+    NSView *control = GetToolbarControl(nsWindowHandle, identifier);
     if (!control) return NULL;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
 
     if ([control isKindOfClass:[NSTextField class]]) {
         return [[(NSTextField *)control stringValue] UTF8String];
@@ -626,17 +650,9 @@ const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *ide
 }
 
 void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier, const char *value) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-
-    if (!delegate) return;
-
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSView *control = [delegate controlForIdentifier:idStr];
-    NSString *valueStr = [NSString stringWithUTF8String:value];
-
+    NSView *control = GetToolbarControl(nsWindowHandle, identifier);
     if (!control) return;
-
+    NSString *valueStr = [NSString stringWithUTF8String:value];
     if ([control isKindOfClass:[NSTextField class]]) {
         [(NSTextField *)control setStringValue:valueStr];
     }
@@ -649,11 +665,7 @@ void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier
 }
 
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-    if (!delegate) return;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSView *control = [delegate controlForIdentifier:idStr];
+    NSView *control = GetToolbarControl(nsWindowHandle, identifier);
     if (!control) return;
     if ([control isKindOfClass:[NSControl class]]) {
         [(NSControl *)control setEnabled:(BOOL)enabled];
@@ -661,12 +673,11 @@ void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifi
 }
 
 void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-    if (!delegate) return;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSView *control = [delegate controlForIdentifier:idStr];
-    if (!control) return;
+    NSView *control = GetToolbarControl(nsWindowHandle, identifier);
+    if (!control) {
+        NSLog(@"获取 NSView(control)失败");
+        return;
+    }
     if ([control isKindOfClass:[NSControl class]]) {
         [(NSControl *)control setHidden:(BOOL)hidden];
     }
