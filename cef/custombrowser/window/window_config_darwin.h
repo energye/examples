@@ -1,4 +1,5 @@
 #import <Cocoa/Cocoa.h>
+#import <dispatch/dispatch.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,16 +8,12 @@ extern "C" {
 // 回调设置
 typedef void (*ControlCallback)(const char *identifier, const char *value, const void *userData);
 
-// 工具栏配置选项
-//typedef NS_OPTIONS(NSUInteger, ToolbarConfiguration) {
-//    ToolbarConfigurationNone = 0,
-//    ToolbarConfigurationAllowUserCustomization = 1 << 0,
-//    ToolbarConfigurationAutoSaveConfiguration = 1 << 1,
-//    ToolbarConfigurationShowSeparator = 1 << 2,
-//    ToolbarConfigurationDisplayModeIconOnly = 1 << 3,
-//    ToolbarConfigurationDisplayModeTextOnly = 1 << 4,
-//    ToolbarConfigurationDisplayModeIconAndText = 1 << 5
-//};
+
+// 主线程回调函数-测试或使用
+typedef void (*RunOnMainThreadCallback)(long id);
+void RegisterRunOnMainThreadCallback(RunOnMainThreadCallback callback);
+void ExecuteRunOnMainThread(long id);
+static RunOnMainThreadCallback _runOnMainThreadCallback = nil;
 
 // 工具栏配置选项
 typedef struct {
@@ -58,6 +55,7 @@ void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, 
 const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier);
 void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier, const char *value);
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled);
+void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden);
 
 // 公共函数
 ControlProperty CreateDefaultControlProperty();
@@ -72,6 +70,8 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle);
 void AddToolbarSpace(unsigned long nsWindowHandle);
 void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width);
 long GetToolbarItemCount(unsigned long nsWindowHandle);
+
+
 
 #ifdef __cplusplus
 }

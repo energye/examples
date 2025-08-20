@@ -7,12 +7,17 @@ package window
 
 extern void onButtonClicked(char *identifier, char *value, void *userData);
 extern void onTextChanged(char *identifier, char *value, void *userData);
+extern void onRunOnMainThread(long id);
+
 */
 import "C"
 import (
 	"fmt"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"log"
+	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -182,8 +187,13 @@ func SetToolbarControlValue(nsWindowHandle uintptr, identifier, value string) {
 func SetToolbarControlEnabled(nsWindowHandle uintptr, identifier string, enabled bool) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
-
 	C.SetToolbarControlEnabled(C.ulong(nsWindowHandle), cIdentifier, C.bool(enabled))
+}
+
+func SetToolbarControlHidden(nsWindowHandle uintptr, identifier string, hidden bool) {
+	cIdentifier := C.CString(identifier)
+	defer C.free(unsafe.Pointer(cIdentifier))
+	C.SetToolbarControlHidden(C.ulong(nsWindowHandle), cIdentifier, C.bool(hidden))
 }
 
 func CreateDefaultControlProperty() ControlProperty {
@@ -230,40 +240,40 @@ func onTextChanged(identifier *C.char, value *C.char, userData unsafe.Pointer) {
 	fmt.Println("clicked id:", id, "val:", val, "userData:", uintptr(userData))
 }
 
-// //export releaseFont
-//
-//	func releaseFont(font *C.NSFont) {
-//		C.CFRelease(C.CFTypeRef(font))
-//	}
-//
-// 定义工具栏位置枚举
-type ToolbarPosition int
+//export onRunOnMainThread
+func onRunOnMainThread(id C.long) {
+	doRunOnMainThread(int(id))
+}
 
-const (
-	ToolbarLeft   ToolbarPosition = iota // 左侧
-	ToolbarCenter                        // 中间
-	ToolbarRight                         // 右侧
+func registerRunOnMainThreadCallback() {
+	C.RegisterRunOnMainThreadCallback(C.RunOnMainThreadCallback(C.onRunOnMainThread))
+}
+
+type runOnMainThreadFn func()
+
+var (
+	callbackFuncList     = make(map[int]runOnMainThreadFn)
+	callbackFuncListLock = sync.Mutex{}
 )
 
-// 计算插入索引
-func calculateInsertIndex(nsWindowHandle uintptr, position ToolbarPosition) int {
-	// 获取当前工具栏项数（需要新增一个Objective-C函数获取项数）
-	itemCount := int(C.GetToolbarItemCount(C.ulong(nsWindowHandle)))
-
-	switch position {
-	case ToolbarLeft:
-		return 0 // 左侧：插入到最前面
-	case ToolbarCenter:
-		// 中间：插入到现有项数的一半位置（向下取整）
-		return itemCount / 2
-	case ToolbarRight:
-		return itemCount // 右侧：插入到末尾
-	default:
-		return itemCount // 默认右侧
+func doRunOnMainThread(id int) {
+	fn, ok := callbackFuncList[id]
+	delete(callbackFuncList, id)
+	if ok {
+		fn()
 	}
 }
 
+func RunOnManThread(fn runOnMainThreadFn) {
+	callbackFuncListLock.Lock()
+	defer callbackFuncListLock.Unlock()
+	id := int(uintptr(unsafe.Pointer(&fn)))
+	callbackFuncList[id] = fn
+	C.ExecuteRunOnMainThread(C.long(id))
+}
+
 func (m *Window) TestTool() {
+	registerRunOnMainThreadCallback()
 	// 获取窗口句柄
 	windowHandle := uintptr(lcl.PlatformWindow(m.Instance()))
 	if windowHandle == 0 {
@@ -310,13 +320,20 @@ func (m *Window) TestTool() {
 	textFieldProperty.IsCenteredItem = true
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
 	AddToolbarSearchField(windowHandle, "search-field", "Search...", textFieldProperty)
-	//AddToolbarFlexibleSpace(windowHandle)
+	AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加图片按钮
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
 	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
+	go func() {
+		time.Sleep(time.Second * 5)
+		RunOnManThread(func() {
+			fmt.Println("RunOnManThread", api.MainThreadId() == api.CurrentThreadId())
+			//SetToolbarControlEnabled(windowHandle, "go-back", true)
+		})
+	}()
 	return
 	// 添加下拉框
 	comboItems := []string{"Option 1", "Option 2", "Option 3"}

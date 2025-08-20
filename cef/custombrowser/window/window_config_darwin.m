@@ -17,7 +17,6 @@
 - (void)removeControlForIdentifier:(NSString *)identifier;
 - (void)setCallbackContext:(ToolbarCallbackContext)context;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
-- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
 @end
 
@@ -167,9 +166,9 @@
                 item.visibilityPriority = NSToolbarItemVisibilityPriorityHigh; // 高可见优先级
             }
 
-            NSLog(@"toolbar %d %@", property.IsNavigational, itemIdentifier);
+            NSLog(@"toolbar %d %@ %d", property.IsNavigational, itemIdentifier, property.IsCenteredItem);
 
-            // [self updateControlProperty:itemIdentifier withProperty:property];
+            [self updateControlProperty:itemIdentifier withProperty:property];
         }
 
         return item;
@@ -652,15 +651,41 @@ void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
-
     if (!delegate) return;
-
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSView *control = [delegate controlForIdentifier:idStr];
-
     if (!control) return;
-
     if ([control isKindOfClass:[NSControl class]]) {
         [(NSControl *)control setEnabled:(BOOL)enabled];
+    }
+}
+
+void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden) {
+    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
+    if (!delegate) return;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    NSLog(idStr);
+    NSView *control = [delegate controlForIdentifier:idStr];
+    NSLog(@"1");
+    if (!control) return;
+    if ([control isKindOfClass:[NSControl class]]) {
+        //[(NSControl *)control setHidden:(BOOL)hidden];
+    }
+}
+
+// UI 线程执行
+void RegisterRunOnMainThreadCallback(RunOnMainThreadCallback callback) {
+    _runOnMainThreadCallback = callback;
+}
+
+// 在主线程执行回调的桥接函数
+void ExecuteRunOnMainThread(long id) {
+    if ([NSThread isMainThread]) {
+        _runOnMainThreadCallback(id);
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            _runOnMainThreadCallback(id);
+        });
     }
 }
