@@ -29,8 +29,19 @@ func controlPropertyToOC(property ControlProperty) C.ControlProperty {
 	return cProperty
 }
 
+func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguration {
+	cConfig := C.ToolbarConfiguration{
+		IsAllowsUserCustomization: C.BOOL(config.IsAllowsUserCustomization),
+		IsAutoSavesConfiguration:  C.BOOL(config.IsAutoSavesConfiguration),
+		DisplayMode:               C.NSUInteger(config.DisplayMode),
+		Style:                     C.NSUInteger(config.Style),
+	}
+	return cConfig
+}
+
 func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, callbackContext ToolbarCallbackContext) {
-	C.ConfigureWindow(C.ulong(nsWindowHandle), C.ToolbarConfiguration(config), C.ToolbarCallbackContext{
+	cConfig := ToolbarConfigurationToOC(config)
+	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, C.ToolbarCallbackContext{
 		clickCallback:       callbackContext.ClickCallback,
 		textChangedCallback: callbackContext.TextChangedCallback,
 		userData:            callbackContext.UserData,
@@ -266,9 +277,7 @@ func (m *Window) TestTool() {
 	}
 
 	// 配置窗口工具栏
-	config := ToolbarConfigurationAllowUserCustomization |
-		//ToolbarConfigurationAutoSaveConfiguration |
-		ToolbarConfigurationDisplayModeIconAndText
+	config := ToolbarConfiguration{}
 
 	ConfigureWindow(windowHandle, config, callbackContext)
 
@@ -281,7 +290,7 @@ func (m *Window) TestTool() {
 
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
-	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
+	//AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加图片按钮
@@ -291,11 +300,11 @@ func (m *Window) TestTool() {
 	// 添加文本框
 	textFieldProperty := defaultProperty
 	//textFieldProperty.Width = 400
-	//textFieldProperty.Height = 24
+	textFieldProperty.Height = 28
 	textFieldProperty.IsNavigational = false
 	textFieldProperty.IsCenteredItem = true
 	AddToolbarTextField(windowHandle, "search-field", "Search...", textFieldProperty)
-	AddToolbarFlexibleSpace(windowHandle)
+	//AddToolbarFlexibleSpace(windowHandle)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	return
 	// 添加下拉框
