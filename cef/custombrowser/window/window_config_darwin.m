@@ -665,12 +665,10 @@ void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifie
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, "MainToolbarDelegate");
     if (!delegate) return;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSLog(idStr);
     NSView *control = [delegate controlForIdentifier:idStr];
-    NSLog(@"1");
     if (!control) return;
     if ([control isKindOfClass:[NSControl class]]) {
-        //[(NSControl *)control setHidden:(BOOL)hidden];
+        [(NSControl *)control setHidden:(BOOL)hidden];
     }
 }
 
