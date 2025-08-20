@@ -57,6 +57,7 @@ type ControlProperty struct {
 	ControlSize    NSControlSize
 	Font           unsafe.Pointer
 	IsNavigational bool
+	IsCenteredItem bool
 }
 
 // ToolbarCallbackContext 的Go包装
