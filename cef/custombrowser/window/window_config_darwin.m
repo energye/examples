@@ -777,16 +777,24 @@ long GetToolbarItemCount(unsigned long nsWindowHandle) {
 NSView* GetToolbarControl(unsigned long nsWindowHandle, const char *identifier) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSToolbar *toolbar = window.toolbar;
-    if (![toolbar isKindOfClass:[NSToolbar class]]) {
-        NSLog(@"GetToolbarControl not kind NSToolbar class");
-        return nil;
-    }
-    for (NSToolbarItem *item in toolbar.items) {
-        if (![item.itemIdentifier isEqualToString:idStr]) continue;
-        return item.view;
-    }
-    return nil;
+
+    // 使用代理获取 controls
+    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
+    NSView *control = [delegate controlForIdentifier:idStr];
+    if (!control) return nil;
+    return control;
+
+    // 使用循环获取 controls
+//     NSToolbar *toolbar = window.toolbar;
+//     if (![toolbar isKindOfClass:[NSToolbar class]]) {
+//         NSLog(@"GetToolbarControl not kind NSToolbar class");
+//         return nil;
+//     }
+//     for (NSToolbarItem *item in toolbar.items) {
+//         if (![item.itemIdentifier isEqualToString:idStr]) continue;
+//         return item.view;
+//     }
+//     return nil;
 }
 
 #pragma mark - 控件管理函数
@@ -805,7 +813,6 @@ const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *ide
     else if ([control isKindOfClass:[NSSearchField class]]) {
         return [[(NSSearchField *)control stringValue] UTF8String];
     }
-
     return NULL;
 }
 
@@ -868,7 +875,6 @@ void UpdateSearchFieldWidth(void* ptr, CGFloat width) {
             break;
         }
     }
-
     // 添加新宽度约束并设置高优先级
     NSLayoutConstraint *widthConstraint = [searchField.widthAnchor constraintEqualToConstant:width];
     widthConstraint.priority = NSLayoutPriorityRequired;

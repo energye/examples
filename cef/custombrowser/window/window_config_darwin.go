@@ -283,8 +283,8 @@ func (m *Window) TestTool() {
 		Transparent: true,
 		SizeMode:    NSToolbarSizeModeSmall,
 		//Style:                     NSWindowToolbarStyleUnifiedCompact,
-		Style:                     NSWindowToolbarStyleUnified,
-		IsAllowsUserCustomization: false,
+		Style: NSWindowToolbarStyleUnified,
+		//IsAllowsUserCustomization: false,
 	}
 
 	ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
