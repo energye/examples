@@ -6,7 +6,6 @@ package toolbar
 #include "config.h"
 */
 import "C"
-import "unsafe"
 
 type ToolbarDisplayMode = int
 
@@ -110,67 +109,3 @@ const (
 	NSControlSizeRegular NSControlSize = NSControlSize(C.NSControlSizeRegular)
 	NSControlSizeLarge   NSControlSize = NSControlSize(C.NSControlSizeLarge)
 )
-
-type ControlItemBase struct {
-	Identifier   string
-	Priority     int
-	Navigational bool
-}
-
-type ControlItemUI struct {
-	ControlItemBase
-	IconName string
-	Title    string
-	Tips     string
-	Bordered bool
-}
-
-type ControlItemAction struct {
-	ControlItemUI
-	OnAction func(identifier, value string, userData uintptr)
-}
-
-type ControlItem ControlItemAction
-
-type ControlItemSearch struct {
-	ControlItemAction
-	SendWhole         bool
-	SendImmediately   bool
-	ResignsWithCancel bool
-	PreferredWidth    float32
-}
-
-// ControlProperty 的Go包装
-type ControlProperty struct {
-	Width              float64
-	Height             float64
-	MinWidth           float64
-	MaxWidth           float64
-	BezelStyle         NSBezelStyle
-	ControlSize        NSControlSize
-	Font               unsafe.Pointer
-	IsNavigational     bool
-	IsCenteredItem     bool
-	VisibilityPriority ItemVisibilityPriority
-}
-
-// ToolbarConfiguration 的Go包装
-type ToolbarConfiguration struct {
-	IsAllowsUserCustomization bool
-	IsAutoSavesConfiguration  bool
-	Transparent               bool
-	ShowsToolbarButton        bool // 隐藏工具栏默认的"显示/隐藏"按钮（右侧）
-	SeparatorStyle            TitlebarSeparatorStyle
-	DisplayMode               ToolbarDisplayMode
-	SizeMode                  ToolbarSizeMode
-	Style                     ToolbarStyle
-}
-
-type ToolbarCallbackContext struct {
-	Type       TccType        // 事件类型
-	Identifier string         // 控件标识
-	Value      string         // 控件值
-	Index      int            // 值索引
-	Owner      unsafe.Pointer // 所属对象
-	Sender     unsafe.Pointer // 控件对象
-}

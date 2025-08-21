@@ -11,7 +11,6 @@ import "C"
 import (
 	"fmt"
 	"github.com/energye/lcl/lcl"
-	"unsafe"
 )
 
 //export onDelegateEvent
@@ -28,25 +27,33 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) {
 }
 
 type NSToolBar struct {
-	toolbar  unsafe.Pointer
-	delegate unsafe.Pointer
+	owner    lcl.IForm
+	toolbar  Pointer
+	delegate Pointer
+	config   *ToolbarConfiguration
 }
 
 func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
-	windowHandle := uintptr(lcl.PlatformWindow(owner.Instance()))
-	if windowHandle == 0 {
+	nsWindow := uintptr(lcl.PlatformWindow(owner.Instance()))
+	if nsWindow == 0 {
 		return nil
 	}
 	cConfig := ToolbarConfigurationToOC(config)
 	callback := (C.ControlEventCallback)(C.onDelegateEvent)
-	// 使用 C 类型的变量来接收输出
 	var delegatePtr, toolbarPtr uintptr
-	println(delegatePtr, toolbarPtr)
-	// 获取这些变量的指针
-	C.CreateToolbar(C.ulong(windowHandle), cConfig, callback,
-		(*unsafe.Pointer)(unsafe.Pointer(&delegatePtr)),
-		(*unsafe.Pointer)(unsafe.Pointer(&toolbarPtr)),
+	C.CreateToolbar(C.ulong(nsWindow), cConfig, callback,
+		(*Pointer)(Pointer(&delegatePtr)),
+		(*Pointer)(Pointer(&toolbarPtr)),
 	)
-	println(delegatePtr, toolbarPtr)
-	return &NSToolBar{toolbar: unsafe.Pointer(delegatePtr), delegate: unsafe.Pointer(toolbarPtr)}
+	return &NSToolBar{owner: owner,
+		toolbar: Pointer(delegatePtr), delegate: Pointer(toolbarPtr),
+		config: &config}
+}
+
+func (m *NSToolBar) AddButton(config ButtonItem, property ControlProperty) *NSButton {
+	nsWindow := uintptr(lcl.PlatformWindow(m.owner.Instance()))
+	if nsWindow == 0 {
+		return nil
+	}
+	return AddNSButton(nsWindow, config, property)
 }

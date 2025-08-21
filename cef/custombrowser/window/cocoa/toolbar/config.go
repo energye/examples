@@ -6,127 +6,94 @@ package toolbar
 #include "config.h"
 */
 import "C"
-import (
-	"unsafe"
-)
-
-func controlPropertyToOC(property ControlProperty) C.ControlProperty {
-	cProperty := C.ControlProperty{
-		width:              C.CGFloat(property.Width),
-		height:             C.CGFloat(property.Height),
-		minWidth:           C.CGFloat(property.MinWidth),
-		maxWidth:           C.CGFloat(property.MaxWidth),
-		bezelStyle:         C.NSBezelStyle(property.BezelStyle),
-		controlSize:        C.NSControlSize(property.ControlSize),
-		font:               (*C.NSFont)(property.Font),
-		IsNavigational:     C.BOOL(property.IsNavigational),
-		IsCenteredItem:     C.BOOL(property.IsCenteredItem),
-		VisibilityPriority: C.NSInteger(property.VisibilityPriority),
-	}
-	return cProperty
-}
-
-func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguration {
-	cConfig := C.ToolbarConfiguration{
-		IsAllowsUserCustomization: C.BOOL(config.IsAllowsUserCustomization),
-		IsAutoSavesConfiguration:  C.BOOL(config.IsAutoSavesConfiguration),
-		Transparent:               C.BOOL(config.Transparent),
-		ShowsToolbarButton:        C.BOOL(config.ShowsToolbarButton),
-		SeparatorStyle:            C.NSUInteger(config.SeparatorStyle),
-		DisplayMode:               C.NSUInteger(config.DisplayMode),
-		SizeMode:                  C.NSUInteger(config.SizeMode),
-		Style:                     C.NSUInteger(config.Style),
-	}
-	return cConfig
-}
 
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	cTitle := C.CString(title)
-	defer C.free(unsafe.Pointer(cTitle))
+	defer C.free(Pointer(cTitle))
 
 	var cTooltip *C.char
 	if tooltip != "" {
 		cTooltip = C.CString(tooltip)
-		defer C.free(unsafe.Pointer(cTooltip))
+		defer C.free(Pointer(cTooltip))
 	}
 
-	cProperty := controlPropertyToOC(property)
+	cProperty := property.ToOC()
 
 	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cProperty)
 }
 
 func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	cImageName := C.CString(imageName)
-	defer C.free(unsafe.Pointer(cImageName))
+	defer C.free(Pointer(cImageName))
 
 	var cTooltip *C.char
 	if tooltip != "" {
 		cTooltip = C.CString(tooltip)
-		defer C.free(unsafe.Pointer(cTooltip))
+		defer C.free(Pointer(cTooltip))
 	}
 
-	cProperty := controlPropertyToOC(property)
+	cProperty := property.ToOC()
 
 	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cProperty)
 }
 
 func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	var cPlaceholder *C.char
 	if placeholder != "" {
 		cPlaceholder = C.CString(placeholder)
-		defer C.free(unsafe.Pointer(cPlaceholder))
+		defer C.free(Pointer(cPlaceholder))
 	}
 
-	cProperty := controlPropertyToOC(property)
+	cProperty := property.ToOC()
 
 	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
 }
 
 func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) *NSSearchField {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	var cPlaceholder *C.char
 	if placeholder != "" {
 		cPlaceholder = C.CString(placeholder)
-		defer C.free(unsafe.Pointer(cPlaceholder))
+		defer C.free(Pointer(cPlaceholder))
 	}
 
-	cProperty := controlPropertyToOC(property)
+	cProperty := property.ToOC()
 
 	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
-	return &NSSearchField{instance: unsafe.Pointer(cSF)}
+	return &NSSearchField{instance: Pointer(cSF)}
 }
 
 func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	// 转换Go字符串切片为C字符串数组
 	cItems := make([]*C.char, len(items))
 	for i, item := range items {
 		cItems[i] = C.CString(item)
 	}
-	cProperty := controlPropertyToOC(property)
-	C.AddToolbarCombobox(C.ulong(nsWindowHandle), cIdentifier, (**C.char)(unsafe.Pointer(&cItems[0])), C.int(len(items)), cProperty)
+	cProperty := property.ToOC()
+	C.AddToolbarCombobox(C.ulong(nsWindowHandle), cIdentifier, (**C.char)(Pointer(&cItems[0])), C.int(len(items)), cProperty)
 	for i, _ := range items {
-		C.free(unsafe.Pointer(cItems[i]))
+		C.free(Pointer(cItems[i]))
 	}
 }
 
 func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
-	cProperty := controlPropertyToOC(property)
+	defer C.free(Pointer(cIdentifier))
+	cProperty := property.ToOC()
 	C.AddToolbarCustomView(C.ulong(nsWindowHandle), cIdentifier, cProperty)
 }
 
@@ -144,14 +111,14 @@ func AddToolbarSpaceByWidth(nsWindowHandle uintptr, width float32) {
 
 func RemoveToolbarItem(nsWindowHandle uintptr, identifier string) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	C.RemoveToolbarItem(C.ulong(nsWindowHandle), cIdentifier)
 }
 
 func GetToolbarControlValue(nsWindowHandle uintptr, identifier string) string {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	cValue := C.GetToolbarControlValue(C.ulong(nsWindowHandle), cIdentifier)
 	if cValue == nil {
@@ -162,23 +129,23 @@ func GetToolbarControlValue(nsWindowHandle uintptr, identifier string) string {
 
 func SetToolbarControlValue(nsWindowHandle uintptr, identifier, value string) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 
 	cValue := C.CString(value)
-	defer C.free(unsafe.Pointer(cValue))
+	defer C.free(Pointer(cValue))
 
 	C.SetToolbarControlValue(C.ulong(nsWindowHandle), cIdentifier, cValue)
 }
 
 func SetToolbarControlEnabled(nsWindowHandle uintptr, identifier string, enabled bool) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 	C.SetToolbarControlEnabled(C.ulong(nsWindowHandle), cIdentifier, C.bool(enabled))
 }
 
 func SetToolbarControlHidden(nsWindowHandle uintptr, identifier string, hidden bool) {
 	cIdentifier := C.CString(identifier)
-	defer C.free(unsafe.Pointer(cIdentifier))
+	defer C.free(Pointer(cIdentifier))
 	C.SetToolbarControlHidden(C.ulong(nsWindowHandle), cIdentifier, C.bool(hidden))
 }
 
@@ -195,7 +162,7 @@ func CreateDefaultControlProperty() ControlProperty {
 		MaxWidth:           float64(cProperty.maxWidth),
 		BezelStyle:         NSBezelStyle(cProperty.bezelStyle),
 		ControlSize:        NSControlSize(cProperty.controlSize),
-		Font:               unsafe.Pointer(cProperty.font),
+		Font:               Pointer(cProperty.font),
 		VisibilityPriority: int(cProperty.VisibilityPriority),
 	}
 }
