@@ -13,5 +13,5 @@ type Window struct {
 }
 
 func (m *Window) FormAfterCreate(sender lcl.IObject) {
-	m.HookWndProcMessage()
+	//m.HookWndProcMessage()
 }
