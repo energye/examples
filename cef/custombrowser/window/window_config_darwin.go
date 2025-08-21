@@ -104,7 +104,7 @@ func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string,
 	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
 }
 
-func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, style ControlProperty) {
+func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, style ControlProperty) *NSSearchField {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -116,7 +116,8 @@ func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder strin
 
 	cProperty := controlPropertyToOC(style)
 
-	C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
+	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
+	return &NSSearchField{instance: unsafe.Pointer(cSF)}
 }
 
 func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []string, style ControlProperty) {
@@ -276,7 +277,7 @@ func (m *Window) TestTool() {
 	config := ToolbarConfiguration{
 		DisplayMode: NSToolbarDisplayModeIconOnly,
 		Transparent: true,
-		SizeMode:    NSToolbarSizeModeSmall,
+		SizeMode:    NSToolbarSizeModeRegular,
 		Style:       NSWindowToolbarStyleUnifiedCompact,
 	}
 
@@ -291,20 +292,24 @@ func (m *Window) TestTool() {
 
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
-	//AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
-	//AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
-	//AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
 	textProperty := defaultProperty
 	//textProperty.Height = 28
-	textProperty.IsNavigational = true
+	//textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
 	//textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityUser
-	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
+	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
+
+	// 添加搜索框
 	//AddToolbarFlexibleSpace(windowHandle)
-	AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	//textProperty.Width = 400
+	sf := AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	println(sf)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加下拉框
@@ -324,16 +329,21 @@ func (m *Window) TestTool() {
 		time.Sleep(time.Second * 2)
 		RunOnManThread(func() {
 			//SetToolbarControlHidden(windowHandle, "go-back", true)
-			SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
+			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
+			sf.SetText("Object-c UI线程 设置 Initial value")
+			fmt.Println("sf.GetText():", sf.GetText())
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadAsync(func(id uint32) {
-			SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
+			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
+			sf.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
+			fmt.Println("sf.GetText():", sf.GetText())
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadSync(func() {
-			SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadSync 设置 Initial value")
-
+			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadSync 设置 Initial value")
+			sf.SetText("lcl.RunOnMainThreadSync 设置 Initial value")
+			fmt.Println("sf.GetText():", sf.GetText())
 		})
 	}()
 

@@ -582,7 +582,7 @@ void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, c
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
 
-void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
+void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
 
@@ -617,6 +617,7 @@ void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier,
 
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+    return (__bridge void*)(searchField);
 }
 
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property) {
@@ -872,6 +873,24 @@ void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifie
         [(NSControl *)control setHidden:(BOOL)hidden];
     }
 }
+
+// 通过指针获取搜索框的值
+const char* GetSearchFieldText(void* ptr) {
+    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+    NSString* nsText = [searchField stringValue];
+    // 转换为 C 字符串（需注意：返回的指针需在 Go 中及时处理，避免被释放）
+    return [nsText UTF8String];
+}
+
+// 通过指针设置搜索框文本
+void SetSearchFieldText(void* ptr, const char* text) {
+    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+    NSString* nsText = [NSString stringWithUTF8String:text];
+    [searchField setStringValue:nsText];
+}
+
+
+#pragma mark - UI 线程执行函数
 
 // UI 线程执行
 void RegisterRunOnMainThreadCallback(RunOnMainThreadCallback callback) {

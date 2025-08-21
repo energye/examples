@@ -69,7 +69,7 @@ typedef struct {
 void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *iconName, const char *tooltip, ControlProperty property);
 void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
-void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
+void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property);
 void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 
@@ -78,6 +78,8 @@ const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *ide
 void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier, const char *value);
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled);
 void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden);
+const char* GetSearchFieldText(void* searchFieldPtr);
+void SetSearchFieldText(void* ptr, const char* text);
 
 // 公共函数
 ControlProperty CreateDefaultControlProperty();
