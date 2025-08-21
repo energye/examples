@@ -23,6 +23,8 @@ func controlPropertyToOC(property ControlProperty) C.ControlProperty {
 	cProperty := C.ControlProperty{
 		width:              C.CGFloat(property.Width),
 		height:             C.CGFloat(property.Height),
+		minWidth:           C.CGFloat(property.MinWidth),
+		maxWidth:           C.CGFloat(property.MaxWidth),
 		bezelStyle:         C.NSBezelStyle(property.BezelStyle),
 		controlSize:        C.NSControlSize(property.ControlSize),
 		font:               (*C.NSFont)(property.Font),
@@ -53,7 +55,7 @@ func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, owner 
 	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, callback, owner)
 }
 
-func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, style ControlProperty) {
+func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -66,12 +68,12 @@ func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string,
 		defer C.free(unsafe.Pointer(cTooltip))
 	}
 
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 
 	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cProperty)
 }
 
-func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, tooltip string, style ControlProperty) {
+func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -84,12 +86,12 @@ func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, toolti
 		defer C.free(unsafe.Pointer(cTooltip))
 	}
 
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 
 	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cProperty)
 }
 
-func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, style ControlProperty) {
+func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -99,12 +101,12 @@ func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string,
 		defer C.free(unsafe.Pointer(cPlaceholder))
 	}
 
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 
 	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
 }
 
-func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, style ControlProperty) *NSSearchField {
+func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) *NSSearchField {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -114,13 +116,13 @@ func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder strin
 		defer C.free(unsafe.Pointer(cPlaceholder))
 	}
 
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 
 	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
 	return &NSSearchField{instance: unsafe.Pointer(cSF)}
 }
 
-func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []string, style ControlProperty) {
+func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
 
@@ -129,17 +131,17 @@ func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []strin
 	for i, item := range items {
 		cItems[i] = C.CString(item)
 	}
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 	C.AddToolbarCombobox(C.ulong(nsWindowHandle), cIdentifier, (**C.char)(unsafe.Pointer(&cItems[0])), C.int(len(items)), cProperty)
 	for i, _ := range items {
 		C.free(unsafe.Pointer(cItems[i]))
 	}
 }
 
-func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, style ControlProperty) {
+func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(unsafe.Pointer(cIdentifier))
-	cProperty := controlPropertyToOC(style)
+	cProperty := controlPropertyToOC(property)
 	C.AddToolbarCustomView(C.ulong(nsWindowHandle), cIdentifier, cProperty)
 }
 
@@ -256,6 +258,8 @@ func RunOnManThread(fn runOnMainThreadFn) {
 	C.ExecuteRunOnMainThread(C.long(id))
 }
 
+var Resize func() = nil
+
 func (m *Window) TestTool() {
 	registerRunOnMainThreadCallback()
 	// 获取窗口句柄
@@ -300,17 +304,18 @@ func (m *Window) TestTool() {
 	// 添加文本框
 	textProperty := defaultProperty
 	//textProperty.Height = 28
-	//textProperty.IsNavigational = true
+	textProperty.IsNavigational = false
 	textProperty.IsCenteredItem = true
-	//textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityUser
+	textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
 
 	// 添加搜索框
-	//AddToolbarFlexibleSpace(windowHandle)
-	//textProperty.Width = 400
+	AddToolbarFlexibleSpace(windowHandle)
+	textProperty.MinWidth = 60
+	textProperty.MaxWidth = float64(m.Width() - 250)
 	sf := AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
-	println(sf)
-	//AddToolbarFlexibleSpace(windowHandle)
+	println(sf, "textProperty.MaxWidth", textProperty.MaxWidth)
+	AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加下拉框
 	comboProperty := defaultProperty
@@ -355,6 +360,12 @@ func (m *Window) TestTool() {
 	// 模拟获取控件值
 	value := GetToolbarControlValue(windowHandle, "search-field")
 	fmt.Printf("Search field value: %s\n", value)
+
+	Resize = func() {
+		width := int(m.Width() - 150)
+		fmt.Println("width", width)
+		//sf.UpdateSearchFieldWidth(width)
+	}
 }
 
 //现代 macOS 工具栏开发最佳实践总结

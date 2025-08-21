@@ -80,6 +80,7 @@ void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifi
 void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden);
 const char* GetSearchFieldText(void* searchFieldPtr);
 void SetSearchFieldText(void* ptr, const char* text);
+void UpdateSearchFieldWidth(void* ptr, CGFloat width);
 
 // 公共函数
 ControlProperty CreateDefaultControlProperty();

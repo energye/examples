@@ -37,7 +37,7 @@ static char kToolbarDelegateKey;
     NSMutableDictionary<NSString *, NSValue *> *_controlProperty;
     ControlEventCallback _callback;
     void *_owner; // nsWindowHandle
-    NSMutableDictionary<NSString *, NSLayoutConstraint *> *_widthConstraints;
+    NSWindow *_window; // NSWindow
 }
 
 // @property (nonatomic, assign) ToolbarConfiguration configuration;
@@ -47,6 +47,8 @@ static char kToolbarDelegateKey;
 - (void)removeControlForIdentifier:(NSString *)identifier;
 - (void)setCallback:(ControlEventCallback)callback;
 - (void)setOwner:(void *)owner;
+- (void)setWindow:(NSWindow *)window;
+- (NSWindow *)getWindow;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
 
 - (void)windowDidResize:(NSNotification *)notification;
@@ -62,14 +64,10 @@ static char kToolbarDelegateKey;
         _controls = [NSMutableDictionary dictionary];
         _dynamicIdentifiers = [NSMutableArray array];
         _controlProperty = [NSMutableDictionary dictionary];
-        _widthConstraints = [NSMutableDictionary dictionary];
         _callback = NULL;
         _owner = NULL;
         // 监听窗口大小变化
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(windowDidResize:)
-                                                     name:NSWindowDidResizeNotification
-                                                   object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:nil];
     }
     return self;
 }
@@ -83,53 +81,13 @@ static char kToolbarDelegateKey;
 
 - (void)windowDidResize:(NSNotification *)notification {
     NSWindow *window = notification.object;
-    NSLog(@"windowDidResize");
+    // NSLog(@"windowDidResize");
     // [self updateTextFieldWidthsForWindow:window];
 }
 
 - (void)updateTextFieldWidthsForWindow:(NSWindow *)window {
     CGFloat windowWidth = window.frame.size.width;
     CGFloat availableWidth = windowWidth - 180; // 减去交通灯区域和边距
-
-    NSToolbar *toolbar = window.toolbar;
-    if (![toolbar isKindOfClass:[NSToolbar class]]) {
-        NSLog(@"updateTextFieldWidthsForWindow not kind NSToolbar class");
-        return ;
-    }
-    NSLog(@"updateTextFieldWidthsForWindow 1");
-//     NSView *control;
-//     for (NSToolbarItem *item in toolbar.items) {
-//         if (![item.itemIdentifier isEqualToString:@"search-field"]) continue;
-//         control = item.view;
-//     }
-    NSView *control = [self controlForIdentifier:@"search-field"];
-    NSLog(@"updateTextFieldWidthsForWindow 2");
-    if(!control){
-        NSLog(@"updateTextFieldWidthsForWindow not control");
-        return;
-    }
-
-    // 计算新宽度
-    CGFloat newWidth = availableWidth;
-
-    // 获取控件属性
-    NSLog(@"updateTextFieldWidthsForWindow 3");
-
-    [control.widthAnchor constraintEqualToConstant:newWidth].active = YES;
-
-    // 更新宽度约束
-    NSLayoutConstraint *widthConstraint = _widthConstraints[@"search-field"];
-    if (!widthConstraint) {
-        NSLog(@"updateTextFieldWidthsForWindow 4");
-        // 创建新的宽度约束
-        widthConstraint = [control.widthAnchor constraintEqualToConstant:newWidth];
-        NSLog(@"updateTextFieldWidthsForWindow 5");
-        widthConstraint.active = YES;
-        _widthConstraints[@"search-field"] = widthConstraint;
-    } else {
-        // 更新现有约束
-        widthConstraint.constant = newWidth;
-    }
 }
 
 
@@ -163,6 +121,14 @@ static char kToolbarDelegateKey;
 
 - (void)setOwner:(void *)owner; {
     _owner = owner;
+}
+
+- (void)setWindow:(NSWindow *)window {
+    _window = window;
+}
+
+- (NSWindow *)getWindow {
+  return _window;
 }
 
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property {
@@ -242,7 +208,6 @@ static char kToolbarDelegateKey;
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
      itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
  willBeInsertedIntoToolbar:(BOOL)flag {
-
     // 处理系统项
     if ([itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier]) {
         return [[NSToolbarItem alloc] initWithItemIdentifier:NSToolbarFlexibleSpaceItemIdentifier];
@@ -250,15 +215,11 @@ static char kToolbarDelegateKey;
     if ([itemIdentifier isEqualToString:NSToolbarSpaceItemIdentifier]) {
         return [[NSToolbarItem alloc] initWithItemIdentifier:NSToolbarSpaceItemIdentifier];
     }
-
     // 处理动态控件
     NSView *control = [self controlForIdentifier:itemIdentifier];
     if (control) {
-
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-
         item.view = control;
-
         // 应用存储的样式
         NSValue *propertyValue = _controlProperty[itemIdentifier];
         if (propertyValue) {
@@ -272,12 +233,10 @@ static char kToolbarDelegateKey;
 
             NSLog(@"toolbar %d %@ %d", property.IsNavigational, itemIdentifier, property.IsCenteredItem);
 
-            //[self updateControlProperty:itemIdentifier withProperty:property];
+            [self updateControlProperty:itemIdentifier withProperty:property];
         }
-
         return item;
     }
-
     return nil;
 }
 
@@ -374,7 +333,6 @@ static char kToolbarDelegateKey;
     }
 }
 
-
 @end
 
 #pragma mark - 公共函数实现
@@ -426,6 +384,7 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     //toolbarDelegate.configuration = config;
     [toolbarDelegate setCallback:callback];
     [toolbarDelegate setOwner:owner];
+    [toolbarDelegate setWindow:window];
 
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
@@ -598,8 +557,6 @@ void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier
         searchField.font = property.font;
     }
 
-    //searchField.sendsWholeSearchString = true;
-
     // 设置尺寸约束
     if (property.width > 0) {
         [searchField.widthAnchor constraintEqualToConstant:property.width].active = YES;
@@ -607,16 +564,18 @@ void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier
     if (property.height > 0) {
         [searchField.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
+    // 最小和最大宽度约束
+    if (property.minWidth > 0) {
+        [searchField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+    }
+    if (property.maxWidth > 0) {
+        [searchField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
+    }
 
-
-    // 关联标识符
-    objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
-    // 添加到委托
-    [delegate addControl:searchField forIdentifier:idStr withProperty:property];
-
-    // 添加到工具栏
-    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+    objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);// 关联标识符
+    [delegate addControl:searchField forIdentifier:idStr withProperty:property];// 添加到委托
+    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count]; // 添加到工具栏
+//     [window layoutIfNeeded];
     return (__bridge void*)(searchField);
 }
 
@@ -889,6 +848,11 @@ void SetSearchFieldText(void* ptr, const char* text) {
     [searchField setStringValue:nsText];
 }
 
+// 通过指针设置搜索框文本
+void UpdateSearchFieldWidth(void* ptr, CGFloat width) {
+    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+    searchField.translatesAutoresizingMaskIntoConstraints = YES;
+}
 
 #pragma mark - UI 线程执行函数
 
