@@ -38,6 +38,7 @@ func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguratio
 		IsAllowsUserCustomization: C.BOOL(config.IsAllowsUserCustomization),
 		IsAutoSavesConfiguration:  C.BOOL(config.IsAutoSavesConfiguration),
 		Transparent:               C.BOOL(config.Transparent),
+		ShowsToolbarButton:        C.BOOL(config.ShowsToolbarButton),
 		SeparatorStyle:            C.NSUInteger(config.SeparatorStyle),
 		DisplayMode:               C.NSUInteger(config.DisplayMode),
 		SizeMode:                  C.NSUInteger(config.SizeMode),
@@ -276,6 +277,7 @@ func (m *Window) TestTool() {
 		DisplayMode: NSToolbarDisplayModeIconOnly,
 		Transparent: true,
 		SizeMode:    NSToolbarSizeModeSmall,
+		Style:       NSWindowToolbarStyleUnifiedCompact,
 	}
 
 	ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
@@ -289,9 +291,9 @@ func (m *Window) TestTool() {
 
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
-	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
-	AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
-	AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
+	//AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
+	//AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
+	//AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
@@ -299,7 +301,7 @@ func (m *Window) TestTool() {
 	//textProperty.Height = 28
 	textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
-	textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityUser
+	//textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityUser
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textFieldProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 	AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
@@ -316,9 +318,8 @@ func (m *Window) TestTool() {
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
 	imageButtonProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
-	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
+	//AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
-	SetToolbarControlHidden(windowHandle, "go-back", false)
 	go func() {
 		time.Sleep(time.Second * 2)
 		RunOnManThread(func() {

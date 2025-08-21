@@ -44,6 +44,7 @@ typedef struct {
     BOOL            IsAllowsUserCustomization;
     BOOL            IsAutoSavesConfiguration;
 	BOOL            Transparent;
+	BOOL            ShowsToolbarButton;
 	NSUInteger      SeparatorStyle;
     NSUInteger      DisplayMode;
     NSUInteger      SizeMode;

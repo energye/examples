@@ -139,6 +139,7 @@ type ToolbarConfiguration struct {
 	IsAllowsUserCustomization bool
 	IsAutoSavesConfiguration  bool
 	Transparent               bool
+	ShowsToolbarButton        bool // 隐藏工具栏默认的"显示/隐藏"按钮（右侧）
 	SeparatorStyle            TitlebarSeparatorStyle
 	DisplayMode               ToolbarDisplayMode
 	SizeMode                  ToolbarSizeMode

@@ -97,22 +97,25 @@ static char kToolbarDelegateKey;
         return ;
     }
     NSLog(@"updateTextFieldWidthsForWindow 1");
-    NSView *control;
-    for (NSToolbarItem *item in toolbar.items) {
-        if (![item.itemIdentifier isEqualToString:@"search-field"]) continue;
-        control = item.view;
-    }
+//     NSView *control;
+//     for (NSToolbarItem *item in toolbar.items) {
+//         if (![item.itemIdentifier isEqualToString:@"search-field"]) continue;
+//         control = item.view;
+//     }
+    NSView *control = [self controlForIdentifier:@"search-field"];
+    NSLog(@"updateTextFieldWidthsForWindow 2");
     if(!control){
         NSLog(@"updateTextFieldWidthsForWindow not control");
         return;
     }
-    NSLog(@"updateTextFieldWidthsForWindow 2");
 
     // 计算新宽度
     CGFloat newWidth = availableWidth;
 
     // 获取控件属性
     NSLog(@"updateTextFieldWidthsForWindow 3");
+
+    [control.widthAnchor constraintEqualToConstant:newWidth].active = YES;
 
     // 更新宽度约束
     NSLayoutConstraint *widthConstraint = _widthConstraints[@"search-field"];
@@ -265,11 +268,11 @@ static char kToolbarDelegateKey;
             if (property.IsCenteredItem) {
                 toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
             }
-             item.visibilityPriority = property.VisibilityPriority; // 可见优先级
+            item.visibilityPriority = property.VisibilityPriority; // 可见优先级
 
             NSLog(@"toolbar %d %@ %d", property.IsNavigational, itemIdentifier, property.IsCenteredItem);
 
-            [self updateControlProperty:itemIdentifier withProperty:property];
+            //[self updateControlProperty:itemIdentifier withProperty:property];
         }
 
         return item;
@@ -420,6 +423,8 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
     if (config.Transparent) {
         //  window.backgroundColor = [NSColor clearColor];
     }
+
+    window.showsToolbarButton = config.ShowsToolbarButton;
     window.toolbarStyle = config.Style;
     window.titlebarSeparatorStyle = config.SeparatorStyle;
     toolbar.allowsUserCustomization = config.IsAllowsUserCustomization;
@@ -766,7 +771,7 @@ void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width) {
 
     // 创建固定宽度的视图
     NSView *spaceView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, width, 1)];
-    spaceView.translatesAutoresizingMaskIntoConstraints = NO;
+    spaceView.translatesAutoresizingMaskIntoConstraints = NO;  // 关闭自动尺寸调整
     [spaceView.widthAnchor constraintEqualToConstant:width].active = YES;
 
     // 添加到委托
