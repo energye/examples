@@ -281,8 +281,10 @@ func (m *Window) TestTool() {
 	config := ToolbarConfiguration{
 		DisplayMode: NSToolbarDisplayModeIconOnly,
 		Transparent: true,
-		SizeMode:    NSToolbarSizeModeRegular,
-		Style:       NSWindowToolbarStyleUnifiedCompact,
+		SizeMode:    NSToolbarSizeModeSmall,
+		//Style:                     NSWindowToolbarStyleUnifiedCompact,
+		Style:                     NSWindowToolbarStyleUnified,
+		IsAllowsUserCustomization: false,
 	}
 
 	ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
@@ -296,15 +298,15 @@ func (m *Window) TestTool() {
 
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	// 添加按钮
-	AddToolbarButton(windowHandle, "run-button", "Run", "Run the program", defaultProperty)
-	AddToolbarButton(windowHandle, "run-button2", "Run", "Run the program", defaultProperty)
-	AddToolbarButton(windowHandle, "run-button3", "Run", "Run the program", defaultProperty)
+	AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
+	AddToolbarButton(windowHandle, "forwd", "前进", "前进", defaultProperty)
+	AddToolbarButton(windowHandle, "refs", "刷新", "刷新", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
 	textProperty := defaultProperty
 	//textProperty.Height = 28
-	textProperty.IsNavigational = true
+	//textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
@@ -363,7 +365,10 @@ func (m *Window) TestTool() {
 	fmt.Printf("Search field value: %s\n", value)
 
 	Resize = func() {
-		width := int(m.Width() - 450)
+		width := int(m.Width() - 500)
+		if width > 700 {
+			width = 700
+		}
 		//fmt.Println("width", width)
 		sf.UpdateSearchFieldWidth(width)
 	}

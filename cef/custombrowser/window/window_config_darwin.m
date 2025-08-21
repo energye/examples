@@ -32,14 +32,14 @@ static char kToolbarDelegateKey;
 
 // 工具栏委托类
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
-    NSMutableDictionary<NSString *, NSView *> *_controls;
-    NSMutableArray<NSString *> *_dynamicIdentifiers;
-    NSMutableDictionary<NSString *, NSValue *> *_controlProperty;
     ControlEventCallback _callback;
     void *_owner; // nsWindowHandle
     NSWindow *_window; // NSWindow
 }
 
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSView *> *controls;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSValue *> *controlProperty;
+@property (nonatomic, strong) NSMutableArray<NSString *> *dynamicIdentifiers;
 // @property (nonatomic, assign) ToolbarConfiguration configuration;
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
@@ -61,9 +61,9 @@ static char kToolbarDelegateKey;
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _controls = [NSMutableDictionary dictionary];
-        _dynamicIdentifiers = [NSMutableArray array];
-        _controlProperty = [NSMutableDictionary dictionary];
+        self.controls = [NSMutableDictionary dictionary];
+        self.dynamicIdentifiers = [NSMutableArray array];
+        self.controlProperty = [NSMutableDictionary dictionary];
         _callback = NULL;
         _owner = NULL;
         // 监听窗口大小变化
@@ -73,16 +73,16 @@ static char kToolbarDelegateKey;
 }
 
 - (void)dealloc {
+    NSLog(@"MainToolbarDelegate dealloc 释放");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super dealloc];
-    NSLog(@"MainToolbarDelegate dealloc 释放");
 }
 
 
 - (void)windowDidResize:(NSNotification *)notification {
     NSWindow *window = notification.object;
     // NSLog(@"windowDidResize");
-    // [self updateTextFieldWidthsForWindow:window];
+    [self updateTextFieldWidthsForWindow:window];
 }
 
 - (void)updateTextFieldWidthsForWindow:(NSWindow *)window {
@@ -92,6 +92,7 @@ static char kToolbarDelegateKey;
 
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property {
+    NSLog(@"addControl");
     _controls[identifier] = control;
     // 存储控件样式
     NSValue *propertyValue = [NSValue value:&property withObjCType:@encode(ControlProperty)];
@@ -103,10 +104,12 @@ static char kToolbarDelegateKey;
 }
 
 - (NSView *)controlForIdentifier:(NSString *)identifier {
+    NSLog(@"controlForIdentifier");
     return _controls[identifier];
 }
 
 - (void)removeControlForIdentifier:(NSString *)identifier {
+    NSLog(@"removeControlForIdentifier");
     // 从控件字典中移除
     [_controls removeObjectForKey:identifier];
     // 从样式字典中移除
@@ -132,6 +135,7 @@ static char kToolbarDelegateKey;
 }
 
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property {
+    NSLog(@"updateControlProperty");
     NSView *control = [self controlForIdentifier:identifier];
     if (!control) return;
 
@@ -191,23 +195,24 @@ static char kToolbarDelegateKey;
 #pragma mark - Toolbar Delegate
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
-    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
     NSLog(@"toolbarDefaultItemIdentifiers");
+    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
     return identifiers;
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
+    NSLog(@"toolbarAllowedItemIdentifiers");
     NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
     // 添加系统标识符
     [identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
     [identifiers addObject:NSToolbarSpaceItemIdentifier];
-    NSLog(@"toolbarAllowedItemIdentifiers");
     return identifiers;
 }
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
      itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
  willBeInsertedIntoToolbar:(BOOL)flag {
+    NSLog(@"toolbar");
     // 处理系统项
     if ([itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier]) {
         return [[NSToolbarItem alloc] initWithItemIdentifier:NSToolbarFlexibleSpaceItemIdentifier];
@@ -304,6 +309,7 @@ static char kToolbarDelegateKey;
 
 
 - (void)controlTextDidChange:(NSNotification *)notification {
+    NSLog(@"controlTextDidChange");
     if (_callback) {
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
@@ -319,6 +325,7 @@ static char kToolbarDelegateKey;
 }
 
 - (void)controlTextDidEndEditing:(NSNotification *)notification {
+    NSLog(@"controlTextDidEndEditing");
     if (_callback) {
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
@@ -362,21 +369,16 @@ ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyl
     return property;
 }
 
-// 获取窗口指针
-void *GetNSWindowFromNSView(unsigned long nsViewHandle) {
-    NSView *view = (__bridge NSView *)(void *)nsViewHandle;
-    return (__bridge void *)[view window];
-}
-
-// 在某个初始化函数中初始化 map table
+// 初始化函数
 __attribute__((constructor))
 static void initializeDelegateMap() {
-    NSLog(@"initializeDelegateMap");
+    // NSLog(@"initializeDelegateMap");
 }
 
 
 // 配置窗口
 void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void *owner) {
+    NSLog(@"ConfigureWindow");
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
 
     // 创建工具栏
@@ -866,7 +868,6 @@ void UpdateSearchFieldWidth(void* ptr, CGFloat width) {
             break;
         }
     }
-// [searchField.widthAnchor constraintEqualToConstant:width].active = YES;
 
     // 添加新宽度约束并设置高优先级
     NSLayoutConstraint *widthConstraint = [searchField.widthAnchor constraintEqualToConstant:width];
