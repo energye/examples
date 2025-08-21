@@ -283,6 +283,17 @@ static char kToolbarDelegateKey;
 
 #pragma mark - 事件处理
 
+// 实现代理方法
+- (void)searchFieldDidStartSearching:(NSSearchField *)sender {
+    NSLog(@"搜索开始: %@", sender.stringValue);
+    // 在这里处理搜索开始时的逻辑
+}
+
+- (void)searchFieldDidEndSearching:(NSSearchField *)sender {
+    NSLog(@"搜索结束");
+    // 在这里处理搜索结束时的逻辑
+}
+
 - (void)buttonClicked:(NSButton *)sender {
     NSLog(@"buttonClicked");
     if (_callback) {
@@ -534,6 +545,9 @@ void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, c
     textField.placeholderString = placeholderStr;
     textField.delegate = delegate;
     textField.controlSize = property.controlSize;
+
+    // textField.alignment = NSTextAlignmentCenter;    // 设置水平居中
+
     if (property.font) {
         textField.font = property.font;
     }
@@ -584,6 +598,8 @@ void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier,
         searchField.font = property.font;
     }
 
+    //searchField.sendsWholeSearchString = true;
+
     // 设置尺寸约束
     if (property.width > 0) {
         [searchField.widthAnchor constraintEqualToConstant:property.width].active = YES;
@@ -591,6 +607,7 @@ void AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier,
     if (property.height > 0) {
         [searchField.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
+
 
     // 关联标识符
     objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);

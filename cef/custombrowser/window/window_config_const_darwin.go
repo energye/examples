@@ -88,27 +88,27 @@ const (
 	NSToolbarSizeModeSmall   ToolbarSizeMode = 2
 )
 
-type NSBezelStyle C.NSBezelStyle
+type NSBezelStyle = int
 
 const (
-	NSBezelStyleRegularSquare    NSBezelStyle = C.NSBezelStyleRegularSquare
-	NSBezelStyleSmallSquare      NSBezelStyle = C.NSBezelStyleSmallSquare
-	NSBezelStyleDisclosure       NSBezelStyle = C.NSBezelStyleDisclosure
-	NSBezelStyleShadowlessSquare NSBezelStyle = C.NSBezelStyleShadowlessSquare
-	NSBezelStyleRoundRect        NSBezelStyle = C.NSBezelStyleRoundRect
-	NSBezelStyleTexturedSquare   NSBezelStyle = C.NSBezelStyleTexturedSquare
-	NSBezelStyleTexturedRounded  NSBezelStyle = C.NSBezelStyleTexturedRounded
-	NSBezelStyleHelpButton       NSBezelStyle = C.NSBezelStyleHelpButton
-	NSBezelStyleInline           NSBezelStyle = C.NSBezelStyleInline
+	NSBezelStyleRegularSquare    NSBezelStyle = NSBezelStyle(C.NSBezelStyleRegularSquare)
+	NSBezelStyleSmallSquare      NSBezelStyle = NSBezelStyle(C.NSBezelStyleSmallSquare)
+	NSBezelStyleDisclosure       NSBezelStyle = NSBezelStyle(C.NSBezelStyleDisclosure)
+	NSBezelStyleShadowlessSquare NSBezelStyle = NSBezelStyle(C.NSBezelStyleShadowlessSquare)
+	NSBezelStyleRoundRect        NSBezelStyle = NSBezelStyle(C.NSBezelStyleRoundRect)
+	NSBezelStyleTexturedSquare   NSBezelStyle = NSBezelStyle(C.NSBezelStyleTexturedSquare)
+	NSBezelStyleTexturedRounded  NSBezelStyle = NSBezelStyle(C.NSBezelStyleTexturedRounded)
+	NSBezelStyleHelpButton       NSBezelStyle = NSBezelStyle(C.NSBezelStyleHelpButton)
+	NSBezelStyleInline           NSBezelStyle = NSBezelStyle(C.NSBezelStyleInline)
 )
 
-type NSControlSize C.NSControlSize
+type NSControlSize = int
 
 const (
-	NSControlSizeMini    NSControlSize = C.NSControlSizeMini
-	NSControlSizeSmall   NSControlSize = C.NSControlSizeSmall
-	NSControlSizeRegular NSControlSize = C.NSControlSizeRegular
-	NSControlSizeLarge   NSControlSize = C.NSControlSizeLarge
+	NSControlSizeMini    NSControlSize = NSControlSize(C.NSControlSizeMini)
+	NSControlSizeSmall   NSControlSize = NSControlSize(C.NSControlSizeSmall)
+	NSControlSizeRegular NSControlSize = NSControlSize(C.NSControlSizeRegular)
+	NSControlSizeLarge   NSControlSize = NSControlSize(C.NSControlSizeLarge)
 )
 
 type ControlItemBase struct {
