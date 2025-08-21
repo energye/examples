@@ -89,7 +89,27 @@ const (
 )
 
 type NSBezelStyle C.NSBezelStyle
+
+const (
+	NSBezelStyleRegularSquare    NSBezelStyle = C.NSBezelStyleRegularSquare
+	NSBezelStyleSmallSquare      NSBezelStyle = C.NSBezelStyleSmallSquare
+	NSBezelStyleDisclosure       NSBezelStyle = C.NSBezelStyleDisclosure
+	NSBezelStyleShadowlessSquare NSBezelStyle = C.NSBezelStyleShadowlessSquare
+	NSBezelStyleRoundRect        NSBezelStyle = C.NSBezelStyleRoundRect
+	NSBezelStyleTexturedSquare   NSBezelStyle = C.NSBezelStyleTexturedSquare
+	NSBezelStyleTexturedRounded  NSBezelStyle = C.NSBezelStyleTexturedRounded
+	NSBezelStyleHelpButton       NSBezelStyle = C.NSBezelStyleHelpButton
+	NSBezelStyleInline           NSBezelStyle = C.NSBezelStyleInline
+)
+
 type NSControlSize C.NSControlSize
+
+const (
+	NSControlSizeMini    NSControlSize = C.NSControlSizeMini
+	NSControlSizeSmall   NSControlSize = C.NSControlSizeSmall
+	NSControlSizeRegular NSControlSize = C.NSControlSizeRegular
+	NSControlSizeLarge   NSControlSize = C.NSControlSizeLarge
+)
 
 type ControlItemBase struct {
 	Identifier   string

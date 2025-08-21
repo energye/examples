@@ -284,7 +284,7 @@ func (m *Window) TestTool() {
 
 	// 创建默认样式
 	defaultProperty := CreateDefaultControlProperty()
-	defaultProperty.Height = 24
+	//defaultProperty.Height = 24
 	//defaultProperty.BezelStyle = BezelStyleTexturedRounded // 边框样式
 	//defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
 	defaultProperty.IsNavigational = true
