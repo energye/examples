@@ -304,15 +304,16 @@ func (m *Window) TestTool() {
 	// 添加文本框
 	textProperty := defaultProperty
 	//textProperty.Height = 28
-	textProperty.IsNavigational = false
+	textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
 
 	// 添加搜索框
 	AddToolbarFlexibleSpace(windowHandle)
-	textProperty.MinWidth = 60
-	textProperty.MaxWidth = float64(m.Width() - 250)
+	//textProperty.MinWidth = 60
+	//textProperty.MaxWidth = float64(m.Width() - 250)
+	//textProperty.Width = float64(m.Width() - 250)
 	sf := AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
 	println(sf, "textProperty.MaxWidth", textProperty.MaxWidth)
 	AddToolbarFlexibleSpace(windowHandle)
@@ -328,7 +329,7 @@ func (m *Window) TestTool() {
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
 	imageButtonProperty.VisibilityPriority = NSToolbarItemVisibilityPriorityHigh
-	//AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
+	AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", int(C.GetToolbarItemCount(C.ulong(windowHandle))))
 	go func() {
 		time.Sleep(time.Second * 2)
@@ -362,9 +363,9 @@ func (m *Window) TestTool() {
 	fmt.Printf("Search field value: %s\n", value)
 
 	Resize = func() {
-		width := int(m.Width() - 150)
-		fmt.Println("width", width)
-		//sf.UpdateSearchFieldWidth(width)
+		width := int(m.Width() - 450)
+		//fmt.Println("width", width)
+		sf.UpdateSearchFieldWidth(width)
 	}
 }
 
