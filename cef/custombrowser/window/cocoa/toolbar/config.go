@@ -4,12 +4,9 @@ package toolbar
 #cgo CFLAGS: -mmacosx-version-min=11.0 -x objective-c
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #include "config.h"
-
-extern void onControlEvent(ToolbarCallbackContext *cContext);
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -41,12 +38,6 @@ func ToolbarConfigurationToOC(config ToolbarConfiguration) C.ToolbarConfiguratio
 		Style:                     C.NSUInteger(config.Style),
 	}
 	return cConfig
-}
-
-func ConfigureWindow(nsWindowHandle uintptr, config ToolbarConfiguration, owner unsafe.Pointer) {
-	cConfig := ToolbarConfigurationToOC(config)
-	callback := (C.ControlEventCallback)(C.onControlEvent)
-	C.ConfigureWindow(C.ulong(nsWindowHandle), cConfig, callback, owner)
 }
 
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
@@ -207,21 +198,6 @@ func CreateDefaultControlProperty() ControlProperty {
 		Font:               unsafe.Pointer(cProperty.font),
 		VisibilityPriority: int(cProperty.VisibilityPriority),
 	}
-}
-
-// 导出Go回调函数供C调用
-
-//export onControlEvent
-func onControlEvent(cContext *C.ToolbarCallbackContext) {
-	event := ToolbarCallbackContext{
-		Type:       TccType(cContext.type_),
-		Identifier: C.GoString(cContext.identifier),
-		Value:      C.GoString(cContext.value),
-		Index:      int(cContext.index),
-		Owner:      cContext.owner,
-		Sender:     cContext.sender,
-	}
-	fmt.Println("onControlEvent:", event)
 }
 
 //现代 macOS 工具栏开发最佳实践总结

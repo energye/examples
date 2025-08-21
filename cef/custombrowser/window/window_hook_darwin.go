@@ -8,7 +8,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"log"
 	"time"
-	"unsafe"
 )
 
 var Resize func() = nil
@@ -40,7 +39,7 @@ func (m *Window) TestTool() {
 		//IsAllowsUserCustomization: false,
 	}
 
-	toolbar.ConfigureWindow(windowHandle, config, unsafe.Pointer(windowHandle))
+	toolbar.Create(m, config)
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()

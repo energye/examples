@@ -33,7 +33,6 @@ static char kToolbarDelegateKey;
 // 工具栏委托类
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
     ControlEventCallback _callback;
-    void *_owner; // nsWindowHandle
     NSWindow *_window; // NSWindow
 }
 
@@ -46,7 +45,6 @@ static char kToolbarDelegateKey;
 - (NSView *)controlForIdentifier:(NSString *)identifier;
 - (void)removeControlForIdentifier:(NSString *)identifier;
 - (void)setCallback:(ControlEventCallback)callback;
-- (void)setOwner:(void *)owner;
 - (void)setWindow:(NSWindow *)window;
 - (NSWindow *)getWindow;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
@@ -65,7 +63,6 @@ static char kToolbarDelegateKey;
         self.dynamicIdentifiers = [NSMutableArray array];
         self.controlProperty = [NSMutableDictionary dictionary];
         _callback = NULL;
-        _owner = NULL;
         // 监听窗口大小变化
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:nil];
     }
@@ -120,10 +117,6 @@ static char kToolbarDelegateKey;
 
 - (void)setCallback:(ControlEventCallback)callback {
     _callback = callback;
-}
-
-- (void)setOwner:(void *)owner; {
-    _owner = owner;
 }
 
 - (void)setWindow:(NSWindow *)window {
@@ -263,7 +256,7 @@ static char kToolbarDelegateKey;
     if (_callback) {
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _owner, sender);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _window, sender);
             @try{
                 _callback(context);
             } @finally {
@@ -279,7 +272,7 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _owner, sender);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _window, sender);
             @try{
                 _callback(context);
             } @finally {
@@ -297,7 +290,7 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _owner, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _window, control);
             @try{
                 _callback(context);
             } @finally {
@@ -314,7 +307,7 @@ static char kToolbarDelegateKey;
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _owner, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _window, control);
             @try{
                 _callback(context);
             } @finally {
@@ -330,7 +323,7 @@ static char kToolbarDelegateKey;
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _owner, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _window, control);
             @try{
                 _callback(context);
             } @finally {
@@ -377,23 +370,22 @@ static void initializeDelegateMap() {
 
 
 // 配置窗口
-void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void *owner) {
-    NSLog(@"ConfigureWindow");
+void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar) {
+    NSLog(@"CreateToolbar");
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
 
-    // 创建工具栏
+    // 创建工具栏代理
     MainToolbarDelegate *toolbarDelegate = [[MainToolbarDelegate alloc] init];
-    //toolbarDelegate.configuration = config;
     [toolbarDelegate setCallback:callback];
-    [toolbarDelegate setOwner:owner];
     [toolbarDelegate setWindow:window];
 
+    // 创建工具栏
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     toolbar.delegate = toolbarDelegate;
     // 设置显示模式
     window.titlebarAppearsTransparent = config.Transparent;
     if (config.Transparent) {
-        //  window.backgroundColor = [NSColor clearColor];
+        // window.backgroundColor = [NSColor clearColor];
     }
 
     window.showsToolbarButton = config.ShowsToolbarButton;
@@ -408,6 +400,13 @@ void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, 
 
     // 保留委托对象
     objc_setAssociatedObject(window, &kToolbarDelegateKey, toolbarDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    if (outToolbarDelegate) {
+        *outToolbarDelegate = (__bridge void*)(toolbarDelegate);
+    }
+    if (outToolbar) {
+        *outToolbar = (__bridge void*)(toolbar);
+    }
 }
 
 #pragma mark - 动态控件创建函数

@@ -79,7 +79,8 @@ void UpdateSearchFieldWidth(void* ptr, CGFloat width);
 // 公共函数
 ControlProperty CreateDefaultControlProperty();
 ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
-void ConfigureWindow(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void *owner);
+
+void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
