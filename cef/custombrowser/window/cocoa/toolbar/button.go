@@ -17,6 +17,7 @@ void verifyNSButton(void* btn) {
 */
 import "C"
 import (
+	"github.com/energye/examples/cef/custombrowser/window/cocoa"
 	"github.com/energye/lcl/lcl"
 	"unsafe"
 )
@@ -58,6 +59,7 @@ func LCLToNSButton(button lcl.IButton) {
 	}
 	handle := button.Handle()
 	ptr := unsafe.Pointer(handle)
-	//nsButton := (*C.NSButton)(ptr)
-	verifyNSButton(ptr)
+	nsButton := (*C.NSButton)(ptr)
+	isNSButton := cocoa.VerifyWidget(handle)
+	println("LCLToNSButton isNSButton:", isNSButton, nsButton)
 }

@@ -1,4 +1,5 @@
 #import "cocoa_helpers.h"
+#import <Foundation/Foundation.h>
 
 // 释放继承链内存
 void freeInheritanceChain(InheritanceChain* chain) {

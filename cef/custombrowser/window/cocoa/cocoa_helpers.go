@@ -4,6 +4,7 @@ package cocoa
 #cgo CFLAGS: -mmacosx-version-min=11.0 -x objective-c
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #import "cocoa_helpers.h"
+
 */
 import "C"
 import (
@@ -54,11 +55,26 @@ func InspectControl(handle uintptr) {
 	}
 }
 
-func main() {
-	// 注意：这里使用示例句柄，实际使用时需要替换为真实的控件句柄
-	// 真实句柄通常从窗口系统或UI框架（如Lazarus）获取
-	var sampleHandle uintptr = 0x12345678 // 替换为实际句柄
+var useClassNameList map[string]struct{}
 
-	fmt.Println("=== Cocoa 控件类型检测工具 ===")
-	InspectControl(sampleHandle)
+func initUseClassNameList() {
+	tempClassNames := []string{"NSButton", "TCocoaButton"}
+	useClassNameList = make(map[string]struct{})
+	for _, className := range tempClassNames {
+		useClassNameList[className] = struct{}{}
+	}
+}
+
+func VerifyWidget(handle uintptr) bool {
+	if useClassNameList == nil {
+		initUseClassNameList()
+	}
+	cHandle := unsafe.Pointer(handle)
+	className := C.GoString(C.getObjectClassName(cHandle))
+	_, ok := useClassNameList[className]
+	if !ok {
+		// debug
+		InspectControl(handle)
+	}
+	return ok
 }
