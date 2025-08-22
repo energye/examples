@@ -7,6 +7,13 @@ package toolbar
 */
 import "C"
 
+type ControlType = int
+
+const (
+	CtCocoa ControlType = iota
+	CtLCL
+)
+
 type ToolbarDisplayMode = int
 
 const (

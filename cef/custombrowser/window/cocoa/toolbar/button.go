@@ -7,11 +7,6 @@ package toolbar
 
 */
 import "C"
-import (
-	"github.com/energye/examples/cef/custombrowser/window/cocoa"
-	"github.com/energye/lcl/lcl"
-	"unsafe"
-)
 
 type NSButton struct {
 	Control
@@ -38,22 +33,41 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 	}
 	cProperty := property.ToOC()
 	cBtn := C.NewButton(owner.delegate, cIdentifier, cTitle, cTooltip, cProperty)
-	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property}, config: config}
+	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
 func (m *NSButton) SetOnClick(fn ButtonAction) {
 	registerEvent(m.config.Identifier, fn)
 }
 
-func LCLToNSButton(owner *NSToolBar, button lcl.IButton) *NSButton {
-	if !button.HandleAllocated() {
-		return nil
+type NSImageButton struct {
+	Control
+	config ButtonItem
+}
+
+func NewNSImageButton(owner *NSToolBar, config ButtonItem, property ControlProperty) *NSImageButton {
+	if config.Identifier == "" {
+		config.Identifier = nextSerialNumber("ImageButton")
 	}
-	handle := button.Handle()
-	if cocoa.VerifyWidget(handle) {
-		return nil
+	if config.Title == "" {
+		config.Title = config.Identifier
 	}
-	btnHandle := unsafe.Pointer(handle)
-	//nsButton := (*C.NSButton)(btnHandle)
-	return &NSButton{Control: Control{instance: Pointer(btnHandle), owner: owner}}
+	var cIdentifier *C.char
+	cIdentifier = C.CString(config.Identifier)
+	defer C.free(Pointer(cIdentifier))
+	var cTitle *C.char
+	cTitle = C.CString(config.Title)
+	defer C.free(Pointer(cTitle))
+	var cTooltip *C.char
+	if config.Tips != "" {
+		cTooltip = C.CString(config.Tips)
+		defer C.free(Pointer(cTooltip))
+	}
+	cProperty := property.ToOC()
+	cBtn := C.NewButton(owner.delegate, cIdentifier, cTitle, cTooltip, cProperty)
+	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+}
+
+func (m *NSImageButton) SetOnClick(fn ButtonAction) {
+	registerEvent(m.config.Identifier, fn)
 }

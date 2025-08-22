@@ -97,6 +97,7 @@ void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
 
 // 控件创建
 void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
+void* NewImageButton(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);

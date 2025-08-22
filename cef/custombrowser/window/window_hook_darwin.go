@@ -101,7 +101,7 @@ func (m *Window) TestTool() {
 			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
 			sf.SetText("Object-c UI线程 设置 Initial value")
 			fmt.Println("sf.GetText():", sf.GetText())
-			toolbar.LCLToNSButton(bar, testbtn)
+			//toolbar.NewLCLButton(bar, testbtn)
 			//toolbar.SetWindowBackgroundColor(m, toolbar.Color{Red: 56, Green: 57, Blue: 60, Alpha: 255})
 		})
 		time.Sleep(time.Second * 2)

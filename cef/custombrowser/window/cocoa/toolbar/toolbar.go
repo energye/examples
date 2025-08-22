@@ -48,7 +48,6 @@ func registerEvent(identifier string, fn any) {
 
 type NSToolBar struct {
 	owner    lcl.IForm
-	partBox  lcl.IPanel
 	toolbar  Pointer
 	delegate Pointer
 	config   *ToolbarConfiguration
@@ -66,18 +65,18 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 		(*Pointer)(Pointer(&delegatePtr)),
 		(*Pointer)(Pointer(&toolbarPtr)),
 	)
-	partBox := lcl.NewPanel(owner)
-	partBox.SetParent(owner)
-	partBox.SetBounds(0, 0, 1, 1)
-	partBox.SetVisible(false)
-	return &NSToolBar{owner: owner, partBox: partBox,
+	return &NSToolBar{owner: owner,
 		delegate: Pointer(delegatePtr), toolbar: Pointer(toolbarPtr),
 		config: &config}
 }
 
 func (m *NSToolBar) AddControl(control IControl) {
+	if control == nil {
+		println("[ERROR] AddControl 控件是 nil")
+		return
+	}
 	var identifier *C.char
-	identifier = C.CString("TestBtn1")
+	identifier = C.CString(control.Identifier())
 	defer C.free(Pointer(identifier))
 	cProperty := control.Property().ToOC()
 	C.ToolbarAddControl(m.delegate, m.toolbar, Pointer(control.Instance()), identifier, cProperty)
@@ -85,11 +84,4 @@ func (m *NSToolBar) AddControl(control IControl) {
 
 func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {
 	return NewNSButton(m, config, property)
-}
-
-func (m *NSToolBar) NewLCLButton() *NSButton {
-	button := lcl.NewButton(m.owner)
-	button.SetParent(m.partBox)
-	nsButton := LCLToNSButton(m, button)
-	return nsButton
 }

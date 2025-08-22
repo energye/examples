@@ -423,9 +423,9 @@ void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
         NSLog(@"[ERROR] AddToolbarControl 必要入参为空");
         return;
     }
-    MainToolbarDelegate *delegate = (__bridge MainToolbarDelegate*)nsDelegate;
-    NSToolbar *toolbar = (__bridge NSToolbar*)nsToolbar;
-    NSView *view = (__bridge NSView*)nsControl;
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSToolbar *toolbar = (NSToolbar*)nsToolbar;
+    NSView *view = (NSView*)nsControl;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     if (!toolbar || !delegate || !view || !idStr) {
         NSLog(@"[ERROR] AddToolbarControl 必要转换参数为空");
@@ -437,24 +437,11 @@ void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
     [toolbar insertItemWithItemIdentifier:idStr atIndex:toolbar.items.count];
 }
 
-#pragma mark - 控件添加事件
-
-void ControlSetOnAction(void* nsDelegate, NSControl* control, const char *identifier) {
-    if (!nsDelegate || !control || !identifier) {
-        NSLog(@"[ERROR] ControlSetOnAction 必要参数为空");
-        return;
-    }
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    [control setTarget:delegate];
-    [control setAction:@selector(buttonClicked:)];
-    objc_setAssociatedObject(control, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-}
-
 #pragma mark - 动态控件创建函数
 
 // 通用函数：通过NSControl设置控件属性（适用于按钮、文本框等）
 void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property) {
+    control.controlSize = property.controlSize;
     if (tooltipStr) {
         control.toolTip = tooltipStr;
     }
@@ -475,19 +462,35 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     }
 }
 
-void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
+void* NewButton(void* nsDelegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     if (!title) {
         NSLog(@"[ERROR] NewButton 必要参数为空");
         return nil;
     }
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *titleStr = [NSString stringWithUTF8String:title];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-    NSButton *button = [NSButton buttonWithTitle:titleStr target:nil action:nil];
+    NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
     button.bezelStyle = property.bezelStyle;
-    button.controlSize = property.controlSize;
+    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(button, tooltipStr, property);
-    ControlSetOnAction(delegate, button, identifier);
     return (__bridge void*)(button);
+}
+
+void* NewImageButton(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property) {
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    NSString *imageNameStr = [NSString stringWithUTF8String:image];
+    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
+    NSButton *button = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:imageNameStr accessibilityDescription:nil]
+                                                                             target:delegate
+                                                                             action:@selector(buttonClicked:)];
+    button.bezelStyle = property.bezelStyle;
+    button.imagePosition = NSImageOnly;
+    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+    ConfigureControl(button, tooltipStr, property);
+    return button;
 }
 
 void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
