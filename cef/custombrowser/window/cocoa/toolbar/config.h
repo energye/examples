@@ -85,6 +85,7 @@ void SetSearchFieldText(void* ptr, const char* text);
 void UpdateSearchFieldWidth(void* ptr, CGFloat width);
 
 // 公共函数
+NSImage* imageFromBytes(const uint8_t* data, size_t length);
 ControlProperty CreateDefaultControlProperty();
 ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
 
@@ -95,9 +96,11 @@ void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
 
-// 控件创建
+// 控件创建 button
+void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property);
 void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
-void* NewImageButton(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
+void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
+void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
@@ -107,6 +110,29 @@ void AddToolbarFlexibleSpace(unsigned long nsWindowHandle);
 void AddToolbarSpace(unsigned long nsWindowHandle);
 void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width);
 long GetToolbarItemCount(unsigned long nsWindowHandle);
+
+// 工具栏委托类
+@interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
+    ControlEventCallback _callback;
+    NSWindow *_window; // NSWindow
+}
+
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSView *> *controls;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSValue *> *controlProperty;
+@property (nonatomic, strong) NSMutableArray<NSString *> *dynamicIdentifiers;
+
+- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
+- (NSView *)controlForIdentifier:(NSString *)identifier;
+- (void)removeControlForIdentifier:(NSString *)identifier;
+- (void)setCallback:(ControlEventCallback)callback;
+- (void)setWindow:(NSWindow *)window;
+- (NSWindow *)getWindow;
+- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
+
+- (void)windowDidResize:(NSNotification *)notification;
+- (void)updateTextFieldWidthsForWindow:(NSWindow *)window;
+
+@end
 
 
 #ifdef __cplusplus

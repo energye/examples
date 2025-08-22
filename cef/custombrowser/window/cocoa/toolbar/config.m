@@ -28,31 +28,8 @@ void FreeToolbarCallbackContext(ToolbarCallbackContext* context) {
     free(context);
 }
 
+// 工具栏代理 key 唯一
 static char kToolbarDelegateKey;
-
-// 工具栏委托类
-@interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
-    ControlEventCallback _callback;
-    NSWindow *_window; // NSWindow
-}
-
-@property (nonatomic, strong) NSMutableDictionary<NSString *, NSView *> *controls;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, NSValue *> *controlProperty;
-@property (nonatomic, strong) NSMutableArray<NSString *> *dynamicIdentifiers;
-// @property (nonatomic, assign) ToolbarConfiguration configuration;
-
-- (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
-- (NSView *)controlForIdentifier:(NSString *)identifier;
-- (void)removeControlForIdentifier:(NSString *)identifier;
-- (void)setCallback:(ControlEventCallback)callback;
-- (void)setWindow:(NSWindow *)window;
-- (NSWindow *)getWindow;
-- (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
-
-- (void)windowDidResize:(NSNotification *)notification;
-- (void)updateTextFieldWidthsForWindow:(NSWindow *)window;
-
-@end
 
 @implementation MainToolbarDelegate
 
@@ -336,6 +313,21 @@ static char kToolbarDelegateKey;
 
 #pragma mark - 公共函数实现
 
+// 从字节数组创建NSImage
+NSImage* imageFromBytes(const uint8_t* data, size_t length) {
+    if (!data || length == 0) {
+        return nil;
+    }
+    // 将C字节数组转换为NSData
+    NSData* imageData = [NSData dataWithBytes:data length:length];
+    if (!imageData) {
+        return nil;
+    }
+    // 从NSData创建NSImage
+    NSImage* image = [[NSImage alloc] initWithData:imageData];
+    return image;
+}
+
 // 创建默认控件样式
 ControlProperty CreateDefaultControlProperty() {
     ControlProperty property;
@@ -460,37 +452,6 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     if (property.maxWidth > 0) {
         [control.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
     }
-}
-
-void* NewButton(void* nsDelegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
-    if (!title) {
-        NSLog(@"[ERROR] NewButton 必要参数为空");
-        return nil;
-    }
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *titleStr = [NSString stringWithUTF8String:title];
-    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-    NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
-    button.bezelStyle = property.bezelStyle;
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-    ConfigureControl(button, tooltipStr, property);
-    return (__bridge void*)(button);
-}
-
-void* NewImageButton(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property) {
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *imageNameStr = [NSString stringWithUTF8String:image];
-    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-    NSButton *button = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:imageNameStr accessibilityDescription:nil]
-                                                                             target:delegate
-                                                                             action:@selector(buttonClicked:)];
-    button.bezelStyle = property.bezelStyle;
-    button.imagePosition = NSImageOnly;
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-    ConfigureControl(button, tooltipStr, property);
-    return button;
 }
 
 void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
