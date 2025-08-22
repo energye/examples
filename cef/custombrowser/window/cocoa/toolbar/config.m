@@ -318,12 +318,10 @@ NSImage* imageFromBytes(const uint8_t* data, size_t length) {
     if (!data || length == 0) {
         return nil;
     }
-    // 将C字节数组转换为NSData
     NSData* imageData = [NSData dataWithBytes:data length:length];
     if (!imageData) {
         return nil;
     }
-    // 从NSData创建NSImage
     NSImage* image = [[NSImage alloc] initWithData:imageData];
     return image;
 }
