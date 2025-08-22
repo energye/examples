@@ -14,32 +14,34 @@ import (
 )
 
 type NSButton struct {
-	instance Pointer
-	property *ControlProperty
+	Control
 }
 
-func AddNSButton(nsWindow uintptr, config ButtonItem, property ControlProperty) *NSButton {
+func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) *NSButton {
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("Button")
 	}
-	cIdentifier := C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
-	var cTitle *C.char
-	if config.Title != "" {
-		cTitle = C.CString(config.Title)
-		defer C.free(Pointer(cTitle))
+	if config.Title == "" {
+		config.Title = config.Identifier
 	}
+	var cTitle *C.char
+	cTitle = C.CString(config.Title)
+	defer C.free(Pointer(cTitle))
 	var cTooltip *C.char
 	if config.Tips != "" {
 		cTooltip = C.CString(config.Tips)
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cBtn := C.AddToolbarButton(C.ulong(nsWindow), cIdentifier, cTitle, cTooltip, cProperty)
-	return &NSButton{instance: Pointer(cBtn)}
+	cBtn := C.NewButton(cTitle, cTooltip, cProperty)
+	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property}}
 }
 
-func LCLToNSButton(button lcl.IButton) *NSButton {
+func (m NSButton) SetOnClick(fn ButtonAction) {
+
+}
+
+func LCLToNSButton(owner *NSToolBar, button lcl.IButton) *NSButton {
 	if !button.HandleAllocated() {
 		return nil
 	}
@@ -47,7 +49,7 @@ func LCLToNSButton(button lcl.IButton) *NSButton {
 	if cocoa.VerifyWidget(handle) {
 		return nil
 	}
-	ptr := unsafe.Pointer(handle)
-	//nsButton := (*C.NSButton)(ptr)
-	return &NSButton{instance: ptr}
+	btnHandle := unsafe.Pointer(handle)
+	//nsButton := (*C.NSButton)(btnHandle)
+	return &NSButton{Control: Control{instance: Pointer(btnHandle), owner: owner}}
 }

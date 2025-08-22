@@ -37,7 +37,7 @@ func (m *Window) TestTool() {
 		Style:                     toolbar.NSWindowToolbarStyleUnified,
 		IsAllowsUserCustomization: true,
 	}
-	toolbar.Create(m, config)
+	bar := toolbar.Create(m, config)
 	testbtn := lcl.NewButton(m)
 	testbtn.SetParent(m)
 	testbtn.SetCaption("内容内容内容")
@@ -50,11 +50,11 @@ func (m *Window) TestTool() {
 	defaultProperty.IsNavigational = true
 
 	item := toolbar.ButtonItem{}
-	item.OnAction = func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) {
-
-	}
 	//bar.AddButton(item, defaultProperty)
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
+	//
+	btn1 := bar.NewButton(item, defaultProperty)
+	bar.AddControl(btn1)
 	// 添加按钮
 	toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
 	toolbar.AddToolbarButton(windowHandle, "forwd", "前进", "前进", defaultProperty)
@@ -98,7 +98,7 @@ func (m *Window) TestTool() {
 			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
 			sf.SetText("Object-c UI线程 设置 Initial value")
 			fmt.Println("sf.GetText():", sf.GetText())
-			toolbar.LCLToNSButton(testbtn)
+			toolbar.LCLToNSButton(bar, testbtn)
 			//toolbar.SetWindowBackgroundColor(m, toolbar.Color{Red: 56, Green: 57, Blue: 60, Alpha: 255})
 		})
 		time.Sleep(time.Second * 2)

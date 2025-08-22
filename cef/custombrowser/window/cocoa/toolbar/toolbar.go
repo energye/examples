@@ -51,25 +51,25 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	partBox.SetBounds(0, 0, 1, 1)
 	partBox.SetVisible(false)
 	return &NSToolBar{owner: owner, partBox: partBox,
-		toolbar: Pointer(delegatePtr), delegate: Pointer(toolbarPtr),
+		delegate: Pointer(delegatePtr), toolbar: Pointer(toolbarPtr),
 		config: &config}
 }
 
 func (m *NSToolBar) AddControl(control IControl) {
-
+	var identifier *C.char
+	identifier = C.CString("TestBtn1")
+	defer C.free(Pointer(identifier))
+	cProperty := control.Property().ToOC()
+	C.ToolbarAddControl(m.delegate, m.toolbar, Pointer(control.Instance()), identifier, cProperty)
 }
 
-func (m *NSToolBar) AddButton(config ButtonItem, property ControlProperty) *NSButton {
-	nsWindow := uintptr(lcl.PlatformWindow(m.owner.Instance()))
-	if nsWindow == 0 {
-		return nil
-	}
-	return AddNSButton(nsWindow, config, property)
+func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {
+	return NewNSButton(m, config, property)
 }
 
-func (m *NSToolBar) AddLCLButton() *NSButton {
+func (m *NSToolBar) NewLCLButton() *NSButton {
 	button := lcl.NewButton(m.owner)
 	button.SetParent(m.partBox)
-	nsButton := LCLToNSButton(button)
+	nsButton := LCLToNSButton(m, button)
 	return nsButton
 }

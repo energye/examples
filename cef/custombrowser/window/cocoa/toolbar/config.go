@@ -8,6 +8,7 @@ package toolbar
 import "C"
 import "github.com/energye/lcl/lcl"
 
+// SetWindowBackgroundColor 公开方法 设置窗口背景色
 func SetWindowBackgroundColor(owner lcl.IForm, color Color) {
 	nsWindow := uintptr(lcl.PlatformWindow(owner.Instance()))
 	if nsWindow == 0 {
@@ -17,6 +18,7 @@ func SetWindowBackgroundColor(owner lcl.IForm, color Color) {
 	C.SetWindowBackgroundColor(C.ulong(nsWindow), cColor)
 }
 
+// SetOnAction 公开方法 设置控件事件
 func SetOnAction(cDelegate Pointer, control IControl, identifier string) {
 	cControl := Pointer(control.Instance())
 	cIdentifier := C.CString(identifier)
@@ -27,18 +29,14 @@ func SetOnAction(cDelegate Pointer, control IControl, identifier string) {
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(Pointer(cIdentifier))
-
 	cTitle := C.CString(title)
 	defer C.free(Pointer(cTitle))
-
 	var cTooltip *C.char
 	if tooltip != "" {
 		cTooltip = C.CString(tooltip)
 		defer C.free(Pointer(cTooltip))
 	}
-
 	cProperty := property.ToOC()
-
 	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cProperty)
 }
 

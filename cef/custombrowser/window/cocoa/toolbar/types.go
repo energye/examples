@@ -29,6 +29,26 @@ func (m *Color) ToOC() C.Color {
 
 type IControl interface {
 	Instance() uintptr
+	Owner() *NSToolBar
+	Property() *ControlProperty
+}
+
+type Control struct {
+	owner    *NSToolBar
+	instance Pointer
+	property *ControlProperty
+}
+
+func (m *Control) Instance() uintptr {
+	return uintptr(m.instance)
+}
+
+func (m *Control) Owner() *NSToolBar {
+	return m.owner
+}
+
+func (m *Control) Property() *ControlProperty {
+	return m.property
 }
 
 type ItemBase struct {
@@ -47,11 +67,6 @@ type ItemUI struct {
 
 type ButtonItem struct {
 	ItemUI
-	OnAction ButtonAction
-}
-
-func (m *ButtonItem) ToOC() {
-
 }
 
 type ControlSearchField struct {

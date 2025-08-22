@@ -418,20 +418,20 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
 }
 
 // 向 toolbar 添加控件
-void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
+void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
     if (!nsDelegate || !nsToolbar || !nsControl || !identifier) {
-        NSLog(@"AddToolbarControl 必要参数为空");
+        NSLog(@"[ERROR] AddToolbarControl 必要入参为空");
         return;
     }
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSToolbar *toolbar = (NSToolbar*)nsToolbar;
-    NSView *view = (NSView*)nsControl;
+    MainToolbarDelegate *delegate = (__bridge MainToolbarDelegate*)nsDelegate;
+    NSToolbar *toolbar = (__bridge NSToolbar*)nsToolbar;
+    NSView *view = (__bridge NSView*)nsControl;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     if (!toolbar || !delegate || !view || !idStr) {
-        NSLog(@"AddToolbarControl 必要参数为空");
+        NSLog(@"[ERROR] AddToolbarControl 必要转换参数为空");
         return;
     }
-    // 添加到委托 维护
+    // 添加到委托 维护, 工具栏获取时使用
     [delegate addControl:view forIdentifier:idStr withProperty:property];
     // 添加到工具栏
     [toolbar insertItemWithItemIdentifier:idStr atIndex:toolbar.items.count];
@@ -441,7 +441,7 @@ void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
 
 void SetOnActionInternal(MainToolbarDelegate* delegate, NSControl* control, NSString *idStr) {
     if (!delegate || !control || !idStr) {
-        NSLog(@"SetOnAction 必要参数为空");
+        NSLog(@"[ERROR] SetOnActionInternal 必要参数为空");
         return;
     }
     [control setTarget:delegate];
@@ -458,35 +458,39 @@ void SetOnAction(void* nsDelegate, void* nsControl, const char *identifier) {
 
 #pragma mark - 动态控件创建函数
 
-void* CreateButton(const char *title, const char *tooltip, ControlProperty property) {
-    if (!title || !tooltip) {
-        NSLog(@"AddToolbarControl 必要参数为空");
+// 通用函数：通过NSControl设置控件属性（适用于按钮、文本框等）
+void configureControl(NSControl *control, NSString *tooltipStr, ControlProperty property) {
+    if (tooltipStr) {
+        control.toolTip = tooltipStr;
+    }
+    if (property.font) {
+        control.font = property.font;
+    }
+    if (property.width > 0) {
+        [control.widthAnchor constraintEqualToConstant:property.width].active = YES;
+    }
+    if (property.height > 0) {
+        [control.heightAnchor constraintEqualToConstant:property.height].active = YES;
+    }
+    if (property.minWidth > 0) {
+        [control.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+    }
+    if (property.maxWidth > 0) {
+        [control.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
+    }
+}
+
+void* NewButton(const char *title, const char *tooltip, ControlProperty property) {
+    if (!title) {
+        NSLog(@"[ERROR] NewButton 必要参数为空");
         return nil;
     }
     NSString *titleStr = [NSString stringWithUTF8String:title];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-    // 创建按钮
     NSButton *button = [NSButton buttonWithTitle:titleStr target:nil action:nil];
     button.bezelStyle = property.bezelStyle;
     button.controlSize = property.controlSize;
-    if (tooltipStr) {
-        button.toolTip = tooltipStr;
-    }
-    if (property.font) {
-        button.font = property.font;
-    }
-    if (property.width > 0) {
-        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
-    }
-    if (property.height > 0) {
-        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
-    }
-    if (property.minWidth > 0) {
-        [button.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
-    }
-    if (property.maxWidth > 0) {
-        [button.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
-    }
+    configureControl(button, tooltipStr, property);
     return (__bridge void*)(button);
 }
 
