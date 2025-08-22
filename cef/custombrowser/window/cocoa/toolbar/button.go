@@ -5,15 +5,6 @@ package toolbar
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #include "config.h"
 
-void verifyNSButton(void* btn) {
-    NSObject* obj = (NSObject*)btn;
-    if ([obj isKindOfClass:[NSButton class]]) {
-        NSLog(@"验证成功：是 NSButton 实例");
-    } else {
-        NSLog(@"验证失败：不是 NSButton 实例");
-    }
-}
-
 */
 import "C"
 import (
@@ -21,10 +12,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"unsafe"
 )
-
-func verifyNSButton(nsButton Pointer) {
-	C.verifyNSButton(nsButton)
-}
 
 type NSButton struct {
 	instance Pointer
@@ -48,18 +35,19 @@ func AddNSButton(nsWindow uintptr, config ButtonItem, property ControlProperty) 
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	C.AddToolbarButton(C.ulong(nsWindow), cIdentifier, cTitle, cTooltip, cProperty)
-
-	return &NSButton{}
+	cBtn := C.AddToolbarButton(C.ulong(nsWindow), cIdentifier, cTitle, cTooltip, cProperty)
+	return &NSButton{instance: Pointer(cBtn)}
 }
 
-func LCLToNSButton(button lcl.IButton) {
-	if button.HandleAllocated() {
-
+func LCLToNSButton(button lcl.IButton) *NSButton {
+	if !button.HandleAllocated() {
+		return nil
 	}
 	handle := button.Handle()
+	if cocoa.VerifyWidget(handle) {
+		return nil
+	}
 	ptr := unsafe.Pointer(handle)
-	nsButton := (*C.NSButton)(ptr)
-	isNSButton := cocoa.VerifyWidget(handle)
-	println("LCLToNSButton isNSButton:", isNSButton, nsButton)
+	//nsButton := (*C.NSButton)(ptr)
+	return &NSButton{instance: ptr}
 }

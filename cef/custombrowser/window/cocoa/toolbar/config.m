@@ -409,16 +409,30 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     }
 }
 
+void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
+    if (!nsDelegate || !nsToolbar || !nsControl || !identifier) {
+        NSLog(@"AddToolbarControl 必要参数为空");
+        return;
+    }
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSToolbar *toolbar = (NSToolbar*)nsToolbar;
+    NSView *control = (NSView*)nsControl;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    if (!toolbar || !delegate || !control || !idStr) {
+        NSLog(@"AddToolbarControl 必要参数为空");
+        return;
+    }
+
+}
+
 #pragma mark - 动态控件创建函数
 
-void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
+void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
     NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *titleStr = [NSString stringWithUTF8String:title];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-
     // 创建按钮
     NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
     button.bezelStyle = property.bezelStyle;
@@ -429,7 +443,6 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
     if (property.font) {
         button.font = property.font;
     }
-
     // 设置尺寸约束
     if (property.width > 0) {
         [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
@@ -437,15 +450,13 @@ void AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, cons
     if (property.height > 0) {
         [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
-
     // 关联标识符
     objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
     // 添加到委托
     [delegate addControl:button forIdentifier:idStr withProperty:property];
-
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+    return (__bridge void*)(button);
 }
 
 void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property) {

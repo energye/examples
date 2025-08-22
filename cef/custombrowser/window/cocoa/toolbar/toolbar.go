@@ -28,6 +28,7 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) {
 
 type NSToolBar struct {
 	owner    lcl.IForm
+	partBox  lcl.IPanel
 	toolbar  Pointer
 	delegate Pointer
 	config   *ToolbarConfiguration
@@ -45,9 +46,17 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 		(*Pointer)(Pointer(&delegatePtr)),
 		(*Pointer)(Pointer(&toolbarPtr)),
 	)
-	return &NSToolBar{owner: owner,
+	partBox := lcl.NewPanel(owner)
+	partBox.SetParent(owner)
+	partBox.SetBounds(0, 0, 1, 1)
+	partBox.SetVisible(false)
+	return &NSToolBar{owner: owner, partBox: partBox,
 		toolbar: Pointer(delegatePtr), delegate: Pointer(toolbarPtr),
 		config: &config}
+}
+
+func (m *NSToolBar) AddControl(control uintptr) {
+
 }
 
 func (m *NSToolBar) AddButton(config ButtonItem, property ControlProperty) *NSButton {
@@ -56,4 +65,11 @@ func (m *NSToolBar) AddButton(config ButtonItem, property ControlProperty) *NSBu
 		return nil
 	}
 	return AddNSButton(nsWindow, config, property)
+}
+
+func (m *NSToolBar) AddLCLButton() *NSButton {
+	button := lcl.NewButton(m.owner)
+	button.SetParent(m.partBox)
+	nsButton := LCLToNSButton(button)
+	return nsButton
 }

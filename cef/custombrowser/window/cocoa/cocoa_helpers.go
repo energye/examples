@@ -55,23 +55,24 @@ func InspectControl(handle uintptr) {
 	}
 }
 
-var useClassNameList map[string]struct{}
+var cocoaClassNameList map[string]struct{}
 
+// 初始化使用的 lcl 控件, 用于验证是否为 cocoa 控件
 func initUseClassNameList() {
-	tempClassNames := []string{"NSButton", "TCocoaButton"}
-	useClassNameList = make(map[string]struct{})
-	for _, className := range tempClassNames {
-		useClassNameList[className] = struct{}{}
+	cocoaClassNames := []string{"NSButton", "TCocoaButton"}
+	cocoaClassNameList = make(map[string]struct{})
+	for _, className := range cocoaClassNames {
+		cocoaClassNameList[className] = struct{}{}
 	}
 }
 
 func VerifyWidget(handle uintptr) bool {
-	if useClassNameList == nil {
+	if cocoaClassNameList == nil {
 		initUseClassNameList()
 	}
 	cHandle := unsafe.Pointer(handle)
 	className := C.GoString(C.getObjectClassName(cHandle))
-	_, ok := useClassNameList[className]
+	_, ok := cocoaClassNameList[className]
 	if !ok {
 		// debug
 		InspectControl(handle)

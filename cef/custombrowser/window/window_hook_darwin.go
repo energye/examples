@@ -41,7 +41,6 @@ func (m *Window) TestTool() {
 	testbtn := lcl.NewButton(m)
 	testbtn.SetParent(m)
 	testbtn.SetCaption("内容内容内容")
-	cocoa.InspectControl(testbtn.Handle())
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
