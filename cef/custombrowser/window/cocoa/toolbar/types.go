@@ -16,6 +16,21 @@ type Pointer = unsafe.Pointer
 type ButtonAction func(identifier string, owner Pointer, sender Pointer)
 type SearchFieldAction func(identifier string, owner Pointer, sender Pointer)
 
+type Color struct {
+	Red   float32
+	Green float32
+	Blue  float32
+	Alpha float32
+}
+
+func (m *Color) ToOC() C.Color {
+	return C.Color{Red: C.CGFloat(m.Red / 255.0), Green: C.CGFloat(m.Green / 255.0), Blue: C.CGFloat(m.Blue / 255.0), Alpha: C.CGFloat(m.Alpha / 255.0)}
+}
+
+type IControl interface {
+	Instance() uintptr
+}
+
 type ItemBase struct {
 	Identifier   string
 	Priority     ItemVisibilityPriority

@@ -55,7 +55,7 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 		config: &config}
 }
 
-func (m *NSToolBar) AddControl(control uintptr) {
+func (m *NSToolBar) AddControl(control IControl) {
 
 }
 

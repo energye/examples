@@ -94,7 +94,6 @@ static char kToolbarDelegateKey;
     // 存储控件样式
     NSValue *propertyValue = [NSValue value:&property withObjCType:@encode(ControlProperty)];
     _controlProperty[identifier] = propertyValue;
-
     if (![_dynamicIdentifiers containsObject:identifier]) {
         [_dynamicIdentifiers addObject:identifier];
     }
@@ -368,6 +367,18 @@ static void initializeDelegateMap() {
     // NSLog(@"initializeDelegateMap");
 }
 
+// 设置窗口背景色
+void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color) {
+    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+    NSColor *bgColor = [NSColor colorWithCalibratedRed:color.Red
+                                                 green:color.Green
+                                                  blue:color.Blue
+                                                 alpha:color.Alpha];
+    window.backgroundColor = bgColor;
+//    NSView *contentView = window.contentView;
+//    contentView.wantsLayer = YES;
+//    contentView.layer.backgroundColor = bgColor.CGColor;
+}
 
 // 配置窗口
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar) {
@@ -384,9 +395,6 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     toolbar.delegate = toolbarDelegate;
     // 设置显示模式
     window.titlebarAppearsTransparent = config.Transparent;
-    if (config.Transparent) {
-        // window.backgroundColor = [NSColor clearColor];
-    }
 
     window.showsToolbarButton = config.ShowsToolbarButton;
     window.toolbarStyle = config.Style;
@@ -409,6 +417,7 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     }
 }
 
+// 向 toolbar 添加控件
 void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
     if (!nsDelegate || !nsToolbar || !nsControl || !identifier) {
         NSLog(@"AddToolbarControl 必要参数为空");
@@ -416,16 +425,70 @@ void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
     }
     MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
     NSToolbar *toolbar = (NSToolbar*)nsToolbar;
-    NSView *control = (NSView*)nsControl;
+    NSView *view = (NSView*)nsControl;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-    if (!toolbar || !delegate || !control || !idStr) {
+    if (!toolbar || !delegate || !view || !idStr) {
         NSLog(@"AddToolbarControl 必要参数为空");
         return;
     }
+    // 添加到委托 维护
+    [delegate addControl:view forIdentifier:idStr withProperty:property];
+    // 添加到工具栏
+    [toolbar insertItemWithItemIdentifier:idStr atIndex:toolbar.items.count];
+}
 
+#pragma mark - 控件添加事件
+
+void SetOnActionInternal(MainToolbarDelegate* delegate, NSControl* control, NSString *idStr) {
+    if (!delegate || !control || !idStr) {
+        NSLog(@"SetOnAction 必要参数为空");
+        return;
+    }
+    [control setTarget:delegate];
+    [control setAction:@selector(buttonClicked:)];
+    objc_setAssociatedObject(control, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+}
+
+void SetOnAction(void* nsDelegate, void* nsControl, const char *identifier) {
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSControl *control = (NSControl*)nsControl;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    SetOnActionInternal(delegate, control, idStr);
 }
 
 #pragma mark - 动态控件创建函数
+
+void* CreateButton(const char *title, const char *tooltip, ControlProperty property) {
+    if (!title || !tooltip) {
+        NSLog(@"AddToolbarControl 必要参数为空");
+        return nil;
+    }
+    NSString *titleStr = [NSString stringWithUTF8String:title];
+    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
+    // 创建按钮
+    NSButton *button = [NSButton buttonWithTitle:titleStr target:nil action:nil];
+    button.bezelStyle = property.bezelStyle;
+    button.controlSize = property.controlSize;
+    if (tooltipStr) {
+        button.toolTip = tooltipStr;
+    }
+    if (property.font) {
+        button.font = property.font;
+    }
+    if (property.width > 0) {
+        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
+    }
+    if (property.height > 0) {
+        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
+    }
+    if (property.minWidth > 0) {
+        [button.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+    }
+    if (property.maxWidth > 0) {
+        [button.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
+    }
+    return (__bridge void*)(button);
+}
 
 void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;

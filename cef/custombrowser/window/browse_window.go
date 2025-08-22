@@ -91,9 +91,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		// macos 窗口标题栏自定义了
 		// 留高 45
 		m.box.SetWidth(m.Width())
-		m.box.SetHeight(m.Height() - 45)
-		m.box.SetTop(45)
-		m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+		m.box.SetHeight(m.Height())
+		m.box.SetAlign(types.AlClient)
 	} else {
 		m.box.SetWidth(m.Width())
 		m.box.SetHeight(m.Height())

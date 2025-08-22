@@ -16,6 +16,14 @@ enum {
     TCCSelectionDidChange = 5
 };
 
+// 颜色
+typedef struct {
+    CGFloat Red;
+    CGFloat Green;
+    CGFloat Blue;
+    CGFloat Alpha;
+}  Color;
+
 // 通用事件回调事件参数
 typedef struct {
     long type_; // 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
@@ -79,7 +87,11 @@ void UpdateSearchFieldWidth(void* ptr, CGFloat width);
 // 公共函数
 ControlProperty CreateDefaultControlProperty();
 ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyle bezelStyle, NSControlSize controlSize, void *font);
+// 设置窗口背景色
+void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
+void SetOnAction(void* nsDelegate, void* nsControl, const char *identifier);
 
+// 工具栏
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 void AddToolbarControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
 

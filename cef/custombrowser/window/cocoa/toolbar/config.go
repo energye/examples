@@ -6,6 +6,23 @@ package toolbar
 #include "config.h"
 */
 import "C"
+import "github.com/energye/lcl/lcl"
+
+func SetWindowBackgroundColor(owner lcl.IForm, color Color) {
+	nsWindow := uintptr(lcl.PlatformWindow(owner.Instance()))
+	if nsWindow == 0 {
+		return
+	}
+	cColor := color.ToOC()
+	C.SetWindowBackgroundColor(C.ulong(nsWindow), cColor)
+}
+
+func SetOnAction(cDelegate Pointer, control IControl, identifier string) {
+	cControl := Pointer(control.Instance())
+	cIdentifier := C.CString(identifier)
+	defer C.free(Pointer(cIdentifier))
+	C.SetOnAction(cDelegate, cControl, cIdentifier)
+}
 
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
@@ -61,15 +78,12 @@ func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string,
 func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) *NSSearchField {
 	cIdentifier := C.CString(identifier)
 	defer C.free(Pointer(cIdentifier))
-
 	var cPlaceholder *C.char
 	if placeholder != "" {
 		cPlaceholder = C.CString(placeholder)
 		defer C.free(Pointer(cPlaceholder))
 	}
-
 	cProperty := property.ToOC()
-
 	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
 	return &NSSearchField{instance: Pointer(cSF)}
 }

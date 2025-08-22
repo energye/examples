@@ -34,8 +34,8 @@ func (m *Window) TestTool() {
 		Transparent: true,
 		SizeMode:    toolbar.NSToolbarSizeModeSmall,
 		//Style:                     NSWindowToolbarStyleUnifiedCompact,
-		Style: toolbar.NSWindowToolbarStyleUnified,
-		//IsAllowsUserCustomization: false,
+		Style:                     toolbar.NSWindowToolbarStyleUnified,
+		IsAllowsUserCustomization: true,
 	}
 	toolbar.Create(m, config)
 	testbtn := lcl.NewButton(m)
@@ -99,6 +99,7 @@ func (m *Window) TestTool() {
 			sf.SetText("Object-c UI线程 设置 Initial value")
 			fmt.Println("sf.GetText():", sf.GetText())
 			toolbar.LCLToNSButton(testbtn)
+			//toolbar.SetWindowBackgroundColor(m, toolbar.Color{Red: 56, Green: 57, Blue: 60, Alpha: 255})
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadAsync(func(id uint32) {
