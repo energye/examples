@@ -59,8 +59,6 @@ func main() {
 	}
 
 	app := application.NewApplication()
-	app.SetWindowlessRenderingEnabled(true)
-	app.SetEnableGPU(true)
 	app.SetLocale("zh-CN")
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)

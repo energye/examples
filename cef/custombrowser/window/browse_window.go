@@ -49,10 +49,11 @@ var (
 )
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
-	m.SetWidth(1200)
-	m.SetHeight(800)
+	m.SetWidth(800)
+	m.SetHeight(600)
 	m.SetDoubleBuffered(true)
 	{
+		// 控制窗口显示鼠标所在显示器
 		centerOnMonitor := func(monitor lcl.IMonitor) {
 			m.SetLeft(monitor.Left() + (monitor.Width()-m.Width())/2)
 			m.SetTop(monitor.Top() + (monitor.Height()-m.Height())/2)
@@ -73,39 +74,55 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			centerOnMonitor(lcl.Screen.PrimaryMonitor())
 		}
 	}
-	//m.SetColor(colors.ClYellow)
 	m.SetColor(bgColor)
-	m.SetCaption("ENERGY-3.0-浏览器")
-	if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
-		stream := lcl.NewMemoryStream()
-		lcl.StreamHelper.Write(stream, iconData)
-		stream.SetPosition(0)
-		png := lcl.NewPortableNetworkGraphic()
-		png.LoadFromStreamWithStream(stream)
-		lcl.Application.Icon().Assign(png)
-		png.Free()
-		stream.Free()
+	if !tool.IsDarwin() {
+		m.SetCaption("ENERGY-3.0-浏览器")
 	}
-
 	constraints := m.Constraints()
-	constraints.SetMinWidth(800)
-	constraints.SetMinHeight(600)
+	constraints.SetMinWidth(600)
+	constraints.SetMinHeight(400)
 
 	m.box = lcl.NewPanel(m)
 	m.box.SetParent(m)
 	m.box.SetBevelOuter(types.BvNone)
 	m.box.SetDoubleBuffered(true)
-	m.box.SetWidth(m.Width())
-	m.box.SetHeight(m.Height())
 	m.box.SetColor(bgColor)
-	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-
+	if tool.IsDarwin() {
+		// macos 窗口标题栏自定义了
+		// 留高 45
+		m.box.SetWidth(m.Width())
+		m.box.SetHeight(m.Height() - 45)
+		m.box.SetTop(45)
+		m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	} else {
+		m.box.SetWidth(m.Width())
+		m.box.SetHeight(m.Height())
+		m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	}
 	// 窗口 拖拽 大小调整
 	m.boxDrag()
 
-	newChromium := m.createChromium("")
-	m.OnChromiumCreateTabSheet(newChromium)
-	m.TForm.SetOnActivate(func(sender lcl.IObject) {
+	m.SetOnShow(func(sender lcl.IObject) {
+		m.SetFocus()
+		m.SetActiveDefaultControl(m)
+	})
+	m.SetOnActivate(func(sender lcl.IObject) {
+		if !tool.IsDarwin() {
+			if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
+				stream := lcl.NewMemoryStream()
+				lcl.StreamHelper.Write(stream, iconData)
+				stream.SetPosition(0)
+				png := lcl.NewPortableNetworkGraphic()
+				png.LoadFromStreamWithStream(stream)
+				lcl.Application.Icon().Assign(png)
+				png.Free()
+				stream.Free()
+			}
+		} else {
+			m.TestTool()
+		}
+		newChromium := m.createChromium("")
+		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)
 	})
 
@@ -122,10 +139,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//for _, chrom := range m.chroms {
 		//	chrom.resize(sender)
 		//}
-	})
-	m.SetOnShow(func(sender lcl.IObject) {
-		m.SetFocus()
-		m.SetActiveDefaultControl(m)
+		if Resize != nil {
+			Resize()
+		}
 	})
 	m.SetOnClose(func(sender lcl.IObject, closeAction *types.TCloseAction) {
 		println("window.OnClose")
@@ -548,5 +564,5 @@ func getResourcePath(name string) string {
 }
 
 func printIsMainThread() {
-	println("isMainThread:", api.MainThreadId() == api.CurrentThreadId())
+	println("printIsMainThread.isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 }

@@ -1,5 +1,4 @@
 #import <Cocoa/Cocoa.h>
-#import <dispatch/dispatch.h>
 
 #ifdef __cplusplus
 extern "C" {

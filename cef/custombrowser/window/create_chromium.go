@@ -153,6 +153,7 @@ func (m *Chromium) updateBrowserControlBtn() {
 	backDisable := !m.canGoBack
 	forwardDisable := !m.canGoForward
 	lcl.RunOnMainThreadAsync(func(id uint32) {
+		// 退回按钮
 		if backDisable {
 			// 禁用
 			m.mainWindow.backBtn.SetIcon(getResourcePath("back_disable.png"))
@@ -160,6 +161,7 @@ func (m *Chromium) updateBrowserControlBtn() {
 			m.mainWindow.backBtn.SetIcon(getResourcePath("back.png"))
 		}
 		m.mainWindow.backBtn.Invalidate()
+		// 前进按钮
 		if forwardDisable {
 			// 禁用
 			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
@@ -272,10 +274,12 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		})
 	})
 	newChromium.chromium.SetOnTitleChange(func(sender lcl.IObject, browser cef.ICefBrowser, title string) {
+		printIsMainThread()
 		if newChromium.tabSheetBtn != nil {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
 			}
+
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				newChromium.tabSheetBtn.SetCaption(title)
 				newChromium.tabSheetBtn.SetHint(title)
@@ -283,7 +287,9 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			})
 		}
 		newChromium.currentTitle = title
-		m.updateWindowCaption(title)
+		if newChromium.isActive && !tool.IsDarwin() {
+			m.updateWindowCaption(title)
+		}
 	})
 	newChromium.chromium.SetOnLoadingStateChange(func(sender lcl.IObject, browser cef.ICefBrowser, isLoading bool, canGoBack bool, canGoForward bool) {
 		newChromium.isLoading = isLoading

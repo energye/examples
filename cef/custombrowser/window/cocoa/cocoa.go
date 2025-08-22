@@ -38,7 +38,7 @@ func RegisterRunOnMainThreadCallback() {
 	C.RegisterRunOnMainThreadCallback(C.RunOnMainThreadCallback(C.onRunOnMainThread))
 }
 
-func RunOnManThread(fn runOnMainThreadFn) {
+func RunOnMainThread(fn runOnMainThreadFn) {
 	callbackFuncListLock.Lock()
 	defer callbackFuncListLock.Unlock()
 	id := int(uintptr(unsafe.Pointer(&fn)))

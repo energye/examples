@@ -1,6 +1,5 @@
 package window
 
-import "C"
 import (
 	"fmt"
 	"github.com/energye/examples/cef/custombrowser/window/cocoa"
@@ -38,8 +37,11 @@ func (m *Window) TestTool() {
 		Style: toolbar.NSWindowToolbarStyleUnified,
 		//IsAllowsUserCustomization: false,
 	}
-
 	toolbar.Create(m, config)
+	testbtn := lcl.NewButton(m)
+	testbtn.SetParent(m)
+	testbtn.SetCaption("内容内容内容")
+	cocoa.InspectControl(testbtn.Handle())
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
@@ -48,6 +50,11 @@ func (m *Window) TestTool() {
 	//defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
 	defaultProperty.IsNavigational = true
 
+	item := toolbar.ButtonItem{}
+	item.OnAction = func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) {
+
+	}
+	//bar.AddButton(item, defaultProperty)
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
 	// 添加按钮
 	toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
@@ -87,17 +94,18 @@ func (m *Window) TestTool() {
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
 	go func() {
 		time.Sleep(time.Second * 2)
-		cocoa.RunOnManThread(func() {
+		cocoa.RunOnMainThread(func() {
 			//SetToolbarControlHidden(windowHandle, "go-back", true)
 			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
 			sf.SetText("Object-c UI线程 设置 Initial value")
 			fmt.Println("sf.GetText():", sf.GetText())
+			toolbar.LCLToNSButton(testbtn)
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
 			sf.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
-			fmt.Println("sf.GetText():", sf.GetText())
+			fmt.Println("sf.GetText():", sf.GetText(), testbtn.Caption())
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadSync(func() {

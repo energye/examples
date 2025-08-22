@@ -1,8 +1,8 @@
 package cocoa
 
 /*
-#cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Cocoa
+#cgo CFLAGS: -mmacosx-version-min=11.0 -x objective-c
+#cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #import "cocoa_helpers.h"
 */
 import "C"
