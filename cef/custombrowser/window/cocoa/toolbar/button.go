@@ -15,6 +15,7 @@ import (
 
 type NSButton struct {
 	Control
+	config ButtonItem
 }
 
 func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) *NSButton {
@@ -24,6 +25,9 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 	if config.Title == "" {
 		config.Title = config.Identifier
 	}
+	var cIdentifier *C.char
+	cIdentifier = C.CString(config.Identifier)
+	defer C.free(Pointer(cIdentifier))
 	var cTitle *C.char
 	cTitle = C.CString(config.Title)
 	defer C.free(Pointer(cTitle))
@@ -33,12 +37,12 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cBtn := C.NewButton(cTitle, cTooltip, cProperty)
-	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property}}
+	cBtn := C.NewButton(owner.delegate, cIdentifier, cTitle, cTooltip, cProperty)
+	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property}, config: config}
 }
 
-func (m NSButton) SetOnClick(fn ButtonAction) {
-
+func (m *NSButton) SetOnClick(fn ButtonAction) {
+	registerEvent(m.config.Identifier, fn)
 }
 
 func LCLToNSButton(owner *NSToolBar, button lcl.IButton) *NSButton {

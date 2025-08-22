@@ -18,14 +18,6 @@ func SetWindowBackgroundColor(owner lcl.IForm, color Color) {
 	C.SetWindowBackgroundColor(C.ulong(nsWindow), cColor)
 }
 
-// SetOnAction 公开方法 设置控件事件
-func SetOnAction(cDelegate Pointer, control IControl, identifier string) {
-	cControl := Pointer(control.Instance())
-	cIdentifier := C.CString(identifier)
-	defer C.free(Pointer(cIdentifier))
-	C.SetOnAction(cDelegate, cControl, cIdentifier)
-}
-
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(Pointer(cIdentifier))

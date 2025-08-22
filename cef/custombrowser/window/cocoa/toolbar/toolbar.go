@@ -11,6 +11,7 @@ import "C"
 import (
 	"fmt"
 	"github.com/energye/lcl/lcl"
+	"sync"
 )
 
 //export onDelegateEvent
@@ -23,7 +24,26 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) {
 		Owner:      cContext.owner,
 		Sender:     cContext.sender,
 	}
-	fmt.Println("onControlEvent:", event)
+	fmt.Printf("onDelegateEvent event: %+v\n", event)
+	fn := eventList[event.Identifier]
+	if fn == nil {
+		return
+	}
+	switch fn.(type) {
+	case ButtonAction:
+		fn.(ButtonAction)(event.Identifier, event.Owner, event.Sender)
+	}
+}
+
+var (
+	eventList = make(map[string]any)
+	eventLock sync.Mutex
+)
+
+func registerEvent(identifier string, fn any) {
+	eventLock.Lock()
+	defer eventLock.Unlock()
+	eventList[identifier] = fn
 }
 
 type NSToolBar struct {

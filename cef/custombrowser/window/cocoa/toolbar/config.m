@@ -439,27 +439,22 @@ void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
 
 #pragma mark - 控件添加事件
 
-void SetOnActionInternal(MainToolbarDelegate* delegate, NSControl* control, NSString *idStr) {
-    if (!delegate || !control || !idStr) {
-        NSLog(@"[ERROR] SetOnActionInternal 必要参数为空");
+void ControlSetOnAction(void* nsDelegate, NSControl* control, const char *identifier) {
+    if (!nsDelegate || !control || !identifier) {
+        NSLog(@"[ERROR] ControlSetOnAction 必要参数为空");
         return;
     }
+    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
     [control setTarget:delegate];
     [control setAction:@selector(buttonClicked:)];
     objc_setAssociatedObject(control, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
 }
 
-void SetOnAction(void* nsDelegate, void* nsControl, const char *identifier) {
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSControl *control = (NSControl*)nsControl;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    SetOnActionInternal(delegate, control, idStr);
-}
-
 #pragma mark - 动态控件创建函数
 
 // 通用函数：通过NSControl设置控件属性（适用于按钮、文本框等）
-void configureControl(NSControl *control, NSString *tooltipStr, ControlProperty property) {
+void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property) {
     if (tooltipStr) {
         control.toolTip = tooltipStr;
     }
@@ -480,7 +475,7 @@ void configureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     }
 }
 
-void* NewButton(const char *title, const char *tooltip, ControlProperty property) {
+void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
     if (!title) {
         NSLog(@"[ERROR] NewButton 必要参数为空");
         return nil;
@@ -490,7 +485,8 @@ void* NewButton(const char *title, const char *tooltip, ControlProperty property
     NSButton *button = [NSButton buttonWithTitle:titleStr target:nil action:nil];
     button.bezelStyle = property.bezelStyle;
     button.controlSize = property.controlSize;
-    configureControl(button, tooltipStr, property);
+    ConfigureControl(button, tooltipStr, property);
+    ControlSetOnAction(delegate, button, identifier);
     return (__bridge void*)(button);
 }
 

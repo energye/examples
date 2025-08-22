@@ -90,14 +90,13 @@ ControlProperty CreateControlProperty(CGFloat width, CGFloat height, NSBezelStyl
 
 // 设置窗口背景色
 void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
-void SetOnAction(void* nsDelegate, void* nsControl, const char *identifier);
 
 // 工具栏
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
 
 // 控件创建
-void* NewButton(const char *title, const char *tooltip, ControlProperty property);
+void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
