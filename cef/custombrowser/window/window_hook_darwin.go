@@ -38,9 +38,6 @@ func (m *Window) TestTool() {
 		IsAllowsUserCustomization: true,
 	}
 	bar := toolbar.Create(m, config)
-	testbtn := lcl.NewButton(m)
-	testbtn.SetParent(m)
-	testbtn.SetCaption("内容内容内容")
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
@@ -108,7 +105,7 @@ func (m *Window) TestTool() {
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
 			sf.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
-			fmt.Println("sf.GetText():", sf.GetText(), testbtn.Caption())
+			fmt.Println("sf.GetText():", sf.GetText())
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadSync(func() {
