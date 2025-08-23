@@ -52,8 +52,9 @@ func (m *Window) TestTool() {
 	//
 	btn1 := bar.NewButton(item, defaultProperty)
 	bar.AddControl(btn1)
-	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) {
+	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
 		fmt.Println("自定义新按钮事件触发了", identifier)
+		return nil
 	})
 	// 添加按钮
 	toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)

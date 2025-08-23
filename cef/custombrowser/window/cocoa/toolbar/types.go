@@ -13,10 +13,7 @@ import (
 
 type Pointer = unsafe.Pointer
 
-type WindowDidResize func(identifier string, owner Pointer, sender Pointer) *GoData
-type ButtonAction func(identifier string, owner Pointer, sender Pointer)
-type SearchFieldAction func(identifier string, owner Pointer, sender Pointer)
-type ToolbarDefaultItemIdentifiers func(identifier string, owner Pointer, sender Pointer) *GoData
+type NotifyEvent func(identifier string, owner Pointer, sender Pointer) *GoData
 
 type Color struct {
 	Red   float32
@@ -94,7 +91,6 @@ type ControlSearchField struct {
 	SendImmediately   bool
 	ResignsWithCancel bool
 	PreferredWidth    float32
-	OnAction          SearchFieldAction
 }
 
 // ControlProperty 的Go包装

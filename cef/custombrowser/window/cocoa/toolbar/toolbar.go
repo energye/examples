@@ -34,8 +34,8 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 		delegate: Pointer(delegatePtr), toolbar: Pointer(toolbarPtr),
 		config: &config}
 	// 注册默认事件
-	registerEvent("__doWindowResize", makeWindowDidResizeAction(toolbar.doWindowResize))
-	registerEvent("__doToolbarDefaultItemIdentifiers", makeToolbarDefaultItemIdentifiers(toolbar.doToolbarDefaultItemIdentifiers))
+	RegisterEvent("__doWindowResize", MakeNotifyEvent(toolbar.doWindowResize))
+	RegisterEvent("__doToolbarDefaultItemIdentifiers", MakeNotifyEvent(toolbar.doToolbarDefaultItemIdentifiers))
 	return toolbar
 }
 

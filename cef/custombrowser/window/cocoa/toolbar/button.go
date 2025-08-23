@@ -37,8 +37,8 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
-func (m *NSButton) SetOnClick(fn ButtonAction) {
-	registerEvent(m.config.Identifier, fn)
+func (m *NSButton) SetOnClick(fn NotifyEvent) {
+	RegisterEvent(m.config.Identifier, MakeNotifyEvent(fn))
 }
 
 type NSImageButton struct {
@@ -95,6 +95,6 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
-func (m *NSImageButton) SetOnClick(fn ButtonAction) {
-	registerEvent(m.config.Identifier, fn)
+func (m *NSImageButton) SetOnClick(fn NotifyEvent) {
+	RegisterEvent(m.config.Identifier, MakeNotifyEvent(fn))
 }

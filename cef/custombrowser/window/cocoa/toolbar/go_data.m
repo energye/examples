@@ -1,31 +1,5 @@
 #import "go_data.h"
 
-// 将GoData转换为Objective-C对象
-//id convertGoDataToOC(GoData *data) {
-//    if(!data) return nil;
-//    switch (data.Type) {
-//        case DataType_String: {
-//            NSString *str = [NSString stringWithUTF8String:data.DtString];
-//            return str;
-//        }
-//        case DataType_StringArray: {
-//            NSMutableArray *array = [NSMutableArray arrayWithCapacity:data.DtStringArray.Count];
-//            for (int i = 0; i < data.DtStringArray.Count; i++) {
-//                char *cStr = data.DtStringArray.Items[i];
-//                NSString *ocStr = [NSString stringWithUTF8String:cStr];
-//                [array addObject:ocStr];
-//            }
-//            return array;
-//        }
-//        case DataType_Pointer: {
-//            // 将void*转换为Objective-C对象
-//            return (__bridge id)data.DtPointer;
-//        }
-//        default:
-//            return nil;
-//    }
-//}
-
 GoData *StringToGo(NSString *string) {
     if (!string) return nil;
     GoData *result = malloc(sizeof(GoData)); // 堆分配GoData

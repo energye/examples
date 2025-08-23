@@ -245,9 +245,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _window, sender);
+            GoData *result;
             @try{
-                _callback(context);
+                result = _callback(context);
             } @finally {
+                if(result){
+                    GoFreeGoData(result);
+                }
                 FreeToolbarCallbackContext(context);
             }
         }
@@ -261,9 +265,13 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _window, sender);
+            GoData *result;
             @try{
-                _callback(context);
+                result = _callback(context);
             } @finally {
+                if(result){
+                    GoFreeGoData(result);
+                }
                 FreeToolbarCallbackContext(context);
             }
         }
@@ -279,9 +287,13 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _window, control);
+            GoData *result;
             @try{
-                _callback(context);
+                result = _callback(context);
             } @finally {
+                if(result){
+                    GoFreeGoData(result);
+                }
                 FreeToolbarCallbackContext(context);
             }
         }
@@ -296,9 +308,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _window, control);
+            GoData *result;
             @try{
-                _callback(context);
+                result = _callback(context);
             } @finally {
+                if(result){
+                    GoFreeGoData(result);
+                }
                 FreeToolbarCallbackContext(context);
             }
         }
@@ -312,9 +328,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _window, control);
+            GoData *result;
             @try{
-                _callback(context);
+                result = _callback(context);
             } @finally {
+                if(result){
+                    GoFreeGoData(result);
+                }
                 FreeToolbarCallbackContext(context);
             }
         }

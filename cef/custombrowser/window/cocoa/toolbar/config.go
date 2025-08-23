@@ -26,23 +26,16 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 		Owner:      cContext.owner,
 		Sender:     cContext.sender,
 	}
-	fn := eventList[ctx.Identifier]
-	if fn == nil {
-		return (&GoData{}).ToOC()
+	cb := eventList[ctx.Identifier]
+	if cb == nil {
+		return nil
 	}
 	fmt.Printf("onDelegateEvent event: %+v\n", ctx)
-	if cb, ok := fn.(*callback); ok {
-		if result := cb.cb(&ctx); result != nil {
-			return result.ToOC()
-		} else {
-			return nil
-		}
+	if result := cb.cb(&ctx); result != nil {
+		return result.ToOC()
+	} else {
+		return nil
 	}
-	switch fn.(type) {
-	case ButtonAction:
-		fn.(ButtonAction)(ctx.Identifier, ctx.Owner, ctx.Sender)
-	}
-	return (&GoData{}).ToOC()
 }
 
 func cControlEventCallback() C.ControlEventCallback {
@@ -51,11 +44,11 @@ func cControlEventCallback() C.ControlEventCallback {
 
 // 事件列表
 var (
-	eventList = make(map[string]any)
+	eventList = make(map[string]*callback)
 	eventLock sync.Mutex
 )
 
-func registerEvent(identifier string, fn any) {
+func RegisterEvent(identifier string, fn *callback) {
 	eventLock.Lock()
 	defer eventLock.Unlock()
 	eventList[identifier] = fn
