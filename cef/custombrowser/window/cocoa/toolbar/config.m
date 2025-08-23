@@ -3,12 +3,11 @@
 #import <objc/runtime.h>
 
 // 创建工具栏事件回调上下文
-ToolbarCallbackContext* CreateToolbarCallbackContext(long type, const NSString* identifier, const NSString* value, long index, void* owner, void* sender) {
+ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier, const NSString* value, long index, void* owner, void* sender) {
     // 分配内存空间
     ToolbarCallbackContext* context = (ToolbarCallbackContext*)malloc(sizeof(ToolbarCallbackContext));
     if (!context) return NULL;  // 内存分配失败
     // 初始化基本字段
-    context->type_ = type;
     context->index = index;
     context->owner = owner;
     context->sender = sender;
@@ -56,7 +55,7 @@ static char kToolbarDelegateKey;
 - (void)windowDidResize:(NSNotification *)notification {
     NSWindow *window = notification.object;
     // NSLog(@"windowDidResize");
-    ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCWindowDidResize, @"__doWindowResize", @"", -1, nil, _window);
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doWindowResize", @"", -1, nil, _window);
     GoData *result;
     @try{
         result = _callback(context);
@@ -162,7 +161,7 @@ static char kToolbarDelegateKey;
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarDefaultItemIdentifiers");
-    ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCToolbarDefaultItemIdentifiers, @"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
     GoData *result;
     @try{
         context->inputData = nil;
@@ -244,7 +243,7 @@ static char kToolbarDelegateKey;
     if (_callback) {
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCClicked, identifier, @"", -1, _window, sender);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoData *result;
             @try{
                 result = _callback(context);
@@ -264,7 +263,7 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionChanged, identifier, [sender stringValue], selectedIndex, _window, sender);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [sender stringValue], selectedIndex, _window, sender);
             GoData *result;
             @try{
                 result = _callback(context);
@@ -286,7 +285,7 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCSelectionDidChange, identifier, [control stringValue], selectedIndex, _window, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], selectedIndex, _window, control);
             GoData *result;
             @try{
                 result = _callback(context);
@@ -307,7 +306,7 @@ static char kToolbarDelegateKey;
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidChange, identifier, [control stringValue], -1, _window, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoData *result;
             @try{
                 result = _callback(context);
@@ -327,7 +326,7 @@ static char kToolbarDelegateKey;
         id control = notification.object;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
-            ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCTextDidEndEditing, identifier, [control stringValue], -1, _window, control);
+            ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoData *result;
             @try{
                 result = _callback(context);

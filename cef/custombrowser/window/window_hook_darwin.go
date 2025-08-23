@@ -125,14 +125,15 @@ func (m *Window) TestTool() {
 	value := toolbar.GetToolbarControlValue(windowHandle, "search-field")
 	fmt.Printf("Search field value: %s\n", value)
 
-	Resize = func() {
+	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
 		width := int(m.Width() - 500)
 		if width > 700 {
 			width = 700
 		}
 		//fmt.Println("width", width)
 		sf.UpdateSearchFieldWidth(width)
-	}
+		return nil
+	})
 }
 
 //现代 macOS 工具栏开发最佳实践总结

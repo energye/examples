@@ -6,17 +6,6 @@
 extern "C" {
 #endif
 
-enum {
-    TCCClicked = 1,
-    TCCTextDidChange = 2,
-    TCCTextDidEndEditing = 3,
-    TCCSelectionChanged = 4,
-    TCCSelectionDidChange = 5,
-    TCCWindowDidResize = 6,
-    TCCToolbarDefaultItemIdentifiers = 7,
-    TCCNull
-};
-
 // 颜色
 typedef struct {
     CGFloat Red;
@@ -28,8 +17,7 @@ typedef struct {
 
 // 通用事件回调事件参数
 typedef struct {
-    long    type_; // 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
-    const   char *identifier; // 控件标识
+    const   char *identifier; // 控件唯一标识
     const   char *value; // 控件值
     long    index; // 值索引
     void    *owner; // 控件所属对象
@@ -40,7 +28,7 @@ typedef struct {
 // 通用事件回调事件类型
 typedef GoData* (*ControlEventCallback)(ToolbarCallbackContext *context);
 // 创建事件对象
-ToolbarCallbackContext* CreateToolbarCallbackContext(long type, const NSString* identifier, const NSString* value, long index, void* owner, void* sender);
+ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier, const NSString* value, long index, void* owner, void* sender);
 // 释放事件对象
 void FreeToolbarCallbackContext(ToolbarCallbackContext* context);
 

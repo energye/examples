@@ -12,10 +12,11 @@ import (
 )
 
 type NSToolBar struct {
-	owner    lcl.IForm
-	toolbar  Pointer
-	delegate Pointer
-	config   *ToolbarConfiguration
+	owner        lcl.IForm
+	toolbar      Pointer
+	delegate     Pointer
+	config       *ToolbarConfiguration
+	windowResize NotifyEvent
 }
 
 func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
@@ -40,12 +41,19 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 }
 
 func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Pointer) *GoData {
+	if m.windowResize != nil {
+		return m.windowResize(identifier, owner, sender)
+	}
 	return nil
 }
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
 	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: []string{"啊啊？", "hello", "你好啊"}, Count: 3}}
+}
+
+func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
+	m.windowResize = fn
 }
 
 func (m *NSToolBar) AddControl(control IControl) {

@@ -19,7 +19,6 @@ import (
 //export onDelegateEvent
 func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 	ctx := ToolbarCallbackContext{
-		Type:       TccType(cContext.type_),
 		Identifier: C.GoString(cContext.identifier),
 		Value:      C.GoString(cContext.value),
 		Index:      int(cContext.index),
@@ -44,11 +43,11 @@ func cControlEventCallback() C.ControlEventCallback {
 
 // 事件列表
 var (
-	eventList = make(map[string]*callback)
+	eventList = make(map[string]*Callback)
 	eventLock sync.Mutex
 )
 
-func RegisterEvent(identifier string, fn *callback) {
+func RegisterEvent(identifier string, fn *Callback) {
 	eventLock.Lock()
 	defer eventLock.Unlock()
 	eventList[identifier] = fn

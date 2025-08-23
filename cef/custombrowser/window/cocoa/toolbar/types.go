@@ -30,8 +30,6 @@ type IControl interface {
 	Instance() uintptr
 	Owner() *NSToolBar
 	Property() *ControlProperty
-	//IsCocoa() bool
-	//IsLCL() bool
 	Identifier() string
 }
 
@@ -124,8 +122,7 @@ func (m *ControlProperty) ToOC() C.ControlProperty {
 }
 
 type ToolbarCallbackContext struct {
-	Type       TccType // 事件类型
-	Identifier string  // 控件标识
+	Identifier string  // 控件唯一标识
 	Value      string  // 控件值
 	Index      int     // 值索引
 	Owner      Pointer // 所属对象

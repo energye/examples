@@ -23,18 +23,6 @@ const (
 	NSToolbarDisplayModeLabelOnly    ToolbarDisplayMode = 3
 )
 
-type TccType = int
-
-const (
-	TCCClicked TccType = iota + 1
-	TCCTextDidChange
-	TCCTextDidEndEditing
-	TCCSelectionChanged
-	TCCSelectionDidChange
-	TCCWindowDidResize
-	TCCToolbarDefaultItemIdentifiers
-)
-
 type ToolbarStyle = int
 
 const (
