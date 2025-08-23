@@ -16,8 +16,8 @@ ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier,
     context->index = index;
     context->owner = owner;
     context->sender = sender;
-    context->identifier = identifier ? [identifier UTF8String] : "";
-    context->value = value ? [value UTF8String] : "";
+    context->identifier = identifier ? strdup([identifier UTF8String]) : "";
+    context->value = value ? strdup([value UTF8String]) : "";
     return context;
 }
 
