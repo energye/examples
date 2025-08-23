@@ -26,11 +26,13 @@ const (
 type TccType = int
 
 const (
-	TCCClicked            TccType = 1
-	TCCTextDidChange      TccType = 2
-	TCCTextDidEndEditing  TccType = 3
-	TCCSelectionChanged   TccType = 4
-	TCCSelectionDidChange TccType = 5
+	TCCClicked TccType = iota + 1
+	TCCTextDidChange
+	TCCTextDidEndEditing
+	TCCSelectionChanged
+	TCCSelectionDidChange
+	TCCWindowDidResize
+	TCCToolbarDefaultItemIdentifiers
 )
 
 type ToolbarStyle = int

@@ -1,12 +1,65 @@
 package toolbar
 
 /*
+
 #cgo CFLAGS: -mmacosx-version-min=11.0 -x objective-c
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #include "config.h"
+
+extern GoData* onDelegateEvent(ToolbarCallbackContext *cContext);
+
 */
 import "C"
-import "github.com/energye/lcl/lcl"
+import (
+	"fmt"
+	"github.com/energye/lcl/lcl"
+	"sync"
+)
+
+//export onDelegateEvent
+func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
+	ctx := ToolbarCallbackContext{
+		Type:       TccType(cContext.type_),
+		Identifier: C.GoString(cContext.identifier),
+		Value:      C.GoString(cContext.value),
+		Index:      int(cContext.index),
+		Owner:      cContext.owner,
+		Sender:     cContext.sender,
+	}
+	fn := eventList[ctx.Identifier]
+	if fn == nil {
+		return (&GoData{}).ToOC()
+	}
+	fmt.Printf("onDelegateEvent event: %+v\n", ctx)
+	if cb, ok := fn.(*callback); ok {
+		if result := cb.cb(&ctx); result != nil {
+			return result.ToOC()
+		} else {
+			return nil
+		}
+	}
+	switch fn.(type) {
+	case ButtonAction:
+		fn.(ButtonAction)(ctx.Identifier, ctx.Owner, ctx.Sender)
+	}
+	return (&GoData{}).ToOC()
+}
+
+func cControlEventCallback() C.ControlEventCallback {
+	return (C.ControlEventCallback)(C.onDelegateEvent)
+}
+
+// 事件列表
+var (
+	eventList = make(map[string]any)
+	eventLock sync.Mutex
+)
+
+func registerEvent(identifier string, fn any) {
+	eventLock.Lock()
+	defer eventLock.Unlock()
+	eventList[identifier] = fn
+}
 
 // SetWindowBackgroundColor 公开方法 设置窗口背景色
 func SetWindowBackgroundColor(owner lcl.IForm, color Color) {

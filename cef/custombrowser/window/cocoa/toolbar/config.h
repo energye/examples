@@ -1,19 +1,20 @@
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
+#import <go_data.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// 回调设置
-typedef void (*ControlCallback)(const char *identifier, const char *value, const void *userData);
 
 enum {
     TCCClicked = 1,
     TCCTextDidChange = 2,
     TCCTextDidEndEditing = 3,
     TCCSelectionChanged = 4,
-    TCCSelectionDidChange = 5
+    TCCSelectionDidChange = 5,
+    TCCWindowDidResize = 6,
+    TCCToolbarDefaultItemIdentifiers = 7,
+    TCCNull
 };
 
 // 颜色
@@ -24,18 +25,20 @@ typedef struct {
     CGFloat Alpha;
 }  Color;
 
+
 // 通用事件回调事件参数
 typedef struct {
-    long type_; // 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
-    const char *identifier; // 控件标识
-    const char *value; // 控件值
-    long index; // 值索引
-    void *owner; // 控件所属对象
-    void *sender; // 控件
+    long    type_; // 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
+    const   char *identifier; // 控件标识
+    const   char *value; // 控件值
+    long    index; // 值索引
+    void    *owner; // 控件所属对象
+    void    *sender; // 控件
+    GoData  *inputData;// 传入数据
 } ToolbarCallbackContext;
 
 // 通用事件回调事件类型
-typedef void (*ControlEventCallback)(ToolbarCallbackContext *context);
+typedef GoData* (*ControlEventCallback)(ToolbarCallbackContext *context);
 // 创建事件对象
 ToolbarCallbackContext* CreateToolbarCallbackContext(long type, const NSString* identifier, const NSString* value, long index, void* owner, void* sender);
 // 释放事件对象
@@ -115,6 +118,7 @@ long GetToolbarItemCount(unsigned long nsWindowHandle);
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {
     ControlEventCallback _callback;
     NSWindow *_window; // NSWindow
+    NSToolbar *_toolbar;
 }
 
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSView *> *controls;
@@ -124,13 +128,8 @@ long GetToolbarItemCount(unsigned long nsWindowHandle);
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property;
 - (NSView *)controlForIdentifier:(NSString *)identifier;
 - (void)removeControlForIdentifier:(NSString *)identifier;
-- (void)setCallback:(ControlEventCallback)callback;
-- (void)setWindow:(NSWindow *)window;
-- (NSWindow *)getWindow;
+- (void)setCallback:(ControlEventCallback)callback withWindow:(NSWindow *)window withToolbar:(NSToolbar *)toolbar;
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property;
-
-- (void)windowDidResize:(NSNotification *)notification;
-- (void)updateTextFieldWidthsForWindow:(NSWindow *)window;
 
 @end
 

@@ -13,8 +13,10 @@ import (
 
 type Pointer = unsafe.Pointer
 
+type WindowDidResize func(identifier string, owner Pointer, sender Pointer) *GoData
 type ButtonAction func(identifier string, owner Pointer, sender Pointer)
 type SearchFieldAction func(identifier string, owner Pointer, sender Pointer)
+type ToolbarDefaultItemIdentifiers func(identifier string, owner Pointer, sender Pointer) *GoData
 
 type Color struct {
 	Red   float32

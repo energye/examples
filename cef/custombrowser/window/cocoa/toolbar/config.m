@@ -52,18 +52,21 @@ static char kToolbarDelegateKey;
     [super dealloc];
 }
 
-
+// 窗口大小监听
 - (void)windowDidResize:(NSNotification *)notification {
     NSWindow *window = notification.object;
     // NSLog(@"windowDidResize");
-    [self updateTextFieldWidthsForWindow:window];
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCWindowDidResize, @"__doWindowResize", @"", -1, nil, _window);
+    GoData *result;
+    @try{
+        result = _callback(context);
+    } @finally {
+        if(result){
+            GoFreeGoData(result);
+        }
+        FreeToolbarCallbackContext(context);
+    }
 }
-
-- (void)updateTextFieldWidthsForWindow:(NSWindow *)window {
-    CGFloat windowWidth = window.frame.size.width;
-    CGFloat availableWidth = windowWidth - 180; // 减去交通灯区域和边距
-}
-
 
 - (void)addControl:(NSView *)control forIdentifier:(NSString *)identifier withProperty:(ControlProperty)property {
     NSLog(@"addControl");
@@ -91,16 +94,10 @@ static char kToolbarDelegateKey;
     [_dynamicIdentifiers removeObject:identifier];
 }
 
-- (void)setCallback:(ControlEventCallback)callback {
+- (void)setCallback:(ControlEventCallback)callback withWindow:(NSWindow *)window withToolbar:(NSToolbar *)toolbar {
     _callback = callback;
-}
-
-- (void)setWindow:(NSWindow *)window {
     _window = window;
-}
-
-- (NSWindow *)getWindow {
-  return _window;
+    _toolbar = toolbar;
 }
 
 - (void)updateControlProperty:(NSString *)identifier withProperty:(ControlProperty)property {
@@ -165,6 +162,18 @@ static char kToolbarDelegateKey;
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarDefaultItemIdentifiers");
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(TCCToolbarDefaultItemIdentifiers, @"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
+    GoData *result;
+    @try{
+        context->inputData = nil;
+        result = _callback(context);
+        NSArray<NSString *> *testids = StringArrayToOC(result);
+    } @finally {
+        if(result){
+            GoFreeGoData(result);
+        }
+        FreeToolbarCallbackContext(context);
+    }
     NSMutableArray *identifiers = [_dynamicIdentifiers copy];
     return identifiers;
 }
@@ -377,11 +386,11 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
 
     // 创建工具栏代理
     MainToolbarDelegate *toolbarDelegate = [[MainToolbarDelegate alloc] init];
-    [toolbarDelegate setCallback:callback];
-    [toolbarDelegate setWindow:window];
-
     // 创建工具栏
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
+    // 设置实例到当前代理对象
+    [toolbarDelegate setCallback:callback withWindow:window withToolbar:toolbar];
+
     toolbar.delegate = toolbarDelegate;
     // 设置显示模式
     window.titlebarAppearsTransparent = config.Transparent;
@@ -395,6 +404,7 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     toolbar.sizeMode = config.SizeMode; //NSToolbarSizeModeRegular; // 或 NSToolbarSizeModeSmall
 
     window.toolbar = toolbar;
+
 
     // 保留委托对象
     objc_setAssociatedObject(window, &kToolbarDelegateKey, toolbarDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
