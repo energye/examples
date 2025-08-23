@@ -6,6 +6,10 @@
 extern "C" {
 #endif
 
+
+const char* GetStringConstValue(const void* str);
+
+
 // 颜色
 typedef struct {
     CGFloat Red;

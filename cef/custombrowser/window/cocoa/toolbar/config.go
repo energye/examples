@@ -63,6 +63,12 @@ func SetWindowBackgroundColor(owner lcl.IForm, color Color) {
 	C.SetWindowBackgroundColor(C.ulong(nsWindow), cColor)
 }
 
+// GetStringConstValue 获取 C 字符串常昊值
+func GetStringConstValue(constName *C.NSString) string {
+	cValue := C.GetStringConstValue(Pointer(constName))
+	return C.GoString(cValue)
+}
+
 func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(Pointer(cIdentifier))

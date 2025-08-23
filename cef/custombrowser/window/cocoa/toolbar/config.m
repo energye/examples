@@ -2,6 +2,12 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
+// 获取字符串常量值
+const char* GetStringConstValue(const void* nsStringConst) {
+    NSString* identifier = (__bridge NSString*)nsStringConst;
+    return [identifier UTF8String];
+}
+
 // 创建工具栏事件回调上下文
 ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier, const NSString* value, long index, void* owner, void* sender) {
     // 分配内存空间
@@ -73,6 +79,7 @@ static char kToolbarDelegateKey;
     // 存储控件样式
     NSValue *propertyValue = [NSValue value:&property withObjCType:@encode(ControlProperty)];
     _controlProperty[identifier] = propertyValue;
+    // 存储控件 id
     if (![_dynamicIdentifiers containsObject:identifier]) {
         [_dynamicIdentifiers addObject:identifier];
     }
@@ -159,7 +166,7 @@ static char kToolbarDelegateKey;
 
 #pragma mark - Toolbar Delegate
 
-- (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
+- (NSArray<NSString *> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarDefaultItemIdentifiers");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
     GoData *result;
@@ -180,8 +187,23 @@ static char kToolbarDelegateKey;
     return identifiers;
 }
 
-- (NSArray<NSToolbarItemIdentifier> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
+- (NSArray<NSString *> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarAllowedItemIdentifiers");
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarAllowedItemIdentifiers", @"", -1, _window, _toolbar);
+    GoData *result;
+    @try{
+        context->inputData = nil;
+        result = _callback(context);
+        NSArray<NSString *> *testids = StringArrayToOC(result);
+        for (NSString *idStr in testids) {
+            NSLog(@"当前值：%@", idStr);
+        }
+    } @finally {
+        if(result){
+            GoFreeGoData(result);
+        }
+        FreeToolbarCallbackContext(context);
+    }
     NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
     // 添加系统标识符
     [identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
@@ -426,7 +448,6 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     toolbar.sizeMode = config.SizeMode; //NSToolbarSizeModeRegular; // 或 NSToolbarSizeModeSmall
 
     window.toolbar = toolbar;
-
 
     // 保留委托对象
     objc_setAssociatedObject(window, &kToolbarDelegateKey, toolbarDelegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);

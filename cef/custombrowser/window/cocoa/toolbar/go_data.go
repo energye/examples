@@ -57,7 +57,7 @@ func (m *GoData) ToOC() *C.GoData {
 
 //export GoFreeGoData
 func GoFreeGoData(data *C.GoData) {
-	println("[INFO] GoFreeGoData")
+	// println("[INFO] GoFreeGoData")
 	switch data.Type {
 	case C.DataType_String:
 		if data.DtString != nil {

@@ -8,15 +8,21 @@ package toolbar
 */
 import "C"
 import (
+	"github.com/energye/examples/cef/custombrowser/window/cocoa/tool"
 	"github.com/energye/lcl/lcl"
 )
 
+// NSToolBar 绑定到指定窗口
+// 具有 toolbar delegate 实例
 type NSToolBar struct {
 	owner        lcl.IForm
 	toolbar      Pointer
 	delegate     Pointer
 	config       *ToolbarConfiguration
 	windowResize NotifyEvent
+	controls     tool.HashMap[IControl] // NSView
+	property     tool.HashMap[*ControlProperty]
+	identifiers  tool.ArrayMap[string]
 }
 
 func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
@@ -37,6 +43,7 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	// 注册默认事件
 	RegisterEvent("__doWindowResize", MakeNotifyEvent(toolbar.doWindowResize))
 	RegisterEvent("__doToolbarDefaultItemIdentifiers", MakeNotifyEvent(toolbar.doToolbarDefaultItemIdentifiers))
+	RegisterEvent("__doToolbarAllowedItemIdentifiers", MakeNotifyEvent(toolbar.doToolbarAllowedItemIdentifiers))
 	return toolbar
 }
 
@@ -49,7 +56,16 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
-	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: []string{"啊啊？", "hello", "你好啊"}, Count: 3}}
+	ids := m.identifiers.Values()
+	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: 3}}
+}
+
+func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
+	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
+	ids := m.identifiers.Values()
+	ids = append(ids, GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
+	ids = append(ids, GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
+	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: 3}}
 }
 
 func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
@@ -66,6 +82,8 @@ func (m *NSToolBar) AddControl(control IControl) {
 	defer C.free(Pointer(identifier))
 	cProperty := control.Property().ToOC()
 	C.ToolbarAddControl(m.delegate, m.toolbar, Pointer(control.Instance()), identifier, cProperty)
+	m.identifiers.Add(control.Identifier(), control.Identifier())
+	m.controls.Add(control.Identifier(), control)
 }
 
 func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {
