@@ -168,6 +168,9 @@ static char kToolbarDelegateKey;
         context->inputData = nil;
         result = _callback(context);
         NSArray<NSString *> *testids = StringArrayToOC(result);
+        for (NSString *idStr in testids) {
+            NSLog(@"当前值：%@", idStr);
+        }
     } @finally {
         if(result){
             GoFreeGoData(result);

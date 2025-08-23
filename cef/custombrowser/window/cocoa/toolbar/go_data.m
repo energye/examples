@@ -60,7 +60,7 @@ GoData *StringArrayToGo(NSArray<NSString *> *array) {
 
 NSArray<NSString *> *StringArrayToOC(GoData *data) {
     if (!data) return nil;
-    if (data->Type == DataType_String) {
+    if (data->Type == DataType_StringArray) {
         NSMutableArray *result = [NSMutableArray arrayWithCapacity:data->DtStringArray.Count];
         for (int i = 0; i < data->DtStringArray.Count; i++) {
             char *cStr = data->DtStringArray.Items[i];

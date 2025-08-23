@@ -33,6 +33,7 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	toolbar := &NSToolBar{owner: owner,
 		delegate: Pointer(delegatePtr), toolbar: Pointer(toolbarPtr),
 		config: &config}
+	// 注册默认事件
 	registerEvent("__doWindowResize", makeWindowDidResizeAction(toolbar.doWindowResize))
 	registerEvent("__doToolbarDefaultItemIdentifiers", makeToolbarDefaultItemIdentifiers(toolbar.doToolbarDefaultItemIdentifiers))
 	return toolbar
@@ -44,7 +45,7 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
-	return &GoData{}
+	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: []string{"啊啊？", "hello", "你好啊"}, Count: 3}}
 }
 
 func (m *NSToolBar) AddControl(control IControl) {

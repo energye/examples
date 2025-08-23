@@ -33,6 +33,7 @@ func (m *GoData) ToOC() *C.GoData {
 	cData := (*C.GoData)(C.malloc(C.sizeof_GoData))
 	if m.Type == GDtString {
 		cData.Type = C.DataType_String
+		cData.DtString = C.CString(m.String)
 	} else if m.Type == GDtStringArray {
 		cData.Type = C.DataType_StringArray
 		if len(m.StringArray.Items) > 0 {
@@ -47,6 +48,7 @@ func (m *GoData) ToOC() *C.GoData {
 		}
 	} else if m.Type == GDtStringArray {
 		cData.Type = C.DataType_Pointer
+		cData.DtPointer = m.Pointer
 	} else {
 		cData.Type = C.DataType_None
 	}
