@@ -2,7 +2,7 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-// 获取字符串常量值
+// 获取字符串常量的值, 例如: C.NSToolbarSpaceItemIdentifier
 const char* GetStringConstValue(const void* nsStringConst) {
     NSString* identifier = (__bridge NSString*)nsStringConst;
     return [identifier UTF8String];
@@ -13,13 +13,11 @@ ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier,
     // 分配内存空间
     ToolbarCallbackContext* context = (ToolbarCallbackContext*)malloc(sizeof(ToolbarCallbackContext));
     if (!context) return NULL;  // 内存分配失败
-    // 初始化基本字段
     context->index = index;
     context->owner = owner;
     context->sender = sender;
-    // 深拷贝字符串字段
-    context->identifier = identifier ? strdup([identifier UTF8String]) : strdup("");
-    context->value = value ? strdup([value UTF8String]) : strdup("");
+    context->identifier = identifier ? [identifier UTF8String] : "";
+    context->value = value ? [value UTF8String] : "";
     return context;
 }
 

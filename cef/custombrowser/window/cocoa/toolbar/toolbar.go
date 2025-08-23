@@ -65,7 +65,7 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 	ids := m.identifiers.Values()
 	ids = append(ids, GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
 	ids = append(ids, GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
-	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: 3}}
+	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: len(ids)}}
 }
 
 func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
