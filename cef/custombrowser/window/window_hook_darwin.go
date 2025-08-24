@@ -91,13 +91,13 @@ func (m *Window) TestTool() {
 	//bar.AddControl(text)
 
 	// 添加搜索框
-	//toolbar.AddToolbarFlexibleSpace(windowHandle)
+	//bar.AddFlexibleSpace()
 	textProperty.MinWidth = 60
 	textProperty.MaxWidth = float64(m.Width() - 250)
 	textProperty.Width = float64(m.Width() - 250)
 	search := bar.NewSearchField(toolbar.ControlTextField{}, textProperty) //toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
 	bar.AddControl(search)
-	//toolbar.AddToolbarFlexibleSpace(windowHandle)
+	//bar.AddFlexibleSpace()
 
 	// 添加下拉框
 	comboProperty := defaultProperty
@@ -110,7 +110,14 @@ func (m *Window) TestTool() {
 	imageButtonProperty := defaultProperty
 	imageButtonProperty.IsNavigational = false
 	imageButtonProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
-	toolbar.AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
+	item.IconName = "arrow.left"
+	imageBtn := bar.NewImageButtonForImage(item, imageButtonProperty)
+	imageBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+		fmt.Println("OnClick", identifier)
+		return nil
+	})
+	bar.AddControl(imageBtn)
+	//toolbar.AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
 	go func() {
 		time.Sleep(time.Second * 2)
@@ -139,11 +146,11 @@ func (m *Window) TestTool() {
 	fmt.Println("Toolbar created successfully!")
 
 	// 模拟设置控件值
-	toolbar.SetToolbarControlValue(windowHandle, "search-field", "Initial value")
+	//toolbar.SetToolbarControlValue(windowHandle, "search-field", "Initial value")
 
 	// 模拟获取控件值
-	value := toolbar.GetToolbarControlValue(windowHandle, "search-field")
-	fmt.Printf("Search field value: %s\n", value)
+	//value := toolbar.GetToolbarControlValue(windowHandle, "search-field")
+	//fmt.Printf("Search field value: %s\n", value)
 
 	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
 		width := int(m.Width() - 500)

@@ -50,9 +50,6 @@ func NewNSImageButtonForImage(owner *NSToolBar, config ButtonItem, property Cont
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("ImageButton")
 	}
-	if config.Title == "" {
-		config.Title = config.Identifier
-	}
 	var cIdentifier *C.char
 	cIdentifier = C.CString(config.Identifier)
 	defer C.free(Pointer(cIdentifier))
@@ -76,9 +73,6 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	}
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("ImageButton")
-	}
-	if config.Title == "" {
-		config.Title = config.Identifier
 	}
 	var cIdentifier *C.char
 	cIdentifier = C.CString(config.Identifier)

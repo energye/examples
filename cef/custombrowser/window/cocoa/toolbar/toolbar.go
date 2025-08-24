@@ -96,6 +96,14 @@ func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSBu
 	return NewNSButton(m, config, property)
 }
 
+func (m *NSToolBar) NewImageButtonForImage(config ButtonItem, property ControlProperty) *NSImageButton {
+	return NewNSImageButtonForImage(m, config, property)
+}
+
+func (m *NSToolBar) NewImageButtonForBytes(imageBytes []byte, config ButtonItem, property ControlProperty) *NSImageButton {
+	return NewNSImageButtonForBytes(m, imageBytes, config, property)
+}
+
 func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProperty) *NSTextField {
 	return NewNSTextField(m, config, property)
 }
