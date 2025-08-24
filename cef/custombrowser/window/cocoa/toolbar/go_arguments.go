@@ -12,20 +12,25 @@ import (
 	"os"
 )
 
-// Go 端数据类型映射
+type OCGoArgumentsType = C.GoArgumentsType
+
 const (
-	GoArgsType_None    = C.ArgsType_None
-	GoArgsType_Int     = C.ArgsType_Int
-	GoArgsType_Float   = C.ArgsType_Float
-	GoArgsType_Bool    = C.ArgsType_Bool
-	GoArgsType_String  = C.ArgsType_String
-	GoArgsType_Object  = C.ArgsType_Object
-	GoArgsType_Pointer = C.ArgsType_Pointer
+	GoArgsType_None    = C.ArgsType_None    // 未使用类型
+	GoArgsType_Int     = C.ArgsType_Int     // 基础类型 int
+	GoArgsType_Float   = C.ArgsType_Float   // 基础类型 float64
+	GoArgsType_Bool    = C.ArgsType_Bool    // 基础类型 bool
+	GoArgsType_String  = C.ArgsType_String  // 基础类型 string
+	GoArgsType_Object  = C.ArgsType_Object  // 对象类型 NS 里创建的对象指针 (void*)[obj retain]
+	GoArgsType_Pointer = C.ArgsType_Pointer // 指针类型 NS 里创建的 [NSValue valueWithPointer:customData]
 )
 
 type OCGoArguments = C.GoArguments
 type OCGoArgsItem = C.GoArgsItem
-type OCGoArgumentsType = C.GoArgumentsType
+
+type GoArgsItem struct {
+	Value Pointer
+	Type  OCGoArgumentsType
+}
 
 type GoArguments struct {
 	Items []any
@@ -39,6 +44,44 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 	if len(m.Items) == 0 {
 		return nil
 	}
+	toInt := func(value any) int {
+		switch v := value.(type) {
+		case int:
+			return v
+		case int8:
+			return int(v)
+		case int16:
+			return int(v)
+		case int32:
+			return int(v)
+		case int64:
+			return int(v)
+		case uint:
+			return int(v)
+		case uint8:
+			return int(v)
+		case uint16:
+			return int(v)
+		case uint32:
+			return int(v)
+		case uint64:
+			return int(v)
+		default:
+			return 0
+		}
+	}
+
+	toDouble := func(value any) float64 {
+		switch v := value.(type) {
+		case float32:
+			return float64(v)
+		case float64:
+			return v
+		default:
+			return 0
+		}
+	}
+
 	goArgs := (*OCGoArguments)(C.malloc(C.sizeof_GoArguments))
 	goArgs.Count = C.int(len(m.Items))
 	goArgs.Items = (*OCGoArgsItem)(C.malloc(C.size_t(goArgs.Count) * C.sizeof_GoArgsItem))
@@ -46,16 +89,16 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 	for i, arg := range m.Items {
 		item := items[i] // 直接访问数组元素
 		switch v := arg.(type) {
-		case int:
+		// malloc 分配内存 确保 ObjC 侧可释放
+		case int, int8, uint8, int16, uint16, int32, uint32, int64, uint64:
 			item.Type = GoArgsType_Int
-			// 为 int 值分配 C 堆内存（确保 ObjC 侧可释放）
 			val := (*C.int)(C.malloc(C.sizeof_int))
-			*val = C.int(v)
+			*val = C.int(toInt(v))
 			item.Value = Pointer(val)
-		case float32:
+		case float32, float64:
 			item.Type = GoArgsType_Float
-			val := (*C.float)(C.malloc(C.sizeof_float))
-			*val = C.float(v)
+			val := (*C.double)(C.malloc(C.sizeof_double))
+			*val = C.double(toDouble(v))
 			item.Value = Pointer(val)
 		case bool:
 			item.Type = GoArgsType_Bool
