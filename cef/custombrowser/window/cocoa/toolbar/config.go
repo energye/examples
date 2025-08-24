@@ -152,18 +152,6 @@ func AddToolbarCustomView(nsWindowHandle uintptr, identifier string, property Co
 	C.AddToolbarCustomView(C.ulong(nsWindowHandle), cIdentifier, cProperty)
 }
 
-func AddToolbarFlexibleSpace(nsWindowHandle uintptr) {
-	C.AddToolbarFlexibleSpace(C.ulong(nsWindowHandle))
-}
-
-func AddToolbarSpace(nsWindowHandle uintptr) {
-	C.AddToolbarSpace(C.ulong(nsWindowHandle))
-}
-
-func AddToolbarSpaceByWidth(nsWindowHandle uintptr, width float32) {
-	C.AddToolbarSpaceByWidth(C.ulong(nsWindowHandle), C.CGFloat(width))
-}
-
 func RemoveToolbarItem(nsWindowHandle uintptr, identifier string) {
 	cIdentifier := C.CString(identifier)
 	defer C.free(Pointer(cIdentifier))

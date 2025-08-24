@@ -84,6 +84,15 @@ type ButtonItem struct {
 	ItemUI
 }
 
+type ControlTextField struct {
+	ItemUI
+	SendWhole         bool
+	SendImmediately   bool
+	ResignsWithCancel bool
+	PreferredWidth    float32
+	Placeholder       string
+}
+
 type ControlSearchField struct {
 	ItemUI
 	SendWhole         bool

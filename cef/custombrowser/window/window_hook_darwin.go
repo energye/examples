@@ -57,9 +57,9 @@ func (m *Window) TestTool() {
 		return nil
 	})
 	// 添加按钮
-	toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
-	toolbar.AddToolbarButton(windowHandle, "forwd", "前进", "前进", defaultProperty)
-	toolbar.AddToolbarButton(windowHandle, "refs", "刷新", "刷新", defaultProperty)
+	//toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
+	//toolbar.AddToolbarButton(windowHandle, "forwd", "前进", "前进", defaultProperty)
+	//toolbar.AddToolbarButton(windowHandle, "refs", "刷新", "刷新", defaultProperty)
 	//AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加文本框
@@ -71,13 +71,13 @@ func (m *Window) TestTool() {
 	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
 
 	// 添加搜索框
-	toolbar.AddToolbarFlexibleSpace(windowHandle)
+	//toolbar.AddToolbarFlexibleSpace(windowHandle)
 	//textProperty.MinWidth = 60
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
 	sf := toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
 	println(sf, "textProperty.MaxWidth", textProperty.MaxWidth)
-	toolbar.AddToolbarFlexibleSpace(windowHandle)
+	//toolbar.AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加下拉框
 	comboProperty := defaultProperty

@@ -20,9 +20,12 @@ type NSToolBar struct {
 	delegate     Pointer
 	config       *ToolbarConfiguration
 	windowResize NotifyEvent
-	controls     tool.HashMap[IControl] // NSView
-	property     tool.HashMap[*ControlProperty]
-	identifiers  tool.ArrayMap[string]
+	controls     tool.ArrayMap[*ControlInfo]
+}
+
+type ControlInfo struct {
+	control  IControl
+	property *ControlProperty
 }
 
 func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
@@ -56,13 +59,14 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
-	ids := m.identifiers.Values()
+	ids := m.controls.Keys()
 	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: 3}}
 }
 
 func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
 	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
-	ids := m.identifiers.Values()
+	ids := m.controls.Keys()
+	// 系统项
 	ids = append(ids, GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
 	ids = append(ids, GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
 	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: len(ids)}}
@@ -82,10 +86,16 @@ func (m *NSToolBar) AddControl(control IControl) {
 	defer C.free(Pointer(identifier))
 	cProperty := control.Property().ToOC()
 	C.ToolbarAddControl(m.delegate, m.toolbar, Pointer(control.Instance()), identifier, cProperty)
-	m.identifiers.Add(control.Identifier(), control.Identifier())
-	m.controls.Add(control.Identifier(), control)
+	// 保存控件
+	m.controls.Add(control.Identifier(), &ControlInfo{
+		control: control, property: control.Property(),
+	})
 }
 
 func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {
 	return NewNSButton(m, config, property)
+}
+
+func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProperty) *NSTextField {
+	return NewNSTextField(m, config, property)
 }

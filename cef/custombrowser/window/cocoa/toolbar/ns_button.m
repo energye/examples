@@ -2,10 +2,8 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-#pragma mark - 动态控件创建函数
-
 void* NewButton(void* nsDelegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
-    if (!title) {
+    if (!nsDelegate || !identifier || !title) {
         NSLog(@"[ERROR] NewButton 必要参数为空");
         return nil;
     }

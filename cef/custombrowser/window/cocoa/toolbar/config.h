@@ -91,19 +91,23 @@ void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
 
-// 控件创建 button
+// 配置控件所属通用父类为 NSControl 属性
 void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property);
+// 控件创建 Button
 void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
 void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
 void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
+// 控件创建 TextField
+void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property) ;
+// Space
+void AddToolbarFlexibleSpace(void* nsToolbar);
+void AddToolbarSpace(void* nsToolbar);
+//void AddToolbarSpaceByWidth(void* nsToolbar, CGFloat width);
 
 // 工具栏管理函数
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
 void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index);
-void AddToolbarFlexibleSpace(unsigned long nsWindowHandle);
-void AddToolbarSpace(unsigned long nsWindowHandle);
-void AddToolbarSpaceByWidth(unsigned long nsWindowHandle, CGFloat width);
 long GetToolbarItemCount(unsigned long nsWindowHandle);
 
 // 工具栏委托类
