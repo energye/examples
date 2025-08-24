@@ -15,28 +15,28 @@ void FreeGoArguments(GoArguments* data) {
                 case ArgsType_Bool:
                     if (item.Value) {
                         free(item.Value);
-                        NSLog(@"FreeGoArguments: 释放基本类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                        //NSLog(@"FreeGoArguments: 释放基本类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
                     }
                     break;
                 case ArgsType_String:
                     if (item.Value) {
                         free(item.Value);
-                        NSLog(@"FreeGoArguments: 释放字符串 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                        //NSLog(@"FreeGoArguments: 释放字符串 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
                     }
                     break;
                 case ArgsType_Object: {
                     id obj = (id)item.Value;
                     if (obj) {
                         [obj release];
-                        NSLog(@"FreeGoArguments: 释放对象 - 索引=%d，Type=%d，对象=%@（%p）", i, item.Type, obj, obj);
+                        //NSLog(@"FreeGoArguments: 释放对象 - 索引=%d，Type=%d，对象=%@（%p）", i, item.Type, obj, obj);
                     }
                     break;
                 }
                 case ArgsType_Pointer:
-                    NSLog(@"FreeGoArguments: 跳过指针释放 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    //NSLog(@"FreeGoArguments: 跳过指针释放 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
                     break;
                 default:
-                    NSLog(@"FreeGoArguments: 未处理类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    //NSLog(@"FreeGoArguments: 未处理类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
                     break;
             }
         }
@@ -46,12 +46,12 @@ void FreeGoArguments(GoArguments* data) {
     }
     // 释放数组本身
     if (data->Items) {
-        NSLog(@"FreeGoArguments: 释放参数数组内存，地址=%p", data->Items);
         free(data->Items);
+        //NSLog(@"FreeGoArguments: 释放参数数组内存，地址=%p", data->Items);
     }
     // 释放 GoArguments 结构
     free(data);
-    NSLog(@"FreeGoArguments: 释放GoArguments结构体，地址=%p", data);
+    //NSLog(@"FreeGoArguments: 释放GoArguments结构体，地址=%p", data);
 }
 
 // 通用添加函数
