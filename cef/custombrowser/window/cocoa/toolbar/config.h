@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
 #import <go_data.h>
+#import <go_arguments.h>
 
 #ifdef __cplusplus
 extern "C" {
