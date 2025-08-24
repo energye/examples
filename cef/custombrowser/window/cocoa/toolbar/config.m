@@ -266,6 +266,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoData *result;
             @try{
+                context->type_ = TCCClicked;
                 result = _callback(context);
             } @finally {
                 if(result){
@@ -286,6 +287,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [sender stringValue], selectedIndex, _window, sender);
             GoData *result;
             @try{
+                context->type_ = TCCSelectionChanged;
                 result = _callback(context);
             } @finally {
                 if(result){
@@ -308,6 +310,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], selectedIndex, _window, control);
             GoData *result;
             @try{
+                context->type_ = TCCSelectionDidChange;
                 result = _callback(context);
             } @finally {
                 if(result){
@@ -329,6 +332,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoData *result;
             @try{
+                context->type_ = TCCTextDidChange;
                 result = _callback(context);
             } @finally {
                 if(result){
@@ -349,6 +353,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoData *result;
             @try{
+                context->type_ = TCCTextDidEndEditing;
                 result = _callback(context);
             } @finally {
                 if(result){

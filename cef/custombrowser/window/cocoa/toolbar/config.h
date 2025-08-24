@@ -6,9 +6,15 @@
 extern "C" {
 #endif
 
-
-const char* GetStringConstValue(const void* str);
-
+// 事件类型, 用于区分普通通知事件, 还是特殊事件
+enum {
+    TCCNotify = 0,
+    TCCClicked = 1,
+    TCCTextDidChange = 2,
+    TCCTextDidEndEditing = 3,
+    TCCSelectionChanged = 4,
+    TCCSelectionDidChange = 5
+};
 
 // 颜色
 typedef struct {
@@ -21,13 +27,17 @@ typedef struct {
 
 // 通用事件回调事件参数
 typedef struct {
-    const   char *identifier; // 控件唯一标识
+    long    type_; // 事件类型, 用于区分普通通知事件, 还是特殊事件 1: 点击事件 2: 文本改变事件 3:文本提交事件 4:下拉框回车/离开焦点事件 5:下拉框选择事件
+    const   char *identifier; // 控件标识
     const   char *value; // 控件值
     long    index; // 值索引
     void    *owner; // 控件所属对象
     void    *sender; // 控件
     GoData  *inputData;// 传入数据
 } ToolbarCallbackContext;
+
+// 获取C字符串常量的值
+const char* GetStringConstValue(const void* str);
 
 // 通用事件回调事件类型
 typedef GoData* (*ControlEventCallback)(ToolbarCallbackContext *context);

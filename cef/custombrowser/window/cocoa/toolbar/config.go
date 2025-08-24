@@ -19,6 +19,7 @@ import (
 //export onDelegateEvent
 func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 	ctx := ToolbarCallbackContext{
+		Type:       int(cContext.type_),
 		Identifier: C.GoString(cContext.identifier),
 		Value:      C.GoString(cContext.value),
 		Index:      int(cContext.index),

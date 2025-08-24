@@ -7,11 +7,16 @@ package toolbar
 */
 import "C"
 
-type ControlType = int
+// TccType 事件类型, 用于区分普通通知事件, 还是特殊事件
+type TccType = int
 
 const (
-	CtCocoa ControlType = iota
-	CtLCL
+	TCCNotify TccType = iota
+	TCCClicked
+	TCCTextDidChange
+	TCCTextDidEndEditing
+	TCCSelectionChanged
+	TCCSelectionDidChange
 )
 
 type ToolbarDisplayMode = int
