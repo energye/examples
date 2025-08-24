@@ -40,3 +40,11 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 		config: config,
 	}
 }
+
+func (m *NSTextField) SetOnChange(fn TextEvent) {
+	RegisterEvent(m.config.Identifier, MakeTextChangeEventEvent(fn))
+}
+
+func (m *NSTextField) SetOnCommit(fn TextEvent) {
+	RegisterEvent(m.config.Identifier, MakeTextCommitEventEvent(fn))
+}

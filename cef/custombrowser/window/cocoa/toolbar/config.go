@@ -13,20 +13,23 @@ import "C"
 import (
 	"fmt"
 	"github.com/energye/lcl/lcl"
+	"strconv"
 	"sync"
 )
 
 //export onDelegateEvent
 func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 	ctx := ToolbarCallbackContext{
-		Type:       int(cContext.type_),
+		Type:       TccType(cContext.type_),
 		Identifier: C.GoString(cContext.identifier),
 		Value:      C.GoString(cContext.value),
 		Index:      int(cContext.index),
 		Owner:      cContext.owner,
 		Sender:     cContext.sender,
 	}
-	cb := eventList[ctx.Identifier]
+	eventId := ctx.Identifier
+	eventId = eventId + strconv.Itoa(ctx.Type)
+	cb := eventList[eventId]
 	if cb == nil {
 		return nil
 	}
@@ -48,9 +51,11 @@ var (
 	eventLock sync.Mutex
 )
 
+// RegisterEvent 事件注册，使用控件唯一标识 + 事件类型做为事件唯一id
 func RegisterEvent(identifier string, fn *Callback) {
 	eventLock.Lock()
 	defer eventLock.Unlock()
+	identifier = identifier + strconv.Itoa(fn.type_)
 	eventList[identifier] = fn
 }
 

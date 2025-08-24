@@ -57,3 +57,11 @@ func (m *NSSearchField) UpdateSearchFieldWidth(width int) {
 	cWidth := C.CGFloat(width)
 	C.UpdateSearchFieldWidth(m.instance, cWidth)
 }
+
+func (m *NSSearchField) SetOnChange(fn TextEvent) {
+	RegisterEvent(m.config.Identifier, MakeTextChangeEventEvent(fn))
+}
+
+func (m *NSSearchField) SetOnCommit(fn TextEvent) {
+	RegisterEvent(m.config.Identifier, MakeTextCommitEventEvent(fn))
+}
