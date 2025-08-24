@@ -46,11 +46,11 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 }
 
 func (m *TextField) SetOnChange(fn TextEvent) {
-	RegisterEvent(m.config.Identifier, MakeTextChangeEventEvent(fn))
+	RegisterEvent(m.config.Identifier, MakeTextChangeEvent(fn))
 }
 
 func (m *TextField) SetOnCommit(fn TextEvent) {
-	RegisterEvent(m.config.Identifier, MakeTextCommitEventEvent(fn))
+	RegisterEvent(m.config.Identifier, MakeTextCommitEvent(fn))
 }
 
 func (m *TextField) GetText() string {

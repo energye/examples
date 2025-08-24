@@ -72,6 +72,10 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: len(ids)}}
 }
 
+func (m *NSToolBar) doDelegateToolbar() *GoData {
+	return nil
+}
+
 func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
 	m.windowResize = fn
 }

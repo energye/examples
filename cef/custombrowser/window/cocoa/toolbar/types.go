@@ -16,6 +16,7 @@ type Pointer = unsafe.Pointer
 // NotifyEvent 通用事件通知
 type NotifyEvent func(identifier string, owner Pointer, sender Pointer) *GoData
 type TextEvent func(identifier string, value string, owner Pointer, sender Pointer) *GoData
+type DelegateToolbarEvent func(toolbar Pointer, identifier string, flag bool, owner Pointer) *GoData
 
 type Color struct {
 	Red   float32

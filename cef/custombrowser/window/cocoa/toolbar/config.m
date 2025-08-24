@@ -901,33 +901,33 @@ void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifie
     }
 }
 
-// 通过指针获取搜索框的值
-const char* GetSearchFieldText(void* ptr) {
-    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
-    NSString* nsText = [searchField stringValue];
-    // 转换为 C 字符串（需注意：返回的指针需在 Go 中及时处理，避免被释放）
-    return [nsText UTF8String];
-}
-
-// 通过指针设置搜索框文本
-void SetSearchFieldText(void* ptr, const char* text) {
-    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
-    NSString* nsText = [NSString stringWithUTF8String:text];
-    [searchField setStringValue:nsText];
-}
-
-// 通过指针设置搜索框文本
-void UpdateSearchFieldWidth(void* ptr, CGFloat width) {
-    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
-    // 移除现有宽度约束
-    for (NSLayoutConstraint *constraint in searchField.constraints) {
-        if (constraint.firstAttribute == NSLayoutAttributeWidth) {
-            [searchField removeConstraint:constraint];
-            break;
-        }
-    }
-    // 添加新宽度约束并设置高优先级
-    NSLayoutConstraint *widthConstraint = [searchField.widthAnchor constraintEqualToConstant:width];
-    widthConstraint.priority = NSLayoutPriorityRequired;
-    widthConstraint.active = YES;
-}
+//// 通过指针获取搜索框的值
+//const char* GetSearchFieldText(void* ptr) {
+//    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+//    NSString* nsText = [searchField stringValue];
+//    // 转换为 C 字符串（需注意：返回的指针需在 Go 中及时处理，避免被释放）
+//    return [nsText UTF8String];
+//}
+//
+//// 通过指针设置搜索框文本
+//void SetSearchFieldText(void* ptr, const char* text) {
+//    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+//    NSString* nsText = [NSString stringWithUTF8String:text];
+//    [searchField setStringValue:nsText];
+//}
+//
+//// 通过指针设置搜索框文本
+//void UpdateSearchFieldWidth(void* ptr, CGFloat width) {
+//    NSSearchField* searchField = (__bridge NSSearchField*)(ptr);
+//    // 移除现有宽度约束
+//    for (NSLayoutConstraint *constraint in searchField.constraints) {
+//        if (constraint.firstAttribute == NSLayoutAttributeWidth) {
+//            [searchField removeConstraint:constraint];
+//            break;
+//        }
+//    }
+//    // 添加新宽度约束并设置高优先级
+//    NSLayoutConstraint *widthConstraint = [searchField.widthAnchor constraintEqualToConstant:width];
+//    widthConstraint.priority = NSLayoutPriorityRequired;
+//    widthConstraint.active = YES;
+//}
