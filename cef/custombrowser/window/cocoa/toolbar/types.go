@@ -99,6 +99,7 @@ type ControlSearchField struct {
 	SendImmediately   bool
 	ResignsWithCancel bool
 	PreferredWidth    float32
+	Placeholder       string
 }
 
 // ControlProperty 的Go包装

@@ -99,3 +99,7 @@ func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSBu
 func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProperty) *NSTextField {
 	return NewNSTextField(m, config, property)
 }
+
+func (m *NSToolBar) NewSearchField(config ControlSearchField, property ControlProperty) *NSSearchField {
+	return NewNSSearchField(m, config, property)
+}

@@ -98,7 +98,9 @@ void* NewButton(void* delegate, const char *identifier, const char *title, const
 void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
 void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
 // 控件创建 TextField
-void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property) ;
+void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
+// 控件创建 SearchField
+void* NewSearchField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
 // Space
 void AddToolbarFlexibleSpace(void* nsToolbar);
 void AddToolbarSpace(void* nsToolbar);

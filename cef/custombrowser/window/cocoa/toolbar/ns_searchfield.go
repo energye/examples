@@ -8,7 +8,36 @@ package toolbar
 import "C"
 
 type NSSearchField struct {
-	instance Pointer
+	Control
+	config ControlSearchField
+}
+
+func NewNSSearchField(owner *NSToolBar, config ControlSearchField, property ControlProperty) *NSSearchField {
+	if config.Identifier == "" {
+		config.Identifier = nextSerialNumber("SearchField")
+	}
+	var cIdentifier *C.char
+	cIdentifier = C.CString(config.Identifier)
+	defer C.free(Pointer(cIdentifier))
+	var cPlaceholder *C.char
+	cPlaceholder = C.CString(config.Placeholder)
+	defer C.free(Pointer(cPlaceholder))
+	var cTooltip *C.char
+	if config.Tips != "" {
+		cTooltip = C.CString(config.Tips)
+		defer C.free(Pointer(cTooltip))
+	}
+	cProperty := property.ToOC()
+	cTextField := C.NewSearchField(owner.delegate, cIdentifier, cPlaceholder, cTooltip, cProperty)
+	return &NSSearchField{
+		Control: Control{
+			instance: Pointer(cTextField),
+			owner:    owner,
+			property: &property,
+			item:     config.ItemBase,
+		},
+		config: config,
+	}
 }
 
 func (m *NSSearchField) GetText() string {

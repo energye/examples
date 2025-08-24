@@ -101,33 +101,33 @@ func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, toolti
 	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cProperty)
 }
 
-func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) {
-	cIdentifier := C.CString(identifier)
-	defer C.free(Pointer(cIdentifier))
+//func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) {
+//	cIdentifier := C.CString(identifier)
+//	defer C.free(Pointer(cIdentifier))
+//
+//	var cPlaceholder *C.char
+//	if placeholder != "" {
+//		cPlaceholder = C.CString(placeholder)
+//		defer C.free(Pointer(cPlaceholder))
+//	}
+//
+//	cProperty := property.ToOC()
+//
+//	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
+//}
 
-	var cPlaceholder *C.char
-	if placeholder != "" {
-		cPlaceholder = C.CString(placeholder)
-		defer C.free(Pointer(cPlaceholder))
-	}
-
-	cProperty := property.ToOC()
-
-	C.AddToolbarTextField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
-}
-
-func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) *NSSearchField {
-	cIdentifier := C.CString(identifier)
-	defer C.free(Pointer(cIdentifier))
-	var cPlaceholder *C.char
-	if placeholder != "" {
-		cPlaceholder = C.CString(placeholder)
-		defer C.free(Pointer(cPlaceholder))
-	}
-	cProperty := property.ToOC()
-	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
-	return &NSSearchField{instance: Pointer(cSF)}
-}
+//func AddToolbarSearchField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) *NSSearchField {
+//	cIdentifier := C.CString(identifier)
+//	defer C.free(Pointer(cIdentifier))
+//	var cPlaceholder *C.char
+//	if placeholder != "" {
+//		cPlaceholder = C.CString(placeholder)
+//		defer C.free(Pointer(cPlaceholder))
+//	}
+//	cProperty := property.ToOC()
+//	cSF := C.AddToolbarSearchField(C.ulong(nsWindowHandle), cIdentifier, cPlaceholder, cProperty)
+//	return &NSSearchField{instance: Pointer(cSF)}
+//}
 
 func AddToolbarCombobox(nsWindowHandle uintptr, identifier string, items []string, property ControlProperty) {
 	cIdentifier := C.CString(identifier)

@@ -495,11 +495,16 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     if (property.height > 0) {
         [control.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
+    // 最小和最大宽度约束
     if (property.minWidth > 0) {
-        [control.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+        NSLayoutConstraint *minWidthConstraint = [control.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth];
+        minWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
+        minWidthConstraint.active = YES;
     }
     if (property.maxWidth > 0) {
-        [control.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
+        NSLayoutConstraint *maxWidthConstraint = [control.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth];
+        maxWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
+        maxWidthConstraint.active = YES;
     }
 }
 

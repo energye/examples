@@ -75,7 +75,7 @@ func (m *Window) TestTool() {
 	//textProperty.MinWidth = 60
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
-	sf := toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	sf := bar.NewSearchField(toolbar.ControlSearchField{}, textProperty) //toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
 	println(sf, "textProperty.MaxWidth", textProperty.MaxWidth)
 	//toolbar.AddToolbarFlexibleSpace(windowHandle)
 
