@@ -8,11 +8,10 @@ package toolbar
 import "C"
 
 type NSSearchField struct {
-	Control
-	config ControlSearchField
+	TextField
 }
 
-func NewNSSearchField(owner *NSToolBar, config ControlSearchField, property ControlProperty) *NSSearchField {
+func NewNSSearchField(owner *NSToolBar, config ControlTextField, property ControlProperty) *NSSearchField {
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("SearchField")
 	}
@@ -29,39 +28,13 @@ func NewNSSearchField(owner *NSToolBar, config ControlSearchField, property Cont
 	}
 	cProperty := property.ToOC()
 	cTextField := C.NewSearchField(owner.delegate, cIdentifier, cPlaceholder, cTooltip, cProperty)
-	return &NSSearchField{
-		Control: Control{
-			instance: Pointer(cTextField),
-			owner:    owner,
-			property: &property,
-			item:     config.ItemBase,
-		},
-		config: config,
+	m := &NSSearchField{}
+	m.config = config
+	m.Control = Control{
+		instance: Pointer(cTextField),
+		owner:    owner,
+		property: &property,
+		item:     config.ItemBase,
 	}
-}
-
-func (m *NSSearchField) GetText() string {
-	cText := C.GetSearchFieldText(m.instance)
-	return C.GoString(cText)
-}
-
-// SetText 设置搜索框文本
-func (m *NSSearchField) SetText(text string) {
-	cText := C.CString(text)
-	defer C.free(Pointer(cText))
-	C.SetSearchFieldText(m.instance, cText)
-}
-
-// UpdateSearchFieldWidth
-func (m *NSSearchField) UpdateSearchFieldWidth(width int) {
-	cWidth := C.CGFloat(width)
-	C.UpdateSearchFieldWidth(m.instance, cWidth)
-}
-
-func (m *NSSearchField) SetOnChange(fn TextEvent) {
-	RegisterEvent(m.config.Identifier, MakeTextChangeEventEvent(fn))
-}
-
-func (m *NSSearchField) SetOnCommit(fn TextEvent) {
-	RegisterEvent(m.config.Identifier, MakeTextCommitEventEvent(fn))
+	return m
 }

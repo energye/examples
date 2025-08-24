@@ -46,21 +46,31 @@ func (m *Window) TestTool() {
 	//defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
 	defaultProperty.IsNavigational = true
 
+	// 添加按钮
 	item := toolbar.ButtonItem{}
-	//bar.AddButton(item, defaultProperty)
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
-	//
+	item.Title = "后退"
 	btn1 := bar.NewButton(item, defaultProperty)
 	bar.AddControl(btn1)
 	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
 		fmt.Println("自定义新按钮事件触发了", identifier)
 		return nil
 	})
-	// 添加按钮
-	//toolbar.AddToolbarButton(windowHandle, "back", "后退", "后退", defaultProperty)
-	//toolbar.AddToolbarButton(windowHandle, "forwd", "前进", "前进", defaultProperty)
-	//toolbar.AddToolbarButton(windowHandle, "refs", "刷新", "刷新", defaultProperty)
-	//AddToolbarFlexibleSpace(windowHandle)
+	item.Title = "前进"
+	btn2 := bar.NewButton(item, defaultProperty)
+	bar.AddControl(btn2)
+	btn2.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+		fmt.Println("自定义新按钮事件触发了", identifier)
+		return nil
+	})
+	item.Title = "刷新"
+	btn3 := bar.NewButton(item, defaultProperty)
+	bar.AddControl(btn3)
+	btn3.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+		fmt.Println("自定义新按钮事件触发了", identifier)
+		return nil
+	})
+	bar.AddFlexibleSpace()
 
 	// 添加文本框
 	textProperty := defaultProperty
@@ -68,15 +78,25 @@ func (m *Window) TestTool() {
 	//textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
-	//AddToolbarTextField(windowHandle, "text-field", "text...", textProperty)
+	textItem := toolbar.ControlTextField{}
+	text := bar.NewTextField(textItem, textProperty)
+	text.SetOnChange(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+		fmt.Println("OnChange", identifier, value)
+		return nil
+	})
+	text.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+		fmt.Println("OnCommit", identifier, value)
+		return nil
+	})
+	//bar.AddControl(text)
 
 	// 添加搜索框
 	//toolbar.AddToolbarFlexibleSpace(windowHandle)
-	//textProperty.MinWidth = 60
-	//textProperty.MaxWidth = float64(m.Width() - 250)
-	//textProperty.Width = float64(m.Width() - 250)
-	sf := bar.NewSearchField(toolbar.ControlSearchField{}, textProperty) //toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
-	println(sf, "textProperty.MaxWidth", textProperty.MaxWidth)
+	textProperty.MinWidth = 60
+	textProperty.MaxWidth = float64(m.Width() - 250)
+	textProperty.Width = float64(m.Width() - 250)
+	search := bar.NewSearchField(toolbar.ControlTextField{}, textProperty) //toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	bar.AddControl(search)
 	//toolbar.AddToolbarFlexibleSpace(windowHandle)
 
 	// 添加下拉框
@@ -97,22 +117,22 @@ func (m *Window) TestTool() {
 		cocoa.RunOnMainThread(func() {
 			//SetToolbarControlHidden(windowHandle, "go-back", true)
 			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
-			sf.SetText("Object-c UI线程 设置 Initial value")
-			fmt.Println("sf.GetText():", sf.GetText())
+			search.SetText("Object-c UI线程 设置 Initial value")
+			fmt.Println("sf.GetText():", search.GetText())
 			//toolbar.NewLCLButton(bar, testbtn)
 			//toolbar.SetWindowBackgroundColor(m, toolbar.Color{Red: 56, Green: 57, Blue: 60, Alpha: 255})
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
-			sf.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
-			fmt.Println("sf.GetText():", sf.GetText())
+			search.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
+			fmt.Println("sf.GetText():", search.GetText())
 		})
 		time.Sleep(time.Second * 2)
 		lcl.RunOnMainThreadSync(func() {
 			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadSync 设置 Initial value")
-			sf.SetText("lcl.RunOnMainThreadSync 设置 Initial value")
-			fmt.Println("sf.GetText():", sf.GetText())
+			search.SetText("lcl.RunOnMainThreadSync 设置 Initial value")
+			fmt.Println("sf.GetText():", search.GetText())
 		})
 	}()
 
@@ -131,7 +151,7 @@ func (m *Window) TestTool() {
 			width = 700
 		}
 		//fmt.Println("width", width)
-		sf.UpdateSearchFieldWidth(width)
+		search.UpdateSearchFieldWidth(width)
 		return nil
 	})
 }

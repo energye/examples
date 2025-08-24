@@ -28,45 +28,6 @@ func (m *Color) ToOC() C.Color {
 	return C.Color{Red: C.CGFloat(m.Red / 255.0), Green: C.CGFloat(m.Green / 255.0), Blue: C.CGFloat(m.Blue / 255.0), Alpha: C.CGFloat(m.Alpha / 255.0)}
 }
 
-type IControl interface {
-	Instance() uintptr
-	Owner() *NSToolBar
-	Property() *ControlProperty
-	Identifier() string
-}
-
-type Control struct {
-	item ItemBase
-	//type_    ControlType
-	owner    *NSToolBar
-	instance Pointer
-	property *ControlProperty
-}
-
-func (m *Control) Identifier() string {
-	return m.item.Identifier
-}
-
-//func (m *Control) IsCocoa() bool {
-//	return m.type_ == CtCocoa
-//}
-//
-//func (m *Control) IsLCL() bool {
-//	return m.type_ == CtLCL
-//}
-
-func (m *Control) Instance() uintptr {
-	return uintptr(m.instance)
-}
-
-func (m *Control) Owner() *NSToolBar {
-	return m.owner
-}
-
-func (m *Control) Property() *ControlProperty {
-	return m.property
-}
-
 type ItemBase struct {
 	Identifier   string
 	Priority     ItemVisibilityPriority
@@ -86,15 +47,6 @@ type ButtonItem struct {
 }
 
 type ControlTextField struct {
-	ItemUI
-	SendWhole         bool
-	SendImmediately   bool
-	ResignsWithCancel bool
-	PreferredWidth    float32
-	Placeholder       string
-}
-
-type ControlSearchField struct {
 	ItemUI
 	SendWhole         bool
 	SendImmediately   bool

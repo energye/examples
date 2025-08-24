@@ -85,9 +85,6 @@ const char *GetToolbarControlValue(unsigned long nsWindowHandle, const char *ide
 void SetToolbarControlValue(unsigned long nsWindowHandle, const char *identifier, const char *value);
 void SetToolbarControlEnabled(unsigned long nsWindowHandle, const char *identifier, bool enabled);
 void SetToolbarControlHidden(unsigned long nsWindowHandle, const char *identifier, bool hidden);
-const char* GetSearchFieldText(void* searchFieldPtr);
-void SetSearchFieldText(void* ptr, const char* text);
-void UpdateSearchFieldWidth(void* ptr, CGFloat width);
 
 // 公共函数
 NSImage* imageFromBytes(const uint8_t* data, size_t length);
@@ -109,6 +106,9 @@ void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const ch
 void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
 // 控件创建 TextField
 void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
+const char* GetTextFieldText(void* ptr);
+void SetTextFieldText(void* ptr, const char* text);
+void UpdateTextFieldWidth(void* ptr, CGFloat width);
 // 控件创建 SearchField
 void* NewSearchField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
 // Space

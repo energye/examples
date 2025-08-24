@@ -100,6 +100,6 @@ func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProper
 	return NewNSTextField(m, config, property)
 }
 
-func (m *NSToolBar) NewSearchField(config ControlSearchField, property ControlProperty) *NSSearchField {
+func (m *NSToolBar) NewSearchField(config ControlTextField, property ControlProperty) *NSSearchField {
 	return NewNSSearchField(m, config, property)
 }

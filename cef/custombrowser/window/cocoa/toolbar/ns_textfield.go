@@ -8,9 +8,13 @@ package toolbar
 */
 import "C"
 
-type NSTextField struct {
+type TextField struct {
 	Control
 	config ControlTextField
+}
+
+type NSTextField struct {
+	TextField
 }
 
 func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlProperty) *NSTextField {
@@ -30,21 +34,39 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 	}
 	cProperty := property.ToOC()
 	cTextField := C.NewTextField(owner.delegate, cIdentifier, cPlaceholder, cTooltip, cProperty)
-	return &NSTextField{
-		Control: Control{
-			instance: Pointer(cTextField),
-			owner:    owner,
-			property: &property,
-			item:     config.ItemBase,
-		},
-		config: config,
+	m := &NSTextField{}
+	m.config = config
+	m.Control = Control{
+		instance: Pointer(cTextField),
+		owner:    owner,
+		property: &property,
+		item:     config.ItemBase,
 	}
+	return m
 }
 
-func (m *NSTextField) SetOnChange(fn TextEvent) {
+func (m *TextField) SetOnChange(fn TextEvent) {
 	RegisterEvent(m.config.Identifier, MakeTextChangeEventEvent(fn))
 }
 
-func (m *NSTextField) SetOnCommit(fn TextEvent) {
+func (m *TextField) SetOnCommit(fn TextEvent) {
 	RegisterEvent(m.config.Identifier, MakeTextCommitEventEvent(fn))
+}
+
+func (m *TextField) GetText() string {
+	cText := C.GetTextFieldText(m.instance)
+	return C.GoString(cText)
+}
+
+// SetText 设置搜索框文本
+func (m *TextField) SetText(text string) {
+	cText := C.CString(text)
+	defer C.free(Pointer(cText))
+	C.SetTextFieldText(m.instance, cText)
+}
+
+// UpdateSearchFieldWidth
+func (m *TextField) UpdateSearchFieldWidth(width int) {
+	cWidth := C.CGFloat(width)
+	C.UpdateTextFieldWidth(m.instance, cWidth)
 }
