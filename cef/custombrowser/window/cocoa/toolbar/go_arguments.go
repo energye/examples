@@ -93,12 +93,12 @@ func GetIntFromGoArguments(data *OCGoArguments, index int) int {
 	return int(*(*C.int)(ptr))
 }
 
-func GetFloatFromGoArguments(data *OCGoArguments, index int) float32 {
+func GetFloatFromGoArguments(data *OCGoArguments, index int) float64 {
 	ptr := GetFromGoArguments(data, index, GoArgsType_Float)
 	if ptr == nil {
 		return 0.0
 	}
-	return float32(*(*C.float)(ptr))
+	return float64(*(*C.double)(ptr))
 }
 
 func GetBoolFromGoArguments(data *OCGoArguments, index int) bool {

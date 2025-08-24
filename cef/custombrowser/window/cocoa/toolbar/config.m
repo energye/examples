@@ -2,6 +2,14 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
+BOOL isARCMode() {
+#if __has_feature(objc_arc)
+    return YES;  // 支持ARC
+#else
+    return NO;   // 不支持ARC
+#endif
+}
+
 // 获取字符串常量的值, 例如: C.NSToolbarSpaceItemIdentifier
 const char* GetStringConstValue(const void* nsStringConst) {
     NSString* identifier = (__bridge NSString*)nsStringConst;
@@ -18,6 +26,7 @@ ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier,
     context->sender = sender;
     context->identifier = identifier ? strdup([identifier UTF8String]) : "";
     context->value = value ? strdup([value UTF8String]) : "";
+    context->arguments = NULL;
     return context;
 }
 
@@ -266,9 +275,13 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoData *result;
             @try{
+                context->arguments = CreateGoArguments(4, @(123), @"'mixed types'", @(NO), @(3.14159));
                 context->type_ = TCCClicked;
                 result = _callback(context);
             } @finally {
+                if(context->arguments){
+                    FreeGoArguments(context->arguments);
+                }
                 if(result){
                     GoFreeGoData(result);
                 }

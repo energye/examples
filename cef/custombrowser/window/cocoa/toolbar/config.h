@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+BOOL isARCMode();
+
 // 事件类型, 用于区分普通通知事件, 还是特殊事件
 enum {
     TCCNotify = 0,
@@ -35,6 +37,7 @@ typedef struct {
     void    *owner; // 控件所属对象
     void    *sender; // 控件
     GoData  *inputData;// 传入数据
+    GoArguments *arguments;
 } ToolbarCallbackContext;
 
 // 获取C字符串常量的值

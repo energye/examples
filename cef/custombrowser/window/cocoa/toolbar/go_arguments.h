@@ -45,7 +45,7 @@ void* GetFromGoArguments(GoArguments* data, int index, GoArgumentsType expectedT
 
 // 类型特定的便捷函数
 int GetIntFromGoArguments(GoArguments* data, int index);
-float GetFloatFromGoArguments(GoArguments* data, int index);
+double GetFloatFromGoArguments(GoArguments* data, int index);
 bool GetBoolFromGoArguments(GoArguments* data, int index);
 const char* GetStringFromGoArguments(GoArguments* data, int index);
 void* GetObjectFromGoArguments(GoArguments* data, int index);

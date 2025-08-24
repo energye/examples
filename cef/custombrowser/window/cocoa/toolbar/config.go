@@ -27,6 +27,17 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 		Owner:      cContext.owner,
 		Sender:     cContext.sender,
 	}
+
+	cArguments := cContext.arguments
+	if cArguments != nil {
+		println("cArguments IsARCMode:", IsARCMode())
+		println("cArguments Count:", int(cArguments.Count)) //GetIntFromGoArguments(cArguments, 0),
+		//GetStringFromGoArguments(cArguments, 1),
+		//GetBoolFromGoArguments(cArguments, 2),
+		//GetFloatFromGoArguments(cArguments, 3),
+
+	}
+
 	eventId := ctx.Identifier
 	eventId = eventId + strconv.Itoa(ctx.Type)
 	cb := eventList[eventId]
@@ -57,6 +68,10 @@ func RegisterEvent(identifier string, fn *Callback) {
 	defer eventLock.Unlock()
 	identifier = identifier + strconv.Itoa(fn.type_)
 	eventList[identifier] = fn
+}
+
+func IsARCMode() bool {
+	return bool(C.isARCMode())
 }
 
 // SetWindowBackgroundColor 公开方法 设置窗口背景色

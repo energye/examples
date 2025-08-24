@@ -5,35 +5,66 @@ void FreeGoArguments(GoArguments* data) {
     if (!data) return;
     // 释放所有数据项
     for (int i = 0; i < data->Count; i++) {
-        GoArgsItem item = data->Items[i];
-        // 根据类型释放内存
-        switch (item.Type) {
-            case ArgsType_Int:
-            case ArgsType_Float:
-            case ArgsType_Bool:// 基本类型直接释放
-                free(item.Value);
-                break;
-            case ArgsType_String: // 字符串类型
-                free(item.Value);
-                break;
-            case ArgsType_Object: // Objective-C 对象，释放引用
-                [(id)item.Value release]; // MRC 手动 release，避免崩溃
-                break;
-            case ArgsType_Pointer: // 指针类型，不释放指向的内容
-                break;
-            default:
-                break;
+        @try {
+            GoArgsItem item = data->Items[i];
+            //NSLog(@"FreeGoArguments: 释放第%d个参数, 类型: %d", i, item.Type);
+            // 根据类型释放内存
+            switch (item.Type) {
+                case ArgsType_Int:
+                case ArgsType_Float:
+                case ArgsType_Bool:
+                    if (item.Value) {
+                        free(item.Value);
+                        NSLog(@"FreeGoArguments: 释放基本类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    }
+                    break;
+                case ArgsType_String:
+                    if (item.Value) {
+                        free(item.Value);
+                        NSLog(@"FreeGoArguments: 释放字符串 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    }
+                    break;
+                case ArgsType_Object: {
+                    id obj = (id)item.Value;
+                    if (obj) {
+                        [obj release];
+                        NSLog(@"FreeGoArguments: 释放对象 - 索引=%d，Type=%d，对象=%@（%p）", i, item.Type, obj, obj);
+                    }
+                    break;
+                }
+                case ArgsType_Pointer:
+                    NSLog(@"FreeGoArguments: 跳过指针释放 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    break;
+                default:
+                    NSLog(@"FreeGoArguments: 未处理类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    break;
+            }
+        }
+        @catch (NSException *e) {
+            NSLog(@"FreeGoArguments: 释放第%d个参数时发生异常：%@，原因：%@", i, e.name, e.reason);
         }
     }
     // 释放数组本身
     if (data->Items) {
+        NSLog(@"FreeGoArguments: 释放参数数组内存，地址=%p", data->Items);
         free(data->Items);
     }
     // 释放 GoArguments 结构
     free(data);
+    NSLog(@"FreeGoArguments: 释放GoArguments结构体，地址=%p", data);
 }
 
 // 通用添加函数
+/*
+传递4个参数：整数、字符串、布尔值、浮点数
+GoArguments* args = CreateGoArguments(
+    4,                  // 参数数量为4
+    @(123),             // 整数（int）
+    @"mixed types",     // 字符串（NSString）
+    @(NO),              // 布尔值（BOOL）
+    @(3.14159)          // 浮点数（double）
+);
+*/
 GoArguments* CreateGoArguments(int count, ...) {
     GoArguments* data = malloc(sizeof(GoArguments));
     data->Count = count;
@@ -50,7 +81,16 @@ GoArguments* CreateGoArguments(int count, ...) {
         if ([arg isKindOfClass:[NSNumber class]]) {
             NSNumber* number = (NSNumber*)arg;
             const char* objCType = [number objCType];
-            if (strcmp(objCType, @encode(int)) == 0 ||
+            if (strcmp(objCType, @encode(BOOL)) == 0 ||
+                     strcmp(objCType, @encode(bool)) == 0 ||
+                     strcmp(objCType, @encode(char)) == 0 ) {
+                // 布尔类型
+                bool* value = malloc(sizeof(bool));
+                *value = [number boolValue];
+                item.Value = value;
+                item.Type = ArgsType_Bool;
+            }
+            else if (strcmp(objCType, @encode(int)) == 0 ||
                 strcmp(objCType, @encode(long)) == 0 ||
                 strcmp(objCType, @encode(NSInteger)) == 0) {
                 // 整数类型
@@ -60,20 +100,17 @@ GoArguments* CreateGoArguments(int count, ...) {
                 item.Type = ArgsType_Int;
             }
             else if (strcmp(objCType, @encode(float)) == 0 ||
-                    strcmp(objCType, @encode (double))) {
+                    strcmp(objCType, @encode(double)) == 0) {
                 // 浮点数类型
-                float* value = malloc(sizeof(float));
-                *value = [number floatValue];
+                double* value = malloc(sizeof(double));
+                *value = [number doubleValue];
                 item.Value = value;
                 item.Type = ArgsType_Float;
             }
-            else if (strcmp(objCType, @encode(BOOL)) == 0 ||
-                     strcmp(objCType, @encode(bool)) == 0) {
-                // 布尔类型
-                bool* value = malloc(sizeof(bool));
-                *value = [number boolValue];
-                item.Value = value;
-                item.Type = ArgsType_Bool;
+            else {
+                // 无法识别的NSNumber，当作对象处理
+                item.Value = (void*)[arg retain];
+                item.Type = ArgsType_Object;
             }
         }
         else if ([arg isKindOfClass:[NSString class]]) {
@@ -94,6 +131,7 @@ GoArguments* CreateGoArguments(int count, ...) {
         else {
             // 对象类型
             item.Value = (void*)[arg retain];
+//            item.Value = (__bridge void*)(arg);
             item.Type = ArgsType_Object;
         }
         // 添加到数组
@@ -117,8 +155,8 @@ int GetIntFromGoArguments(GoArguments* data, int index) {
     return value ? *value : 0;
 }
 
-float GetFloatFromGoArguments(GoArguments* data, int index) {
-    float* value = (float*)GetFromGoArguments(data, index, ArgsType_Float);
+double GetFloatFromGoArguments(GoArguments* data, int index) {
+    double* value = (double*)GetFromGoArguments(data, index, ArgsType_Float);
     return value ? *value : 0.0f;
 }
 
