@@ -87,12 +87,13 @@ func (m *ControlProperty) ToOC() C.ControlProperty {
 }
 
 type ToolbarCallbackContext struct {
-	Type       TccType // 事件类型
-	Identifier string  // 控件唯一标识
-	Value      string  // 控件值
-	Index      int     // 值索引
-	Owner      Pointer // 所属对象
-	Sender     Pointer // 控件对象
+	Type       TccType        // 事件类型
+	Identifier string         // 控件唯一标识
+	Value      string         // 控件值
+	Index      int            // 值索引
+	Owner      Pointer        // 所属对象
+	Sender     Pointer        // 控件对象
+	Arguments  *OCGoArguments // 参数
 }
 
 // ToolbarConfiguration 的Go包装

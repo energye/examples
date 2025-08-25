@@ -42,10 +42,6 @@ type GoArguments struct {
 	Items []any
 }
 
-func (m *GoArguments) Free() {
-
-}
-
 func (m *GoArguments) ToOC() *C.GoArguments {
 	if len(m.Items) == 0 {
 		return nil
@@ -91,6 +87,7 @@ func (m *GoArguments) ToOC() *C.GoArguments {
 	goArgs := (*C.GoArguments)(C.malloc(C.sizeof_GoArguments))
 	goArgs.Count = C.int(len(m.Items))
 	goArgs.Items = (*C.GoArgsItem)(C.malloc(C.size_t(goArgs.Count) * C.sizeof_GoArgsItem))
+	// 64
 	items := (*[1 << 6]*C.GoArgsItem)(Pointer(goArgs.Items))[:goArgs.Count:goArgs.Count]
 	for i, arg := range m.Items {
 		item := items[i] // 直接访问数组元素
@@ -147,13 +144,6 @@ func (m *OCGoArgsItem) IntValue() int {
 		return int(*(*C.int)(item.Value))
 	}
 	return 0
-}
-
-func GetFromGoArguments(data *C.GoArguments, index int, expectedType OCGoArgumentsType) Pointer {
-	if data == nil || index < 0 || index >= int(data.Count) {
-		return nil
-	}
-	return C.GetFromGoArguments(data, C.int(index), expectedType)
 }
 
 func (m *OCGoArguments) GetInt(index int) int {

@@ -27,25 +27,10 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 		Owner:      cContext.owner,
 		Sender:     cContext.sender,
 	}
-
 	cArguments := cContext.arguments
 	if cArguments != nil {
-		println("cArguments IsARCMode:", IsARCMode())
-		println("cArguments Count:", int(cArguments.Count)) //GetIntFromGoArguments(cArguments, 0),
-		//GetStringFromGoArguments(cArguments, 1),
-		//GetBoolFromGoArguments(cArguments, 2),
-		//GetFloatFromGoArguments(cArguments, 3),
-		args := &OCGoArguments{arguments: Pointer(cArguments), count: int(cArguments.Count)}
-		for i := 0; i < int(cArguments.Count); i++ {
-			item := args.GetItem(i)
-			println(item.Type(), item.Value())
-			if item.Type() == GoArgsType_Int {
-				println(item.IntValue(), args.GetInt(i))
-			}
-		}
-
+		ctx.Arguments = &OCGoArguments{arguments: Pointer(cArguments), count: int(cArguments.Count)}
 	}
-
 	eventId := ctx.Identifier
 	eventId = eventId + strconv.Itoa(ctx.Type)
 	cb := eventList[eventId]
