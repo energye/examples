@@ -15,17 +15,23 @@ import (
 type OCGoArgumentsType = C.GoArgumentsType
 
 const (
-	GoArgsType_None    = C.ArgsType_None    // 未使用类型
-	GoArgsType_Int     = C.ArgsType_Int     // 基础类型 int
-	GoArgsType_Float   = C.ArgsType_Float   // 基础类型 float64
-	GoArgsType_Bool    = C.ArgsType_Bool    // 基础类型 bool
-	GoArgsType_String  = C.ArgsType_String  // 基础类型 string
-	GoArgsType_Object  = C.ArgsType_Object  // 对象类型 NS 里创建的对象指针 (void*)[obj retain]
-	GoArgsType_Pointer = C.ArgsType_Pointer // 指针类型 NS 里创建的 [NSValue valueWithPointer:customData]
+	GoArgsType_None    = OCGoArgumentsType(C.ArgsType_None)    // 未使用类型
+	GoArgsType_Int     = OCGoArgumentsType(C.ArgsType_Int)     // 基础类型 int
+	GoArgsType_Float   = OCGoArgumentsType(C.ArgsType_Float)   // 基础类型 float64
+	GoArgsType_Bool    = OCGoArgumentsType(C.ArgsType_Bool)    // 基础类型 bool
+	GoArgsType_String  = OCGoArgumentsType(C.ArgsType_String)  // 基础类型 string
+	GoArgsType_Object  = OCGoArgumentsType(C.ArgsType_Object)  // 对象类型 NS 里创建的对象指针 (void*)[obj retain]
+	GoArgsType_Pointer = OCGoArgumentsType(C.ArgsType_Pointer) // 指针类型 NS 里创建的 [NSValue valueWithPointer:customData]
 )
 
-type OCGoArguments = C.GoArguments
-type OCGoArgsItem = C.GoArgsItem
+type OCGoArgsItem struct {
+	item Pointer
+}
+
+type OCGoArguments struct {
+	arguments Pointer
+	count     int
+}
 
 type GoArgsItem struct {
 	Value Pointer
@@ -40,7 +46,7 @@ func (m *GoArguments) Free() {
 
 }
 
-func (m *GoArguments) ToOC() *OCGoArguments {
+func (m *GoArguments) ToOC() *C.GoArguments {
 	if len(m.Items) == 0 {
 		return nil
 	}
@@ -82,10 +88,10 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 		}
 	}
 
-	goArgs := (*OCGoArguments)(C.malloc(C.sizeof_GoArguments))
+	goArgs := (*C.GoArguments)(C.malloc(C.sizeof_GoArguments))
 	goArgs.Count = C.int(len(m.Items))
-	goArgs.Items = (*OCGoArgsItem)(C.malloc(C.size_t(goArgs.Count) * C.sizeof_GoArgsItem))
-	items := (*[1 << 6]*OCGoArgsItem)(Pointer(goArgs.Items))[:goArgs.Count:goArgs.Count]
+	goArgs.Items = (*C.GoArgsItem)(C.malloc(C.size_t(goArgs.Count) * C.sizeof_GoArgsItem))
+	items := (*[1 << 6]*C.GoArgsItem)(Pointer(goArgs.Items))[:goArgs.Count:goArgs.Count]
 	for i, arg := range m.Items {
 		item := items[i] // 直接访问数组元素
 		switch v := arg.(type) {
@@ -120,60 +126,86 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 	return goArgs
 }
 
-func GetItemFromGoArguments(data *OCGoArguments, index int) *OCGoArgsItem {
-	item := C.GetItemFromGoArguments(data, C.int(index))
-	return item
+func (m *OCGoArguments) GetItem(index int) *OCGoArgsItem {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	return &OCGoArgsItem{item: Pointer(item)}
 }
 
-func GetFromGoArguments(data *OCGoArguments, index int, expectedType int) Pointer {
+func (m *OCGoArgsItem) Type() OCGoArgumentsType {
+	item := (*C.GoArgsItem)(m.item)
+	return OCGoArgumentsType(item.Type)
+}
+
+func (m *OCGoArgsItem) Value() Pointer {
+	item := (*C.GoArgsItem)(m.item)
+	return Pointer(item.Value)
+}
+
+func (m *OCGoArgsItem) IntValue() int {
+	if m.Type() == GoArgsType_Int {
+		item := (*C.GoArgsItem)(m.item)
+		return int(*(*C.int)(item.Value))
+	}
+	return 0
+}
+
+func GetFromGoArguments(data *C.GoArguments, index int, expectedType OCGoArgumentsType) Pointer {
 	if data == nil || index < 0 || index >= int(data.Count) {
 		return nil
 	}
-	return C.GetFromGoArguments(data, C.int(index), OCGoArgumentsType(expectedType))
+	return C.GetFromGoArguments(data, C.int(index), expectedType)
 }
 
-func GetIntFromGoArguments(data *OCGoArguments, index int) int {
-	ptr := GetFromGoArguments(data, index, GoArgsType_Int)
-	if ptr == nil {
+func (m *OCGoArguments) GetInt(index int) int {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_Int {
 		return 0
 	}
-	return int(*(*C.int)(ptr))
+	return int(*(*C.int)(item.Value))
 }
 
-func GetFloatFromGoArguments(data *OCGoArguments, index int) float64 {
-	ptr := GetFromGoArguments(data, index, GoArgsType_Float)
-	if ptr == nil {
-		return 0.0
+func (m *OCGoArguments) GetFloat(index int) float64 {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_Float {
+		return 0
 	}
-	return float64(*(*C.double)(ptr))
+	return float64(*(*C.double)(item.Value))
 }
 
-func GetBoolFromGoArguments(data *OCGoArguments, index int) bool {
-	ptr := GetFromGoArguments(data, index, GoArgsType_Bool)
-	if ptr == nil {
+func (m *OCGoArguments) GetBool(index int) bool {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_Bool {
 		return false
 	}
-	return bool(*(*C.bool)(ptr))
+	return bool(*(*C.bool)(item.Value))
 }
 
-func GetStringFromGoArguments(data *OCGoArguments, index int) string {
-	ptr := GetFromGoArguments(data, index, GoArgsType_String)
-	if ptr == nil {
+func (m *OCGoArguments) GetString(index int) string {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_String {
 		return ""
 	}
-	return C.GoString((*C.char)(ptr))
+	return C.GoString((*C.char)(item.Value))
 }
 
-func GetPointerFromGoArguments(data *OCGoArguments, index int) Pointer {
-	return GetFromGoArguments(data, index, GoArgsType_Pointer)
+func (m *OCGoArguments) GetPointer(index int) Pointer {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_Pointer {
+		return nil
+	}
+	return Pointer(item.Value)
 }
 
-func GetObjectFromGoArguments(data *OCGoArguments, index int) Pointer {
-	return GetFromGoArguments(data, index, GoArgsType_Object)
+func (m *OCGoArguments) GetObject(index int) Pointer {
+	item := C.GetItemFromGoArguments((*C.GoArguments)(m.arguments), C.int(index))
+	if item == nil || item.Type != GoArgsType_Object {
+		return nil
+	}
+	return Pointer(item.Value)
 }
 
 // FreeGoArguments 调用 ObjC 侧的释放函数（在 Go 侧触发释放）
-func FreeGoArguments(args *OCGoArguments) {
+func FreeGoArguments(args *C.GoArguments) {
 	if args == nil {
 		return
 	}

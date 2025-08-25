@@ -35,10 +35,13 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 		//GetStringFromGoArguments(cArguments, 1),
 		//GetBoolFromGoArguments(cArguments, 2),
 		//GetFloatFromGoArguments(cArguments, 3),
-
+		args := &OCGoArguments{arguments: Pointer(cArguments), count: int(cArguments.Count)}
 		for i := 0; i < int(cArguments.Count); i++ {
-			item := GetItemFromGoArguments(cArguments, i)
-			println(item.Type)
+			item := args.GetItem(i)
+			println(item.Type(), item.Value())
+			if item.Type() == GoArgsType_Int {
+				println(item.IntValue(), args.GetInt(i))
+			}
 		}
 
 	}
