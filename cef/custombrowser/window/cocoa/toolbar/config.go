@@ -83,37 +83,37 @@ func GetStringConstValue(constName *C.NSString) string {
 	return C.GoString(cValue)
 }
 
-func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
-	cIdentifier := C.CString(identifier)
-	defer C.free(Pointer(cIdentifier))
-	cTitle := C.CString(title)
-	defer C.free(Pointer(cTitle))
-	var cTooltip *C.char
-	if tooltip != "" {
-		cTooltip = C.CString(tooltip)
-		defer C.free(Pointer(cTooltip))
-	}
-	cProperty := property.ToOC()
-	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cProperty)
-}
+//func AddToolbarButton(nsWindowHandle uintptr, identifier, title, tooltip string, property ControlProperty) {
+//	cIdentifier := C.CString(identifier)
+//	defer C.free(Pointer(cIdentifier))
+//	cTitle := C.CString(title)
+//	defer C.free(Pointer(cTitle))
+//	var cTooltip *C.char
+//	if tooltip != "" {
+//		cTooltip = C.CString(tooltip)
+//		defer C.free(Pointer(cTooltip))
+//	}
+//	cProperty := property.ToOC()
+//	C.AddToolbarButton(C.ulong(nsWindowHandle), cIdentifier, cTitle, cTooltip, cProperty)
+//}
 
-func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, tooltip string, property ControlProperty) {
-	cIdentifier := C.CString(identifier)
-	defer C.free(Pointer(cIdentifier))
-
-	cImageName := C.CString(imageName)
-	defer C.free(Pointer(cImageName))
-
-	var cTooltip *C.char
-	if tooltip != "" {
-		cTooltip = C.CString(tooltip)
-		defer C.free(Pointer(cTooltip))
-	}
-
-	cProperty := property.ToOC()
-
-	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cProperty)
-}
+//func AddToolbarImageButton(nsWindowHandle uintptr, identifier, imageName, tooltip string, property ControlProperty) {
+//	cIdentifier := C.CString(identifier)
+//	defer C.free(Pointer(cIdentifier))
+//
+//	cImageName := C.CString(imageName)
+//	defer C.free(Pointer(cImageName))
+//
+//	var cTooltip *C.char
+//	if tooltip != "" {
+//		cTooltip = C.CString(tooltip)
+//		defer C.free(Pointer(cTooltip))
+//	}
+//
+//	cProperty := property.ToOC()
+//
+//	C.AddToolbarImageButton(C.ulong(nsWindowHandle), cIdentifier, cImageName, cTooltip, cProperty)
+//}
 
 //func AddToolbarTextField(nsWindowHandle uintptr, identifier, placeholder string, property ControlProperty) {
 //	cIdentifier := C.CString(identifier)

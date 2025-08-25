@@ -75,10 +75,10 @@ typedef struct {
 } ControlProperty;
 
 // 动态添加控件
-void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
-void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *iconName, const char *tooltip, ControlProperty property);
-void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
-void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
+//void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
+//void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *iconName, const char *tooltip, ControlProperty property);
+//void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
+//void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property);
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property);
 void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 

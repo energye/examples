@@ -533,177 +533,177 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     }
 }
 
-void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *titleStr = [NSString stringWithUTF8String:title];
-    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-    // 创建按钮
-    NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
-    button.bezelStyle = property.bezelStyle;
-    button.controlSize = property.controlSize;
-    if (tooltipStr) {
-        button.toolTip = tooltipStr;
-    }
-    if (property.font) {
-        button.font = property.font;
-    }
-    // 设置尺寸约束
-    if (property.width > 0) {
-        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
-    }
-    if (property.height > 0) {
-        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
-    }
-    // 关联标识符
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-    // 添加到委托
-    [delegate addControl:button forIdentifier:idStr withProperty:property];
-    // 添加到工具栏
-    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
-    return (__bridge void*)(button);
-}
-
-void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *imageNameStr = [NSString stringWithUTF8String:imageName];
-    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
-
-    NSLog(@"Loading toolbar image: %@", imageNameStr);
-
-    // 创建图片按钮
-//     NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageNameStr]
-//                                          target:delegate
-//                                          action:@selector(buttonClicked:)];
-    NSButton *button = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:imageNameStr accessibilityDescription:nil]
-                                         target:delegate
-                                         action:@selector(buttonClicked:)];
-    button.bezelStyle = property.bezelStyle;
-    button.controlSize = property.controlSize;
-    button.imagePosition = NSImageOnly;
-    if (tooltipStr) {
-        button.toolTip = tooltipStr;
-    }
-    if (property.font) {
-        button.font = property.font;
-    }
-
-    // 设置尺寸约束
-    if (property.width > 0) {
-        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
-    }
-    if (property.height > 0) {
-        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
-    }
-
-    // 关联标识符
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
-    // 添加到委托
-    [delegate addControl:button forIdentifier:idStr withProperty:property];
-
-    // 添加到工具栏
-    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
-}
-
-void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
-
-    // 创建文本框
-    NSTextField *textField = [[NSTextField alloc] init];
-    textField.placeholderString = placeholderStr;
-    textField.delegate = delegate;
-    textField.controlSize = property.controlSize;
-
-    // textField.alignment = NSTextAlignmentCenter;    // 设置水平居中
-
-    if (property.font) {
-        textField.font = property.font;
-    }
-
-    // 设置自动调整大小的属性
-    [textField setContentHuggingPriority:NSLayoutPriorityDefaultLow
-                          forOrientation:NSLayoutConstraintOrientationHorizontal];
-    [textField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
-                                        forOrientation:NSLayoutConstraintOrientationHorizontal];
-
-    // 设置尺寸约束
-    if (property.width > 0) {
-        [textField.widthAnchor constraintEqualToConstant:property.width].active = YES;
-    }
-    if (property.height > 0) {
-        [textField.heightAnchor constraintEqualToConstant:property.height].active = YES;
-    }
-    if (property.minWidth > 0) {
-        [textField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
-    }
-    if (property.maxWidth > 0) {
-        [textField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
-    }
-
-    // 关联标识符
-    objc_setAssociatedObject(textField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
-    // 添加到委托
-    [delegate addControl:textField forIdentifier:idStr withProperty:property];
-
-    // 添加到工具栏
-    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
-}
-
-void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-    NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
-
-    // 创建搜索框
-    NSSearchField *searchField = [[NSSearchField alloc] init];
-    searchField.placeholderString = placeholderStr;
-    searchField.delegate = delegate;
-    searchField.controlSize = property.controlSize;
-    if (property.font) {
-        searchField.font = property.font;
-    }
-
-    // 设置尺寸约束
-    if (property.width > 0) {
-        [searchField.widthAnchor constraintEqualToConstant:property.width].active = YES;
-    }
-    if (property.height > 0) {
-        [searchField.heightAnchor constraintEqualToConstant:property.height].active = YES;
-    }
-    // 最小和最大宽度约束
-    if (property.minWidth > 0) {
-        NSLayoutConstraint *minWidthConstraint = [searchField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth];
-        minWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
-        minWidthConstraint.active = YES;
-    }
-    if (property.maxWidth > 0) {
-        NSLayoutConstraint *maxWidthConstraint = [searchField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth];
-        maxWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
-        maxWidthConstraint.active = YES;
-    }
-    [searchField setContentHuggingPriority:NSLayoutPriorityDefaultLow
-                          forOrientation:NSLayoutConstraintOrientationHorizontal];
-    [searchField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
-                                            forOrientation:NSLayoutConstraintOrientationHorizontal];
-
-    objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);// 关联标识符
-    [delegate addControl:searchField forIdentifier:idStr withProperty:property];// 添加到委托
-    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count]; // 添加到工具栏
-//     [window layoutIfNeeded];
-    return (__bridge void*)(searchField);
-}
+//void* AddToolbarButton(unsigned long nsWindowHandle, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
+//    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+//    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
+//    NSString *idStr = [NSString stringWithUTF8String:identifier];
+//    NSString *titleStr = [NSString stringWithUTF8String:title];
+//    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
+//    // 创建按钮
+//    NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
+//    button.bezelStyle = property.bezelStyle;
+//    button.controlSize = property.controlSize;
+//    if (tooltipStr) {
+//        button.toolTip = tooltipStr;
+//    }
+//    if (property.font) {
+//        button.font = property.font;
+//    }
+//    // 设置尺寸约束
+//    if (property.width > 0) {
+//        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
+//    }
+//    if (property.height > 0) {
+//        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
+//    }
+//    // 关联标识符
+//    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+//    // 添加到委托
+//    [delegate addControl:button forIdentifier:idStr withProperty:property];
+//    // 添加到工具栏
+//    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+//    return (__bridge void*)(button);
+//}
+//
+//void AddToolbarImageButton(unsigned long nsWindowHandle, const char *identifier, const char *imageName, const char *tooltip, ControlProperty property) {
+//    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+//    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
+//
+//    NSString *idStr = [NSString stringWithUTF8String:identifier];
+//    NSString *imageNameStr = [NSString stringWithUTF8String:imageName];
+//    NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
+//
+//    NSLog(@"Loading toolbar image: %@", imageNameStr);
+//
+//    // 创建图片按钮
+////     NSButton *button = [NSButton buttonWithImage:[NSImage imageNamed:imageNameStr]
+////                                          target:delegate
+////                                          action:@selector(buttonClicked:)];
+//    NSButton *button = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:imageNameStr accessibilityDescription:nil]
+//                                         target:delegate
+//                                         action:@selector(buttonClicked:)];
+//    button.bezelStyle = property.bezelStyle;
+//    button.controlSize = property.controlSize;
+//    button.imagePosition = NSImageOnly;
+//    if (tooltipStr) {
+//        button.toolTip = tooltipStr;
+//    }
+//    if (property.font) {
+//        button.font = property.font;
+//    }
+//
+//    // 设置尺寸约束
+//    if (property.width > 0) {
+//        [button.widthAnchor constraintEqualToConstant:property.width].active = YES;
+//    }
+//    if (property.height > 0) {
+//        [button.heightAnchor constraintEqualToConstant:property.height].active = YES;
+//    }
+//
+//    // 关联标识符
+//    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+//
+//    // 添加到委托
+//    [delegate addControl:button forIdentifier:idStr withProperty:property];
+//
+//    // 添加到工具栏
+//    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+//}
+//
+//void AddToolbarTextField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
+//    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+//    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
+//
+//    NSString *idStr = [NSString stringWithUTF8String:identifier];
+//    NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
+//
+//    // 创建文本框
+//    NSTextField *textField = [[NSTextField alloc] init];
+//    textField.placeholderString = placeholderStr;
+//    textField.delegate = delegate;
+//    textField.controlSize = property.controlSize;
+//
+//    // textField.alignment = NSTextAlignmentCenter;    // 设置水平居中
+//
+//    if (property.font) {
+//        textField.font = property.font;
+//    }
+//
+//    // 设置自动调整大小的属性
+//    [textField setContentHuggingPriority:NSLayoutPriorityDefaultLow
+//                          forOrientation:NSLayoutConstraintOrientationHorizontal];
+//    [textField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+//                                        forOrientation:NSLayoutConstraintOrientationHorizontal];
+//
+//    // 设置尺寸约束
+//    if (property.width > 0) {
+//        [textField.widthAnchor constraintEqualToConstant:property.width].active = YES;
+//    }
+//    if (property.height > 0) {
+//        [textField.heightAnchor constraintEqualToConstant:property.height].active = YES;
+//    }
+//    if (property.minWidth > 0) {
+//        [textField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth].active = YES;
+//    }
+//    if (property.maxWidth > 0) {
+//        [textField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth].active = YES;
+//    }
+//
+//    // 关联标识符
+//    objc_setAssociatedObject(textField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+//
+//    // 添加到委托
+//    [delegate addControl:textField forIdentifier:idStr withProperty:property];
+//
+//    // 添加到工具栏
+//    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
+//}
+//
+//void* AddToolbarSearchField(unsigned long nsWindowHandle, const char *identifier, const char *placeholder, ControlProperty property) {
+//    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
+//    MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
+//
+//    NSString *idStr = [NSString stringWithUTF8String:identifier];
+//    NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
+//
+//    // 创建搜索框
+//    NSSearchField *searchField = [[NSSearchField alloc] init];
+//    searchField.placeholderString = placeholderStr;
+//    searchField.delegate = delegate;
+//    searchField.controlSize = property.controlSize;
+//    if (property.font) {
+//        searchField.font = property.font;
+//    }
+//
+//    // 设置尺寸约束
+//    if (property.width > 0) {
+//        [searchField.widthAnchor constraintEqualToConstant:property.width].active = YES;
+//    }
+//    if (property.height > 0) {
+//        [searchField.heightAnchor constraintEqualToConstant:property.height].active = YES;
+//    }
+//    // 最小和最大宽度约束
+//    if (property.minWidth > 0) {
+//        NSLayoutConstraint *minWidthConstraint = [searchField.widthAnchor constraintGreaterThanOrEqualToConstant:property.minWidth];
+//        minWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
+//        minWidthConstraint.active = YES;
+//    }
+//    if (property.maxWidth > 0) {
+//        NSLayoutConstraint *maxWidthConstraint = [searchField.widthAnchor constraintLessThanOrEqualToConstant:property.maxWidth];
+//        maxWidthConstraint.priority = NSLayoutPriorityDefaultHigh;
+//        maxWidthConstraint.active = YES;
+//    }
+//    [searchField setContentHuggingPriority:NSLayoutPriorityDefaultLow
+//                          forOrientation:NSLayoutConstraintOrientationHorizontal];
+//    [searchField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
+//                                            forOrientation:NSLayoutConstraintOrientationHorizontal];
+//
+//    objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);// 关联标识符
+//    [delegate addControl:searchField forIdentifier:idStr withProperty:property];// 添加到委托
+//    [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count]; // 添加到工具栏
+////     [window layoutIfNeeded];
+//    return (__bridge void*)(searchField);
+//}
 
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;

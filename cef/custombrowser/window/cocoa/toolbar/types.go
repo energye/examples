@@ -56,6 +56,12 @@ type ControlTextField struct {
 	Placeholder       string
 }
 
+type ControlComboBox struct {
+	ItemUI
+	Editable bool
+	Items    []string
+}
+
 // ControlProperty 的Go包装
 type ControlProperty struct {
 	Width              float64
