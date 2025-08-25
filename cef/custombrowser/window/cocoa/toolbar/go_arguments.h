@@ -44,6 +44,7 @@ GoArguments* CreateGoArguments(int count, ...);
 void* GetFromGoArguments(GoArguments* data, int index, GoArgumentsType expectedType);
 
 // 类型特定的便捷函数
+GoArgsItem* GetItemFromGoArguments(GoArguments* data, int index);
 int GetIntFromGoArguments(GoArguments* data, int index);
 double GetFloatFromGoArguments(GoArguments* data, int index);
 bool GetBoolFromGoArguments(GoArguments* data, int index);

@@ -275,7 +275,7 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoData *result;
             @try{
-                context->arguments = CreateGoArguments(4, @(123), @"'mixed types'", @(NO), @(3.14159));
+                context->arguments = CreateGoArguments(5, @(123), @"'mixed types'", @(NO), @(3.14159), _window);
                 context->type_ = TCCClicked;
                 result = _callback(context);
             } @finally {

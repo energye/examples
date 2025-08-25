@@ -36,6 +36,11 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
 		//GetBoolFromGoArguments(cArguments, 2),
 		//GetFloatFromGoArguments(cArguments, 3),
 
+		for i := 0; i < int(cArguments.Count); i++ {
+			item := GetItemFromGoArguments(cArguments, i)
+			println(item.Type)
+		}
+
 	}
 
 	eventId := ctx.Identifier

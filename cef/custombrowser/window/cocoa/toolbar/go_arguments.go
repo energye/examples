@@ -110,8 +110,7 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 			// C.CString 内部调用 malloc 分配内存，ObjC 侧可用 free 释放
 			item.Value = Pointer(C.CString(v))
 		case uintptr:
-			item.Type = GoArgsType_Pointer
-			// 直接传递指针（由外部管理生命周期）
+			item.Type = GoArgsType_Object // NS 里创建的对象
 			item.Value = Pointer(v)
 		default:
 			fmt.Println("[ERROR] CreateGoArguments 不支持的类型参数 index:", i, "value:", arg)
@@ -119,6 +118,11 @@ func (m *GoArguments) ToOC() *OCGoArguments {
 		}
 	}
 	return goArgs
+}
+
+func GetItemFromGoArguments(data *OCGoArguments, index int) *OCGoArgsItem {
+	item := C.GetItemFromGoArguments(data, C.int(index))
+	return item
 }
 
 func GetFromGoArguments(data *OCGoArguments, index int, expectedType int) Pointer {

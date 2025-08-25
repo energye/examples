@@ -58,11 +58,12 @@ void FreeGoArguments(GoArguments* data) {
 /*
 传递4个参数：整数、字符串、布尔值、浮点数
 GoArguments* args = CreateGoArguments(
-    4,                  // 参数数量为4
+    5,                  // 参数数量为4
     @(123),             // 整数（int）
     @"mixed types",     // 字符串（NSString）
     @(NO),              // 布尔值（BOOL）
-    @(3.14159)          // 浮点数（double）
+    @(3.14159)          // 浮点数（double
+    [NSValue valueWithPointer:buffer]; // Pointer
 );
 */
 GoArguments* CreateGoArguments(int count, ...) {
@@ -139,6 +140,11 @@ GoArguments* CreateGoArguments(int count, ...) {
     }
     va_end(args);
     return data;
+}
+
+GoArgsItem* GetItemFromGoArguments(GoArguments* data, int index) {
+    if (!data || index < 0 || index >= data->Count) return NULL;
+    return &data->Items[index];
 }
 
 // 从 GoArguments 获取数据的通用函数
