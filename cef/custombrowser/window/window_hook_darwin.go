@@ -6,6 +6,7 @@ import (
 	"github.com/energye/examples/cef/custombrowser/window/cocoa/toolbar"
 	"github.com/energye/lcl/lcl"
 	"log"
+	"os"
 )
 
 var Resize func() = nil
@@ -101,17 +102,34 @@ func (m *Window) TestTool() {
 	//AddToolbarCombobox(windowHandle, "options-combo", comboItems, comboProperty)
 
 	// 添加图片按钮
-	imageButtonProperty := defaultProperty
-	imageButtonProperty.IsNavigational = false
-	imageButtonProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
-	item.IconName = "arrow.left"
-	item.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/add.png"
-	imageBtn := bar.NewImageButtonForImage(item, imageButtonProperty)
-	imageBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+	addBtnProperty := defaultProperty
+	addBtnProperty.IsNavigational = false
+	addBtnProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
+	addBtnConfig := item
+	addBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/add.png"
+	addBtnData, _ := os.ReadFile(addBtnConfig.IconName)
+	//addBtn := bar.NewImageButtonForImage(addBtnConfig, addBtnProperty)
+	addBtn := bar.NewImageButtonForBytes(addBtnData, addBtnConfig, addBtnProperty)
+	addBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	bar.AddControl(imageBtn)
+	bar.AddControl(addBtn)
+
+	// 添加图片按钮
+	rightBtnProperty := defaultProperty
+	rightBtnProperty.IsNavigational = false
+	rightBtnProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
+	rightBtnConfig := item
+	rightBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/addr-right-btn.png"
+	rightBtnData, _ := os.ReadFile(rightBtnConfig.IconName)
+	rightBtn := bar.NewImageButtonForBytes(rightBtnData, rightBtnConfig, rightBtnProperty)
+	rightBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		fmt.Println("OnClick", identifier)
+		return nil
+	})
+	bar.AddControl(rightBtn)
+
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
 
 	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
