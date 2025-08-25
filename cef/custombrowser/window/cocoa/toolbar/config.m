@@ -181,12 +181,13 @@ static char kToolbarDelegateKey;
     NSLog(@"toolbarDefaultItemIdentifiers");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
     GoArguments *result;
+    NSMutableArray *identifiers = [NSMutableArray array];
     @try{
         result = _callback(context);
         if(result){
             for (int i = 0; i < result->Count; i++) {
-                NSString *idStr = GetNSStringFromGoArguments(result, i);
-                NSLog(@"当前值：%@", idStr);
+                NSString *id = GetNSStringFromGoArguments(result, i);
+                [identifiers addObject:id];
             }
         }
     } @finally {
@@ -195,7 +196,7 @@ static char kToolbarDelegateKey;
         }
         FreeToolbarCallbackContext(context);
     }
-    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
+//    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
     return identifiers;
 }
 
@@ -203,12 +204,13 @@ static char kToolbarDelegateKey;
     NSLog(@"toolbarAllowedItemIdentifiers");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarAllowedItemIdentifiers", @"", -1, _window, _toolbar);
     GoArguments *result;
+    NSMutableArray *identifiers = [NSMutableArray array];
     @try{
         result = _callback(context);
         if(result){
             for (int i = 0; i < result->Count; i++) {
-                NSString *idStr = GetNSStringFromGoArguments(result, i);
-                NSLog(@"当前值：%@", idStr);
+                NSString *id = GetNSStringFromGoArguments(result, i);
+                [identifiers addObject:id];
             }
         }
     } @finally {
@@ -217,10 +219,9 @@ static char kToolbarDelegateKey;
         }
         FreeToolbarCallbackContext(context);
     }
-    NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
-    // 添加系统标识符
-    [identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
-    [identifiers addObject:NSToolbarSpaceItemIdentifier];
+    //NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
+    //[identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
+    //[identifiers addObject:NSToolbarSpaceItemIdentifier];
     return identifiers;
 }
 

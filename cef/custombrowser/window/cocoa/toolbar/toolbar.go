@@ -80,7 +80,10 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 	return result
 }
 
-func (m *NSToolBar) doDelegateToolbar() *GoArguments {
+func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments) *GoArguments {
+	itemIdentifier := arguments.GetString(0)
+	control := m.controls.Get(itemIdentifier)
+	control.property.ToOC()
 	return nil
 }
 
