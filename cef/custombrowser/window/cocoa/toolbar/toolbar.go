@@ -50,26 +50,30 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	return toolbar
 }
 
-func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Pointer) *GoData {
+func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	if m.windowResize != nil {
 		return m.windowResize(identifier, owner, sender)
 	}
 	return nil
 }
 
-func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
+func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
 	ids := m.controls.Keys()
-	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: 3}}
+	result := &GoArguments{}
+	result.Adds(ids)
+	return result
 }
 
-func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoData {
+func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
 	ids := m.controls.Keys()
 	// 系统项
 	ids = append(ids, GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
 	ids = append(ids, GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
-	return &GoData{Type: GDtStringArray, StringArray: StringArray{Items: ids, Count: len(ids)}}
+	result := &GoArguments{}
+	result.Adds(ids)
+	return result
 }
 
 func (m *NSToolBar) doDelegateToolbar() *GoData {

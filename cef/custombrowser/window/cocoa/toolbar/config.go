@@ -6,7 +6,7 @@ package toolbar
 #cgo LDFLAGS: -mmacosx-version-min=11.0 -framework Cocoa
 #include "config.h"
 
-extern GoData* onDelegateEvent(ToolbarCallbackContext *cContext);
+extern GoArguments* onDelegateEvent(ToolbarCallbackContext *cContext);
 
 */
 import "C"
@@ -18,7 +18,7 @@ import (
 )
 
 //export onDelegateEvent
-func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoData {
+func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoArguments {
 	ctx := ToolbarCallbackContext{
 		Type:       TccType(cContext.type_),
 		Identifier: C.GoString(cContext.identifier),

@@ -8,8 +8,8 @@ package toolbar
 */
 import "C"
 import (
-	"fmt"
-	"os"
+	"github.com/energye/examples/cef/custombrowser/window/cocoa/tool"
+	"unsafe"
 )
 
 type OCGoArgumentsType = C.GoArgumentsType
@@ -42,82 +42,52 @@ type GoArguments struct {
 	Items []any
 }
 
+func (m *GoArguments) Add(v any) {
+	m.Items = append(m.Items, v)
+}
+
+func (m *GoArguments) Adds(v ...any) {
+	m.Items = append(m.Items, v...)
+}
+
 func (m *GoArguments) ToOC() *C.GoArguments {
 	if len(m.Items) == 0 {
 		return nil
 	}
-	toInt := func(value any) int {
-		switch v := value.(type) {
-		case int:
-			return v
-		case int8:
-			return int(v)
-		case int16:
-			return int(v)
-		case int32:
-			return int(v)
-		case int64:
-			return int(v)
-		case uint:
-			return int(v)
-		case uint8:
-			return int(v)
-		case uint16:
-			return int(v)
-		case uint32:
-			return int(v)
-		case uint64:
-			return int(v)
-		default:
-			return 0
-		}
-	}
-
-	toDouble := func(value any) float64 {
-		switch v := value.(type) {
-		case float32:
-			return float64(v)
-		case float64:
-			return v
-		default:
-			return 0
-		}
-	}
-
 	goArgs := (*C.GoArguments)(C.malloc(C.sizeof_GoArguments))
 	goArgs.Count = C.int(len(m.Items))
-	goArgs.Items = (*C.GoArgsItem)(C.malloc(C.size_t(goArgs.Count) * C.sizeof_GoArgsItem))
-	// 64
-	items := (*[1 << 6]*C.GoArgsItem)(Pointer(goArgs.Items))[:goArgs.Count:goArgs.Count]
-	for i, arg := range m.Items {
-		item := items[i] // 直接访问数组元素
+	itemSize := C.size_t(unsafe.Sizeof(C.GoArgsItem{}))
+	goArgs.Items = (*C.GoArgsItem)(C.malloc(C.size_t(goArgs.Count) * itemSize))
+	for i := 0; i < int(goArgs.Count); i++ {
+		itemPtr := (*C.GoArgsItem)(Pointer(
+			uintptr(Pointer(goArgs.Items)) + uintptr(i)*uintptr(itemSize),
+		))
+		arg := m.Items[i]
 		switch v := arg.(type) {
-		// malloc 分配内存 确保 ObjC 侧可释放
 		case int, int8, uint8, int16, uint16, int32, uint32, int64, uint64:
-			item.Type = GoArgsType_Int
+			itemPtr.Type = GoArgsType_Int
 			val := (*C.int)(C.malloc(C.sizeof_int))
-			*val = C.int(toInt(v))
-			item.Value = Pointer(val)
+			*val = C.int(tool.ToInt(v)) // 假设tool.ToInt能统一转换为int
+			itemPtr.Value = Pointer(val)
 		case float32, float64:
-			item.Type = GoArgsType_Float
+			itemPtr.Type = GoArgsType_Float
 			val := (*C.double)(C.malloc(C.sizeof_double))
-			*val = C.double(toDouble(v))
-			item.Value = Pointer(val)
+			*val = C.double(tool.ToDouble(v)) // 统一转换为double
+			itemPtr.Value = Pointer(val)
 		case bool:
-			item.Type = GoArgsType_Bool
+			itemPtr.Type = GoArgsType_Bool
 			val := (*C.bool)(C.malloc(C.sizeof_bool))
 			*val = C.bool(v)
-			item.Value = Pointer(val)
+			itemPtr.Value = Pointer(val)
 		case string:
-			item.Type = GoArgsType_String
-			// C.CString 内部调用 malloc 分配内存，ObjC 侧可用 free 释放
-			item.Value = Pointer(C.CString(v))
+			itemPtr.Type = GoArgsType_String
+			cVal := C.CString(v)
+			itemPtr.Value = Pointer(cVal) // C.CString内部使用malloc，与OC的strdup行为一致（需外部释放）
 		case uintptr:
-			item.Type = GoArgsType_Object // NS 里创建的对象
-			item.Value = Pointer(v)
+			itemPtr.Type = GoArgsType_Pointer
+			itemPtr.Value = Pointer(v) // 对应OC中NSValue包装的指针或其他对象（需确保生命周期正确）
 		default:
-			fmt.Println("[ERROR] CreateGoArguments 不支持的类型参数 index:", i, "value:", arg)
-			os.Exit(1)
+			println("[警告] 不支持的类型")
 		}
 	}
 	return goArgs
@@ -194,10 +164,29 @@ func (m *OCGoArguments) GetObject(index int) Pointer {
 	return Pointer(item.Value)
 }
 
-// FreeGoArguments 调用 ObjC 侧的释放函数（在 Go 侧触发释放）
-func FreeGoArguments(args *C.GoArguments) {
-	if args == nil {
+//export GoFreeGoArguments
+func GoFreeGoArguments(data *C.GoArguments) {
+	if data == nil {
 		return
 	}
-	C.FreeGoArguments(args)
+	C.FreeGoArguments(data)
+
+	//count := int(data.Count)
+	//for i := 0; i < count; i++ {
+	//	cItem := C.GetItemFromGoArguments(data, C.int(i))
+	//	cType := OCGoArgumentsType(cItem.Type)
+	//	println("FreeGoArguments: 释放第", i, "个参数, 类型:", cType)
+	//	switch cType {
+	//	case GoArgsType_Int, GoArgsType_Float, GoArgsType_Bool, GoArgsType_String:
+	//		if cItem.Value != nil {
+	//			C.free(Pointer(cItem.Value))
+	//			cItem.Value = nil
+	//		}
+	//	case GoArgsType_Object, GoArgsType_Pointer: // 只在OC创建
+	//	}
+	//}
+	//println("FreeGoArguments: 释放参数数组 Items")
+	//C.free(Pointer(data.Items))
+	//println("FreeGoArguments: 释放参数 data")
+	//C.free(Pointer(data))
 }

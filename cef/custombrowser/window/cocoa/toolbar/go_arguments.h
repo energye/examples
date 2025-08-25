@@ -36,6 +36,7 @@ typedef struct {
 
 // 销毁函数
 void FreeGoArguments(GoArguments* data);
+void GoFreeGoArguments(GoArguments *data);
 
 // 创建函数
 GoArguments* CreateGoArguments(int count, ...);
@@ -49,6 +50,7 @@ int GetIntFromGoArguments(GoArguments* data, int index);
 double GetFloatFromGoArguments(GoArguments* data, int index);
 bool GetBoolFromGoArguments(GoArguments* data, int index);
 const char* GetStringFromGoArguments(GoArguments* data, int index);
+NSString* GetNSStringFromGoArguments(GoArguments* data, int index);
 void* GetObjectFromGoArguments(GoArguments* data, int index);
 void* GetPointerFromGoArguments(GoArguments* data, int index);
 

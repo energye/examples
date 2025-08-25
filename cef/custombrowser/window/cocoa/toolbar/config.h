@@ -44,7 +44,7 @@ typedef struct {
 const char* GetStringConstValue(const void* str);
 
 // 通用事件回调事件类型
-typedef GoData* (*ControlEventCallback)(ToolbarCallbackContext *context);
+typedef GoArguments* (*ControlEventCallback)(ToolbarCallbackContext *context);
 // 创建事件对象
 ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier, const NSString* value, long index, void* owner, void* sender);
 // 释放事件对象

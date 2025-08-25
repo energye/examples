@@ -3,11 +3,12 @@
 // 释放 GoArguments 及其所有元素
 void FreeGoArguments(GoArguments* data) {
     if (!data) return;
+    //NSLog(@"FreeGoArguments 释放个数: %d", data->Count);
     // 释放所有数据项
     for (int i = 0; i < data->Count; i++) {
         @try {
             GoArgsItem item = data->Items[i];
-            //NSLog(@"FreeGoArguments: 释放第%d个参数, 类型: %d", i, item.Type);
+            NSLog(@"FreeGoArguments: 释放第%d个参数, 类型: %d", i, item.Type);
             // 根据类型释放内存
             switch (item.Type) {
                 case ArgsType_Int:
@@ -16,27 +17,33 @@ void FreeGoArguments(GoArguments* data) {
                     if (item.Value) {
                         free(item.Value);
                         //NSLog(@"FreeGoArguments: 释放基本类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                        item.Value = NULL;
                     }
                     break;
                 case ArgsType_String:
+                    //NSLog(@"FreeGoArguments 释放字符串");
                     if (item.Value) {
                         free(item.Value);
                         //NSLog(@"FreeGoArguments: 释放字符串 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                        item.Value = NULL;
                     }
                     break;
-                case ArgsType_Object: {
+                case ArgsType_Object: { // 只在OC创建
                     id obj = (id)item.Value;
                     if (obj) {
                         [obj release];
                         //NSLog(@"FreeGoArguments: 释放对象 - 索引=%d，Type=%d，对象=%@（%p）", i, item.Type, obj, obj);
+                        item.Value = NULL;
                     }
                     break;
                 }
-                case ArgsType_Pointer:
+                case ArgsType_Pointer: // 只在OC创建
                     //NSLog(@"FreeGoArguments: 跳过指针释放 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    item.Value = NULL;
                     break;
                 default:
                     //NSLog(@"FreeGoArguments: 未处理类型 - 索引=%d，Type=%d，Value=%p", i, item.Type, item.Value);
+                    item.Value = NULL;
                     break;
             }
         }
@@ -142,6 +149,7 @@ GoArguments* CreateGoArguments(int count, ...) {
     return data;
 }
 
+// 从 GoArguments 获取 Item 函数
 GoArgsItem* GetItemFromGoArguments(GoArguments* data, int index) {
     if (!data || index < 0 || index >= data->Count) return NULL;
     return &data->Items[index];
@@ -155,7 +163,6 @@ void* GetFromGoArguments(GoArguments* data, int index, GoArgumentsType expectedT
     return item.Value;
 }
 
-// 类型特定的便捷函数
 int GetIntFromGoArguments(GoArguments* data, int index) {
     int* value = (int*)GetFromGoArguments(data, index, ArgsType_Int);
     return value ? *value : 0;
@@ -173,6 +180,16 @@ bool GetBoolFromGoArguments(GoArguments* data, int index) {
 
 const char* GetStringFromGoArguments(GoArguments* data, int index) {
     return (const char*)GetFromGoArguments(data, index, ArgsType_String);
+}
+
+NSString* GetNSStringFromGoArguments(GoArguments* data, int index) {
+    const char* cStr = GetStringFromGoArguments(data, index);
+    if (!cStr) {
+        return nil;
+    }
+    NSString* ocStr = [NSString stringWithUTF8String:cStr];
+    // free((void*)cStr); // 不在这里释放，统一释放
+    return ocStr;
 }
 
 void* GetObjectFromGoArguments(GoArguments* data, int index) {

@@ -52,21 +52,27 @@ func (m *Window) TestTool() {
 	item.Title = "后退"
 	btn1 := bar.NewButton(item, defaultProperty)
 	bar.AddControl(btn1)
-	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("自定义新按钮事件触发了", identifier)
-		return nil
+		test := &toolbar.GoArguments{}
+		test.Add("字符串111")
+		test.Add("字符串222")
+		test.Add(123)
+		test.Add(false)
+		test.Add(3.14123)
+		return test
 	})
 	item.Title = "前进"
 	btn2 := bar.NewButton(item, defaultProperty)
 	bar.AddControl(btn2)
-	btn2.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	btn2.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("自定义新按钮事件触发了", identifier)
 		return nil
 	})
 	item.Title = "刷新"
 	btn3 := bar.NewButton(item, defaultProperty)
 	bar.AddControl(btn3)
-	btn3.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	btn3.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("自定义新按钮事件触发了", identifier)
 		return nil
 	})
@@ -80,11 +86,11 @@ func (m *Window) TestTool() {
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	textItem := toolbar.ControlTextField{}
 	text := bar.NewTextField(textItem, textProperty)
-	text.SetOnChange(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	text.SetOnChange(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnChange", identifier, value)
 		return nil
 	})
-	text.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	text.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnCommit", identifier, value)
 		return nil
 	})
@@ -112,7 +118,7 @@ func (m *Window) TestTool() {
 	imageButtonProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	item.IconName = "arrow.left"
 	imageBtn := bar.NewImageButtonForImage(item, imageButtonProperty)
-	imageBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	imageBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
@@ -152,7 +158,7 @@ func (m *Window) TestTool() {
 	//value := toolbar.GetToolbarControlValue(windowHandle, "search-field")
 	//fmt.Printf("Search field value: %s\n", value)
 
-	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoData {
+	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		width := int(m.Width() - 500)
 		if width > 700 {
 			width = 700

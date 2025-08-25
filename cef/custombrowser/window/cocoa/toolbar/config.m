@@ -36,6 +36,9 @@ void FreeToolbarCallbackContext(ToolbarCallbackContext* context) {
     // 释放字符串内存
     free((void*)context->identifier);
     free((void*)context->value);
+    if(context->arguments){
+        FreeGoArguments(context->arguments);
+    }
     // 释放结构体
     free(context);
 }
@@ -69,12 +72,12 @@ static char kToolbarDelegateKey;
     NSWindow *window = notification.object;
     // NSLog(@"windowDidResize");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doWindowResize", @"", -1, nil, _window);
-    GoData *result;
+    GoArguments *result;
     @try{
         result = _callback(context);
     } @finally {
         if(result){
-            GoFreeGoData(result);
+            FreeGoArguments(result);
         }
         FreeToolbarCallbackContext(context);
     }
@@ -176,17 +179,17 @@ static char kToolbarDelegateKey;
 - (NSArray<NSString *> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarDefaultItemIdentifiers");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
-    GoData *result;
+    GoArguments *result;
     @try{
         context->inputData = nil;
         result = _callback(context);
-        NSArray<NSString *> *testids = StringArrayToOC(result);
-        for (NSString *idStr in testids) {
-            NSLog(@"当前值：%@", idStr);
-        }
+//        NSArray<NSString *> *testids = StringArrayToOC(result);
+//        for (NSString *idStr in testids) {
+//            NSLog(@"当前值：%@", idStr);
+//        }
     } @finally {
         if(result){
-            GoFreeGoData(result);
+           FreeGoArguments(result);
         }
         FreeToolbarCallbackContext(context);
     }
@@ -197,17 +200,17 @@ static char kToolbarDelegateKey;
 - (NSArray<NSString *> *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar {
     NSLog(@"toolbarAllowedItemIdentifiers");
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarAllowedItemIdentifiers", @"", -1, _window, _toolbar);
-    GoData *result;
+    GoArguments *result;
     @try{
         context->inputData = nil;
         result = _callback(context);
-        NSArray<NSString *> *testids = StringArrayToOC(result);
-        for (NSString *idStr in testids) {
-            NSLog(@"当前值：%@", idStr);
-        }
+//        NSArray<NSString *> *testids = StringArrayToOC(result);
+//        for (NSString *idStr in testids) {
+//            NSLog(@"当前值：%@", idStr);
+//        }
     } @finally {
         if(result){
-            GoFreeGoData(result);
+           FreeGoArguments(result);
         }
         FreeToolbarCallbackContext(context);
     }
@@ -273,16 +276,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
-            GoData *result;
+            GoArguments *result;
             @try{
                 context->type_ = TCCClicked;
                 result = _callback(context);
             } @finally {
-                if(context->arguments){
-                    FreeGoArguments(context->arguments);
-                }
                 if(result){
-                    GoFreeGoData(result);
+                    FreeGoArguments(result);
                 }
                 FreeToolbarCallbackContext(context);
             }
@@ -297,13 +297,13 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [sender stringValue], selectedIndex, _window, sender);
-            GoData *result;
+            GoArguments *result;
             @try{
                 context->type_ = TCCSelectionChanged;
                 result = _callback(context);
             } @finally {
                 if(result){
-                    GoFreeGoData(result);
+                    FreeGoArguments(result);
                 }
                 FreeToolbarCallbackContext(context);
             }
@@ -320,13 +320,13 @@ static char kToolbarDelegateKey;
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], selectedIndex, _window, control);
-            GoData *result;
+            GoArguments *result;
             @try{
                 context->type_ = TCCSelectionDidChange;
                 result = _callback(context);
             } @finally {
                 if(result){
-                    GoFreeGoData(result);
+                    FreeGoArguments(result);
                 }
                 FreeToolbarCallbackContext(context);
             }
@@ -342,13 +342,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
-            GoData *result;
+            GoArguments *result;
             @try{
                 context->type_ = TCCTextDidChange;
                 result = _callback(context);
             } @finally {
                 if(result){
-                    GoFreeGoData(result);
+                    FreeGoArguments(result);
                 }
                 FreeToolbarCallbackContext(context);
             }
@@ -363,13 +363,13 @@ static char kToolbarDelegateKey;
         NSString *identifier = objc_getAssociatedObject(control, @"identifier");
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
-            GoData *result;
+            GoArguments *result;
             @try{
                 context->type_ = TCCTextDidEndEditing;
                 result = _callback(context);
             } @finally {
                 if(result){
-                    GoFreeGoData(result);
+                    FreeGoArguments(result);
                 }
                 FreeToolbarCallbackContext(context);
             }
