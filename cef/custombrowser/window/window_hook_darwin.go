@@ -6,7 +6,6 @@ import (
 	"github.com/energye/examples/cef/custombrowser/window/cocoa/toolbar"
 	"github.com/energye/lcl/lcl"
 	"log"
-	"time"
 )
 
 var Resize func() = nil
@@ -20,14 +19,6 @@ func (m *Window) TestTool() {
 	}
 	fmt.Println("windowHandle:", windowHandle)
 
-	// 创建回调上下文
-	//callbackContext := ToolbarCallbackContext{
-	//	ClickCallback:       (C.ControlCallback)(C.onButtonClicked),
-	//	TextChangedCallback: (C.ControlCallback)(C.onTextChanged),
-	//	TextSubmitCallback:  (C.ControlCallback)(C.onTextSubmit),
-	//	UserData:            unsafe.Pointer(windowHandle),
-	//}
-
 	// 配置窗口工具栏
 	config := toolbar.ToolbarConfiguration{
 		DisplayMode: toolbar.NSToolbarDisplayModeIconOnly,
@@ -38,6 +29,8 @@ func (m *Window) TestTool() {
 		IsAllowsUserCustomization: true,
 	}
 	bar := toolbar.Create(m, config)
+	// 添加按钮
+	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
@@ -45,65 +38,60 @@ func (m *Window) TestTool() {
 	//defaultProperty.BezelStyle = BezelStyleTexturedRounded // 边框样式
 	//defaultProperty.ControlSize = ControlSizeLarge         // 控件大小
 	defaultProperty.IsNavigational = true
+	defaultProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 
 	// 添加按钮
 	item := toolbar.ButtonItem{}
-	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
-	item.Title = "后退"
-	btn1 := bar.NewButton(item, defaultProperty)
-	bar.AddControl(btn1)
-	btn1.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("自定义新按钮事件触发了", identifier)
-		test := &toolbar.GoArguments{}
-		test.Add("字符串111")
-		test.Add("字符串222")
-		test.Add(123)
-		test.Add(false)
-		test.Add(3.14123)
-		return test
-	})
-	item.Title = "前进"
-	btn2 := bar.NewButton(item, defaultProperty)
-	bar.AddControl(btn2)
-	btn2.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("自定义新按钮事件触发了", identifier)
+
+	backBtnProperty := defaultProperty
+	backBtnConfig := item
+	backBtnConfig.Tips = "后退"
+	backBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/back.png"
+	backBtn := bar.NewImageButtonForImage(backBtnConfig, backBtnProperty)
+	backBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	item.Title = "刷新"
-	btn3 := bar.NewButton(item, defaultProperty)
-	bar.AddControl(btn3)
-	btn3.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("自定义新按钮事件触发了", identifier)
+	bar.AddControl(backBtn)
+
+	forwardBtnProperty := defaultProperty
+	forwardBtnConfig := item
+	forwardBtnConfig.Tips = "前进"
+	forwardBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/forward.png"
+	forwardBtn := bar.NewImageButtonForImage(forwardBtnConfig, forwardBtnProperty)
+	forwardBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		fmt.Println("OnClick", identifier)
 		return nil
 	})
+	bar.AddControl(forwardBtn)
+
+	refreshBtnProperty := defaultProperty
+	refreshBtnConfig := item
+	refreshBtnConfig.Tips = "刷新"
+	refreshBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/refresh.png"
+	refreshBtn := bar.NewImageButtonForImage(refreshBtnConfig, refreshBtnProperty)
+	refreshBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		fmt.Println("OnClick", identifier)
+		return nil
+	})
+	bar.AddControl(refreshBtn)
+
 	bar.AddFlexibleSpace()
 
 	// 添加文本框
 	textProperty := defaultProperty
-	//textProperty.Height = 28
-	//textProperty.IsNavigational = true
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	textItem := toolbar.ControlTextField{}
-	text := bar.NewTextField(textItem, textProperty)
-	text.SetOnChange(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("OnChange", identifier, value)
-		return nil
-	})
-	text.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("OnCommit", identifier, value)
-		return nil
-	})
-	//bar.AddControl(text)
-
+	textItem.Placeholder = "输入网站地址"
 	// 添加搜索框
-	//bar.AddFlexibleSpace()
+	bar.AddFlexibleSpace()
 	//textProperty.MinWidth = 60
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
-	search := bar.NewSearchField(toolbar.ControlTextField{}, textProperty) //toolbar.AddToolbarSearchField(windowHandle, "search-field", "Search...", textProperty)
+	search := bar.NewSearchField(textItem, textProperty)
 	bar.AddControl(search)
-	//bar.AddFlexibleSpace()
+	bar.AddFlexibleSpace()
 
 	// 添加下拉框
 	comboProperty := defaultProperty
@@ -117,46 +105,14 @@ func (m *Window) TestTool() {
 	imageButtonProperty.IsNavigational = false
 	imageButtonProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	item.IconName = "arrow.left"
+	item.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/add.png"
 	imageBtn := bar.NewImageButtonForImage(item, imageButtonProperty)
 	imageBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
 	bar.AddControl(imageBtn)
-	//toolbar.AddToolbarImageButton(windowHandle, "go-back", "arrow.left", "Open settings", imageButtonProperty)
 	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
-	go func() {
-		time.Sleep(time.Second * 2)
-		cocoa.RunOnMainThread(func() {
-			//SetToolbarControlHidden(windowHandle, "go-back", true)
-			//SetToolbarControlValue(windowHandle, "search-field", "Object-c UI线程 设置 Initial value")
-			search.SetText("Object-c UI线程 设置 Initial value")
-			fmt.Println("sf.GetText():", search.GetText())
-			//toolbar.NewLCLButton(bar, testbtn)
-			//toolbar.SetWindowBackgroundColor(m, toolbar.Color{Red: 56, Green: 57, Blue: 60, Alpha: 255})
-		})
-		time.Sleep(time.Second * 2)
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadAsync 设置 Initial value")
-			search.SetText("lcl.RunOnMainThreadAsync 设置 Initial value")
-			fmt.Println("sf.GetText():", search.GetText())
-		})
-		time.Sleep(time.Second * 2)
-		lcl.RunOnMainThreadSync(func() {
-			//SetToolbarControlValue(windowHandle, "search-field", "lcl.RunOnMainThreadSync 设置 Initial value")
-			search.SetText("lcl.RunOnMainThreadSync 设置 Initial value")
-			fmt.Println("sf.GetText():", search.GetText())
-		})
-	}()
-
-	fmt.Println("Toolbar created successfully!")
-
-	// 模拟设置控件值
-	//toolbar.SetToolbarControlValue(windowHandle, "search-field", "Initial value")
-
-	// 模拟获取控件值
-	//value := toolbar.GetToolbarControlValue(windowHandle, "search-field")
-	//fmt.Printf("Search field value: %s\n", value)
 
 	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		width := int(m.Width() - 500)
