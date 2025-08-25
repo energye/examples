@@ -8,7 +8,7 @@ void FreeGoArguments(GoArguments* data) {
     for (int i = 0; i < data->Count; i++) {
         @try {
             GoArgsItem item = data->Items[i];
-            NSLog(@"FreeGoArguments: 释放第%d个参数, 类型: %d", i, item.Type);
+            //NSLog(@"FreeGoArguments: 释放第%d个参数, 类型: %d", i, item.Type);
             // 根据类型释放内存
             switch (item.Type) {
                 case ArgsType_Int:

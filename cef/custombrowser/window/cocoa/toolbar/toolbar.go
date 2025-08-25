@@ -10,6 +10,7 @@ import "C"
 import (
 	"github.com/energye/examples/cef/custombrowser/window/cocoa/tool"
 	"github.com/energye/lcl/lcl"
+	"strings"
 )
 
 // NSToolBar 绑定到指定窗口
@@ -59,7 +60,7 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 }
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
-	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
+	println("doToolbarDefaultItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.controls.Keys(), " "))
 	result := &GoArguments{}
 	m.controls.Iterate(func(key string, value IControl) bool {
 		result.Add(key)
@@ -69,7 +70,7 @@ func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Poi
 }
 
 func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
-	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
+	println("doToolbarAllowedItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.controls.Keys(), " "))
 	result := &GoArguments{}
 	m.controls.Iterate(func(key string, value IControl) bool {
 		result.Add(key)
@@ -82,7 +83,6 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 }
 
 func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments, owner Pointer, sender Pointer) *GoArguments {
-	println("doDelegateToolbar")
 	itemIdentifier := arguments.GetString(0)
 	println("doDelegateToolbar itemIdentifier:", itemIdentifier, "ControlCount:", m.controls.Count())
 	control := m.controls.Get(itemIdentifier)

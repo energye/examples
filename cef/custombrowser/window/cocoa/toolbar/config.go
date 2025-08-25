@@ -11,7 +11,6 @@ extern GoArguments* onDelegateEvent(ToolbarCallbackContext *cContext);
 */
 import "C"
 import (
-	"fmt"
 	"github.com/energye/lcl/lcl"
 	"strconv"
 	"sync"
@@ -31,7 +30,7 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoArguments {
 	if cArguments != nil {
 		ctx.Arguments = &OCGoArguments{arguments: Pointer(cArguments), count: int(cArguments.Count)}
 	}
-	fmt.Printf("onDelegateEvent event: %+v\n", ctx)
+	//fmt.Printf("onDelegateEvent event: %+v\n", ctx)
 	eventId := ctx.Identifier
 	eventId = eventId + strconv.Itoa(ctx.Type)
 	cb := eventList[eventId]
