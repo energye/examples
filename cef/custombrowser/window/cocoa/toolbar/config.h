@@ -99,6 +99,7 @@ void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
 // 工具栏
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
 void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
+long ToolbarItemCount(void* nsToolbar);
 
 // 配置控件所属通用父类为 NSControl 属性
 void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property);
@@ -122,7 +123,6 @@ void AddToolbarSpace(void* nsToolbar);
 void RemoveToolbarItem(unsigned long nsWindowHandle, const char *identifier);
 void UpdateToolbarItemProperty(unsigned long nsWindowHandle, const char *identifier, ControlProperty property);
 void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifier, int index);
-long GetToolbarItemCount(unsigned long nsWindowHandle);
 
 // 工具栏委托类
 @interface MainToolbarDelegate : NSObject <NSToolbarDelegate, NSTextFieldDelegate, NSComboBoxDelegate, NSSearchFieldDelegate> {

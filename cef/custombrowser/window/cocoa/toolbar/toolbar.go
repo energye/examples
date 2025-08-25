@@ -136,3 +136,7 @@ func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProper
 func (m *NSToolBar) NewSearchField(config ControlTextField, property ControlProperty) *NSSearchField {
 	return NewNSSearchField(m, config, property)
 }
+
+func (m *NSToolBar) ItemCount() int {
+	return int(C.ToolbarItemCount(m.toolbar))
+}

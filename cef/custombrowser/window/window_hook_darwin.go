@@ -31,7 +31,7 @@ func (m *Window) TestTool() {
 	}
 	bar := toolbar.Create(m, config)
 	// 添加按钮
-	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
+	fmt.Println("当前控件总数:", bar.ItemCount())
 
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
@@ -77,29 +77,19 @@ func (m *Window) TestTool() {
 	})
 	bar.AddControl(refreshBtn)
 
+	// 添加搜索框
 	bar.AddFlexibleSpace()
-
-	// 添加文本框
 	textProperty := defaultProperty
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	textItem := toolbar.ControlTextField{}
 	textItem.Placeholder = "输入网站地址"
-	// 添加搜索框
-	bar.AddFlexibleSpace()
 	//textProperty.MinWidth = 60
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
 	search := bar.NewSearchField(textItem, textProperty)
 	bar.AddControl(search)
 	bar.AddFlexibleSpace()
-
-	// 添加下拉框
-	comboProperty := defaultProperty
-	comboProperty.IsNavigational = false
-	comboProperty.Width = 100
-	//comboItems := []string{"Option 1", "Option 2", "Option 3"}
-	//AddToolbarCombobox(windowHandle, "options-combo", comboItems, comboProperty)
 
 	// 添加图片按钮
 	addBtnProperty := defaultProperty
@@ -130,7 +120,7 @@ func (m *Window) TestTool() {
 	})
 	bar.AddControl(rightBtn)
 
-	fmt.Println("当前控件总数：", toolbar.GetToolbarItemCount(windowHandle))
+	fmt.Println("当前控件总数:", bar.ItemCount())
 
 	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		width := int(m.Width() - 500)

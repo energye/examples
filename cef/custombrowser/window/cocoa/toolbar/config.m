@@ -466,6 +466,15 @@ void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const
     [toolbar insertItemWithItemIdentifier:idStr atIndex:toolbar.items.count];
 }
 
+long ToolbarItemCount(void* nsToolbar) {
+    if (!nsToolbar) {
+        NSLog(@"[ERROR] AddToolbarControl 必要入参为空");
+        return 0;
+    }
+    NSToolbar *toolbar = (NSToolbar*)nsToolbar;
+    return toolbar.items.count;
+}
+
 #pragma mark - 动态控件创建函数
 
 
@@ -773,12 +782,6 @@ void InsertToolbarItemAtIndex(unsigned long nsWindowHandle, const char *identifi
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:insertIndex];
 }
 
-
-
-long GetToolbarItemCount(unsigned long nsWindowHandle) {
-    NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
-    return window.toolbar.items.count;
-}
 
 // 循环工具栏每项获取 NSControl，通过代理获取有问题啊。
 NSView* GetToolbarControl(unsigned long nsWindowHandle, const char *identifier) {

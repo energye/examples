@@ -206,10 +206,6 @@ func SetToolbarControlHidden(nsWindowHandle uintptr, identifier string, hidden b
 	C.SetToolbarControlHidden(C.ulong(nsWindowHandle), cIdentifier, C.bool(hidden))
 }
 
-func GetToolbarItemCount(nsWindowHandle uintptr) int {
-	return int(C.GetToolbarItemCount(C.ulong(nsWindowHandle)))
-}
-
 func CreateDefaultControlProperty() ControlProperty {
 	cProperty := C.CreateDefaultControlProperty()
 	return ControlProperty{
