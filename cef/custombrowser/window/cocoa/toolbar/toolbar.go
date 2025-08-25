@@ -59,24 +59,28 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
-	ids := m.controls.Keys()
 	result := &GoArguments{}
-	result.Adds(ids)
+	m.controls.Iterate(func(key string, value *ControlInfo) bool {
+		result.Add(key)
+		return false
+	})
 	return result
 }
 
 func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
-	ids := m.controls.Keys()
-	// 系统项
-	ids = append(ids, GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
-	ids = append(ids, GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
 	result := &GoArguments{}
-	result.Adds(ids)
+	m.controls.Iterate(func(key string, value *ControlInfo) bool {
+		result.Add(key)
+		return false
+	})
+	// 系统项
+	result.Add(GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier))
+	result.Add(GetStringConstValue(C.NSToolbarSpaceItemIdentifier))
 	return result
 }
 
-func (m *NSToolBar) doDelegateToolbar() *GoData {
+func (m *NSToolBar) doDelegateToolbar() *GoArguments {
 	return nil
 }
 

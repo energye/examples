@@ -21,6 +21,7 @@ ToolbarCallbackContext* CreateToolbarCallbackContext(const NSString* identifier,
     // 分配内存空间
     ToolbarCallbackContext* context = (ToolbarCallbackContext*)malloc(sizeof(ToolbarCallbackContext));
     if (!context) return NULL;  // 内存分配失败
+    context->type_ = TCCNotify;
     context->index = index;
     context->owner = owner;
     context->sender = sender;
@@ -181,12 +182,13 @@ static char kToolbarDelegateKey;
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarDefaultItemIdentifiers", @"", -1, _window, _toolbar);
     GoArguments *result;
     @try{
-        context->inputData = nil;
         result = _callback(context);
-//        NSArray<NSString *> *testids = StringArrayToOC(result);
-//        for (NSString *idStr in testids) {
-//            NSLog(@"当前值：%@", idStr);
-//        }
+        if(result){
+            for (int i = 0; i < result->Count; i++) {
+                NSString *idStr = GetNSStringFromGoArguments(result, i);
+                NSLog(@"当前值：%@", idStr);
+            }
+        }
     } @finally {
         if(result){
            FreeGoArguments(result);
@@ -202,12 +204,13 @@ static char kToolbarDelegateKey;
     ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doToolbarAllowedItemIdentifiers", @"", -1, _window, _toolbar);
     GoArguments *result;
     @try{
-        context->inputData = nil;
         result = _callback(context);
-//        NSArray<NSString *> *testids = StringArrayToOC(result);
-//        for (NSString *idStr in testids) {
-//            NSLog(@"当前值：%@", idStr);
-//        }
+        if(result){
+            for (int i = 0; i < result->Count; i++) {
+                NSString *idStr = GetNSStringFromGoArguments(result, i);
+                NSLog(@"当前值：%@", idStr);
+            }
+        }
     } @finally {
         if(result){
            FreeGoArguments(result);
@@ -278,7 +281,6 @@ static char kToolbarDelegateKey;
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoArguments *result;
             @try{
-                context->type_ = TCCClicked;
                 result = _callback(context);
             } @finally {
                 if(result){

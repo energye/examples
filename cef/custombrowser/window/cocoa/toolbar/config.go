@@ -31,13 +31,13 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoArguments {
 	if cArguments != nil {
 		ctx.Arguments = &OCGoArguments{arguments: Pointer(cArguments), count: int(cArguments.Count)}
 	}
+	fmt.Printf("onDelegateEvent event: %+v\n", ctx)
 	eventId := ctx.Identifier
 	eventId = eventId + strconv.Itoa(ctx.Type)
 	cb := eventList[eventId]
 	if cb == nil {
 		return nil
 	}
-	fmt.Printf("onDelegateEvent event: %+v\n", ctx)
 	if result := cb.cb(&ctx); result != nil {
 		return result.ToOC()
 	} else {

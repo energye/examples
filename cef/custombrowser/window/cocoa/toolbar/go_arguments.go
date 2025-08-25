@@ -46,10 +46,6 @@ func (m *GoArguments) Add(v any) {
 	m.Items = append(m.Items, v)
 }
 
-func (m *GoArguments) Adds(v ...any) {
-	m.Items = append(m.Items, v...)
-}
-
 func (m *GoArguments) ToOC() *C.GoArguments {
 	if len(m.Items) == 0 {
 		return nil

@@ -1,6 +1,5 @@
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
-#import <go_data.h>
 #import <go_arguments.h>
 
 #ifdef __cplusplus
@@ -36,7 +35,6 @@ typedef struct {
     long    index; // 值索引
     void    *owner; // 控件所属对象
     void    *sender; // 控件
-    GoData  *inputData;// 传入数据
     GoArguments *arguments;
 } ToolbarCallbackContext;
 

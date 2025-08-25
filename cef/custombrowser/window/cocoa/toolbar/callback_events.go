@@ -7,7 +7,6 @@ type Callback struct {
 
 func MakeNotifyEvent(cb NotifyEvent) *Callback {
 	return &Callback{
-		type_: TCCClicked,
 		cb: func(ctx *ToolbarCallbackContext) *GoArguments {
 			return cb(ctx.Identifier, ctx.Owner, ctx.Sender)
 		},
@@ -35,7 +34,7 @@ func MakeTextCommitEvent(cb TextEvent) *Callback {
 //func MakeDelegateToolbarEvent(cb DelegateToolbarEvent) *Callback {
 //	return &Callback{
 //		type_: TCCTextDidEndEditing,
-//		cb: func(ctx *ToolbarCallbackContext) *GoData {
+//		cb: func(ctx *ToolbarCallbackContext) *GoArguments {
 //			return cb(ctx.Identifier, ctx.Value, ctx.Owner, ctx.Sender)
 //		},
 //	}
