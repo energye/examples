@@ -20,29 +20,39 @@ const (
 	GoArgsType_Float   = OCGoArgumentsType(C.ArgsType_Float)   // 基础类型 float64
 	GoArgsType_Bool    = OCGoArgumentsType(C.ArgsType_Bool)    // 基础类型 bool
 	GoArgsType_String  = OCGoArgumentsType(C.ArgsType_String)  // 基础类型 string
+	GoArgsType_Struct  = OCGoArgumentsType(C.ArgsType_Struct)  // C 结构体类型
 	GoArgsType_Object  = OCGoArgumentsType(C.ArgsType_Object)  // 对象类型 NS 里创建的对象指针 (void*)[obj retain]
 	GoArgsType_Pointer = OCGoArgumentsType(C.ArgsType_Pointer) // 指针类型 NS 里创建的 [NSValue valueWithPointer:customData]
 )
 
+type CStructPointer Pointer
+
+// OCGoArgsItem 参数项 对应到Go需要手动正确处理
 type OCGoArgsItem struct {
 	item Pointer
 }
 
+// OCGoArguments 在OC设置的常用数据类型
+// 对应到 Go 需要手动对应数组顺序正确处理
 type OCGoArguments struct {
 	arguments Pointer
 	count     int
 }
 
-type GoArgsItem struct {
-	Value Pointer
-	Type  OCGoArgumentsType
-}
-
+// GoArguments 在Go设置的常用数据类型
+// 对应到 OC 需要手动对应数组顺序正确处理
+// 基础类型 直接设置
+// 结构 需要转为对应OC的结构，并使用 CStructPointer(xx) 做为参数
+// OC对象 需要转为对应到 C 的 Pointer(xx)
 type GoArguments struct {
 	Items []any
 }
 
 func (m *GoArguments) Add(v any) {
+	m.Items = append(m.Items, v)
+}
+
+func (m *GoArguments) AddCStruct(v CStructPointer) {
 	m.Items = append(m.Items, v)
 }
 
@@ -60,6 +70,9 @@ func (m *GoArguments) ToOC() *C.GoArguments {
 		))
 		arg := m.Items[i]
 		switch v := arg.(type) {
+		case CStructPointer:
+			itemPtr.Type = GoArgsType_Struct
+			itemPtr.Value = Pointer(v) // 对应 C 结构体
 		case int, int8, uint8, int16, uint16, int32, uint32, int64, uint64:
 			itemPtr.Type = GoArgsType_Int
 			val := (*C.int)(C.malloc(C.sizeof_int))
@@ -82,6 +95,9 @@ func (m *GoArguments) ToOC() *C.GoArguments {
 		case uintptr:
 			itemPtr.Type = GoArgsType_Pointer
 			itemPtr.Value = Pointer(v) // 对应OC中NSValue包装的指针或其他对象（需确保生命周期正确）
+		case Pointer:
+			itemPtr.Type = GoArgsType_Object
+			itemPtr.Value = v // 对应 类对象
 		default:
 			println("[警告] 不支持的类型")
 		}

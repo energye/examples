@@ -20,13 +20,13 @@ type NSToolBar struct {
 	delegate     Pointer
 	config       *ToolbarConfiguration
 	windowResize NotifyEvent
-	controls     tool.ArrayMap[*ControlInfo]
+	controls     tool.ArrayMap[IControl]
 }
 
-type ControlInfo struct {
-	control  IControl
-	property *ControlProperty
-}
+//type ControlInfo struct {
+//	control  IControl
+//	property *ControlProperty
+//}
 
 func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	nsWindow := uintptr(lcl.PlatformWindow(owner.Instance()))
@@ -47,6 +47,7 @@ func Create(owner lcl.IForm, config ToolbarConfiguration) *NSToolBar {
 	RegisterEvent("__doWindowResize", MakeNotifyEvent(toolbar.doWindowResize))
 	RegisterEvent("__doToolbarDefaultItemIdentifiers", MakeNotifyEvent(toolbar.doToolbarDefaultItemIdentifiers))
 	RegisterEvent("__doToolbarAllowedItemIdentifiers", MakeNotifyEvent(toolbar.doToolbarAllowedItemIdentifiers))
+	RegisterEvent("__doDelegateToolbar", MakeDelegateToolbarEvent(toolbar.doDelegateToolbar))
 	return toolbar
 }
 
@@ -60,7 +61,7 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarDefaultItemIdentifiers identifier:", identifier)
 	result := &GoArguments{}
-	m.controls.Iterate(func(key string, value *ControlInfo) bool {
+	m.controls.Iterate(func(key string, value IControl) bool {
 		result.Add(key)
 		return false
 	})
@@ -70,7 +71,7 @@ func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Poi
 func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
 	println("doToolbarAllowedItemIdentifiers identifier:", identifier)
 	result := &GoArguments{}
-	m.controls.Iterate(func(key string, value *ControlInfo) bool {
+	m.controls.Iterate(func(key string, value IControl) bool {
 		result.Add(key)
 		return false
 	})
@@ -80,11 +81,21 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 	return result
 }
 
-func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments) *GoArguments {
+func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments, owner Pointer, sender Pointer) *GoArguments {
+	println("doDelegateToolbar")
 	itemIdentifier := arguments.GetString(0)
+	println("doDelegateToolbar itemIdentifier:", itemIdentifier, "ControlCount:", m.controls.Count())
 	control := m.controls.Get(itemIdentifier)
-	control.property.ToOC()
-	return nil
+	if control == nil {
+		println("control 是空的？？")
+		return nil
+	}
+	cProperty := control.Property().ToOCMalloc()
+	result := &GoArguments{}
+	result.Add(control.Instance())               // 0 控件
+	result.AddCStruct(CStructPointer(cProperty)) // 1 属性 C结构体
+	println(cProperty)
+	return result
 }
 
 func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
@@ -100,11 +111,10 @@ func (m *NSToolBar) AddControl(control IControl) {
 	identifier = C.CString(control.Identifier())
 	defer C.free(Pointer(identifier))
 	cProperty := control.Property().ToOC()
-	C.ToolbarAddControl(m.delegate, m.toolbar, Pointer(control.Instance()), identifier, cProperty)
-	// 保存控件
-	m.controls.Add(control.Identifier(), &ControlInfo{
-		control: control, property: control.Property(),
-	})
+	// 先保存控件
+	m.controls.Add(control.Identifier(), control)
+	// 然后添加到 toolbar
+	C.ToolbarAddControl(m.delegate, m.toolbar, control.Instance(), identifier, cProperty)
 }
 
 func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {

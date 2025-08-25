@@ -196,7 +196,6 @@ static char kToolbarDelegateKey;
         }
         FreeToolbarCallbackContext(context);
     }
-//    NSMutableArray *identifiers = [_dynamicIdentifiers copy];
     return identifiers;
 }
 
@@ -219,9 +218,6 @@ static char kToolbarDelegateKey;
         }
         FreeToolbarCallbackContext(context);
     }
-    //NSMutableArray *identifiers = [NSMutableArray arrayWithArray:_dynamicIdentifiers];
-    //[identifiers addObject:NSToolbarFlexibleSpaceItemIdentifier];
-    //[identifiers addObject:NSToolbarSpaceItemIdentifier];
     return identifiers;
 }
 
@@ -236,27 +232,36 @@ static char kToolbarDelegateKey;
     if ([itemIdentifier isEqualToString:NSToolbarSpaceItemIdentifier]) {
         return [[NSToolbarItem alloc] initWithItemIdentifier:NSToolbarSpaceItemIdentifier];
     }
-    // 处理动态控件
-    NSView *control = [self controlForIdentifier:itemIdentifier];
-    if (control) {
-        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-        item.view = control;
-        // 应用存储的样式
-        NSValue *propertyValue = _controlProperty[itemIdentifier];
-        if (propertyValue) {
-            ControlProperty property;
-            [propertyValue getValue:&property];
-            item.navigational = property.IsNavigational; // 导航模式 靠左
-            if (property.IsCenteredItem) {
-                toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
+
+    ToolbarCallbackContext *context = CreateToolbarCallbackContext(@"__doDelegateToolbar", @"", -1, _window, _toolbar);
+    GoArguments *result;
+    @try{
+        context->arguments = CreateGoArguments(1, itemIdentifier);
+        result = _callback(context);
+        if(result){
+            NSView *control = (NSView *)GetObjectFromGoArguments(result, 0);
+            if (control) {
+                ControlProperty *property = (ControlProperty *)GetStructFromGoArguments(result, 1);
+                NSLog(@"doDelegateToolbar %d %d", property->IsNavigational, property->IsCenteredItem);
+                NSLog(@"doDelegateToolbar control 获取成功");
+                NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+                item.view = control;
+                item.navigational = property->IsNavigational; // 导航模式 靠左
+                if (property->IsCenteredItem) {
+                    toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
+                }
+                item.visibilityPriority = property->VisibilityPriority; // 可见优先级
+                //[self updateControlProperty:itemIdentifier withProperty:property];
+                return item;
+            } else {
+                NSLog(@"doDelegateToolbar control 获取失败");
             }
-            item.visibilityPriority = property.VisibilityPriority; // 可见优先级
-
-            NSLog(@"toolbar %d %@ %d", property.IsNavigational, itemIdentifier, property.IsCenteredItem);
-
-            [self updateControlProperty:itemIdentifier withProperty:property];
         }
-        return item;
+    } @finally {
+        if(result){
+           FreeGoArguments(result);
+        }
+        FreeToolbarCallbackContext(context);
     }
     return nil;
 }

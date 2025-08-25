@@ -16,7 +16,7 @@ type Pointer = unsafe.Pointer
 // NotifyEvent 通用事件通知
 type NotifyEvent func(identifier string, owner Pointer, sender Pointer) *GoArguments
 type TextEvent func(identifier string, value string, owner Pointer, sender Pointer) *GoArguments
-type DelegateToolbarEvent func(toolbar Pointer, identifier string, flag bool, owner Pointer) *GoArguments
+type DelegateToolbarEvent func(arguments *OCGoArguments, owner Pointer, sender Pointer) *GoArguments
 
 type Color struct {
 	Red   float32
@@ -84,6 +84,24 @@ func (m *ControlProperty) ToOC() C.ControlProperty {
 		VisibilityPriority: C.NSInteger(m.VisibilityPriority),
 	}
 	return cProperty
+}
+
+func (m *ControlProperty) ToOCMalloc() *C.ControlProperty {
+	cPropertyPtr := (*C.ControlProperty)(C.malloc(C.sizeof_ControlProperty))
+	if cPropertyPtr == nil {
+		panic("malloc failed for C.ControlProperty") // 处理内存分配失败
+	}
+	cPropertyPtr.width = C.CGFloat(m.Width)
+	cPropertyPtr.height = C.CGFloat(m.Height)
+	cPropertyPtr.minWidth = C.CGFloat(m.MinWidth)
+	cPropertyPtr.maxWidth = C.CGFloat(m.MaxWidth)
+	cPropertyPtr.bezelStyle = C.NSBezelStyle(m.BezelStyle)
+	cPropertyPtr.controlSize = C.NSControlSize(m.ControlSize)
+	cPropertyPtr.font = (*C.NSFont)(m.Font) // 注意：m.Font需确保是C侧合法指针（如ObjC传过来的NSFont*）
+	cPropertyPtr.IsNavigational = C.BOOL(m.IsNavigational)
+	cPropertyPtr.IsCenteredItem = C.BOOL(m.IsCenteredItem)
+	cPropertyPtr.VisibilityPriority = C.NSInteger(m.VisibilityPriority)
+	return cPropertyPtr
 }
 
 type ToolbarCallbackContext struct {

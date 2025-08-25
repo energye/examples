@@ -10,10 +10,10 @@ import "C"
 
 func (m *NSToolBar) AddFlexibleSpace() {
 	C.AddToolbarFlexibleSpace(m.toolbar)
-	m.controls.Add(GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier), &ControlInfo{})
+	m.controls.Add(GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier), nil)
 }
 
 func (m *NSToolBar) AddSpace() {
 	C.AddToolbarSpace(m.toolbar)
-	m.controls.Add(GetStringConstValue(C.NSToolbarSpaceItemIdentifier), &ControlInfo{})
+	m.controls.Add(GetStringConstValue(C.NSToolbarSpaceItemIdentifier), nil)
 }

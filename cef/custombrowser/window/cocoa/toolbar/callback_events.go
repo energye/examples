@@ -31,11 +31,10 @@ func MakeTextCommitEvent(cb TextEvent) *Callback {
 	}
 }
 
-//func MakeDelegateToolbarEvent(cb DelegateToolbarEvent) *Callback {
-//	return &Callback{
-//		type_: TCCTextDidEndEditing,
-//		cb: func(ctx *ToolbarCallbackContext) *GoArguments {
-//			return cb(ctx.Identifier, ctx.Value, ctx.Owner, ctx.Sender)
-//		},
-//	}
-//}
+func MakeDelegateToolbarEvent(cb DelegateToolbarEvent) *Callback {
+	return &Callback{
+		cb: func(ctx *ToolbarCallbackContext) *GoArguments {
+			return cb(ctx.Arguments, ctx.Owner, ctx.Sender)
+		},
+	}
+}

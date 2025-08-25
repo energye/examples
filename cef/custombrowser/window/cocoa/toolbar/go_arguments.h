@@ -18,6 +18,7 @@ typedef enum {
     ArgsType_Float,
     ArgsType_Bool,
     ArgsType_String,
+    ArgsType_Struct,
     ArgsType_Object,
     ArgsType_Pointer
 } GoArgumentsType;
@@ -51,6 +52,7 @@ double GetFloatFromGoArguments(GoArguments* data, int index);
 bool GetBoolFromGoArguments(GoArguments* data, int index);
 const char* GetStringFromGoArguments(GoArguments* data, int index);
 NSString* GetNSStringFromGoArguments(GoArguments* data, int index);
+void* GetStructFromGoArguments(GoArguments* data, int index);
 void* GetObjectFromGoArguments(GoArguments* data, int index);
 void* GetPointerFromGoArguments(GoArguments* data, int index);
 

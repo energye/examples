@@ -28,6 +28,12 @@ void FreeGoArguments(GoArguments* data) {
                         item.Value = NULL;
                     }
                     break;
+                case ArgsType_Struct:
+                    if (item.Value) {
+                        free(item.Value);
+                        item.Value = NULL;
+                    }
+                    break;
                 case ArgsType_Object: { // 只在OC创建
                     id obj = (id)item.Value;
                     if (obj) {
@@ -136,8 +142,7 @@ GoArguments* CreateGoArguments(int count, ...) {
             item.Value = value;
             item.Type = ArgsType_Pointer;
         }
-        else {
-            // 对象类型
+        else { // 对象类型
             item.Value = (void*)[arg retain];
 //            item.Value = (__bridge void*)(arg);
             item.Type = ArgsType_Object;
@@ -190,6 +195,10 @@ NSString* GetNSStringFromGoArguments(GoArguments* data, int index) {
     NSString* ocStr = [NSString stringWithUTF8String:cStr];
     // free((void*)cStr); // 不在这里释放，统一释放
     return ocStr;
+}
+
+void* GetStructFromGoArguments(GoArguments* data, int index) {
+    return GetFromGoArguments(data, index, ArgsType_Struct);
 }
 
 void* GetObjectFromGoArguments(GoArguments* data, int index) {
