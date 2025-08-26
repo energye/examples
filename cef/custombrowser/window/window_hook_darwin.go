@@ -9,9 +9,7 @@ import (
 	"os"
 )
 
-var Resize func() = nil
-
-func (m *Window) TestTool() {
+func (m *Window) HookWndProcMessage() {
 	cocoa.RegisterRunOnMainThreadCallback()
 	// 获取窗口句柄
 	windowHandle := uintptr(lcl.PlatformWindow(m.Instance()))
