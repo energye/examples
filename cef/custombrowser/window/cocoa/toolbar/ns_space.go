@@ -9,11 +9,11 @@ package toolbar
 import "C"
 
 func (m *NSToolBar) AddFlexibleSpace() {
-	m.controls.Add(GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier), nil)
+	m.items.Add(GetStringConstValue(C.NSToolbarFlexibleSpaceItemIdentifier), nil)
 	C.AddToolbarFlexibleSpace(m.toolbar)
 }
 
 func (m *NSToolBar) AddSpace() {
-	m.controls.Add(GetStringConstValue(C.NSToolbarSpaceItemIdentifier), nil)
+	m.items.Add(GetStringConstValue(C.NSToolbarSpaceItemIdentifier), nil)
 	C.AddToolbarSpace(m.toolbar)
 }

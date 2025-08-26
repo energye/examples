@@ -1,10 +1,9 @@
 package toolbar
 
 type IControl interface {
-	Instance() Pointer
+	IView
 	Owner() *NSToolBar
 	Property() *ControlProperty
-	Identifier() string
 }
 
 type Control struct {

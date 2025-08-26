@@ -21,7 +21,7 @@ type NSToolBar struct {
 	delegate     Pointer
 	config       *ToolbarConfiguration
 	windowResize NotifyEvent
-	controls     tool.ArrayMap[IControl]
+	items        tool.ArrayMap[IView]
 }
 
 //type ControlInfo struct {
@@ -60,9 +60,9 @@ func (m *NSToolBar) doWindowResize(identifier string, owner Pointer, sender Poin
 }
 
 func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
-	println("doToolbarDefaultItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.controls.Keys(), " "))
+	println("doToolbarDefaultItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.items.Keys(), " "))
 	result := &GoArguments{}
-	m.controls.Iterate(func(key string, value IControl) bool {
+	m.items.Iterate(func(key string, value IView) bool {
 		result.Add(key)
 		return false
 	})
@@ -70,9 +70,9 @@ func (m *NSToolBar) doToolbarDefaultItemIdentifiers(identifier string, owner Poi
 }
 
 func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Pointer, sender Pointer) *GoArguments {
-	println("doToolbarAllowedItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.controls.Keys(), " "))
+	println("doToolbarAllowedItemIdentifiers 事件ID:", identifier, "控件IDs:", strings.Join(m.items.Keys(), " "))
 	result := &GoArguments{}
-	m.controls.Iterate(func(key string, value IControl) bool {
+	m.items.Iterate(func(key string, value IView) bool {
 		result.Add(key)
 		return false
 	})
@@ -84,37 +84,54 @@ func (m *NSToolBar) doToolbarAllowedItemIdentifiers(identifier string, owner Poi
 
 func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments, owner Pointer, sender Pointer) *GoArguments {
 	itemIdentifier := arguments.GetString(0)
-	println("doDelegateToolbar itemIdentifier:", itemIdentifier, "ControlCount:", m.controls.Count())
-	control := m.controls.Get(itemIdentifier)
-	if control == nil {
+	println("doDelegateToolbar itemIdentifier:", itemIdentifier, "ControlCount:", m.items.Count())
+	item := m.items.Get(itemIdentifier)
+	if item == nil {
 		println("control 是空的？？")
 		return nil
 	}
-	cProperty := control.Property().ToOCMalloc()
-	result := &GoArguments{}
-	result.Add(control.Instance())               // 0 控件
-	result.AddCStruct(CStructPointer(cProperty)) // 1 属性 C结构体
-	println(cProperty)
-	return result
+
+	if control, ok := item.(IControl); ok {
+		cProperty := control.Property().ToOCMalloc()
+		result := &GoArguments{}
+		result.Add(control.Instance())               // 0 控件
+		result.AddCStruct(CStructPointer(cProperty)) // 1 属性 C结构体
+		println(cProperty)
+		return result
+	} else if _, ok := item.(IView); ok {
+
+	}
+	return nil
 }
 
 func (m *NSToolBar) SetOnWindowResize(fn NotifyEvent) {
 	m.windowResize = fn
 }
 
-func (m *NSToolBar) AddControl(control IControl) {
-	if control == nil {
-		println("[ERROR] AddControl 控件是 nil")
+func (m *NSToolBar) AddItem(item IView) {
+	if item == nil {
+		println("[ERROR] AddItem 控件是 nil")
 		return
 	}
-	var identifier *C.char
-	identifier = C.CString(control.Identifier())
-	defer C.free(Pointer(identifier))
-	cProperty := control.Property().ToOC()
-	// 先保存控件
-	m.controls.Add(control.Identifier(), control)
-	// 然后添加到 toolbar
-	C.ToolbarAddControl(m.delegate, m.toolbar, control.Instance(), identifier, cProperty)
+	if control, ok := item.(IControl); ok {
+		var identifier *C.char
+		identifier = C.CString(control.Identifier())
+		defer C.free(Pointer(identifier))
+		cProperty := control.Property().ToOC()
+		// 先保存控件
+		m.items.Add(control.Identifier(), control)
+		// 然后添加到 toolbar
+		C.ToolbarAddItem(m.delegate, m.toolbar, control.Instance(), identifier, cProperty)
+	} else if _, ok := item.(IView); ok {
+		var identifier *C.char
+		identifier = C.CString(control.Identifier())
+		defer C.free(Pointer(identifier))
+		// 先保存控件
+		m.items.Add(control.Identifier(), nil)
+		// 然后添加到 toolbar
+		temp := &ControlProperty{}
+		C.ToolbarAddItem(m.delegate, m.toolbar, control.Instance(), identifier, temp.ToOC())
+	}
 }
 
 func (m *NSToolBar) NewButton(config ButtonItem, property ControlProperty) *NSButton {

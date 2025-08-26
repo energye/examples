@@ -250,18 +250,26 @@ static char kToolbarDelegateKey;
         if(result){
             NSView *control = (NSView *)GetObjectFromGoArguments(result, 0);
             if (control) {
-                ControlProperty *property = (ControlProperty *)GetStructFromGoArguments(result, 1);
-                NSLog(@"doDelegateToolbar %d %d", property->IsNavigational, property->IsCenteredItem);
                 NSLog(@"doDelegateToolbar control 获取成功");
-                NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
-                item.view = control;
-                item.navigational = property->IsNavigational; // 导航模式 靠左
-                if (property->IsCenteredItem) {
-                    toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
+                if ([control isKindOfClass:[NSControl class]]) { // 控件类
+                    ControlProperty *property = (ControlProperty *)GetStructFromGoArguments(result, 1);
+                    NSLog(@"doDelegateToolbar %d %d", property->IsNavigational, property->IsCenteredItem);
+                    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+                    item.view = control;
+                    item.navigational = property->IsNavigational; // 导航模式 靠左
+                    if (property->IsCenteredItem) {
+                        toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
+                    }
+                    item.visibilityPriority = property->VisibilityPriority; // 可见优先1级
+                    //[self updateControlProperty:itemIdentifier withProperty:property];
+                    return item;
+                } else if ([control isKindOfClass:[NSView class]]) { // 视图类
+                    NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+                    item.view = control;
+                    return item;
+                } else {
+                     NSLog(@"doDelegateToolbar control 类型判断失败");
                 }
-                item.visibilityPriority = property->VisibilityPriority; // 可见优先级
-                //[self updateControlProperty:itemIdentifier withProperty:property];
-                return item;
             } else {
                 NSLog(@"doDelegateToolbar control 获取失败");
             }
@@ -452,7 +460,7 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
 }
 
 // 向 toolbar 添加控件
-void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
+void ToolbarAddItem(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property) {
     if (!nsDelegate || !nsToolbar || !nsControl || !identifier) {
         NSLog(@"[ERROR] AddToolbarControl 必要入参为空");
         return;
@@ -485,9 +493,7 @@ long ToolbarItemCount(void* nsToolbar) {
 void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, const char **items, int count, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-
     // 创建下拉框
     NSComboBox *comboBox = [[NSComboBox alloc] init];
     comboBox.delegate = delegate;
@@ -496,17 +502,14 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
     if (property.font) {
         comboBox.font = property.font;
     }
-
     // 添加选项
     for (int i = 0; i < count; i++) {
         [comboBox addItemWithObjectValue:[NSString stringWithUTF8String:items[i]]];
     }
-
     // 设置默认选择
     if (count > 0) {
         [comboBox selectItemAtIndex:0];
     }
-
     // 设置尺寸约束
     if (property.width > 0) {
         [comboBox.widthAnchor constraintEqualToConstant:property.width].active = YES;
@@ -514,13 +517,10 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
     if (property.height > 0) {
         [comboBox.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
-
     // 关联标识符
     objc_setAssociatedObject(comboBox, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
     // 添加到委托
     [delegate addControl:comboBox forIdentifier:idStr withProperty:property];
-
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }
@@ -528,12 +528,9 @@ void AddToolbarCombobox(unsigned long nsWindowHandle, const char *identifier, co
 void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, ControlProperty property) {
     NSWindow *window = (__bridge NSWindow *)(void *)nsWindowHandle;
     MainToolbarDelegate *delegate = objc_getAssociatedObject(window, &kToolbarDelegateKey);
-
     NSString *idStr = [NSString stringWithUTF8String:identifier];
-
     // 创建自定义容器
     NSView *container = [[NSView alloc] init];
-
     // 设置尺寸约束
     if (property.width > 0) {
         [container.widthAnchor constraintEqualToConstant:property.width].active = YES;
@@ -541,13 +538,10 @@ void AddToolbarCustomView(unsigned long nsWindowHandle, const char *identifier, 
     if (property.height > 0) {
         [container.heightAnchor constraintEqualToConstant:property.height].active = YES;
     }
-
     // 关联标识符
     objc_setAssociatedObject(container, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
-
     // 添加到委托
     [delegate addControl:container forIdentifier:idStr withProperty:property];
-
     // 添加到工具栏
     [window.toolbar insertItemWithItemIdentifier:idStr atIndex:window.toolbar.items.count];
 }

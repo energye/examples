@@ -78,7 +78,7 @@ func (m *Window) TestTool() {
 	//bar.AddControl(refreshBtn)
 
 	// 添加搜索框
-	bar.AddFlexibleSpace()
+	//bar.AddFlexibleSpace()
 	textProperty := defaultProperty
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
@@ -89,8 +89,12 @@ func (m *Window) TestTool() {
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
 	search := bar.NewSearchField(textItem, textProperty)
-	bar.AddControl(search)
-	bar.AddFlexibleSpace()
+	search.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		println("OnCommit", identifier, value)
+		return nil
+	})
+	bar.AddItem(search)
+	//bar.AddFlexibleSpace()
 
 	// 添加图片按钮
 	addBtnProperty := defaultProperty

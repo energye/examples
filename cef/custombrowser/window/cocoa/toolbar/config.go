@@ -32,7 +32,7 @@ func onDelegateEvent(cContext *C.ToolbarCallbackContext) *C.GoArguments {
 	}
 	//fmt.Printf("onDelegateEvent event: %+v\n", ctx)
 	eventId := ctx.Identifier
-	eventId = eventId + strconv.Itoa(ctx.Type)
+	eventId = eventId + strconv.Itoa(int(ctx.Type))
 	cb := eventList[eventId]
 	if cb == nil {
 		return nil
@@ -58,7 +58,7 @@ var (
 func RegisterEvent(identifier string, fn *Callback) {
 	eventLock.Lock()
 	defer eventLock.Unlock()
-	identifier = identifier + strconv.Itoa(fn.type_)
+	identifier = identifier + strconv.Itoa(int(fn.type_))
 	eventList[identifier] = fn
 }
 

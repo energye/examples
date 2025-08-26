@@ -9,14 +9,14 @@ extern "C" {
 BOOL isARCMode();
 
 // 事件类型, 用于区分普通通知事件, 还是特殊事件
-enum {
+typedef enum {
     TCCNotify = 0,
     TCCClicked = 1,
     TCCTextDidChange = 2,
     TCCTextDidEndEditing = 3,
     TCCSelectionChanged = 4,
     TCCSelectionDidChange = 5
-};
+} TccType;
 
 // 颜色
 typedef struct {
@@ -98,7 +98,7 @@ void SetWindowBackgroundColor(unsigned long nsWindowHandle, Color color);
 
 // 工具栏
 void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, ControlEventCallback callback, void **outToolbarDelegate, void** outToolbar);
-void ToolbarAddControl(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
+void ToolbarAddItem(void* nsDelegate, void* nsToolbar, void* nsControl, const char *identifier, ControlProperty property);
 long ToolbarItemCount(void* nsToolbar);
 
 // 配置控件所属通用父类为 NSControl 属性
