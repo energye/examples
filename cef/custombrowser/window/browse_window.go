@@ -119,6 +119,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			}
 		} else {
 			m.HookWndProcMessage()
+			m.toolbar()
 		}
 		newChromium := m.createChromium("")
 		m.OnChromiumCreateTabSheet(newChromium)
