@@ -36,6 +36,8 @@ func (m *BrowserWindow) boxMouseDown(sender lcl.IObject, button types.TMouseButt
 }
 
 func (m *BrowserWindow) toolbar() {
+	var search *toolbar.NSSearchField
+
 	cocoa.RegisterRunOnMainThreadCallback()
 	// 获取窗口句柄
 	windowHandle := uintptr(lcl.PlatformWindow(m.Instance()))
@@ -93,6 +95,9 @@ func (m *BrowserWindow) toolbar() {
 		fmt.Println("OnClick", identifier)
 		backBtn.SetEnable(!backBtn.Enable())
 		//backBtn.SetHidden(!backBtn.Hidden())
+		search.SetFocus(true)
+		search.SetText("设置文本")
+		search.SetTextFieldCursorPosition(len(search.Text()))
 		return nil
 	})
 	bar.AddItem(forwardBtn)
@@ -119,7 +124,7 @@ func (m *BrowserWindow) toolbar() {
 	//textProperty.MinWidth = 60
 	//textProperty.MaxWidth = float64(m.Width() - 250)
 	//textProperty.Width = float64(m.Width() - 250)
-	search := bar.NewSearchField(textItem, textProperty)
+	search = bar.NewSearchField(textItem, textProperty)
 	search.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		println("OnCommit", identifier, value)
 		return nil

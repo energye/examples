@@ -39,6 +39,23 @@ void SetTextFieldText(void* ptr, const char* text) {
     [textField setStringValue:nsText];
 }
 
+void SetTextFieldCursorPosition(void* ptr, int index) {
+    NSTextField* textField = (__bridge NSTextField*)(ptr);
+    NSString *text = textField.stringValue;
+    if (index > text.length) {
+        index = text.length;
+    }
+    NSText *fieldEditor = [textField currentEditor];
+   if (!fieldEditor) {
+       [textField becomeFirstResponder];
+       fieldEditor = [textField currentEditor];
+   }
+   if ([fieldEditor isKindOfClass:[NSTextView class]]) {
+       NSTextView *textViewEditor = (NSTextView *)fieldEditor;
+       textViewEditor.selectedRange = NSMakeRange(index, 0);
+   }
+}
+
 // 通过指针设置搜索框文本
 void UpdateTextFieldWidth(void* ptr, CGFloat width) {
     NSTextField* textField = (__bridge NSTextField*)(ptr);

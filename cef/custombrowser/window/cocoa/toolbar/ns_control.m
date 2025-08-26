@@ -152,15 +152,15 @@ BOOL SetControlFocus(void* control, BOOL focus) {
     }
     NSControl *nsControl = (__bridge NSControl *)control;
     if(focus) {
-        BOOL success = [control becomeFirstResponder];
+        BOOL success = [nsControl becomeFirstResponder];
         if (success) {
-            NSLog(@"成功获取焦点");
+//            NSLog(@"成功获取焦点");
         }
         return success;
     }else{
-        BOOL success = [control resignFirstResponder];
+        BOOL success = [nsControl resignFirstResponder];
         if (success) {
-            NSLog(@"成功失去焦点");
+//            NSLog(@"成功失去焦点");
         }
         return success;
     }

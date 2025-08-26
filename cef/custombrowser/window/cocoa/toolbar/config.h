@@ -125,6 +125,7 @@ void* NewTextField(void* nsDelegate, const char *placeholder, const char *toolti
 const char* GetTextFieldText(void* ptr);
 void SetTextFieldText(void* ptr, const char* text);
 void UpdateTextFieldWidth(void* ptr, CGFloat width);
+void SetTextFieldCursorPosition(void* ptr, int index);
 
 // 控件创建 SearchField
 void* NewSearchField(void* nsDelegate, const char *placeholder, const char *tooltip, ControlProperty property);

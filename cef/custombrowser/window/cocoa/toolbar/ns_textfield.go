@@ -51,9 +51,13 @@ func (m *TextField) SetOnCommit(fn TextEvent) {
 	RegisterEvent(m.config.Identifier, MakeTextCommitEvent(fn))
 }
 
-func (m *TextField) GetText() string {
+func (m *TextField) Text() string {
 	cText := C.GetTextFieldText(m.instance)
 	return C.GoString(cText)
+}
+
+func (m *TextField) SetTextFieldCursorPosition(index int) {
+	C.SetTextFieldCursorPosition(m.instance, C.int(index))
 }
 
 // SetText 设置搜索框文本
