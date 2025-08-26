@@ -143,3 +143,26 @@ CGFloat GetControlAlphaValue(void* control) {
     NSControl *nsControl = (__bridge NSControl *)control;
     return [nsControl alphaValue];
 }
+
+// 设置控件焦点
+BOOL SetControlFocus(void* control, BOOL focus) {
+    if (!control) {
+        NSLog(@"[ERROR] SetControlFocus: 控件指针为空");
+        return false;
+    }
+    NSControl *nsControl = (__bridge NSControl *)control;
+    if(focus) {
+        BOOL success = [control becomeFirstResponder];
+        if (success) {
+            NSLog(@"成功获取焦点");
+        }
+        return success;
+    }else{
+        BOOL success = [control resignFirstResponder];
+        if (success) {
+            NSLog(@"成功失去焦点");
+        }
+        return success;
+    }
+    return false;
+}

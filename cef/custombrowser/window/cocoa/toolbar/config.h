@@ -111,6 +111,7 @@ void SetControlAlphaValue(void* control, CGFloat alpha);
 CGFloat GetControlAlphaValue(void* control);
 void SetBindControlObjectIdentifier(void* nsObject, const char *identifier);
 NSString *GetBindControlObjectIdentifier(NSObject* object);
+BOOL SetControlFocus(void* control, BOOL focus);
 
 // 控件创建 Button
 void* NewButton(void* delegate, const char *title, const char *tooltip, ControlProperty property);

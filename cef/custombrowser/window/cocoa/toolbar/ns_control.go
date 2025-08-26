@@ -108,3 +108,7 @@ func (m *Control) FadeOut(duration float64) {
 		m.SetAlpha(1.0)
 	}()
 }
+
+func (m *Control) SetFocus(v bool) bool {
+	return bool(C.SetControlFocus(m.instance, C.BOOL(v)))
+}
