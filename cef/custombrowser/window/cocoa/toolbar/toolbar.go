@@ -96,10 +96,11 @@ func (m *NSToolBar) doDelegateToolbar(arguments *OCGoArguments, owner Pointer, s
 		result := &GoArguments{}
 		result.Add(control.Instance())               // 0 控件
 		result.AddCStruct(CStructPointer(cProperty)) // 1 属性 C结构体
-		println(cProperty)
 		return result
-	} else if _, ok := item.(IView); ok {
-
+	} else if view, ok := item.(IView); ok {
+		result := &GoArguments{}
+		result.Add(view.Instance()) // 0 控件
+		return result
 	}
 	return nil
 }
@@ -114,6 +115,7 @@ func (m *NSToolBar) AddItem(item IView) {
 		return
 	}
 	if control, ok := item.(IControl); ok {
+		println("AddItem Control", control.Identifier())
 		var identifier *C.char
 		identifier = C.CString(control.Identifier())
 		defer C.free(Pointer(identifier))
@@ -122,15 +124,16 @@ func (m *NSToolBar) AddItem(item IView) {
 		m.items.Add(control.Identifier(), control)
 		// 然后添加到 toolbar
 		C.ToolbarAddItem(m.delegate, m.toolbar, control.Instance(), identifier, cProperty)
-	} else if _, ok := item.(IView); ok {
+	} else if view, ok := item.(IView); ok {
+		println("AddItem View", view.Identifier())
 		var identifier *C.char
-		identifier = C.CString(control.Identifier())
+		identifier = C.CString(view.Identifier())
 		defer C.free(Pointer(identifier))
 		// 先保存控件
-		m.items.Add(control.Identifier(), nil)
+		m.items.Add(view.Identifier(), view)
 		// 然后添加到 toolbar
 		temp := &ControlProperty{}
-		C.ToolbarAddItem(m.delegate, m.toolbar, control.Instance(), identifier, temp.ToOC())
+		C.ToolbarAddItem(m.delegate, m.toolbar, view.Instance(), identifier, temp.ToOC())
 	}
 }
 
@@ -152,6 +155,10 @@ func (m *NSToolBar) NewTextField(config ControlTextField, property ControlProper
 
 func (m *NSToolBar) NewSearchField(config ControlTextField, property ControlProperty) *NSSearchField {
 	return NewNSSearchField(m, config, property)
+}
+
+func (m *NSToolBar) NewView(config ItemBase) *View {
+	return NewNSView(config)
 }
 
 func (m *NSToolBar) ItemCount() int {

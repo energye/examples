@@ -6,37 +6,37 @@
 - (instancetype)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        _fillColor = [NSColor blueColor]; // 设置默认颜色
+        _backgroundColor = [NSColor systemBlueColor]; // 默认颜色
+        self.autoresizingMask = NSViewNotSizable;
     }
     return self;
 }
 
 - (void)drawRect:(NSRect)dirtyRect {
-    // 使用当前fillColor属性值填充视图
-    [self.fillColor set];
-    NSRectFill(dirtyRect);
     [super drawRect:dirtyRect];
+    [self.backgroundColor setFill];
+    NSRectFill(dirtyRect);
+}
+
+- (NSSize)intrinsicContentSize {
+    return NSMakeSize(200, 38); // 自定义宽度和高度
 }
 
 @end
 
-void* NewCustomView(void* nsDelegate, const char *identifier) {
-    if (!nsDelegate || !identifier) {
-        NSLog(@"[ERROR] NewTextField 必要参数为空");
+void* NewCustomView(const char *identifier) {
+    if (!identifier) {
+        NSLog(@"[ERROR] NewCustomView 必要参数为空");
         return nil;
     }
-    MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
     NSString *idStr = [NSString stringWithUTF8String:identifier];
 
-    CustomView *customView = [[CustomView alloc] init];
-    customView.fillColor = [NSColor systemBlueColor]; // 设置填充颜色
-
-    NSRect frame = customView.frame;
-    frame.size.width = 150;  // 设置宽度
-    frame.size.height = 30; // 设置高度
-    customView.frame = frame;
-
-    objc_setAssociatedObject(customView, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+    NSRect frame = NSMakeRect(0, 0, 200, 38);
+    CustomView *customView = [[CustomView alloc] initWithFrame:frame];
+    customView.backgroundColor = [NSColor systemBlueColor]; // 设置填充颜色
+    // 设置尺寸约束
+    [customView.widthAnchor constraintEqualToConstant:200].active = YES;
+    [customView.heightAnchor constraintEqualToConstant:38].active = YES;
 
     return (__bridge void*)(customView);
 }

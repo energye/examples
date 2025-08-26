@@ -33,6 +33,11 @@ func (m *Window) TestTool() {
 	// 添加按钮
 	fmt.Println("当前控件总数:", bar.ItemCount())
 
+	//viewConfig := toolbar.ItemBase{}
+	//view := bar.NewView(viewConfig)
+	//println("view:", view.Identifier())
+	//bar.AddItem(view)
+
 	// 创建默认样式
 	defaultProperty := toolbar.CreateDefaultControlProperty()
 	//defaultProperty.Height = 24
@@ -53,7 +58,7 @@ func (m *Window) TestTool() {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	//bar.AddControl(backBtn)
+	bar.AddItem(backBtn)
 
 	forwardBtnProperty := defaultProperty
 	forwardBtnConfig := item
@@ -64,7 +69,7 @@ func (m *Window) TestTool() {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	//bar.AddControl(forwardBtn)
+	bar.AddItem(forwardBtn)
 
 	refreshBtnProperty := defaultProperty
 	refreshBtnConfig := item
@@ -75,10 +80,10 @@ func (m *Window) TestTool() {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	//bar.AddControl(refreshBtn)
+	bar.AddItem(refreshBtn)
 
 	// 添加搜索框
-	//bar.AddFlexibleSpace()
+	bar.AddFlexibleSpace()
 	textProperty := defaultProperty
 	textProperty.IsCenteredItem = true
 	textProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
@@ -94,7 +99,7 @@ func (m *Window) TestTool() {
 		return nil
 	})
 	bar.AddItem(search)
-	//bar.AddFlexibleSpace()
+	bar.AddFlexibleSpace()
 
 	// 添加图片按钮
 	addBtnProperty := defaultProperty
@@ -109,7 +114,7 @@ func (m *Window) TestTool() {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	//bar.AddControl(addBtn)
+	bar.AddItem(addBtn)
 
 	// 添加图片按钮
 	rightBtnProperty := defaultProperty
@@ -123,19 +128,19 @@ func (m *Window) TestTool() {
 		fmt.Println("OnClick", identifier)
 		return nil
 	})
-	//bar.AddControl(rightBtn)
+	bar.AddItem(rightBtn)
 
 	fmt.Println("当前控件总数:", bar.ItemCount())
 
-	//bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-	//	width := int(m.Width() - 900)
-	//	//if width > 700 {
-	//	//	width = 700
-	//	//}
-	//	//fmt.Println("width", width)
-	//	search.UpdateSearchFieldWidth(width)
-	//	return nil
-	//})
+	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
+		width := int(m.Width() - 450)
+		if width > 700 {
+			width = 700
+		}
+		//fmt.Println("width", width)
+		search.UpdateSearchFieldWidth(width)
+		return nil
+	})
 }
 
 //现代 macOS 工具栏开发最佳实践总结

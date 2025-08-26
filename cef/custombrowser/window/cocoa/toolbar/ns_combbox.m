@@ -21,7 +21,6 @@ void* NewCombobox(void* nsDelegate, const char *identifier,  const char *tooltip
     if (count > 0) {
         [comboBox selectItemAtIndex:0];
     }
-    objc_setAssociatedObject(comboBox, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(comboBox, tooltipStr, property);
     return (__bridge void*)(comboBox);
 }

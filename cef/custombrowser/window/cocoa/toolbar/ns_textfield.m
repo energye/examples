@@ -20,7 +20,6 @@ void* NewTextField(void* nsDelegate, const char *identifier, const char *placeho
                           forOrientation:NSLayoutConstraintOrientationHorizontal];
     [textField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
                                         forOrientation:NSLayoutConstraintOrientationHorizontal];
-    objc_setAssociatedObject(textField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(textField, tooltipStr, property);
     return (__bridge void*)(textField);
 }

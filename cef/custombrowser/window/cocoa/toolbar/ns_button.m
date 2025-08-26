@@ -13,7 +13,6 @@ void* NewButton(void* nsDelegate, const char *identifier, const char *title, con
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
     NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
     button.bezelStyle = property.bezelStyle;
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(button, tooltipStr, property);
     return (__bridge void*)(button);
 }
@@ -27,7 +26,6 @@ void* NewImageButton(void* nsDelegate, const char *identifier, NSImage *buttonIm
                                           action:@selector(buttonClicked:)];
     button.bezelStyle = property.bezelStyle;
     button.imagePosition = NSImageOnly;
-    objc_setAssociatedObject(button, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(button, tooltipStr, property);
     return button;
 }

@@ -1,8 +1,17 @@
 #import <Cocoa/Cocoa.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 @interface CustomView : NSView
 
-// 添加颜色属性实现动态修改
-@property (nonatomic, strong) NSColor *fillColor;
+@property (strong, nonatomic) NSColor *backgroundColor;
 
 @end
+
+void* NewCustomView(const char *identifier);
+
+#ifdef __cplusplus
+}
+#endif

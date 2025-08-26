@@ -253,7 +253,7 @@ static char kToolbarDelegateKey;
                 NSLog(@"doDelegateToolbar control 获取成功");
                 if ([control isKindOfClass:[NSControl class]]) { // 控件类
                     ControlProperty *property = (ControlProperty *)GetStructFromGoArguments(result, 1);
-                    NSLog(@"doDelegateToolbar %d %d", property->IsNavigational, property->IsCenteredItem);
+                    NSLog(@"doDelegateToolbar control %d %d", property->IsNavigational, property->IsCenteredItem);
                     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
                     item.view = control;
                     item.navigational = property->IsNavigational; // 导航模式 靠左
@@ -261,10 +261,14 @@ static char kToolbarDelegateKey;
                         toolbar.centeredItemIdentifier = item.itemIdentifier;  // 设置为居中项
                     }
                     item.visibilityPriority = property->VisibilityPriority; // 可见优先1级
-                    //[self updateControlProperty:itemIdentifier withProperty:property];
+//                    [self updateControlProperty:itemIdentifier withProperty:property];
+                    //ConfigureControl((NSControl *)control, itemIdentifier, *property);
                     return item;
                 } else if ([control isKindOfClass:[NSView class]]) { // 视图类
+                    NSLog(@"doDelegateToolbar view");
                     NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:itemIdentifier];
+                    item.minSize = NSMakeSize(200, 38);
+                    item.maxSize = NSMakeSize(200, 38);
                     item.view = control;
                     return item;
                 } else {
@@ -273,7 +277,9 @@ static char kToolbarDelegateKey;
             } else {
                 NSLog(@"doDelegateToolbar control 获取失败");
             }
-        }
+        } else {
+             NSLog(@"doDelegateToolbar 返回值为空");
+         }
     } @finally {
         if(result){
            FreeGoArguments(result);

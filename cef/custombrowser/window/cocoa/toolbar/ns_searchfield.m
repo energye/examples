@@ -19,7 +19,6 @@ void* NewSearchField(void* nsDelegate, const char *identifier, const char *place
                           forOrientation:NSLayoutConstraintOrientationHorizontal];
     [searchField setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow
                                         forOrientation:NSLayoutConstraintOrientationHorizontal];
-    objc_setAssociatedObject(searchField, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
     ConfigureControl(searchField, tooltipStr, property);
     return (__bridge void*)(searchField);
 }
