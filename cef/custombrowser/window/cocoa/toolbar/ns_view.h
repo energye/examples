@@ -10,7 +10,7 @@ extern "C" {
 
 @end
 
-void* NewCustomView(const char *identifier);
+void* NewCustomView();
 
 #ifdef __cplusplus
 }

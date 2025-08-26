@@ -22,10 +22,7 @@ func NewNSView(config ItemBase) *View {
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("NSView")
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
-	cView := C.NewCustomView(cIdentifier)
+	cView := C.NewCustomView()
 	m := &View{
 		instance: Pointer(cView),
 	}

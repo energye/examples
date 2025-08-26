@@ -21,9 +21,6 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 	if config.Title == "" {
 		config.Title = config.Identifier
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
 	var cTitle *C.char
 	cTitle = C.CString(config.Title)
 	defer C.free(Pointer(cTitle))
@@ -33,7 +30,7 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cBtn := C.NewButton(owner.delegate, cIdentifier, cTitle, cTooltip, cProperty)
+	cBtn := C.NewButton(owner.delegate, cTitle, cTooltip, cProperty)
 	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
@@ -50,9 +47,6 @@ func NewNSImageButtonForImage(owner *NSToolBar, config ButtonItem, property Cont
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("ImageButton")
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
 	var cImage *C.char
 	cImage = C.CString(config.IconName)
 	defer C.free(Pointer(cImage))
@@ -62,7 +56,7 @@ func NewNSImageButtonForImage(owner *NSToolBar, config ButtonItem, property Cont
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cBtn := C.NewImageButtonFormImage(owner.delegate, cIdentifier, cImage, cTooltip, cProperty)
+	cBtn := C.NewImageButtonFormImage(owner.delegate, cImage, cTooltip, cProperty)
 	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
@@ -74,9 +68,6 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("ImageButton")
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
 	var cTooltip *C.char
 	if config.Tips != "" {
 		cTooltip = C.CString(config.Tips)
@@ -85,7 +76,7 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	cProperty := property.ToOC()
 	cData := (*C.uint8_t)(unsafe.Pointer(&imageBytes[0]))
 	cLen := C.size_t(len(imageBytes))
-	cBtn := C.NewImageButtonFormBytes(owner.delegate, cIdentifier, cData, cLen, cTooltip, cProperty)
+	cBtn := C.NewImageButtonFormBytes(owner.delegate, cData, cLen, cTooltip, cProperty)
 	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 

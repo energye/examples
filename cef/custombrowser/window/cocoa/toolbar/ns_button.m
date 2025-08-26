@@ -2,13 +2,12 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-void* NewButton(void* nsDelegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property) {
-    if (!nsDelegate || !identifier || !title) {
+void* NewButton(void* nsDelegate, const char *title, const char *tooltip, ControlProperty property) {
+    if (!nsDelegate || !title) {
         NSLog(@"[ERROR] NewButton 必要参数为空");
         return nil;
     }
     MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *titleStr = [NSString stringWithUTF8String:title];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
     NSButton *button = [NSButton buttonWithTitle:titleStr target:delegate action:@selector(buttonClicked:)];
@@ -17,9 +16,8 @@ void* NewButton(void* nsDelegate, const char *identifier, const char *title, con
     return (__bridge void*)(button);
 }
 
-void* NewImageButton(void* nsDelegate, const char *identifier, NSImage *buttonImage, const char *tooltip, ControlProperty property) {
+void* NewImageButton(void* nsDelegate, NSImage *buttonImage, const char *tooltip, ControlProperty property) {
     MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
     NSButton *button = [NSButton buttonWithImage:buttonImage
                                           target:delegate
@@ -30,7 +28,7 @@ void* NewImageButton(void* nsDelegate, const char *identifier, NSImage *buttonIm
     return button;
 }
 
-void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property) {
+void* NewImageButtonFormImage(void* nsDelegate, const char *image, const char *tooltip, ControlProperty property) {
     NSString *imageNameStr = [NSString stringWithUTF8String:image];
     NSImage *buttonImage = nil;
     // 首先尝试从文件路径加载图像
@@ -46,10 +44,10 @@ void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const ch
     if (!buttonImage) {
         buttonImage = [NSImage imageNamed:NSImageNameActionTemplate];
     }
-    return NewImageButton(nsDelegate, identifier, buttonImage, tooltip, property);
+    return NewImageButton(nsDelegate, buttonImage, tooltip, property);
 }
 
-void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property) {
+void* NewImageButtonFormBytes(void* nsDelegate, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property) {
     NSImage *buttonImage = imageFromBytes(data, length);
-    return NewImageButton(nsDelegate, identifier, buttonImage, tooltip, property);
+    return NewImageButton(nsDelegate, buttonImage, tooltip, property);
 }

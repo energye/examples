@@ -2,13 +2,12 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-void* NewCombobox(void* nsDelegate, const char *identifier,  const char *tooltip, const char **items, int count, ControlProperty property) {
-    if (!nsDelegate || !identifier) {
+void* NewCombobox(void* nsDelegate, const char *tooltip, const char **items, int count, ControlProperty property) {
+    if (!nsDelegate) {
         NSLog(@"[ERROR] NewTextField 必要参数为空");
         return nil;
     }
     MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
     NSComboBox *comboBox = [[NSComboBox alloc] init];
     comboBox.delegate = delegate;

@@ -21,9 +21,6 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("TextField")
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
 	var cPlaceholder *C.char
 	cPlaceholder = C.CString(config.Placeholder)
 	defer C.free(Pointer(cPlaceholder))
@@ -33,7 +30,7 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cTextField := C.NewTextField(owner.delegate, cIdentifier, cPlaceholder, cTooltip, cProperty)
+	cTextField := C.NewTextField(owner.delegate, cPlaceholder, cTooltip, cProperty)
 	m := &NSTextField{}
 	m.config = config
 	m.Control = Control{
@@ -65,8 +62,7 @@ func (m *TextField) SetText(text string) {
 	C.SetTextFieldText(m.instance, cText)
 }
 
-// UpdateSearchFieldWidth
-func (m *TextField) UpdateSearchFieldWidth(width int) {
+func (m *TextField) UpdateTextFieldWidth(width int) {
 	cWidth := C.CGFloat(width)
 	C.UpdateTextFieldWidth(m.instance, cWidth)
 }

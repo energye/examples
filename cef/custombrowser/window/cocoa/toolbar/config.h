@@ -104,16 +104,16 @@ long ToolbarItemCount(void* nsToolbar);
 // 配置控件所属通用父类为 NSControl 属性
 void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty property);
 // 控件创建 Button
-void* NewButton(void* delegate, const char *identifier, const char *title, const char *tooltip, ControlProperty property);
-void* NewImageButtonFormImage(void* nsDelegate, const char *identifier, const char *image, const char *tooltip, ControlProperty property);
-void* NewImageButtonFormBytes(void* nsDelegate, const char *identifier, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
+void* NewButton(void* delegate, const char *title, const char *tooltip, ControlProperty property);
+void* NewImageButtonFormImage(void* nsDelegate, const char *image, const char *tooltip, ControlProperty property);
+void* NewImageButtonFormBytes(void* nsDelegate, const uint8_t* data, size_t length, const char *tooltip, ControlProperty property);
 // 控件创建 TextField
-void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
+void* NewTextField(void* nsDelegate, const char *placeholder, const char *tooltip, ControlProperty property);
 const char* GetTextFieldText(void* ptr);
 void SetTextFieldText(void* ptr, const char* text);
 void UpdateTextFieldWidth(void* ptr, CGFloat width);
 // 控件创建 SearchField
-void* NewSearchField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property);
+void* NewSearchField(void* nsDelegate, const char *placeholder, const char *tooltip, ControlProperty property);
 // Space
 void AddToolbarFlexibleSpace(void* nsToolbar);
 void AddToolbarSpace(void* nsToolbar);

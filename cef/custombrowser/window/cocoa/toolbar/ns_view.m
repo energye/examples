@@ -24,13 +24,8 @@
 
 @end
 
-void* NewCustomView(const char *identifier) {
-    if (!identifier) {
-        NSLog(@"[ERROR] NewCustomView 必要参数为空");
-        return nil;
-    }
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
-
+void* NewCustomView() {
+    // 测试还有问题
     NSRect frame = NSMakeRect(0, 0, 200, 38);
     CustomView *customView = [[CustomView alloc] initWithFrame:frame];
     customView.backgroundColor = [NSColor systemBlueColor]; // 设置填充颜色

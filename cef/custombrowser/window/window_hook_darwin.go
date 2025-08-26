@@ -133,12 +133,12 @@ func (m *Window) TestTool() {
 	fmt.Println("当前控件总数:", bar.ItemCount())
 
 	bar.SetOnWindowResize(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		width := int(m.Width() - 450)
+		width := int(m.Width() - 460)
 		if width > 700 {
 			width = 700
 		}
 		//fmt.Println("width", width)
-		search.UpdateSearchFieldWidth(width)
+		search.UpdateTextFieldWidth(width)
 		return nil
 	})
 }

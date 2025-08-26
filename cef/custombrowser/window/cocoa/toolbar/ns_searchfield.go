@@ -15,9 +15,6 @@ func NewNSSearchField(owner *NSToolBar, config ControlTextField, property Contro
 	if config.Identifier == "" {
 		config.Identifier = nextSerialNumber("SearchField")
 	}
-	var cIdentifier *C.char
-	cIdentifier = C.CString(config.Identifier)
-	defer C.free(Pointer(cIdentifier))
 	var cPlaceholder *C.char
 	cPlaceholder = C.CString(config.Placeholder)
 	defer C.free(Pointer(cPlaceholder))
@@ -27,7 +24,7 @@ func NewNSSearchField(owner *NSToolBar, config ControlTextField, property Contro
 		defer C.free(Pointer(cTooltip))
 	}
 	cProperty := property.ToOC()
-	cTextField := C.NewSearchField(owner.delegate, cIdentifier, cPlaceholder, cTooltip, cProperty)
+	cTextField := C.NewSearchField(owner.delegate, cPlaceholder, cTooltip, cProperty)
 	m := &NSSearchField{}
 	m.config = config
 	m.Control = Control{

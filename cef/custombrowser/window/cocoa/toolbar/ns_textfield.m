@@ -2,13 +2,12 @@
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 
-void* NewTextField(void* nsDelegate, const char *identifier, const char *placeholder, const char *tooltip, ControlProperty property) {
-    if (!nsDelegate || !identifier) {
+void* NewTextField(void* nsDelegate, const char *placeholder, const char *tooltip, ControlProperty property) {
+    if (!nsDelegate) {
         NSLog(@"[ERROR] NewTextField 必要参数为空");
         return nil;
     }
     MainToolbarDelegate *delegate = (MainToolbarDelegate*)nsDelegate;
-    NSString *idStr = [NSString stringWithUTF8String:identifier];
     NSString *placeholderStr = placeholder ? [NSString stringWithUTF8String:placeholder] : nil;
     NSString *tooltipStr = tooltip ? [NSString stringWithUTF8String:tooltip] : nil;
     NSTextField *textField = [[NSTextField alloc] init];
