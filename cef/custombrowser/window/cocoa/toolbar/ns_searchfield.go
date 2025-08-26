@@ -33,5 +33,6 @@ func NewNSSearchField(owner *NSToolBar, config ControlTextField, property Contro
 		property: &property,
 		item:     config.ItemBase,
 	}
+	m.SetBindControlObjectIdentifier()
 	return m
 }

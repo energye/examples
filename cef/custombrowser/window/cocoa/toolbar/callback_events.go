@@ -7,6 +7,7 @@ type Callback struct {
 
 func MakeNotifyEvent(cb NotifyEvent) *Callback {
 	return &Callback{
+		type_: TCCNotify,
 		cb: func(ctx *ToolbarCallbackContext) *GoArguments {
 			return cb(ctx.Identifier, ctx.Owner, ctx.Sender)
 		},

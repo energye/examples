@@ -304,11 +304,12 @@ static char kToolbarDelegateKey;
 - (void)buttonClicked:(NSButton *)sender {
     NSLog(@"buttonClicked");
     if (_callback) {
-        NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
+        NSString *identifier = GetBindControlObjectIdentifier(sender);
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, @"", -1, _window, sender);
             GoArguments *result;
             @try{
+                context->type_ = TCCNotify;
                 result = _callback(context);
             } @finally {
                 if(result){
@@ -323,7 +324,7 @@ static char kToolbarDelegateKey;
 - (void)comboBoxSelectionChanged:(NSComboBox *)sender {
     NSLog(@"comboBoxSelectionChanged");
     if (_callback) {
-        NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
+        NSString *identifier = GetBindControlObjectIdentifier(sender);
         if (identifier) {
             NSInteger selectedIndex = [sender indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [sender stringValue], selectedIndex, _window, sender);
@@ -346,7 +347,7 @@ static char kToolbarDelegateKey;
     NSLog(@"comboBoxSelectionChanged");
     if (_callback) {
         id control = notification.object;
-        NSString *identifier = objc_getAssociatedObject(control, @"identifier");
+        NSString *identifier = GetBindControlObjectIdentifier(control);
         if (identifier) {
             NSInteger selectedIndex = [control indexOfSelectedItem];
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], selectedIndex, _window, control);
@@ -368,7 +369,7 @@ static char kToolbarDelegateKey;
     NSLog(@"controlTextDidChange");
     if (_callback) {
         id control = notification.object;
-        NSString *identifier = objc_getAssociatedObject(control, @"identifier");
+        NSString *identifier = GetBindControlObjectIdentifier(control);
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoArguments *result;
@@ -389,7 +390,7 @@ static char kToolbarDelegateKey;
     NSLog(@"controlTextDidEndEditing");
     if (_callback) {
         id control = notification.object;
-        NSString *identifier = objc_getAssociatedObject(control, @"identifier");
+        NSString *identifier = GetBindControlObjectIdentifier(control);
         if (identifier) {
             ToolbarCallbackContext *context = CreateToolbarCallbackContext(identifier, [control stringValue], -1, _window, control);
             GoArguments *result;

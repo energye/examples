@@ -31,7 +31,9 @@ func NewNSButton(owner *NSToolBar, config ButtonItem, property ControlProperty) 
 	}
 	cProperty := property.ToOC()
 	cBtn := C.NewButton(owner.delegate, cTitle, cTooltip, cProperty)
-	return &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m := &NSButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m.SetBindControlObjectIdentifier()
+	return m
 }
 
 func (m *NSButton) SetOnClick(fn NotifyEvent) {
@@ -57,7 +59,9 @@ func NewNSImageButtonForImage(owner *NSToolBar, config ButtonItem, property Cont
 	}
 	cProperty := property.ToOC()
 	cBtn := C.NewImageButtonFormImage(owner.delegate, cImage, cTooltip, cProperty)
-	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m := &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m.SetBindControlObjectIdentifier()
+	return m
 }
 
 func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config ButtonItem, property ControlProperty) *NSImageButton {
@@ -77,7 +81,9 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	cData := (*C.uint8_t)(unsafe.Pointer(&imageBytes[0]))
 	cLen := C.size_t(len(imageBytes))
 	cBtn := C.NewImageButtonFormBytes(owner.delegate, cData, cLen, cTooltip, cProperty)
-	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m := &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
+	m.SetBindControlObjectIdentifier()
+	return m
 }
 
 func (m *NSImageButton) SetImageFromPath(imagePath string) {

@@ -36,6 +36,13 @@ func (m *Control) Property() *ControlProperty {
 	return m.property
 }
 
+func (m *Control) SetBindControlObjectIdentifier() {
+	var cID *C.char
+	cID = C.CString(m.Identifier())
+	defer C.free(Pointer(cID))
+	C.SetBindControlObjectIdentifier(m.instance, cID)
+}
+
 // SetEnable 设置控件启用状态
 func (m *Control) SetEnable(v bool) {
 	C.SetControlEnable(m.instance, C.BOOL(v))

@@ -55,7 +55,24 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
     }
 }
 
-#import <Cocoa/Cocoa.h>
+void SetBindControlObjectIdentifier(void* nsObject, const char *identifier) {
+    if (!nsObject || !identifier) {
+        NSLog(@"[ERROR] BindControlObjectIdentifier 必要参数为空");
+        return;
+    }
+    NSObject *object = (__bridge NSControl *)nsObject;
+    NSString *idStr = [NSString stringWithUTF8String:identifier];
+    objc_setAssociatedObject(object, @"identifier", idStr, OBJC_ASSOCIATION_RETAIN);
+}
+
+NSString *GetBindControlObjectIdentifier(NSObject* sender) {
+    if (!sender) {
+        NSLog(@"[ERROR] GetBindControlObjectIdentifier 必要参数为空");
+        return nil;
+    }
+    NSString *identifier = objc_getAssociatedObject(sender, @"identifier");
+    return identifier;
+}
 
 // 设置控件启用状态
 void SetControlEnable(void* control, BOOL enable) {

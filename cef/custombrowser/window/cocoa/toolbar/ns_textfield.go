@@ -39,6 +39,7 @@ func NewNSTextField(owner *NSToolBar, config ControlTextField, property ControlP
 		property: &property,
 		item:     config.ItemBase,
 	}
+	m.SetBindControlObjectIdentifier()
 	return m
 }
 
