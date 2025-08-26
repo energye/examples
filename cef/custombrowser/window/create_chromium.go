@@ -129,9 +129,13 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		m.tabSheetBtn.SetEndColor(activeColor)
 		m.tabSheet.SetVisible(true)
 		m.isActive = true
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			m.mainWindow.addr.SetText(m.currentURL)
-		})
+		if tool.IsDarwin() {
+
+		} else {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.mainWindow.addr.SetText(m.currentURL)
+			})
+		}
 		m.mainWindow.updateWindowCaption(m.currentTitle)
 		m.resize(nil)
 	} else {
@@ -148,6 +152,9 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 
 // 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 func (m *Chromium) updateBrowserControlBtn() {
+	if tool.IsDarwin() {
+		return
+	}
 	m.mainWindow.backBtn.IsDisable = !m.canGoBack
 	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
 	backDisable := !m.canGoBack
@@ -173,6 +180,10 @@ func (m *Chromium) updateBrowserControlBtn() {
 }
 
 func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
+	var tabSheetTop int32 = 90
+	if tool.IsDarwin() {
+		tabSheetTop = tabSheetBtnHeight + 8
+	}
 	newChromium := &Chromium{mainWindow: m, siteFavIcon: make(map[string]string)}
 	{
 		newChromium.tabSheet = lcl.NewPanel(m)
@@ -180,7 +191,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.tabSheet.SetBevelOuter(types.BvNone)
 		newChromium.tabSheet.SetDoubleBuffered(true)
 		newChromium.tabSheet.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-		newChromium.tabSheet.SetTop(90)
+		newChromium.tabSheet.SetTop(tabSheetTop)
 		newChromium.tabSheet.SetLeft(5)
 		newChromium.tabSheet.SetWidth(m.box.Width() - 10)
 		newChromium.tabSheet.SetHeight(m.box.Height() - (newChromium.tabSheet.Top() + 5))
@@ -267,7 +278,11 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		println("chromium.OnBeforePopup isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			// 创建新的 tab
-			m.addr.SetText("")
+			if tool.IsDarwin() {
+
+			} else {
+				m.addr.SetText("")
+			}
 			newChromium := m.createChromium(targetUrl)
 			m.OnChromiumCreateTabSheet(newChromium)
 			newChromium.createBrowser(nil)
@@ -296,14 +311,16 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.canGoBack = canGoBack
 		newChromium.canGoForward = canGoForward
 		//fmt.Println("OnLoadingStateChange isLoading:", isLoading)
-		if isLoading {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("stop.png"))
-			})
-		} else {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("refresh.png"))
-			})
+		if !tool.IsDarwin() {
+			if isLoading {
+				lcl.RunOnMainThreadAsync(func(id uint32) {
+					newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("stop.png"))
+				})
+			} else {
+				lcl.RunOnMainThreadAsync(func(id uint32) {
+					newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("refresh.png"))
+				})
+			}
 		}
 		if !isLoading {
 			// 加载完 尝试获取已缓存的图标
@@ -336,11 +353,15 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		//println("OnLoadStart URL:", tempUrl)
 		newChromium.currentURL = tempUrl
 		if newChromium.isActive {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				m.addr.SetText(tempUrl)
-				m.addr.SetSelStart(int32(len(tempUrl)))
-				m.addr.SetFocus()
-			})
+			if tool.IsDarwin() {
+
+			} else {
+				lcl.RunOnMainThreadAsync(func(id uint32) {
+					m.addr.SetText(tempUrl)
+					m.addr.SetSelStart(int32(len(tempUrl)))
+					m.addr.SetFocus()
+				})
+			}
 		}
 	})
 	newChromium.chromium.SetOnFavIconUrlChange(func(sender lcl.IObject, browser cef.ICefBrowser, iconUrls lcl.IStrings) {
