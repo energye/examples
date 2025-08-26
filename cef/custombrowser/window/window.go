@@ -2,6 +2,7 @@ package window
 
 import (
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 )
 
@@ -13,5 +14,7 @@ type Window struct {
 }
 
 func (m *Window) FormAfterCreate(sender lcl.IObject) {
-	//m.HookWndProcMessage()
+	if !tool.IsDarwin() {
+		m.HookWndProcMessage()
+	}
 }
