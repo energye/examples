@@ -67,6 +67,7 @@ func (m *Window) TestTool() {
 	forwardBtn := bar.NewImageButtonForImage(forwardBtnConfig, forwardBtnProperty)
 	forwardBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
+		backBtn.SetHidden(!backBtn.Hidden())
 		return nil
 	})
 	bar.AddItem(forwardBtn)

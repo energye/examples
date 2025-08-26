@@ -80,6 +80,22 @@ func NewNSImageButtonForBytes(owner *NSToolBar, imageBytes []byte, config Button
 	return &NSImageButton{Control: Control{instance: Pointer(cBtn), owner: owner, property: &property, item: config.ItemBase}, config: config}
 }
 
+func (m *NSImageButton) SetImageFromPath(imagePath string) {
+	cImagePath := C.CString(imagePath)
+	defer C.free(unsafe.Pointer(cImagePath))
+	C.SetButtonImageFromPath(m.instance, cImagePath)
+}
+
+// SetImageFromBytes 设置按钮图片（使用字节数据）
+func (m *NSImageButton) SetImageFromBytes(data []byte) {
+	if len(data) == 0 {
+		return
+	}
+	cData := (*C.uint8_t)(unsafe.Pointer(&data[0]))
+	cLen := C.size_t(len(data))
+	C.SetButtonImageFromBytes(m.instance, cData, cLen)
+}
+
 func (m *NSImageButton) SetOnClick(fn NotifyEvent) {
 	RegisterEvent(m.config.Identifier, MakeNotifyEvent(fn))
 }

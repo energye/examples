@@ -54,3 +54,75 @@ void ConfigureControl(NSControl *control, NSString *tooltipStr, ControlProperty 
         maxWidthConstraint.active = YES;
     }
 }
+
+#import <Cocoa/Cocoa.h>
+
+// 设置控件启用状态
+void SetControlEnable(void* control, BOOL enable) {
+    if (!control) {
+        NSLog(@"[ERROR] SetControlEnable: 控件指针为空");
+        return;
+    }
+    NSControl *nsControl = (__bridge NSControl *)control;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nsControl setEnabled:enable];
+    });
+}
+
+// 获取控件启用状态
+BOOL GetControlEnable(void* control) {
+    if (!control) {
+        NSLog(@"[ERROR] GetControlEnable: 控件指针为空");
+        return NO;
+    }
+    NSControl *nsControl = (__bridge NSControl *)control;
+    return [nsControl isEnabled];
+}
+
+// 设置控件显示/隐藏状态
+void SetControlHidden(void* control, BOOL hidden) {
+    if (!control) {
+        NSLog(@"[ERROR] SetControlHidden: 控件指针为空");
+        return;
+    }
+
+    NSControl *nsControl = (__bridge NSControl *)control;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nsControl setHidden:hidden];
+    });
+}
+
+// 获取控件显示/隐藏状态
+BOOL GetControlHidden(void* control) {
+    if (!control) {
+        NSLog(@"[ERROR] GetControlHidden: 控件指针为空");
+        return YES; // 默认返回隐藏状态
+    }
+
+    NSControl *nsControl = (__bridge NSControl *)control;
+    return [nsControl isHidden];
+}
+
+// 设置控件透明度（可选扩展）
+void SetControlAlphaValue(void* control, CGFloat alpha) {
+    if (!control) {
+        NSLog(@"[ERROR] SetControlAlphaValue: 控件指针为空");
+        return;
+    }
+
+    NSControl *nsControl = (__bridge NSControl *)control;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nsControl setAlphaValue:alpha];
+    });
+}
+
+// 获取控件透明度（可选扩展）
+CGFloat GetControlAlphaValue(void* control) {
+    if (!control) {
+        NSLog(@"[ERROR] GetControlAlphaValue: 控件指针为空");
+        return 0.0;
+    }
+
+    NSControl *nsControl = (__bridge NSControl *)control;
+    return [nsControl alphaValue];
+}
