@@ -78,9 +78,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	if !tool.IsDarwin() {
 		m.SetCaption("ENERGY-3.0-浏览器")
 	}
-	constraints := m.Constraints()
-	constraints.SetMinWidth(600)
-	constraints.SetMinHeight(400)
+	//constraints := m.Constraints()
+	//constraints.SetMinWidth(600)
+	//constraints.SetMinHeight(400)
 
 	m.box = lcl.NewPanel(m)
 	m.box.SetParent(m)

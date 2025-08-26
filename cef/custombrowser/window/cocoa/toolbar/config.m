@@ -221,10 +221,19 @@ static char kToolbarDelegateKey;
     return identifiers;
 }
 
+//- (BOOL)toolbar:(NSToolbar *)toolbar canHideItem:(NSToolbarItem *)item {
+//    NSLog(@"toolbar-canHideItem");
+//    // 对搜索框项目返回 NO，禁止隐藏
+//    if ([item.itemIdentifier isEqualToString:@"SiteAddrSearch"]) {
+//        return NO;
+//    }
+//    return YES; // 其他项目允许隐藏
+//}
+
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar
      itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
  willBeInsertedIntoToolbar:(BOOL)flag {
-    NSLog(@"toolbar");
+    NSLog(@"toolbarItemIdentifier: %@", itemIdentifier);
     // 处理系统项
     if ([itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier]) {
         return [[NSToolbarItem alloc] initWithItemIdentifier:NSToolbarFlexibleSpaceItemIdentifier];
@@ -420,7 +429,6 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     NSToolbar *toolbar = [[NSToolbar alloc] initWithIdentifier:@"ENERGY.ToolBar"];
     // 设置实例到当前代理对象
     [toolbarDelegate setCallback:callback withWindow:window withToolbar:toolbar];
-
     toolbar.delegate = toolbarDelegate;
     // 设置显示模式
     window.titlebarAppearsTransparent = config.Transparent;
@@ -432,7 +440,6 @@ void CreateToolbar(unsigned long nsWindowHandle, ToolbarConfiguration config, Co
     toolbar.autosavesConfiguration = config.IsAutoSavesConfiguration;
     toolbar.displayMode = config.DisplayMode;
     toolbar.sizeMode = config.SizeMode; //NSToolbarSizeModeRegular; // 或 NSToolbarSizeModeSmall
-
     window.toolbar = toolbar;
 
     // 保留委托对象
