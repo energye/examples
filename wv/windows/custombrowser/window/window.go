@@ -16,9 +16,11 @@ import (
 )
 
 var (
-	Window  BrowserWindow
-	Load    wv.IWVLoader
-	bgColor = colors.RGBToColor(56, 57, 60)
+	CacheRoot    string
+	SiteResource string
+	Window       BrowserWindow
+	Load         wv.IWVLoader
+	bgColor      = colors.RGBToColor(56, 57, 60)
 )
 
 type BrowserWindow struct {

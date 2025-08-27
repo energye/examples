@@ -1,12 +1,14 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/examples/wv/tool"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	wvTypes "github.com/energye/wv/types/windows"
 	wv "github.com/energye/wv/windows"
+	"net/url"
 	"strings"
 	"widget/wg"
 )
@@ -28,7 +30,7 @@ type Browser struct {
 }
 
 func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
-	newBrowser := &Browser{}
+	newBrowser := &Browser{mainWindow: m, siteFavIcon: make(map[string]string)}
 
 	{
 		newBrowser.tabSheet = lcl.NewPanel(m)
@@ -56,14 +58,14 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		newBrowser.browser.SetDefaultURL(defaultUrl)
 	}
 	//m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44") // 设置
-	fmt.Println("TargetCompatibleBrowserVersion:", newBrowser.browser.TargetCompatibleBrowserVersion())
+	println("TargetCompatibleBrowserVersion:", newBrowser.browser.TargetCompatibleBrowserVersion())
 	newBrowser.browser.SetOnAfterCreated(func(sender lcl.IObject) {
-		fmt.Println("回调函数 WVBrowser => SetOnAfterCreated")
+		println("回调函数 WVBrowser => SetOnAfterCreated")
 		newBrowser.windowParent.UpdateSize()
 	})
 	newBrowser.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
 		title := newBrowser.browser.DocumentTitle()
-		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", title)
+		println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", title)
 		if newBrowser.tabSheetBtn != nil {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
@@ -90,7 +92,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	}
 
 	newBrowser.browser.SetOnNotificationCloseRequested(func(sender lcl.IObject, notification wv.ICoreWebView2Notification, args lcl.IUnknown) {
-		fmt.Println("SetOnNotificationCloseRequested")
+		println("SetOnNotificationCloseRequested")
 	})
 	newBrowser.browser.SetOnNavigationStarting(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
 		navBtns(true)
@@ -124,14 +126,41 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		args.Free()
 	})
 	newBrowser.browser.SetOnFaviconChanged(func(sender lcl.IObject, webView wv.ICoreWebView2, args lcl.IUnknown) {
-		fmt.Println("SetOnFaviconChanged FaviconURI:", webView.FaviconURI())
+		webView = wv.NewCoreWebView2(webView)
+		icoURL := webView.FaviconURI()
+		println("SetOnFaviconChanged FaviconURI:", icoURL)
+		ok := webView.GetFavicon(wvTypes.COREWEBVIEW2_FAVICON_IMAGE_FORMAT_PNG, newBrowser.browser)
+		println("SetOnFaviconChanged FaviconURI ok:", ok)
+		var host string
+		if tempUrl, err := url.Parse(newBrowser.currentURL); err != nil {
+			println("[ERROR] OnFavIconUrlChange ICON Parse URL:", err.Error())
+			return
+		} else {
+			host = tempUrl.Host
+		}
+
+		if icoURL != "" {
+			if tempURL, err := url.Parse(icoURL); err == nil {
+				if _, ok := newBrowser.siteFavIcon[tempURL.Host]; !ok {
+					tool.DownloadFavicon(SiteResource, host, icoURL, func(iconPath string) {
+						println("DownloadFavicon:", iconPath)
+						newBrowser.siteFavIcon[tempURL.Host] = iconPath
+						// 在此保证更新一次图标到 tabSheetBtn
+						lcl.RunOnMainThreadAsync(func(id uint32) {
+							newBrowser.tabSheetBtn.SetIconFavorite(iconPath)
+							newBrowser.tabSheetBtn.Invalidate()
+						})
+					})
+				}
+			}
+		}
+		webView.Free()
 	})
 	newBrowser.browser.SetOnGetFaviconCompleted(func(sender lcl.IObject, errorCode types.HRESULT, result lcl.IStreamAdapter) {
-		fmt.Println("SetOnGetFaviconCompleted errorCode:", errorCode)
+		println("SetOnGetFaviconCompleted errorCode:", errorCode)
 	})
 	// 设置browser到window parent
 	newBrowser.windowParent.SetBrowser(newBrowser.browser)
-	newBrowser.mainWindow = m
 	return newBrowser
 }
 

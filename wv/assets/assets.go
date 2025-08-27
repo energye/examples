@@ -9,7 +9,10 @@ import (
 
 //go:embed resources
 var Assets embed.FS
-var wd, _ = os.Getwd()
+
+var (
+	wd, _ = os.Getwd()
+)
 
 func GetResourcePath(name string) string {
 	var sourcePath string
