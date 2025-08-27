@@ -75,7 +75,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		}
 	}
 	m.SetColor(bgColor)
-	if !tool.IsDarwin() {
+	if !isDarwin {
 		m.SetCaption("ENERGY-3.0-浏览器")
 	}
 	constraints := m.Constraints()
@@ -87,9 +87,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetBevelOuter(types.BvNone)
 	m.box.SetDoubleBuffered(true)
 	m.box.SetColor(bgColor)
-	if tool.IsDarwin() {
-		// macos 窗口标题栏自定义了
-		// 留高 45
+	if isDarwin {
+		// macos 窗口标题栏自定义
 		m.box.SetWidth(m.Width())
 		m.box.SetHeight(m.Height())
 		m.box.SetAlign(types.AlClient)
@@ -101,12 +100,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		m.boxDrag()
 	}
 
-	m.SetOnShow(func(sender lcl.IObject) {
-		m.SetFocus()
-		m.SetActiveDefaultControl(m)
-	})
 	m.SetOnActivate(func(sender lcl.IObject) {
-		if !tool.IsDarwin() {
+		if !isDarwin {
 			if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
 				stream := lcl.NewMemoryStream()
 				lcl.StreamHelper.Write(stream, iconData)
@@ -118,20 +113,18 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 				stream.Free()
 			}
 		} else {
-			m.HookWndProcMessage()
-			m.toolbar()
+			m.macOSToolbar()
 		}
-		newChromium := m.createChromium("")
+		newChromium := m.createChromium("https://www.baidu.com")
 		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)
 	})
-	if !tool.IsDarwin() {
-		m.createTitleWidgetControl()
-	}
+	// 创建标题栏控件
+	m.createTitleWidgetControl()
 	m.SetOnResize(func(sender lcl.IObject) {
 		// 重新计算 tab sheet left 和 width
 		m.recalculateTabSheet()
-		if !tool.IsDarwin() {
+		if !isDarwin {
 			// 更新窗口控制按钮状态
 			m.updateWindowControlBtn()
 		}
@@ -172,161 +165,12 @@ func (m *BrowserWindow) boxDrag() {
 
 // 更新窗口控制按钮状态
 func (m *BrowserWindow) updateWindowControlBtn() {
-	if m.maxBtn == nil {
-		return
-	}
 	if m.WindowState() == types.WsMaximized {
 		m.maxBtn.SetHint("向下还原")
 		m.maxBtn.SetIcon(getResourcePath("btn-max-re.png"))
 	} else if m.WindowState() == types.WsNormal {
 		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
 		m.maxBtn.SetHint("最大化")
-	}
-}
-
-func (m *BrowserWindow) createTitleWidgetControl() {
-	// 添加 chromium 按钮
-	if !tool.IsDarwin() {
-		m.addChromBtn = wg.NewButton(m)
-		m.addChromBtn.SetParent(m.box)
-		addBtnRect := types.TRect{Left: 5, Top: 5}
-		addBtnRect.SetSize(40, 40)
-		m.addChromBtn.SetBoundsRect(addBtnRect)
-		m.addChromBtn.SetStartColor(bgColor)
-		m.addChromBtn.SetEndColor(bgColor)
-		m.addChromBtn.SetRadius(5)
-		m.addChromBtn.SetAlpha(255)
-		m.addChromBtn.SetIcon(getResourcePath("add.png"))
-		m.addChromBtn.SetOnClick(func(sender lcl.IObject) {
-			println("add chromium isMainThread:", api.MainThreadId() == api.CurrentThreadId())
-			m.addr.SetText("")
-			newChromium := m.createChromium("")
-			m.OnChromiumCreateTabSheet(newChromium)
-			newChromium.createBrowser(nil)
-		})
-	}
-	// 窗口控制按钮 最小化，最大化，关闭
-	if !tool.IsDarwin() {
-		m.minBtn = wg.NewButton(m)
-		m.minBtn.SetParent(m.box)
-		m.minBtn.SetShowHint(true)
-		m.minBtn.SetHint("最小化")
-		minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
-		minBtnRect.SetSize(40, 40)
-		m.minBtn.SetBoundsRect(minBtnRect)
-		m.minBtn.SetStartColor(bgColor)
-		m.minBtn.SetEndColor(bgColor)
-		m.minBtn.SetRadius(5)
-		m.minBtn.SetAlpha(255)
-		m.minBtn.SetIcon(getResourcePath("btn-min.png"))
-		m.minBtn.SetOnClick(func(sender lcl.IObject) {
-			m.Minimize()
-		})
-		m.maxBtn = wg.NewButton(m)
-		m.maxBtn.SetParent(m.box)
-		m.maxBtn.SetShowHint(true)
-		m.maxBtn.SetHint("最大化")
-		maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
-		maxBtnRect.SetSize(40, 40)
-		m.maxBtn.SetBoundsRect(maxBtnRect)
-		m.maxBtn.SetStartColor(bgColor)
-		m.maxBtn.SetEndColor(bgColor)
-		m.maxBtn.SetRadius(5)
-		m.maxBtn.SetAlpha(255)
-		m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
-		m.maxBtn.SetOnClick(func(sender lcl.IObject) {
-			m.Maximize()
-		})
-		m.closeBtn = wg.NewButton(m)
-		m.closeBtn.SetParent(m.box)
-		m.closeBtn.SetShowHint(true)
-		m.closeBtn.SetHint("关闭")
-		closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
-		closeBtnRect.SetSize(40, 40)
-		m.closeBtn.SetBoundsRect(closeBtnRect)
-		m.closeBtn.SetStartColor(bgColor)
-		m.closeBtn.SetEndColor(bgColor)
-		m.closeBtn.SetRadius(5)
-		m.closeBtn.SetAlpha(255)
-		m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
-		m.closeBtn.SetOnClick(func(sender lcl.IObject) {
-			if len(m.chroms) == 0 {
-				m.Close()
-			} else {
-				for _, chrom := range m.chroms {
-					chrom.closeBrowser()
-				}
-			}
-			m.isWindowButtonClose = true
-		})
-	}
-	// 浏览器控制按钮
-	if !tool.IsDarwin() {
-		// 后退
-		m.backBtn = wg.NewButton(m)
-		m.backBtn.SetParent(m.box)
-		m.backBtn.SetShowHint(true)
-		m.backBtn.SetHint("单击返回")
-		backBtnRect := types.TRect{Left: 5, Top: 47}
-		backBtnRect.SetSize(40, 40)
-		m.backBtn.SetBoundsRect(backBtnRect)
-		m.backBtn.SetStartColor(bgColor)
-		m.backBtn.SetEndColor(bgColor)
-		m.backBtn.SetRadius(5)
-		m.backBtn.SetAlpha(255)
-		m.backBtn.SetIcon(getResourcePath("back.png"))
-		m.backBtn.SetOnClick(func(sender lcl.IObject) {
-			chrom := m.getActiveChrom()
-			if chrom != nil && chrom.chromium.CanGoBack() {
-				chrom.chromium.GoBack()
-			}
-		})
-		// 前进按钮
-		m.forwardBtn = wg.NewButton(m)
-		m.forwardBtn.SetParent(m.box)
-		m.forwardBtn.SetShowHint(true)
-		m.forwardBtn.SetHint("单击前进")
-		forwardBtnRect := types.TRect{Left: 50, Top: 47}
-		forwardBtnRect.SetSize(40, 40)
-		m.forwardBtn.SetBoundsRect(forwardBtnRect)
-		m.forwardBtn.SetStartColor(bgColor)
-		m.forwardBtn.SetEndColor(bgColor)
-		m.forwardBtn.SetRadius(5)
-		m.forwardBtn.SetAlpha(255)
-		m.forwardBtn.SetIcon(getResourcePath("forward.png"))
-		m.forwardBtn.SetOnClick(func(sender lcl.IObject) {
-			chrom := m.getActiveChrom()
-			if chrom != nil && chrom.chromium.CanGoForward() {
-				chrom.chromium.GoForward()
-			}
-		})
-		// 刷新按钮
-		m.refreshBtn = wg.NewButton(m)
-		m.refreshBtn.SetParent(m.box)
-		m.refreshBtn.SetShowHint(true)
-		m.refreshBtn.SetHint("单击刷新/停止")
-		refreshBtnRect := types.TRect{Left: 95, Top: 47}
-		refreshBtnRect.SetSize(40, 40)
-		m.refreshBtn.SetBoundsRect(refreshBtnRect)
-		m.refreshBtn.SetStartColor(bgColor)
-		m.refreshBtn.SetEndColor(bgColor)
-		m.refreshBtn.SetRadius(5)
-		m.refreshBtn.SetAlpha(255)
-		m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
-		m.refreshBtn.SetOnClick(func(sender lcl.IObject) {
-			chrom := m.getActiveChrom()
-			if chrom != nil {
-				if chrom.isLoading {
-					chrom.chromium.StopLoad()
-				} else {
-					chrom.chromium.Reload()
-				}
-			}
-		})
-	}
-	if !tool.IsDarwin() {
-		// 地址栏
-		m.createAddrBar()
 	}
 }
 
@@ -390,21 +234,21 @@ func (m *BrowserWindow) AddTabSheetBtn(currentChromium *Chromium) {
 	}
 
 	// 创建新 tabSheet
-	newTabSheet := wg.NewButton(m)
-	newTabSheet.SetParent(m.box)
-	newTabSheet.SetShowHint(true)
-	newTabSheet.SetCaption("新建标签页")
-	newTabSheet.Font().SetSize(12)
-	newTabSheet.Font().SetColor(colors.Cl3DFace)
+	newTabSheetBtn := wg.NewButton(m)
+	newTabSheetBtn.SetParent(m.box)
+	newTabSheetBtn.SetShowHint(true)
+	newTabSheetBtn.SetCaption("新建标签页")
+	newTabSheetBtn.Font().SetSize(12)
+	newTabSheetBtn.Font().SetColor(colors.Cl3DFace)
 	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
 	newTabSheetRect.SetSize(0, 0)
-	newTabSheet.SetBoundsRect(newTabSheetRect)
-	newTabSheet.SetStartColor(colors.RGBToColor(86, 88, 93))
-	newTabSheet.SetEndColor(colors.RGBToColor(86, 88, 93))
-	newTabSheet.RoundedCorner = newTabSheet.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
-	newTabSheet.SetIconFavorite(getResourcePath("icon.png"))
-	newTabSheet.SetIconClose(getResourcePath("sheet_close.png"))
-	newTabSheet.SetOnCloseClick(func(sender lcl.IObject) {
+	newTabSheetBtn.SetBoundsRect(newTabSheetRect)
+	newTabSheetBtn.SetStartColor(colors.RGBToColor(86, 88, 93))
+	newTabSheetBtn.SetEndColor(colors.RGBToColor(86, 88, 93))
+	newTabSheetBtn.RoundedCorner = newTabSheetBtn.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
+	newTabSheetBtn.SetIconFavorite(getResourcePath("icon.png"))
+	newTabSheetBtn.SetIconClose(getResourcePath("sheet_close.png"))
+	newTabSheetBtn.SetOnCloseClick(func(sender lcl.IObject) {
 		if m.isChromCloseing {
 			// 当前有正在关闭的浏览器
 			println("有正在关闭的浏览器")
@@ -415,15 +259,15 @@ func (m *BrowserWindow) AddTabSheetBtn(currentChromium *Chromium) {
 			currentChromium.closeBrowser()
 		})
 	})
-	newTabSheet.SetOnClick(func(sender lcl.IObject) {
+	newTabSheetBtn.SetOnClick(func(sender lcl.IObject) {
 		// tab sheet 按钮点击
 		// 更新其它 tabSheetBtn 不激活, 当前为激活显示
 		m.updateOtherTabSheetNoActive(currentChromium)
 		// 更新当前 chromium tabSheetBtn激活
 		currentChromium.updateTabSheetActive(true)
 	})
-	currentChromium.isActive = true           // 设置默认激活
-	currentChromium.tabSheetBtn = newTabSheet // 绑定到当前 chromium
+	currentChromium.isActive = true              // 设置默认激活
+	currentChromium.tabSheetBtn = newTabSheetBtn // 绑定到当前 chromium
 
 	// 更新其它tabSheet 非激活状态(颜色控制)
 	m.updateOtherTabSheetNoActive(currentChromium)
@@ -432,25 +276,8 @@ func (m *BrowserWindow) AddTabSheetBtn(currentChromium *Chromium) {
 	m.recalculateTabSheet()
 }
 
-// 清空地址栏 和 还原控制按钮
-func (m *BrowserWindow) resetControlBtn() {
-	if tool.IsDarwin() {
-		return
-	}
-	m.addr.SetText("")
-	m.backBtn.IsDisable = true
-	m.forwardBtn.IsDisable = true
-	m.backBtn.SetIcon(getResourcePath("back_disable.png"))
-	m.backBtn.Invalidate()
-	m.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
-	m.forwardBtn.Invalidate()
-	m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
-	m.refreshBtn.Invalidate()
-	m.updateWindowCaption("")
-}
-
 func (m *BrowserWindow) updateWindowCaption(title string) {
-	if tool.IsDarwin() {
+	if isDarwin {
 		return
 	}
 	lcl.RunOnMainThreadAsync(func(id uint32) {
@@ -462,10 +289,6 @@ func (m *BrowserWindow) updateWindowCaption(title string) {
 }
 
 var tabSheetBtnHeight int32 = 40
-
-func init() {
-	tabSheetBtnHeight = 30
-}
 
 // 重新计算 tab sheet left 和 width
 func (m *BrowserWindow) recalculateTabSheet() {
@@ -496,7 +319,9 @@ func (m *BrowserWindow) recalculateTabSheet() {
 	}
 
 	// 更新添加按钮位置
-	m.updateBtnLeft()
+	if !isDarwin {
+		m.updateBtnLeft()
+	}
 }
 
 // 获得当前激活的 chrom

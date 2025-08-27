@@ -24,6 +24,7 @@ type runOnMainThreadFn func()
 var (
 	callbackFuncList     = make(map[int]runOnMainThreadFn)
 	callbackFuncListLock = sync.Mutex{}
+	isRROMTC             bool
 )
 
 func doRunOnMainThread(id int) {
@@ -35,6 +36,10 @@ func doRunOnMainThread(id int) {
 }
 
 func RegisterRunOnMainThreadCallback() {
+	if isRROMTC {
+		return
+	}
+	isRROMTC = true
 	C.RegisterRunOnMainThreadCallback(C.RunOnMainThreadCallback(C.onRunOnMainThread))
 }
 

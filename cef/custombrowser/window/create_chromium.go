@@ -2,6 +2,7 @@ package window
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/utils"
@@ -10,7 +11,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
-	"github.com/energye/lcl/types/colors"
 	"image"
 	"image/png"
 	"io"
@@ -46,22 +46,11 @@ func (m *Chromium) SetAfterCreate(fn func()) {
 }
 
 func (m *Chromium) createBrowser(sender lcl.IObject) {
-	//if m.timer == nil {
-	//	return
-	//}
-	//m.timer.SetEnabled(false)
 	rect := m.windowParent.Parent().ClientRect()
-	m.chromium.Initialized()
-	m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
-	//fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
-	//if !created {
-	//	m.timer.SetEnabled(true)
-	//} else {
-	//	m.windowParent.UpdateSize()
-	//	m.timer.Free()
-	//	m.timer = nil
-	//}
+	initd := m.chromium.Initialized()
+	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
 	m.windowParent.UpdateSize()
+	fmt.Println("initd created:", initd, created)
 }
 
 func (m *Chromium) resize(sender lcl.IObject) {
@@ -106,7 +95,7 @@ func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aA
 	if isURLDevtools(browser.GetMainFrame().GetUrl()) {
 		return
 	}
-	if tool.IsDarwin() {
+	if isDarwin {
 		m.windowParent.DestroyChildWindow()
 		*aAction = cefTypes.CbaClose
 	} else if tool.IsLinux() {
@@ -119,69 +108,9 @@ func (m *Chromium) chromiumClose(sender lcl.IObject, browser cef.ICefBrowser, aA
 	}
 }
 
-func (m *Chromium) updateTabSheetActive(isActive bool) {
-	if m.tabSheetBtn == nil {
-		return
-	}
-	if isActive {
-		activeColor := colors.RGBToColor(86, 88, 93)
-		m.tabSheetBtn.SetStartColor(activeColor)
-		m.tabSheetBtn.SetEndColor(activeColor)
-		m.tabSheet.SetVisible(true)
-		m.isActive = true
-		if tool.IsDarwin() {
-
-		} else {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				m.mainWindow.addr.SetText(m.currentURL)
-			})
-		}
-		m.mainWindow.updateWindowCaption(m.currentTitle)
-		m.resize(nil)
-	} else {
-		notActiveColor := bgColor //colors.RGBToColor(56, 57, 60)
-		m.tabSheetBtn.SetStartColor(notActiveColor)
-		m.tabSheetBtn.SetEndColor(notActiveColor)
-		m.tabSheet.SetVisible(false)
-		m.isActive = false
-	}
-	m.tabSheetBtn.Invalidate()
-	// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
-	m.updateBrowserControlBtn()
-}
-
-// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
-func (m *Chromium) updateBrowserControlBtn() {
-	if tool.IsDarwin() {
-		return
-	}
-	m.mainWindow.backBtn.IsDisable = !m.canGoBack
-	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
-	backDisable := !m.canGoBack
-	forwardDisable := !m.canGoForward
-	lcl.RunOnMainThreadAsync(func(id uint32) {
-		// 退回按钮
-		if backDisable {
-			// 禁用
-			m.mainWindow.backBtn.SetIcon(getResourcePath("back_disable.png"))
-		} else {
-			m.mainWindow.backBtn.SetIcon(getResourcePath("back.png"))
-		}
-		m.mainWindow.backBtn.Invalidate()
-		// 前进按钮
-		if forwardDisable {
-			// 禁用
-			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
-		} else {
-			m.mainWindow.forwardBtn.SetIcon(getResourcePath("forward.png"))
-		}
-		m.mainWindow.forwardBtn.Invalidate()
-	})
-}
-
 func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	var tabSheetTop int32 = 90
-	if tool.IsDarwin() {
+	if isDarwin {
 		tabSheetTop = tabSheetBtnHeight + 8
 	}
 	newChromium := &Chromium{mainWindow: m, siteFavIcon: make(map[string]string)}
@@ -222,12 +151,6 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 	newChromium.windowParent.SetDoubleBuffered(true)
 	newChromium.windowParent.SetAlign(types.AlClient)
 
-	// 创建一个定时器, 用来createBrowser
-	//newChromium.timer = lcl.NewTimer(m)
-	//newChromium.timer.SetEnabled(false)
-	//newChromium.timer.SetInterval(200)
-	//newChromium.timer.SetOnTimer(newChromium.createBrowser)
-
 	// window parent event
 	newChromium.windowParent.SetOnEnter(func(sender lcl.IObject) {
 		if !newChromium.chromium.FrameIsFocused() {
@@ -266,23 +189,16 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			newChromium.afterCreate()
 		}
 	})
-	//newChromium.chromium.SetOnBeforeBrowse(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, request cef.ICefRequest,
-	//	userGesture, isRedirect bool, result *bool) {
-	//	//newChromium.windowParent.UpdateSize()
-	//})
+
 	newChromium.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		if isURLDevtools(targetUrl) {
 			return
 		}
 		*result = true
 		println("chromium.OnBeforePopup isMainThread:", api.MainThreadId() == api.CurrentThreadId())
+		m.SetAddrText("")
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			// 创建新的 tab
-			if tool.IsDarwin() {
-
-			} else {
-				m.addr.SetText("")
-			}
 			newChromium := m.createChromium(targetUrl)
 			m.OnChromiumCreateTabSheet(newChromium)
 			newChromium.createBrowser(nil)
@@ -302,7 +218,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 			})
 		}
 		newChromium.currentTitle = title
-		if newChromium.isActive && !tool.IsDarwin() {
+		if newChromium.isActive && !isDarwin {
 			m.updateWindowCaption(title)
 		}
 	})
@@ -311,17 +227,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		newChromium.canGoBack = canGoBack
 		newChromium.canGoForward = canGoForward
 		//fmt.Println("OnLoadingStateChange isLoading:", isLoading)
-		if !tool.IsDarwin() {
-			if isLoading {
-				lcl.RunOnMainThreadAsync(func(id uint32) {
-					newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("stop.png"))
-				})
-			} else {
-				lcl.RunOnMainThreadAsync(func(id uint32) {
-					newChromium.mainWindow.refreshBtn.SetIcon(getResourcePath("refresh.png"))
-				})
-			}
-		}
+		newChromium.mainWindow.updateRefreshBtn(newChromium, isLoading)
 		if !isLoading {
 			// 加载完 尝试获取已缓存的图标
 			loadUrl := browser.GetMainFrame().GetUrl()
@@ -353,15 +259,7 @@ func (m *BrowserWindow) createChromium(defaultUrl string) *Chromium {
 		//println("OnLoadStart URL:", tempUrl)
 		newChromium.currentURL = tempUrl
 		if newChromium.isActive {
-			if tool.IsDarwin() {
-
-			} else {
-				lcl.RunOnMainThreadAsync(func(id uint32) {
-					m.addr.SetText(tempUrl)
-					m.addr.SetSelStart(int32(len(tempUrl)))
-					m.addr.SetFocus()
-				})
-			}
+			m.SetAddrText(tempUrl)
 		}
 	})
 	newChromium.chromium.SetOnFavIconUrlChange(func(sender lcl.IObject, browser cef.ICefBrowser, iconUrls lcl.IStrings) {

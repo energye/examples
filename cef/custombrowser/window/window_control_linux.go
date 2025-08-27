@@ -3,7 +3,6 @@ package window
 import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 )
 
@@ -38,7 +37,7 @@ func (m *BrowserWindow) ExitFullScreen() {
 }
 
 func (m *BrowserWindow) IsFullScreen() bool {
-	if tool.IsDarwin() {
+	if isDarwin {
 		return m.windowState == types.WsFullScreen && m.WindowState() == types.WsFullScreen
 	}
 	return m.windowState == types.WsFullScreen

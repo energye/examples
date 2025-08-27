@@ -3,7 +3,6 @@ package window
 import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
-	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
 )
@@ -17,7 +16,7 @@ func (m *BrowserWindow) Maximize() {
 		m.SetWindowState(types.WsMaximized)
 	} else {
 		m.SetWindowState(types.WsNormal)
-		if tool.IsDarwin() { //要这样重复设置2次不然不启作用
+		if isDarwin { //要这样重复设置2次不然不启作用
 			m.SetWindowState(types.WsMaximized)
 			m.SetWindowState(types.WsNormal)
 		}
@@ -45,7 +44,7 @@ func (m *BrowserWindow) ExitFullScreen() {
 }
 
 func (m *BrowserWindow) IsFullScreen() bool {
-	if tool.IsDarwin() {
+	if isDarwin {
 		return m.windowState == types.WsFullScreen && m.WindowState() == types.WsFullScreen
 	}
 	return m.windowState == types.WsFullScreen
@@ -57,7 +56,7 @@ func (m *BrowserWindow) boxDblClick(sender lcl.IObject) {
 			m.SetWindowState(types.WsMaximized)
 		} else {
 			m.SetWindowState(types.WsNormal)
-			if tool.IsDarwin() { //要这样重复设置2次不然不启作用
+			if isDarwin { //要这样重复设置2次不然不启作用
 				m.SetWindowState(types.WsMaximized)
 				m.SetWindowState(types.WsNormal)
 			}
