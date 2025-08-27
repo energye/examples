@@ -102,20 +102,17 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	}
 
 	m.SetOnActivate(func(sender lcl.IObject) {
-		if !isDarwin {
-			if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
-				stream := lcl.NewMemoryStream()
-				lcl.StreamHelper.Write(stream, iconData)
-				stream.SetPosition(0)
-				png := lcl.NewPortableNetworkGraphic()
-				png.LoadFromStreamWithStream(stream)
-				lcl.Application.Icon().Assign(png)
-				png.Free()
-				stream.Free()
-			}
-		} else {
-			m.macOSToolbar()
+		if iconData, err := os.ReadFile(getResourcePath("window-icon_256x256.png")); err == nil {
+			stream := lcl.NewMemoryStream()
+			lcl.StreamHelper.Write(stream, iconData)
+			stream.SetPosition(0)
+			png := lcl.NewPortableNetworkGraphic()
+			png.LoadFromStreamWithStream(stream)
+			lcl.Application.Icon().Assign(png)
+			png.Free()
+			stream.Free()
 		}
+		m.macOSToolbar()
 		newChromium := m.createChromium("")
 		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)

@@ -92,6 +92,31 @@ func (m *Window) HookWndProcMessage() {
 	subMenu.SetCaption("帮助(&H)")
 	item.Add(subMenu)
 	mainMenu.Items().Add(item)
+
+	trayicon := lcl.NewTrayIcon(m)
+	pm := lcl.NewPopupMenu(m)
+	item = lcl.NewMenuItem(m)
+	item.SetCaption("显示(&S)")
+	item.SetOnClick(func(lcl.IObject) {
+		fmt.Println("show")
+		m.BringToFront()
+		m.Show()
+	})
+	pm.Items().Add(item)
+
+	item = lcl.NewMenuItem(m)
+	item.SetCaption("退出(&E)")
+	item.SetOnClick(func(lcl.IObject) {
+		m.Close()
+	})
+	pm.Items().Add(item)
+	trayicon.SetPopUpMenu(pm)
+	trayicon.SetVisible(true)
+
+	png := lcl.NewPortableNetworkGraphic()
+	png.LoadFromFile(getResourcePath("window-icon_64x64.png"))
+	trayicon.Icon().Assign(png)
+	png.Free()
 }
 
 //现代 macOS 工具栏开发最佳实践总结
