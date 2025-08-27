@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页位图获取工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #4fc3f7;
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title i {
+            margin-right: 10px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+
+        button {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(45deg, #FF9800, #FF5722);
+        }
+
+        .preview-container {
+            position: relative;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 500px;
+            display: none;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+        }
+
+        .status.error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-box h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            color: #ffcc00;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>网页位图获取工具</h1>
+        <p class="subtitle">无需离屏渲染，直接获取当前网页的Bitmap图像</p>
+    </header>
+
+    <div class="content">
+        <div class="panel">
+            <h2 class="panel-title">📷 截图控制</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="format">图像格式</label>
+                    <select id="format">
+                        <option value="png">PNG (高质量)</option>
+                        <option value="jpeg">JPEG (较小文件)</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="quality-container" style="display:none;">
+                    <label for="quality">JPEG 质量 (0-100)</label>
+                    <input type="range" id="quality" min="0" max="100" value="90">
+                    <span id="quality-value">90%</span>
+                </div>
+
+                <div class="control-group">
+                    <label>截图范围</label>
+                    <div style="display:flex; gap:10px;">
+                        <button id="full-page" class="secondary" style="flex:1;">整页截图</button>
+                        <button id="visible-area" style="flex:1;">可见区域</button>
+                    </div>
+                </div>
+
+                <button id="capture-btn">
+                    <span>获取网页位图</span>
+                </button>
+
+                <div class="info-box">
+                    <h3>技术说明</h3>
+                    <p>此工具使用HTML5 Canvas技术直接渲染当前网页内容为位图：</p>
+                    <ul>
+                        <li>使用 <span class="highlight">html2canvas</span> 库将DOM渲染到Canvas</li>
+                        <li>将Canvas转换为图像数据 (Bitmap)</li>
+                        <li>支持PNG和JPEG格式输出</li>
+                        <li>可下载或预览生成的位图</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2 class="panel-title">🖼️ 预览与下载</h2>
+            <div class="preview-container">
+                <div class="preview-placeholder" id="placeholder">
+                    <p>截图将显示在这里</p>
+                    <p>⬅️ 请点击左侧的"获取网页位图"按钮</p>
+                </div>
+                <canvas id="canvas"></canvas>
+                <img id="preview-img" class="preview-img" alt="网页截图预览">
+            </div>
+
+            <div class="result-actions" id="result-actions" style="display:none;">
+                <button id="download-btn" class="secondary">下载位图</button>
+                <button id="new-capture">新的截图</button>
+            </div>
+
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>网页位图获取工具 &copy; 2023 | 使用纯前端技术实现</p>
+    </footer>
+</div>
+
+<!-- 引入html2canvas库 -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+    // 页面元素引用
+    const formatSelect = document.getElementById('format');
+    const qualitySlider = document.getElementById('quality');
+    const qualityValue = document.getElementById('quality-value');
+    const qualityContainer = document.getElementById('quality-container');
+    const fullPageBtn = document.getElementById('full-page');
+    const visibleAreaBtn = document.getElementById('visible-area');
+    const captureBtn = document.getElementById('capture-btn');
+    const canvas = document.getElementById('canvas');
+    const previewImg = document.getElementById('preview-img');
+    const placeholder = document.getElementById('placeholder');
+    const resultActions = document.getElementById('result-actions');
+    const downloadBtn = document.getElementById('download-btn');
+    const newCaptureBtn = document.getElementById('new-capture');
+    const statusDiv = document.getElementById('status');
+
+    // 状态变量
+    let captureType = 'visible'; // 'visible' 或 'full'
+    let currentCaptureData = null;
+
+    // 初始化事件监听器
+    function init() {
+        // 图像格式变化时显示/隐藏质量设置
+        formatSelect.addEventListener('change', function () {
+            qualityContainer.style.display = this.value === 'jpeg' ? 'block' : 'none';
+        });
+
+        // 质量滑块事件
+        qualitySlider.addEventListener('input', function () {
+            qualityValue.textContent = this.value + '%';
+        });
+
+        // 截图范围按钮
+        fullPageBtn.addEventListener('click', function () {
+            captureType = 'full';
+            fullPageBtn.classList.add('secondary');
+            visibleAreaBtn.classList.remove('secondary');
+        });
+
+        visibleAreaBtn.addEventListener('click', function () {
+            captureType = 'visible';
+            visibleAreaBtn.classList.add('secondary');
+            fullPageBtn.classList.remove('secondary');
+        });
+
+        // 初始设置可见区域为选中状态
+        visibleAreaBtn.click();
+
+        // 截图按钮事件
+        captureBtn.addEventListener('click', captureScreenshot);
+
+        // 下载按钮事件
+        downloadBtn.addEventListener('click', downloadImage);
+
+        // 新截图按钮事件
+        newCaptureBtn.addEventListener('click', resetCapture);
+    }
+
+    // 捕获网页截图
+    function captureScreenshot() {
+        // 显示加载状态
+        showStatus('正在捕获网页位图...', 'loading');
+
+        // 配置html2canvas选项
+        const options = {
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: null
+        };
+
+        if (captureType === 'full') {
+            options.scrollY = -window.scrollY;
+            options.scrollX = -window.scrollX;
+            options.windowWidth = document.documentElement.scrollWidth;
+            options.windowHeight = document.documentElement.scrollHeight;
+        } else {
+            options.windowWidth = window.innerWidth;
+            options.windowHeight = window.innerHeight;
+        }
+
+        // 执行截图
+        html2canvas(document.body, options).then(canvasObj => {
+            // 将Canvas对象保存到变量
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvasObj.width;
+            canvas.height = canvasObj.height;
+            ctx.drawImage(canvasObj, 0, 0);
+
+            // 转换为图像显示
+            const format = formatSelect.value;
+            const quality = format === 'jpeg' ? qualitySlider.value / 100 : 1;
+            previewImg.src = canvas.toDataURL(`image/${format}`, quality);
+
+            // 显示预览
+            placeholder.style.display = 'none';
+            canvas.style.display = 'none';
+            previewImg.style.display = 'block';
+            resultActions.style.display = 'flex';
+
+            // 保存当前截图数据
+            currentCaptureData = {
+                canvas: canvasObj,
+                format: format,
+                quality: quality
+            };
+
+            // 显示成功状态
+            showStatus(`网页位图获取成功！尺寸: ${canvasObj.width}×${canvasObj.height}`, 'success');
+        }).catch(error => {
+            console.error('截图失败:', error);
+            showStatus(`截图失败: ${error.message}`, 'error');
+        });
+    }
+
+    // 下载图像
+    function downloadImage() {
+        if (!currentCaptureData) return;
+
+        const link = document.createElement('a');
+        const fileName = `webpage-screenshot-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${currentCaptureData.format}`;
+
+        link.download = fileName;
+        link.href = canvas.toDataURL(`image/${currentCaptureData.format}`, currentCaptureData.quality);
+        link.click();
+
+        showStatus(`图像已下载: ${fileName}`, 'success');
+    }
+
+    // 重置捕获
+    function resetCapture() {
+        placeholder.style.display = 'block';
+        previewImg.style.display = 'none';
+        resultActions.style.display = 'none';
+        currentCaptureData = null;
+        statusDiv.style.display = 'none';
+    }
+
+    // 显示状态消息
+    function showStatus(message, type) {
+        statusDiv.textContent = message;
+        statusDiv.className = 'status ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+        statusDiv.style.display = 'block';
+    }
+
+    // 页面加载完成后初始化
+    window.addEventListener('DOMContentLoaded', init);
+
+    // 添加一个简单的动画效果
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('mousedown', function () {
+            this.style.transform = 'scale(0.98)';
+        });
+
+        button.addEventListener('mouseup', function () {
+            this.style.transform = '';
+        });
+
+        button.addEventListener('mouseleave', function () {
+            this.style.transform = '';
+        });
+    });
+</script>
+</body>
+</html>
