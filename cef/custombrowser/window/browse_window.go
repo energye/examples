@@ -50,13 +50,14 @@ var (
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetWidth(1024)
-	m.SetHeight(768)
+	m.SetHeight(700)
 	m.SetDoubleBuffered(true)
 	{
 		// 控制窗口显示鼠标所在显示器
 		centerOnMonitor := func(monitor lcl.IMonitor) {
 			m.SetLeft(monitor.Left() + (monitor.Width()-m.Width())/2)
-			m.SetTop(monitor.Top() + (monitor.Height()-m.Height())/2)
+			top := monitor.Top() + (monitor.Height()-m.Height())/2
+			m.SetTop(top)
 		}
 		mousePos := lcl.Mouse.CursorPos()
 		var (

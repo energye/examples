@@ -35,6 +35,7 @@ func init() {
 		tabSheetBtnRightSize = 5
 	}
 }
+
 func (m *BrowserWindow) macOSToolbar() {
 	cocoa.RegisterRunOnMainThreadCallback()
 	// 获取窗口句柄

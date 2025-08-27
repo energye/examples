@@ -1,7 +1,97 @@
 package window
 
-func (m *Window) HookWndProcMessage() {
+import (
+	"fmt"
+	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
+)
 
+func (m *Window) HookWndProcMessage() {
+	mainMenu := lcl.NewMainMenu(m)
+	mainMenu.SetOnMeasureItem(func(sender lcl.IObject, aCanvas lcl.ICanvas, width, height *int32) {
+		*height = 44
+	})
+	appMenu := lcl.NewMenuItem(m)
+	// 动态添加的，设置一个Unicode Apple logo char
+	appMenu.SetCaption(types.AppleLogoChar)
+	subItem := lcl.NewMenuItem(m)
+
+	subItem.SetCaption("关于")
+	subItem.SetOnClick(func(sender lcl.IObject) {
+		api.ShowMessage("ENERGY\nhttps://github.com/energye/energy")
+	})
+	appMenu.Add(subItem)
+
+	subItem = lcl.NewMenuItem(m)
+	subItem.SetCaption("-")
+	appMenu.Add(subItem)
+
+	subItem = lcl.NewMenuItem(m)
+	subItem.SetCaption("首选项...")
+	subItem.SetShortCut(api.TextToShortCut("Meta+,"))
+	subItem.SetOnClick(func(sender lcl.IObject) {
+		api.ShowMessage("Preferences")
+	})
+	appMenu.Add(subItem)
+	// 添加
+	mainMenu.Items().Insert(0, appMenu)
+	// 一级菜单
+	item := lcl.NewMenuItem(m)
+	item.SetCaption("文件(&F)")
+
+	subMenu := lcl.NewMenuItem(m)
+	subMenu.SetCaption("新建(&N)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+N"))
+	subMenu.SetOnClick(func(lcl.IObject) {
+		fmt.Println("单击了新建")
+	})
+	item.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("打开(&O)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+O"))
+	item.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("保存(&S)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+S"))
+	item.Add(subMenu)
+
+	// 分割线
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("-")
+	item.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("历史记录...")
+	item.Add(subMenu)
+
+	mItem := lcl.NewMenuItem(m)
+	mItem.SetCaption("第一个历史记录")
+	subMenu.Add(mItem)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("-")
+	item.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("退出(&Q)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+Q"))
+	subMenu.SetOnClick(func(lcl.IObject) {
+		m.Close()
+	})
+	item.Add(subMenu)
+
+	mainMenu.Items().Add(item)
+
+	item = lcl.NewMenuItem(m)
+	item.SetCaption("关于(&A)")
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("帮助(&H)")
+	item.Add(subMenu)
+	mainMenu.Items().Add(item)
 }
 
 //现代 macOS 工具栏开发最佳实践总结

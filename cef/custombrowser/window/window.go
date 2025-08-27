@@ -13,7 +13,5 @@ type Window struct {
 }
 
 func (m *Window) FormAfterCreate(sender lcl.IObject) {
-	if !isDarwin {
-		m.HookWndProcMessage()
-	}
+	m.HookWndProcMessage()
 }
