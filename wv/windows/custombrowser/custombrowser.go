@@ -5,7 +5,6 @@ import (
 	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/custombrowser/window"
-	"github.com/energye/lcl/api/exception"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool/exec"
 	wv "github.com/energye/wv/windows"
@@ -23,9 +22,6 @@ func init() {
 func main() {
 	fmt.Println("Go ENERGY Run Main")
 	wv.Init(nil, nil)
-	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("ERROR exception:", exception, "message:", message)
-	})
 	// GlobalWebView2Loader
 	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)

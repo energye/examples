@@ -55,7 +55,7 @@ type BrowserWindow struct {
 }
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
-	m.SetCaption("Webview2 浏览器主机应用程序通信")
+	m.SetCaption("ENERGY 3.0 WebView2")
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(1024)
 	m.SetHeight(768)
@@ -70,7 +70,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetHeight(m.Height())
 	m.box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	m.boxDrag()
-	m.createAddrBar()
 	m.createTitleWidgetControl()
 
 	// 窗口显示时创建browser
@@ -82,14 +81,32 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 				fmt.Println("回调函数 => SetOnShow 初始化成功")
 				def := "file://" + assets.GetResourcePath("default.html")
 				newBrowser := m.CreateBrowser(def)
+				m.OnChromiumCreateTabSheet(newBrowser)
 				newBrowser.Create()
 			}
 		}
 	})
 
-	m.SetOnDestroy(func(sender lcl.IObject) {
-
+	m.SetOnResize(func(sender lcl.IObject) {
+		// 重新计算 tab sheet left 和 width
+		m.recalculateTabSheet()
+		// 更新窗口控制按钮状态
+		m.updateWindowControlBtn()
+		if chrom := m.getActiveBrowse(); chrom != nil {
+			chrom.resize(sender)
+		}
 	})
+}
+
+// 更新窗口控制按钮状态
+func (m *BrowserWindow) updateWindowControlBtn() {
+	if m.WindowState() == types.WsMaximized {
+		m.maxBtn.SetHint("向下还原")
+		m.maxBtn.SetIcon(assets.GetResourcePath("btn-max-re.png"))
+	} else if m.WindowState() == types.WsNormal {
+		m.maxBtn.SetIcon(assets.GetResourcePath("btn-max.png"))
+		m.maxBtn.SetHint("最大化")
+	}
 }
 
 // 浏览器创建完添加一个 tab Sheet
