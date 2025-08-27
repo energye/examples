@@ -287,10 +287,8 @@ func (m *BrowserWindow) createAddrBar() {
 			if _, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
 				tempUrl = "https://energye.github.io/"
 			}
-			for _, browse := range m.browses {
-				if browse.isActive {
-					browse.browser.Navigate(tempUrl)
-				}
+			if browse := m.getActiveBrowse(); browse != nil {
+				browse.browser.Navigate(tempUrl)
 			}
 		}
 	})

@@ -7,6 +7,7 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	wv "github.com/energye/wv/windows"
+	"strings"
 	"widget/wg"
 )
 
@@ -48,7 +49,12 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	newBrowser.windowParent.SetAlign(types.AlClient) //重置对齐,默认是整个客户端
 
 	newBrowser.browser = wv.NewBrowser(m.box)
-	newBrowser.browser.SetDefaultURL(defaultUrl)
+	if defaultUrl == "" {
+		defaultHtmlPath := assets.GetResourcePath("default.html")
+		newBrowser.browser.SetDefaultURL("file://" + defaultHtmlPath)
+	} else {
+		newBrowser.browser.SetDefaultURL(defaultUrl)
+	}
 	//m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44") // 设置
 	fmt.Println("TargetCompatibleBrowserVersion:", newBrowser.browser.TargetCompatibleBrowserVersion())
 	newBrowser.browser.SetOnAfterCreated(func(sender lcl.IObject) {
@@ -56,22 +62,76 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		newBrowser.windowParent.UpdateSize()
 	})
 	newBrowser.browser.SetOnDocumentTitleChanged(func(sender lcl.IObject) {
-		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", newBrowser.browser.DocumentTitle())
+		title := newBrowser.browser.DocumentTitle()
+		fmt.Println("回调函数 WVBrowser => SetOnDocumentTitleChanged:", title)
+		if newBrowser.tabSheetBtn != nil {
+			if isDefaultResourceHTML(title) {
+				title = "新建标签页"
+			}
+
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				newBrowser.tabSheetBtn.SetCaption(title)
+				newBrowser.tabSheetBtn.SetHint(title)
+				newBrowser.tabSheetBtn.Invalidate()
+			})
+		}
+		newBrowser.currentTitle = title
+		if newBrowser.isActive {
+			m.updateWindowCaption(title)
+		}
+	})
+
+	var navBtns = func(aIsNavigating bool) {
+		newBrowser.isLoading = aIsNavigating
+		newBrowser.canGoBack = newBrowser.browser.CanGoBack()
+		newBrowser.canGoForward = newBrowser.browser.CanGoForward()
+		newBrowser.mainWindow.updateRefreshBtn(newBrowser, aIsNavigating)
+		newBrowser.updateBrowserControlBtn()
+	}
+
+	newBrowser.browser.SetOnNotificationCloseRequested(func(sender lcl.IObject, notification wv.ICoreWebView2Notification, args lcl.IUnknown) {
+		fmt.Println("SetOnNotificationCloseRequested")
+	})
+	newBrowser.browser.SetOnNavigationStarting(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationStartingEventArgs) {
+		navBtns(true)
+		args = wv.NewCoreWebView2NavigationStartingEventArgs(args)
+		targetURL := args.URI()
+		if isDefaultResourceHTML(targetURL) {
+			targetURL = ""
+		}
+		println("OnLoadStart URL:", targetURL)
+		newBrowser.currentURL = targetURL
+		if newBrowser.isActive {
+			m.SetAddrText(targetURL)
+		}
+		args.Free()
+	})
+	newBrowser.browser.SetOnNavigationCompleted(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NavigationCompletedEventArgs) {
+		navBtns(false)
 	})
 	newBrowser.browser.SetOnNewWindowRequested(func(sender lcl.IObject, webView wv.ICoreWebView2, args wv.ICoreWebView2NewWindowRequestedEventArgs) {
 		args = wv.NewCoreWebView2NewWindowRequestedEventArgs(args)
 		// 阻止新窗口
 		args.SetHandled(true)
 		// 可以自己创建窗口
-
-		// 当前页面打开新链接
-		//m.browser.Navigate(args.URI())
-		//free
+		targetURL := args.URI()
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			// 创建新的 tab
+			newChromium := m.CreateBrowser(targetURL)
+			m.OnChromiumCreateTabSheet(newChromium)
+			newChromium.Create()
+		})
 		args.Free()
+	})
+	newBrowser.browser.SetOnFaviconChanged(func(sender lcl.IObject, webView wv.ICoreWebView2, args lcl.IUnknown) {
+		fmt.Println("SetOnFaviconChanged FaviconURI:", webView.FaviconURI())
+	})
+	newBrowser.browser.SetOnGetFaviconCompleted(func(sender lcl.IObject, errorCode types.HRESULT, result lcl.IStreamAdapter) {
+		fmt.Println("SetOnGetFaviconCompleted errorCode:", errorCode)
 	})
 	// 设置browser到window parent
 	newBrowser.windowParent.SetBrowser(newBrowser.browser)
-
+	newBrowser.mainWindow = m
 	return newBrowser
 }
 
@@ -87,8 +147,10 @@ func (m *Browser) CloseBrowse() {
 	m.browser.Stop()
 	m.browser.Free()
 	m.windowParent.Free()
+	m.tabSheetBtn.Free()
+	m.tabSheet.Free()
+	m.mainWindow.removeTabSheetBrowse(m)
 }
-
 func (m *Browser) resize(sender lcl.IObject) {
 	if m.windowParent != nil {
 		m.windowParent.UpdateSize()
@@ -141,4 +203,13 @@ func (m *Browser) updateBrowserControlBtn() {
 		}
 		m.mainWindow.forwardBtn.Invalidate()
 	})
+}
+
+// 过滤 掉一些特定的 url , 在浏览器首页加载时使用的
+func isDefaultResourceHTML(v string) bool {
+	return v == "about:blank" || v == "DevTools" ||
+		(strings.Index(v, "file://") != -1 && strings.Index(v, "resources") != -1) ||
+		strings.Index(v, "default.html") != -1 ||
+		strings.Index(v, "view-source:file://") != -1 ||
+		strings.Index(v, "devtools://") != -1
 }

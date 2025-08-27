@@ -169,6 +169,62 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	m.recalculateTabSheet()
 }
 
+func (m *BrowserWindow) removeTabSheetBrowse(browse *Browser) {
+	m.browserCloseLock.Lock()
+	defer m.browserCloseLock.Unlock()
+	var isCloseCurrentActive bool
+	if active := m.getActiveBrowse(); active != nil && active == browse {
+		isCloseCurrentActive = true
+	}
+	// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
+	idx := browse.windowId - 1
+	// 删除
+	m.browses = append(m.browses[:idx], m.browses[idx+1:]...)
+	// 重新设置每个 chromium 的 windowID, 在下次删除时能对应上
+	for id, chrom := range m.browses {
+		chrom.windowId = int32(id + 1)
+	}
+	if len(m.browses) > 0 {
+		// 判断关闭时tabSheet是否为当前激活的
+		// 如果是当前激活的，激活最后一个
+		if isCloseCurrentActive {
+			// 激活最后一个
+			lastChrom := m.browses[len(m.browses)-1]
+			lastChrom.updateTabSheetActive(true)
+			// 其它的不激活
+			m.updateOtherTabSheetNoActive(lastChrom)
+		}
+	} else {
+		// 没有 chrom 清空和还原控制按钮、地址栏
+		m.resetControlBtn()
+	}
+	// 重新计算 tab sheet left 和 width
+	m.recalculateTabSheet()
+
+	// 正在关闭浏览器完成
+	m.isChromCloseing = false
+
+	// 点击窗口的关闭按钮时尝试关闭窗口
+	if m.isWindowButtonClose {
+		// 尝试关闭窗口, 所有 chrom 都关闭后再关闭窗口
+		m.Close()
+	}
+}
+
+// 清空地址栏 和 还原控制按钮
+func (m *BrowserWindow) resetControlBtn() {
+	m.addr.SetText("")
+	m.backBtn.IsDisable = true
+	m.forwardBtn.IsDisable = true
+	m.backBtn.SetIcon(assets.GetResourcePath("back_disable.png"))
+	m.backBtn.Invalidate()
+	m.forwardBtn.SetIcon(assets.GetResourcePath("forward_disable.png"))
+	m.forwardBtn.Invalidate()
+	m.refreshBtn.SetIcon(assets.GetResourcePath("refresh.png"))
+	m.refreshBtn.Invalidate()
+	m.updateWindowCaption("")
+}
+
 var (
 	tabSheetBtnHeight    int32 = 40
 	tabSheetBtnRightSize int32 = 40 * 6 // 添加按钮，最小化，最大化，关闭按钮的预留位置
@@ -246,6 +302,17 @@ func (m *BrowserWindow) updateOtherTabSheetNoActive(currentBrowse *Browser) {
 		if browse != currentBrowse {
 			browse.updateTabSheetActive(false)
 		}
+	}
+}
+func (m *BrowserWindow) updateRefreshBtn(chromium *Browser, isLoading bool) {
+	if isLoading {
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			chromium.mainWindow.refreshBtn.SetIcon(assets.GetResourcePath("stop.png"))
+		})
+	} else {
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			chromium.mainWindow.refreshBtn.SetIcon(assets.GetResourcePath("refresh.png"))
+		})
 	}
 }
 
