@@ -33,6 +33,7 @@ var (
 func init() {
 	if isDarwin {
 		tabSheetBtnHeight = 30
+		tabSheetBtnRightSize = 5
 	}
 }
 func (m *BrowserWindow) macOSToolbar() {

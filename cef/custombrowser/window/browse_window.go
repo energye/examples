@@ -115,7 +115,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		} else {
 			m.macOSToolbar()
 		}
-		newChromium := m.createChromium("https://www.baidu.com")
+		newChromium := m.createChromium("")
 		m.OnChromiumCreateTabSheet(newChromium)
 		newChromium.createBrowser(nil)
 	})
@@ -288,17 +288,19 @@ func (m *BrowserWindow) updateWindowCaption(title string) {
 	})
 }
 
-var tabSheetBtnHeight int32 = 40
+var (
+	tabSheetBtnHeight    int32 = 40
+	tabSheetBtnRightSize int32 = 40 * 6 // 添加按钮，最小化，最大化，关闭按钮的预留位置
+)
 
 // 重新计算 tab sheet left 和 width
 func (m *BrowserWindow) recalculateTabSheet() {
 	var (
 		minWidth, maxWidth int32 = 40, 230       // 最小宽度, 最大宽度
-		rightSize          int32 = 40 * 6        // 添加按钮，最小化，最大化，关闭按钮的预留位置
 		width                    = m.box.Width() // 当前窗口宽
 		leftSize           int32 = 0             // 默认 间距
 	)
-	areaWidth := width - rightSize // 区域可用宽度
+	areaWidth := width - tabSheetBtnRightSize // 区域可用宽度
 	count := int32(len(m.chroms))
 	if count == 0 {
 		count = 1
