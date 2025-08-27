@@ -77,7 +77,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	backBtnProperty := defaultProperty
 	backBtnConfig := item
 	backBtnConfig.Tips = "后退"
-	backBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/back.png"
+	backBtnConfig.IconName = getResourcePath("back.png")
 	backBtn = bar.NewImageButtonForImage(backBtnConfig, backBtnProperty)
 	backBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
@@ -92,7 +92,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	forwardBtnProperty := defaultProperty
 	forwardBtnConfig := item
 	forwardBtnConfig.Tips = "前进"
-	forwardBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/forward.png"
+	forwardBtnConfig.IconName = getResourcePath("forward.png")
 	forwardBtn = bar.NewImageButtonForImage(forwardBtnConfig, forwardBtnProperty)
 	forwardBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
@@ -107,7 +107,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	refreshBtnProperty := defaultProperty
 	refreshBtnConfig := item
 	refreshBtnConfig.Tips = "刷新"
-	refreshBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/refresh.png"
+	refreshBtnConfig.IconName = getResourcePath("refresh.png")
 	refreshBtn = bar.NewImageButtonForImage(refreshBtnConfig, refreshBtnProperty)
 	refreshBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("OnClick", identifier)
@@ -156,7 +156,8 @@ func (m *BrowserWindow) macOSToolbar() {
 	addBtnProperty.IsNavigational = false
 	addBtnProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	addBtnConfig := item
-	addBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/add.png"
+	addBtnConfig.Tips = "新建标签页"
+	addBtnConfig.IconName = getResourcePath("add.png")
 	addBtnData, _ := os.ReadFile(addBtnConfig.IconName)
 	//addBtn := bar.NewImageButtonForImage(addBtnConfig, addBtnProperty)
 	addBtn := bar.NewImageButtonForBytes(addBtnData, addBtnConfig, addBtnProperty)
@@ -175,7 +176,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	rightBtnProperty.IsNavigational = false
 	rightBtnProperty.VisibilityPriority = toolbar.NSToolbarItemVisibilityPriorityHigh
 	rightBtnConfig := item
-	rightBtnConfig.IconName = "/Users/yanghy/app/workspace/examples/cef/custombrowser/resources/addr-right-btn.png"
+	rightBtnConfig.IconName = getResourcePath("addr-right-btn.png")
 	rightBtnData, _ := os.ReadFile(rightBtnConfig.IconName)
 	rightBtn := bar.NewImageButtonForBytes(rightBtnData, rightBtnConfig, rightBtnProperty)
 	rightBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {

@@ -49,8 +49,8 @@ var (
 )
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
-	m.SetWidth(800)
-	m.SetHeight(600)
+	m.SetWidth(1024)
+	m.SetHeight(768)
 	m.SetDoubleBuffered(true)
 	{
 		// 控制窗口显示鼠标所在显示器
