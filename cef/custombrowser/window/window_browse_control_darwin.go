@@ -11,7 +11,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types/colors"
 	"log"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -80,7 +79,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	backBtnConfig.IconName = getResourcePath("back.png")
 	backBtn = bar.NewImageButtonForImage(backBtnConfig, backBtnProperty)
 	backBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("OnClick", identifier)
+		fmt.Println("backBtn OnClick", identifier)
 		chrom := m.getActiveChrom()
 		if chrom != nil && chrom.chromium.CanGoBack() {
 			chrom.chromium.GoBack()
@@ -95,7 +94,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	forwardBtnConfig.IconName = getResourcePath("forward.png")
 	forwardBtn = bar.NewImageButtonForImage(forwardBtnConfig, forwardBtnProperty)
 	forwardBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("OnClick", identifier)
+		fmt.Println("forwardBtn OnClick", identifier)
 		chrom := m.getActiveChrom()
 		if chrom != nil && chrom.chromium.CanGoForward() {
 			chrom.chromium.GoForward()
@@ -110,7 +109,7 @@ func (m *BrowserWindow) macOSToolbar() {
 	refreshBtnConfig.IconName = getResourcePath("refresh.png")
 	refreshBtn = bar.NewImageButtonForImage(refreshBtnConfig, refreshBtnProperty)
 	refreshBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
-		fmt.Println("OnClick", identifier)
+		fmt.Println("refreshBtn OnClick", identifier)
 		chrom := m.getActiveChrom()
 		if chrom != nil {
 			if chrom.isLoading {
@@ -138,8 +137,8 @@ func (m *BrowserWindow) macOSToolbar() {
 	addr.SetOnCommit(func(identifier string, value string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		println("addr OnCommit", identifier, value)
 		tempUrl := strings.TrimSpace(value)
-		if _, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
-			tempUrl = "https://energye.github.io/"
+		if tempUrl == "" {
+			return nil
 		}
 		for _, chrom := range m.chroms {
 			if chrom.isActive {
@@ -181,13 +180,9 @@ func (m *BrowserWindow) macOSToolbar() {
 	rightBtn := bar.NewImageButtonForBytes(rightBtnData, rightBtnConfig, rightBtnProperty)
 	rightBtn.SetOnClick(func(identifier string, owner toolbar.Pointer, sender toolbar.Pointer) *toolbar.GoArguments {
 		fmt.Println("rightBtn OnClick", identifier, "isMainThread:", api.MainThreadId() == api.CurrentThreadId())
-		go func() {
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				if chrom := m.getActiveChrom(); chrom != nil {
-					chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
-				}
-			})
-		}()
+		if chrom := m.getActiveChrom(); chrom != nil {
+			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
+		}
 		return nil
 	})
 	bar.AddItem(rightBtn)
