@@ -49,6 +49,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	//重新调整browser窗口的Parent属性
 	//重新设置了上边距，宽，高
 	newBrowser.windowParent.SetAlign(types.AlClient) //重置对齐,默认是整个客户端
+	newBrowser.windowParent.SetDoubleBuffered(true)
 
 	newBrowser.browser = wv.NewBrowser(m.box)
 	if defaultUrl == "" {

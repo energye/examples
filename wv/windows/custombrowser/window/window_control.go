@@ -183,9 +183,16 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 		if len(m.browses) == 0 {
 			m.Close()
 		} else {
-			for _, chrom := range m.browses {
-				chrom.CloseBrowse()
+			// 稳妥的关闭方式
+			for {
+				count := len(m.browses)
+				if count == 0 {
+					break
+				}
+				m.browses[0].CloseBrowse()
 			}
+			// 最后关闭窗口
+			m.Close()
 		}
 		m.isWindowButtonClose = true
 	})
@@ -284,8 +291,13 @@ func (m *BrowserWindow) createAddrBar() {
 		if k == 13 || k == 10 {
 			//*key = 0
 			tempUrl := strings.TrimSpace(m.addr.Text())
-			if _, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
+
+			if uri, err := url.Parse(tempUrl); err != nil || tempUrl == "" {
 				tempUrl = "https://energye.github.io/"
+			} else {
+				if uri.Scheme == "" {
+					tempUrl = "http://" + tempUrl
+				}
 			}
 			if browse := m.getActiveBrowse(); browse != nil {
 				browse.browser.Navigate(tempUrl)

@@ -98,6 +98,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			chrom.resize(sender)
 		}
 	})
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+		println("window.OnCloseQuery 当前浏览器数量:", len(m.browses))
+		*canClose = len(m.browses) == 0
+	})
 }
 
 // 更新窗口控制按钮状态
