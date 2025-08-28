@@ -215,11 +215,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			defer tempNavigationAction.Free()
 			tempURIRequest := wv.NewURIRequest(tempNavigationAction.GetRequest())
 			defer tempURIRequest.Free()
-			fmt.Println("URL:", tempURIRequest.URI())
+			newWindowURL := tempURIRequest.URI()
+			fmt.Println("NewWindow URL:", newWindowURL)
 			// new window
 			if type_ == wvTypes.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION {
 				lcl.RunOnMainThreadAsync(func(id uint32) {
-					window := NewWindow(tempURIRequest.URI())
+					window := NewWindow(newWindowURL)
 					window.Show()
 				})
 			}
