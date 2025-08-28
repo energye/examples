@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	wv "github.com/energye/wv/linux"
@@ -68,6 +69,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
 
+	var menuIdClose int32 = 10001
 	m.webview = wv.NewWebview(m)
 	m.webview.SetOnContextMenu(func(sender lcl.IObject, contextMenu wvTypes.WebKitContextMenu, defaultAction wvTypes.PWkAction) bool {
 		fmt.Println("OnContextMenu defaultAction:", defaultAction)
@@ -76,39 +78,18 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		tempMenuItemSep := wv.ContextMenuItem.NewSeparator()
 		defer tempMenuItemSep.Free()
 		tempContextMenu.Append(tempMenuItemSep.Data())
-		tempMenuItemClose := wv.ContextMenuItem.NewFromAction(defaultAction, "关闭", 10001)
+		tempMenuItemClose := wv.ContextMenuItem.NewFromAction(defaultAction, "关闭", menuIdClose)
 		defer tempMenuItemClose.Free()
 		tempContextMenu.Append(tempMenuItemClose.Data())
 		return false
 	})
 	m.webview.SetOnContextMenuCommand(func(sender lcl.IObject, menuID int32) {
 		fmt.Println("OnContextMenuCommand menuID:", menuID)
-		if menuID == 10001 {
+		if menuID == menuIdClose {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.Close()
 			})
 		}
-	})
-	m.webview.SetOnGetAcceptPolicyFinish(func(sender lcl.IObject, policy wvTypes.WebKitCookieAcceptPolicy, error_ string) {
-		fmt.Println("OnGetAcceptPolicyFinish policy:", policy)
-	})
-	m.webview.SetOnGetCookiesFinish(func(sender lcl.IObject, cookieList wvTypes.PList, error_ string) {
-		fmt.Println("OnGetCookiesFinish error_:", error_)
-		tempCookieList := wv.NewCookieList(cookieList)
-		defer tempCookieList.Free()
-		size := tempCookieList.Length()
-		fmt.Println("\tsize:", size)
-		for i := 0; i < int(size); i++ {
-			cookie := wv.NewCookie(tempCookieList.GetCookie(int32(i)))
-			fmt.Println("\t cookie domain:", cookie.Domain())
-			cookie.Free()
-		}
-	})
-	m.webview.SetOnAddCookieFinish(func(sender lcl.IObject, result bool, error_ string) {
-		fmt.Println("OnAddCookieFinish result:", result, "error:", error_)
-	})
-	m.webview.SetOnDeleteCookieFinish(func(sender lcl.IObject, result bool, error_ string) {
-		fmt.Println("OnDeleteCookieFinish result:", result, "error:", error_)
 	})
 	m.webview.SetOnLoadChange(func(sender lcl.IObject, loadEvent wvTypes.WebKitLoadEvent) {
 		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", m.webview.GetTitle())
@@ -129,29 +110,33 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	m.webview.SetOnDecidePolicy(func(sender lcl.IObject, wkDecision wvTypes.WebKitPolicyDecision, type_ wvTypes.WebKitPolicyDecisionType) bool {
-		fmt.Println("OnDecidePolicy type_:", type_)
-		tempDecision := wv.NewNavigationPolicyDecision(wkDecision)
-		defer tempDecision.Free()
+		fmt.Println("OnDecidePolicy type_:", type_, "IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		if type_ == wvTypes.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION || type_ == wvTypes.WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION {
-			tempNavigationAction := wv.NewNavigationAction(tempDecision.GetNavigationAction())
-			defer tempNavigationAction.Free()
-			tempURIRequest := wv.NewURIRequest(tempNavigationAction.GetRequest())
-			defer tempURIRequest.Free()
-			newWindowURL := tempURIRequest.URI()
-			fmt.Println("NewWindow URL:", newWindowURL)
+			tempDecision := wv.NewNavigationPolicyDecision(wkDecision)
+			defer tempDecision.Free()
 			// new window
 			if type_ == wvTypes.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION {
+				tempNavigationAction := wv.NewNavigationAction(tempDecision.GetNavigationAction())
+				defer tempNavigationAction.Free()
+				tempURIRequest := wv.NewURIRequest(tempNavigationAction.GetRequest())
+				defer tempURIRequest.Free()
+				newWindowURL := tempURIRequest.URI()
+				fmt.Println("NewWindow URL:", newWindowURL)
 				lcl.RunOnMainThreadAsync(func(id uint32) {
 					window := NewWindow(newWindowURL)
 					window.Show()
 				})
 			}
+			tempDecision.Use()
 		} else {
+			// WEBKIT_POLICY_DECISION_TYPE_RESPONSE
+			// 响应
 			tempResponsePolicyDecision := wv.NewResponsePolicyDecision(wkDecision)
 			defer tempResponsePolicyDecision.Free()
 			tempURIRequest := wv.NewURIRequest(tempResponsePolicyDecision.GetRequest())
 			defer tempURIRequest.Free()
-			fmt.Println("URL:", tempURIRequest.URI())
+			fmt.Println("Response URL:", tempURIRequest.URI())
+			tempResponsePolicyDecision.Use()
 		}
 		return true
 	})
@@ -173,8 +158,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webviewParent.SetWebview(m.webview)
 
 	m.SetOnActivate(func(sender lcl.IObject) {
+	})
+	m.SetOnShow(func(sender lcl.IObject) {
 		//m.webview.LoadURL("https://element-plus.org/zh-CN/")
-		m.webview.LoadURL("https://www.baidu.com")
+		if m.url == "" {
+			m.webview.LoadURL("https://www.baidu.com")
+		} else {
+			m.webview.LoadURL(m.url)
+		}
 	})
 
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
@@ -184,6 +175,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			m.canClose = true
 			m.webview.Stop()
 			m.webview.TerminateWebProcess()
+			m.webview.Free()
 			//m.webviewParent.FreeChild()
 		}
 		if *canClose && m.isMainWindow {
