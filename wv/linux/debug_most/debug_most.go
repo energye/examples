@@ -313,6 +313,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.RegisterScriptCode(`let test = {"name": "zhangsan"}`)
 	m.webview.RegisterScriptMessageHandler("processMessage")
 
+	setting := wv.NewSettings()
+	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS)
+	m.webview.SetSettings(setting)
+
 	// 所有webview事件或配置都在 CreateBrowser 之前
 	m.webview.CreateBrowser()
 	m.webviewParent.SetWebview(m.webview)
