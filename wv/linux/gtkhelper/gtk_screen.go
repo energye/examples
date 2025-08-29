@@ -40,7 +40,7 @@ func toScreen(s *C.GdkScreen) (*Screen, error) {
 	if s == nil {
 		return nil, nilPtrErr
 	}
-	return &Screen{ToCObject(unsafe.Pointer(s))}, nil
+	return &Screen{ToGoObject(unsafe.Pointer(s))}, nil
 }
 
 // GetRGBAVisual is a wrapper around gdk_screen_get_rgba_visual().
