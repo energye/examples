@@ -29,7 +29,7 @@ func (v *HeaderBar) native() *C.GtkHeaderBar {
 	return C.toGtkHeaderBar(p)
 }
 
-func WrapHeaderBar(obj *Object) *HeaderBar {
+func wrapHeaderBar(obj *Object) *HeaderBar {
 	if obj == nil {
 		return nil
 	}
@@ -38,12 +38,12 @@ func WrapHeaderBar(obj *Object) *HeaderBar {
 }
 
 // HeaderBarNew is a wrapper around gtk_header_bar_new().
-func HeaderBarNew() (*HeaderBar, error) {
+func NewHeaderBar() (*HeaderBar, error) {
 	c := C.gtk_header_bar_new()
 	if c == nil {
 		return nil, nilPtrErr
 	}
-	return WrapHeaderBar(ToGoObject(unsafe.Pointer(c))), nil
+	return wrapHeaderBar(ToGoObject(unsafe.Pointer(c))), nil
 }
 
 // SetTitle is a wrapper around gtk_header_bar_set_title().

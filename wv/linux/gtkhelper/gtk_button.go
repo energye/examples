@@ -34,25 +34,25 @@ func wrapButton(obj *Object) *Button {
 }
 
 // ButtonNew() is a wrapper around gtk_button_new().
-func ButtonNew() (*Button, error) {
+func NewButton() *Button {
 	c := C.gtk_button_new()
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
 	obj := ToGoObject(unsafe.Pointer(c))
-	return wrapButton(obj), nil
+	return wrapButton(obj)
 }
 
 // ButtonNewWithLabel() is a wrapper around gtk_button_new_with_label().
-func ButtonNewWithLabel(label string) (*Button, error) {
+func NewButtonWithLabel(label string) *Button {
 	cstr := C.CString(label)
 	defer C.free(unsafe.Pointer(cstr))
 	c := C.gtk_button_new_with_label((*C.gchar)(cstr))
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
 	obj := ToGoObject(unsafe.Pointer(c))
-	return wrapButton(obj), nil
+	return wrapButton(obj)
 }
 
 // Clicked() is a wrapper around gtk_button_clicked().

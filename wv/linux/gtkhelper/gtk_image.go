@@ -12,8 +12,8 @@ import (
 	"unsafe"
 )
 
-// ImageNew() is a wrapper around gtk_image_new().
-func ImageNew() *Image {
+// NewImage is a wrapper around gtk_image_new().
+func NewImage() *Image {
 	c := C.gtk_image_new()
 	if c == nil {
 		return nil
@@ -21,8 +21,8 @@ func ImageNew() *Image {
 	return wrapImage(ToGoObject(unsafe.Pointer(c)))
 }
 
-// ImageNewFromFile() is a wrapper around gtk_image_new_from_file().
-func ImageNewFromFile(filename string) *Image {
+// NewImageFromFile is a wrapper around gtk_image_new_from_file().
+func NewImageFromFile(filename string) *Image {
 	cstr := C.CString(filename)
 	defer C.free(unsafe.Pointer(cstr))
 	c := C.gtk_image_new_from_file((*C.gchar)(cstr))
@@ -32,8 +32,8 @@ func ImageNewFromFile(filename string) *Image {
 	return wrapImage(ToGoObject(unsafe.Pointer(c)))
 }
 
-// ImageNewFromResource() is a wrapper around gtk_image_new_from_resource().
-func ImageNewFromResource(resourcePath string) *Image {
+// NewImageFromResource is a wrapper around gtk_image_new_from_resource().
+func NewImageFromResource(resourcePath string) *Image {
 	cstr := C.CString(resourcePath)
 	defer C.free(unsafe.Pointer(cstr))
 	c := C.gtk_image_new_from_resource((*C.gchar)(cstr))
@@ -43,8 +43,8 @@ func ImageNewFromResource(resourcePath string) *Image {
 	return wrapImage(ToGoObject(unsafe.Pointer(c)))
 }
 
-// ImageNewFromIconName() is a wrapper around gtk_image_new_from_icon_name().
-func ImageNewFromIconName(iconName string, size IconSize) *Image {
+// NewImageFromIconName is a wrapper around gtk_image_new_from_icon_name().
+func NewImageFromIconName(iconName string, size IconSize) *Image {
 	cstr := C.CString(iconName)
 	defer C.free(unsafe.Pointer(cstr))
 	c := C.gtk_image_new_from_icon_name((*C.gchar)(cstr), C.GtkIconSize(size))

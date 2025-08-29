@@ -70,7 +70,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	gtkWindowPtr := gtkHandle.Gtk3Window()
 	fmt.Println("gtkWindowPtr:", gtkWindowPtr)
 
-	headerBar, err := gtkhelper.HeaderBarNew()
+	headerBar, err := gtkhelper.NewHeaderBar()
 	if err != nil {
 		return
 	}
@@ -79,13 +79,19 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	gtkWindow := gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
 	gtkWindow.SetTitlebar(headerBar)
 
-	btn, _ := gtkhelper.ButtonNewWithLabel("button")
+	btn := gtkhelper.NewButton() // .ButtonNewWithLabel("button")
+	btn.SetRelief(gtkhelper.RELIEF_NONE)
+	gtkhelper.NewCssProvider()
+
 	var sh *gtkhelper.SignalHandler
 	sh = btn.SetOnClick(func(sender *gtkhelper.Widget) {
 		println("btn.SetOnClick", sender)
 		//sh.Disconnect()
 	})
 	println("OnClick handlerId:", sh.HandlerID(), "eventId:", sh.ID())
+	btnIcon := gtkhelper.NewImageFromIconName("open-menu-symbolic", gtkhelper.ICON_SIZE_BUTTON)
+	btn.SetImage(btnIcon)
+
 	headerBar.PackStart(btn)
 
 	m.SetOnShow(func(sender lcl.IObject) {
