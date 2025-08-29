@@ -110,3 +110,37 @@ func castWidget(c *C.GtkWidget) IWidget {
 	wdt.Object = ToGoObject(unsafe.Pointer(c))
 	return wdt
 }
+
+// Align is a representation of GTK's GtkAlign.
+type Align int
+
+const (
+	ALIGN_FILL   Align = C.GTK_ALIGN_FILL
+	ALIGN_START  Align = C.GTK_ALIGN_START
+	ALIGN_END    Align = C.GTK_ALIGN_END
+	ALIGN_CENTER Align = C.GTK_ALIGN_CENTER
+)
+
+func marshalAlign(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return Align(c), nil
+}
+
+// StateFlags is a representation of GTK's GtkStateFlags.
+type StateFlags int
+
+const (
+	STATE_FLAG_NORMAL       StateFlags = C.GTK_STATE_FLAG_NORMAL
+	STATE_FLAG_ACTIVE       StateFlags = C.GTK_STATE_FLAG_ACTIVE
+	STATE_FLAG_PRELIGHT     StateFlags = C.GTK_STATE_FLAG_PRELIGHT
+	STATE_FLAG_SELECTED     StateFlags = C.GTK_STATE_FLAG_SELECTED
+	STATE_FLAG_INSENSITIVE  StateFlags = C.GTK_STATE_FLAG_INSENSITIVE
+	STATE_FLAG_INCONSISTENT StateFlags = C.GTK_STATE_FLAG_INCONSISTENT
+	STATE_FLAG_FOCUSED      StateFlags = C.GTK_STATE_FLAG_FOCUSED
+	STATE_FLAG_BACKDROP     StateFlags = C.GTK_STATE_FLAG_BACKDROP
+)
+
+func marshalStateFlags(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return StateFlags(c), nil
+}

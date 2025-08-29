@@ -17,16 +17,6 @@ import (
 
 var nilPtrErr = errors.New("cgo returned unexpected nil pointer")
 
-// IWidget is an interface type implemented by all structs
-// embedding a Widget.  It is meant to be used as an argument type
-// for wrapper functions that wrap around a C GTK function taking a
-// GtkWidget.
-type IWidget interface {
-	toWidget() *C.GtkWidget
-	ToWidget() *Widget
-	Set(name string, value interface{}) error
-}
-
 // Container is a representation of GTK's GtkContainer.
 type Container struct {
 	Widget
@@ -35,41 +25,6 @@ type Container struct {
 // Bin is a representation of GTK's GtkBin.
 type Bin struct {
 	Container
-}
-
-// Widget is a representation of GTK's GtkWidget.
-type Widget struct {
-	InitiallyUnowned
-}
-
-func wrapWidget(obj *Object) *Widget {
-	if obj == nil {
-		return nil
-	}
-
-	return &Widget{InitiallyUnowned{obj}}
-}
-
-// native returns a pointer to the underlying GtkWidget.
-func (v *Widget) native() *C.GtkWidget {
-	if v == nil || v.GObject == nil {
-		return nil
-	}
-	p := unsafe.Pointer(v.GObject)
-	return C.toGtkWidget(p)
-}
-
-func (v *Widget) toWidget() *C.GtkWidget {
-	if v == nil {
-		return nil
-	}
-	return v.native()
-}
-
-// ToWidget is a helper getter, e.g.: it returns *gtk.Label as a *gtk.Widget.
-// In other cases, where you have a gtk.IWidget, use the type assertion.
-func (v *Widget) ToWidget() *Widget {
-	return v
 }
 
 // InitiallyUnowned is a representation of GLib's GInitiallyUnowned.
@@ -88,11 +43,6 @@ type Object struct {
 // Set calls SetProperty.
 func (v *Object) Set(name string, value interface{}) error {
 	return nil
-}
-
-// Event is a representation of GDK's GdkEvent.
-type Event struct {
-	GdkEvent *C.GdkEvent
 }
 
 func CBool(b bool) C.gboolean {
