@@ -144,3 +144,41 @@ func marshalStateFlags(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return StateFlags(c), nil
 }
+
+// IconSize is a representation of GTK's GtkIconSize.
+type IconSize int
+
+const (
+	ICON_SIZE_INVALID       IconSize = C.GTK_ICON_SIZE_INVALID
+	ICON_SIZE_MENU          IconSize = C.GTK_ICON_SIZE_MENU
+	ICON_SIZE_SMALL_TOOLBAR IconSize = C.GTK_ICON_SIZE_SMALL_TOOLBAR
+	ICON_SIZE_LARGE_TOOLBAR IconSize = C.GTK_ICON_SIZE_LARGE_TOOLBAR
+	ICON_SIZE_BUTTON        IconSize = C.GTK_ICON_SIZE_BUTTON
+	ICON_SIZE_DND           IconSize = C.GTK_ICON_SIZE_DND
+	ICON_SIZE_DIALOG        IconSize = C.GTK_ICON_SIZE_DIALOG
+)
+
+func marshalIconSize(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return IconSize(c), nil
+}
+
+// ImageType is a representation of GTK's GtkImageType.
+type ImageType int
+
+const (
+	IMAGE_EMPTY     ImageType = C.GTK_IMAGE_EMPTY
+	IMAGE_PIXBUF    ImageType = C.GTK_IMAGE_PIXBUF
+	IMAGE_STOCK     ImageType = C.GTK_IMAGE_STOCK
+	IMAGE_ICON_SET  ImageType = C.GTK_IMAGE_ICON_SET
+	IMAGE_ANIMATION ImageType = C.GTK_IMAGE_ANIMATION
+	IMAGE_ICON_NAME ImageType = C.GTK_IMAGE_ICON_NAME
+	IMAGE_GICON     ImageType = C.GTK_IMAGE_GICON
+)
+
+// TODO: add GTK_IMAGE_SURFACE for GTK 3.10
+
+func marshalImageType(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return ImageType(c), nil
+}

@@ -83,7 +83,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	var sh *gtkhelper.SignalHandler
 	sh = btn.SetOnClick(func(sender *gtkhelper.Widget) {
 		println("btn.SetOnClick", sender)
-		sh.Disconnect()
+		//sh.Disconnect()
 	})
 	println("OnClick handlerId:", sh.HandlerID(), "eventId:", sh.ID())
 	headerBar.PackStart(btn)
