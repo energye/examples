@@ -42,6 +42,14 @@ type Widget struct {
 	InitiallyUnowned
 }
 
+func wrapWidget(obj *Object) *Widget {
+	if obj == nil {
+		return nil
+	}
+
+	return &Widget{InitiallyUnowned{obj}}
+}
+
 // native returns a pointer to the underlying GtkWidget.
 func (v *Widget) native() *C.GtkWidget {
 	if v == nil || v.GObject == nil {

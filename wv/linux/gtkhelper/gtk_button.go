@@ -146,10 +146,8 @@ func (v *Button) GetEventWindow() (*Window, error) {
 	return w, nil
 }
 
-func (v *Button) SetOnClick() {
-	userData := unsafe.Pointer(v.native())
-	println("SetOnClick", uintptr(userData))
-	registerClickAction(C.gpointer(v.native()), C.gpointer(userData))
+func (v *Button) SetOnClick(fn TNotifyEvent) *SignalHandler {
+	return registerAction(v, "clicked", MakeNotifyEvent(fn))
 	//C.g_signal_connect_data(
 	//	C.gpointer(v.native()),      // 目标控件
 	//	C.CString("clicked"),        // 事件名

@@ -10,19 +10,27 @@ extern void go_on_clicked(GtkWidget* widget, gpointer user_data);
 extern void go_on_activated(GtkWidget* widget, gpointer user_data);
 
 static void remove_signal_handler(GtkWidget* widget, gulong handler_id) {
+  	g_print("尝试移除信号处理器: handler_id=%lu, widget=%p\n", handler_id, widget);
     if (handler_id > 0 && widget != NULL) {
         g_signal_handler_disconnect(widget, handler_id);
+        g_print("移除信号处理器成功: handler_id=%lu\n", handler_id);
     }
 }
 */
 import "C"
 import (
 	"fmt"
+	"sync"
 	"unsafe"
 )
 
 func doOnClick(widget, userData unsafe.Pointer) {
 	fmt.Println("doOnClick userData:", uintptr(userData))
+	id := uintptr(userData)
+	if cb, ok := eventList[id]; ok {
+		context := &CallbackContext{widget: widget}
+		cb.cb(context)
+	}
 }
 
 //export go_on_clicked
@@ -34,29 +42,57 @@ func go_on_clicked(widget *C.GtkWidget, user_data C.gpointer) {
 func go_on_activated(widget *C.GtkWidget, user_data C.gpointer) {
 }
 
-type signalHandler struct {
-	widget    C.gpointer
-	handlerID C.gulong
+// 事件列表
+var (
+	eventList = make(map[uintptr]*Callback)
+	eventLock sync.Mutex
+)
+
+// RegisterEvent 事件注册，使用控件唯一标识 + 事件类型做为事件唯一id
+func RegisterEvent(id uintptr, fn *Callback) {
+	eventLock.Lock()
+	defer eventLock.Unlock()
+	eventList[id] = fn
 }
 
-func (m *signalHandler) Disconnect() {
+type SignalHandler struct {
+	widget    *C.GtkWidget
+	handlerID C.gulong
+	id        uintptr
+}
+
+func (m *SignalHandler) Disconnect() {
 	if m != nil && m.handlerID > 0 {
-		C.remove_signal_handler((*C.GtkWidget)(unsafe.Pointer(m.widget)), m.handlerID)
+		C.remove_signal_handler(m.widget, m.handlerID)
 		m.handlerID = 0
+		delete(eventList, m.id)
 	}
 }
 
-func registerAction(widget, userData C.gpointer, signal string) *signalHandler {
+func (m *SignalHandler) HandlerID() uint64 {
+	return uint64(m.handlerID)
+}
+
+func (m *SignalHandler) ID() int {
+	return int(m.id)
+}
+
+func registerSignal(widget *C.GtkWidget, signal string) *SignalHandler {
 	cb := C.GCallback(C.go_on_clicked)
 	name := C.CString(signal)
 	defer C.free(unsafe.Pointer(name))
-	handlerId := C.g_signal_connect_data(widget, name, cb, userData, nil, 0)
-	return &signalHandler{
+	pointer := C.gpointer(widget)
+	handlerId := C.g_signal_connect_data(pointer, name, cb, pointer, nil, 0)
+	return &SignalHandler{
 		widget:    widget,
 		handlerID: handlerId,
+		id:        uintptr(unsafe.Pointer(pointer)),
 	}
 }
 
-func registerClickAction(widget, userData C.gpointer) *signalHandler {
-	return registerAction(widget, userData, "clicked")
+func registerAction(widget IWidget, signal string, cb *Callback) *SignalHandler {
+	cWidget := widget.toWidget()
+	sh := registerSignal(cWidget, signal)
+	RegisterEvent(sh.id, cb)
+	return sh
 }
