@@ -22,10 +22,9 @@ type Window struct {
 }
 
 func ToGtkWindow(gtkWindow uintptr) *Window {
-	cObj := ToGObject(unsafe.Pointer(gtkWindow))
-	obj := Object{GObject: cObj}
+	obj := ToGoObject(unsafe.Pointer(gtkWindow))
 	window := new(Window)
-	window.InitiallyUnowned = InitiallyUnowned{Object: &obj}
+	window.InitiallyUnowned = InitiallyUnowned{Object: obj}
 	return window
 }
 
@@ -535,11 +534,11 @@ func (v *Window) SetMnemonicModifier(mods ModifierType) {
 }
 
 // BeginResizeDrag is a wrapper around gtk_window_begin_resize_drag().
-func (v *Window) BeginResizeDrag(edge WindowEdge, button Button, rootX, rootY int, timestamp uint32) {
+func (v *Window) BeginResizeDrag(edge WindowEdge, button ButtonType, rootX, rootY int, timestamp uint32) {
 	C.gtk_window_begin_resize_drag(v.native(), C.GdkWindowEdge(edge), C.gint(button), C.gint(rootX), C.gint(rootY), C.guint32(timestamp))
 }
 
 // BeginMoveDrag is a wrapper around gtk_window_begin_move_drag().
-func (v *Window) BeginMoveDrag(button Button, rootX, rootY int, timestamp uint32) {
+func (v *Window) BeginMoveDrag(button ButtonType, rootX, rootY int, timestamp uint32) {
 	C.gtk_window_begin_move_drag(v.native(), C.gint(button), C.gint(rootX), C.gint(rootY), C.guint32(timestamp))
 }

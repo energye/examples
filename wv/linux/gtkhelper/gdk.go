@@ -19,11 +19,11 @@ const (
 	WINDOW_EDGE_SOUTH_EAST WindowEdge = C.GDK_WINDOW_EDGE_SOUTH_EAST
 )
 
-// Button constants
-type Button uint
+// ButtonType constants
+type ButtonType uint
 
 const (
-	BUTTON_PRIMARY   Button = C.GDK_BUTTON_PRIMARY
-	BUTTON_MIDDLE    Button = C.GDK_BUTTON_MIDDLE
-	BUTTON_SECONDARY Button = C.GDK_BUTTON_SECONDARY
+	BUTTON_PRIMARY   ButtonType = C.GDK_BUTTON_PRIMARY
+	BUTTON_MIDDLE    ButtonType = C.GDK_BUTTON_MIDDLE
+	BUTTON_SECONDARY ButtonType = C.GDK_BUTTON_SECONDARY
 )

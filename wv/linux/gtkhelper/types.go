@@ -24,6 +24,7 @@ var nilPtrErr = errors.New("cgo returned unexpected nil pointer")
 type IWidget interface {
 	toWidget() *C.GtkWidget
 	ToWidget() *Widget
+	Set(name string, value interface{}) error
 }
 
 // Container is a representation of GTK's GtkContainer.
@@ -76,6 +77,11 @@ type Object struct {
 	GObject *C.GObject
 }
 
+// Set calls SetProperty.
+func (v *Object) Set(name string, value interface{}) error {
+	return nil
+}
+
 // Event is a representation of GDK's GdkEvent.
 type Event struct {
 	GdkEvent *C.GdkEvent
@@ -92,11 +98,11 @@ func GoBool(b C.gboolean) bool {
 	return b != C.FALSE
 }
 
-func ToGObject(p unsafe.Pointer) *C.GObject {
+func ToCObject(p unsafe.Pointer) *C.GObject {
 	return (*C.GObject)(p)
 }
 func ToGoObject(instance unsafe.Pointer) *Object {
-	cObj := ToGObject(instance)
+	cObj := ToCObject(instance)
 	return &Object{GObject: cObj}
 }
 

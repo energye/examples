@@ -80,6 +80,25 @@ const (
 	MODIFIER_MASK              = C.GDK_MODIFIER_MASK
 )
 
+// ReliefStyle is a representation of GTK's GtkReliefStyle.
+type ReliefStyle int
+
+const (
+	RELIEF_NORMAL ReliefStyle = C.GTK_RELIEF_NORMAL
+	RELIEF_HALF   ReliefStyle = C.GTK_RELIEF_HALF
+	RELIEF_NONE   ReliefStyle = C.GTK_RELIEF_NONE
+)
+
+// PositionType is a representation of GTK's GtkPositionType.
+type PositionType int
+
+const (
+	POS_LEFT   PositionType = C.GTK_POS_LEFT
+	POS_RIGHT  PositionType = C.GTK_POS_RIGHT
+	POS_TOP    PositionType = C.GTK_POS_TOP
+	POS_BOTTOM PositionType = C.GTK_POS_BOTTOM
+)
+
 func marshalModifierType(p uintptr) (interface{}, error) {
 	c := C.g_value_get_flags((*C.GValue)(unsafe.Pointer(p)))
 	return ModifierType(c), nil

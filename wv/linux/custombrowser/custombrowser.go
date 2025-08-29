@@ -4,12 +4,14 @@ import (
 	"fmt"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/examples/wv/linux/custombrowser/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	wv "github.com/energye/wv/linux"
 	wvTypes "github.com/energye/wv/types/linux"
 	"os"
+	"path/filepath"
 )
 
 type TMainForm struct {
@@ -22,7 +24,9 @@ type TMainForm struct {
 }
 
 var (
-	mainForm TMainForm
+	wd, _            = os.Getwd()
+	cacheRoot        = filepath.Join(wd, "ENERGY_WebView2_Cache") // 浏览器缓存目录
+	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource")
 )
 
 func init() {
@@ -36,12 +40,12 @@ Glib: dpkg -l | grep libglib2.0
 ldd --version
 */
 func main() {
-	//window.CacheRoot = cacheRoot
-	//window.SiteResource = siteResourceRoot
+	window.CacheRoot = cacheRoot
+	window.SiteResource = siteResourceRoot
 	wv.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
-	lcl.Application.NewForm(&mainForm)
+	lcl.Application.NewForm(&window.Window)
 	lcl.Application.Run()
 }
 
@@ -57,11 +61,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetHeight(600)
 	m.ScreenCenter()
 	m.SetDoubleBuffered(true)
-
-	os.Setenv("WEBKIT_FORCE_COMPOSITING_MODE", "1")
-	os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "0")
-	os.Setenv("GDK_GL", "nvidia,mesa,sw") // 优先使用硬件GL， fallback到软件
-	os.Setenv("WEBKIT_USE_SKIA", "1")     // 启用Skia渲染引擎（Ubuntu 22.04支持）
 
 	// webview parent
 	m.webviewParent = wv.NewWebviewParent(m)
@@ -182,10 +181,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			os.Exit(0)
 		}
 	})
-}
-
-func (m *TMainForm) CreateParams(params *types.TCreateParams) {
-	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
 }
 
 func NewWindow(url string) *TMainForm {
