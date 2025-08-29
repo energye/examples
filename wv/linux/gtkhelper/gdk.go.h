@@ -39,6 +39,8 @@ static GdkDragContext *toGdkDragContext(void *p) {
   return (GDK_DRAG_CONTEXT(p));
 }
 
+static GdkScreen *toGdkScreen(void *p) { return (GDK_SCREEN(p)); }
+
 static GdkVisual *toGdkVisual(void *p) { return (GDK_VISUAL(p)); }
 
 static GdkWindow *toGdkWindow(void *p) { return (GDK_WINDOW(p)); }

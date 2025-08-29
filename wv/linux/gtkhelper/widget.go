@@ -15,7 +15,6 @@ import (
 type IWidget interface {
 	toWidget() *C.GtkWidget
 	ToWidget() *Widget
-	Set(name string, value interface{}) error
 }
 
 // Widget is a representation of GTK's GtkWidget.

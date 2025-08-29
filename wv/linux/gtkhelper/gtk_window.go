@@ -24,7 +24,16 @@ type Window struct {
 func ToGtkWindow(gtkWindow uintptr) *Window {
 	obj := ToGoObject(unsafe.Pointer(gtkWindow))
 	window := new(Window)
-	window.InitiallyUnowned = InitiallyUnowned{Object: obj}
+	window.Object = obj
+	return window
+}
+
+func toWindow(s *C.GdkWindow) *Window {
+	if s == nil {
+		return nil
+	}
+	window := new(Window)
+	window.Object = ToGoObject(unsafe.Pointer(s))
 	return window
 }
 

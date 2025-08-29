@@ -7,13 +7,12 @@ package gtkhelper
 import "C"
 import (
 	"errors"
-	"github.com/gotk3/gotk3/glib"
 	"unsafe"
 )
 
 // CssProvider is a representation of GTK's GtkCssProvider.
 type CssProvider struct {
-	*glib.Object
+	*Object
 }
 
 func (v *CssProvider) toStyleProvider() *C.GtkStyleProvider {
@@ -32,7 +31,7 @@ func (v *CssProvider) native() *C.GtkCssProvider {
 	return C.toGtkCssProvider(p)
 }
 
-func wrapCssProvider(obj *glib.Object) *CssProvider {
+func wrapCssProvider(obj *Object) *CssProvider {
 	if obj == nil {
 		return nil
 	}
@@ -41,13 +40,12 @@ func wrapCssProvider(obj *glib.Object) *CssProvider {
 }
 
 // CssProviderNew is a wrapper around gtk_css_provider_new().
-func NewCssProvider() (*CssProvider, error) {
+func NewCssProvider() *CssProvider {
 	c := C.gtk_css_provider_new()
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
-
-	return wrapCssProvider(glib.Take(unsafe.Pointer(c))), nil
+	return wrapCssProvider(ToGoObject(unsafe.Pointer(c)))
 }
 
 // LoadFromPath is a wrapper around gtk_css_provider_load_from_path().
@@ -84,17 +82,14 @@ func (v *CssProvider) ToString() (string, error) {
 }
 
 // CssProviderGetNamed is a wrapper around gtk_css_provider_get_named().
-func CssProviderGetNamed(name string, variant string) (*CssProvider, error) {
+func CssProviderGetNamed(name string, variant string) *CssProvider {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 	cvariant := C.CString(variant)
 	defer C.free(unsafe.Pointer(cvariant))
-
 	c := C.gtk_css_provider_get_named((*C.gchar)(cname), (*C.gchar)(cvariant))
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
-
-	obj := glib.Take(unsafe.Pointer(c))
-	return wrapCssProvider(obj), nil
+	return wrapCssProvider(ToGoObject(unsafe.Pointer(c)))
 }

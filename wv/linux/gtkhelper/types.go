@@ -40,11 +40,6 @@ type Object struct {
 	GObject *C.GObject
 }
 
-// Set calls SetProperty.
-func (v *Object) Set(name string, value interface{}) error {
-	return nil
-}
-
 func CBool(b bool) C.gboolean {
 	if b {
 		return C.gboolean(1)
@@ -66,4 +61,38 @@ func ToGoObject(instance unsafe.Pointer) *Object {
 
 func GoString(cStr *C.gchar) string {
 	return C.GoString((*C.char)(cStr))
+}
+
+// Ref is a wrapper around g_object_ref().
+func (v *Object) Ref() {
+	C.g_object_ref(C.gpointer(v.GObject))
+}
+
+// Unref is a wrapper around g_object_unref().
+func (v *Object) Unref() {
+	C.g_object_unref(C.gpointer(v.GObject))
+}
+
+// RefSink is a wrapper around g_object_ref_sink().
+func (v *Object) RefSink() {
+	C.g_object_ref_sink(C.gpointer(v.GObject))
+}
+
+// IsFloating is a wrapper around g_object_is_floating().
+func (v *Object) IsFloating() bool {
+	c := C.g_object_is_floating(C.gpointer(v.GObject))
+	return GoBool(c)
+}
+
+// ForceFloating is a wrapper around g_object_force_floating().
+func (v *Object) ForceFloating() {
+	C.g_object_force_floating(v.GObject)
+}
+
+// StopEmission is a wrapper around g_signal_stop_emission_by_name().
+func (v *Object) StopEmission(s string) {
+	cstr := C.CString(s)
+	defer C.free(unsafe.Pointer(cstr))
+	C.g_signal_stop_emission_by_name((C.gpointer)(v.GObject),
+		(*C.gchar)(cstr))
 }
