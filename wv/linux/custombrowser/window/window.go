@@ -80,7 +80,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	gtkWindow.SetTitlebar(headerBar)
 
 	btn, _ := gtkhelper.ButtonNewWithLabel("button")
-	btn.SetOnClick()
+	var sh *gtkhelper.SignalHandler
+	sh = btn.SetOnClick(func(sender *gtkhelper.Widget) {
+		println("btn.SetOnClick", sender)
+		sh.Disconnect()
+	})
+	println("OnClick handlerId:", sh.HandlerID(), "eventId:", sh.ID())
 	headerBar.PackStart(btn)
 
 	m.SetOnShow(func(sender lcl.IObject) {
