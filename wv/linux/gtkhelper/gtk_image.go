@@ -152,8 +152,8 @@ func (v *Image) GetAnimation() *gdk.PixbufAnimation {
 	return &gdk.PixbufAnimation{glib.Take(unsafe.Pointer(c))}
 }
 
-// ImageNewFromAnimation() is a wrapper around gtk_image_new_from_animation()
-func ImageNewFromAnimation(animation *gdk.PixbufAnimation) (*Image, error) {
+// NewImageFromAnimation is a wrapper around gtk_image_new_from_animation()
+func NewImageFromAnimation(animation *gdk.PixbufAnimation) (*Image, error) {
 	c := C.gtk_image_new_from_animation((*C.GdkPixbufAnimation)(animation.NativePrivate()))
 	if c == nil {
 		return nil, nilPtrErr

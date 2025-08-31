@@ -67,8 +67,8 @@ type Rectangle struct {
 	GdkRectangle C.GdkRectangle
 }
 
-// RectangleNew helper function to create a GdkRectanlge
-func RectangleNew(x, y, width, height int) *Rectangle {
+// NewRectangle helper function to create a GdkRectanlge
+func NewRectangle(x, y, width, height int) *Rectangle {
 	var r C.GdkRectangle
 	r.x = C.int(x)
 	r.y = C.int(y)

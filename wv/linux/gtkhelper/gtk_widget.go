@@ -65,9 +65,7 @@ func (v *Widget) GetPreferredHeightForWidth(width int) (int, int) {
 
 // GetPreferredWidthForHeight is a wrapper around gtk_widget_get_preferred_width_for_height().
 func (v *Widget) GetPreferredWidthForHeight(height int) (int, int) {
-
 	var minimum, natural C.gint
-
 	C.gtk_widget_get_preferred_width_for_height(
 		v.native(),
 		C.gint(height),

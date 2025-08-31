@@ -182,3 +182,16 @@ func marshalImageType(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return ImageType(c), nil
 }
+
+// EntryIconPosition is a representation of GTK's GtkEntryIconPosition.
+type EntryIconPosition int
+
+const (
+	ENTRY_ICON_PRIMARY   EntryIconPosition = C.GTK_ENTRY_ICON_PRIMARY
+	ENTRY_ICON_SECONDARY EntryIconPosition = C.GTK_ENTRY_ICON_SECONDARY
+)
+
+func marshalEntryIconPosition(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return EntryIconPosition(c), nil
+}
