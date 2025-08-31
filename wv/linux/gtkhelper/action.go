@@ -112,7 +112,7 @@ func registerSignal(widget *C.GtkWidget, cb C.GCallback, signal EventSignalName)
 func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *SignalHandler {
 	var cCb C.GCallback
 	switch signal {
-	case EsnKeyPressEvent:
+	case EsnKeyPressEvent, EsnKeyReleaseEvent:
 		cCb = C.GCallback(C.go_on_key_press_handler)
 	default:
 		cCb = C.GCallback(C.go_on_event_handler)

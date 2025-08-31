@@ -70,6 +70,18 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
 	})
+
+	edit := lcl.NewEdit(m)
+	edit.SetParent(m)
+	edit.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
+		fmt.Println("SetOnKeyPress key:", *key)
+	})
+	edit.SetOnKeyUp(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
+		fmt.Println("SetOnKeyUp key:", *key)
+	})
+	edit.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
+
+	})
 	m.Toolbar()
 }
 
@@ -123,11 +135,18 @@ button:active {
 	entry := gtkhelper.NewEntry()
 	entry.SetPlaceholderText("请输入")
 	entry.SetSizeRequest(250, -1)
-	//entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
-	//	println("entry.SetOnChanged text:", text)
-	//})
-	entry.SetOnKeyPress(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
-		println("entry.SetOnChanged key:", key.KeyVal())
+	entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
+		println("entry.SetOnChanged text:", text)
+	})
+	entry.SetOnCommit(func(sender *gtkhelper.Widget, text string) {
+		println("entry.SetOnCommit text:", text)
+	})
+	entry.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
+		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
+		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
+			println("entry.SetOnKeyPress text:", entry.GetText())
+			return true
+		}
 		return false
 	})
 	headerBar.SetCustomTitle(entry)

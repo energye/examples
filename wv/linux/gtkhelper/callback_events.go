@@ -10,10 +10,11 @@ import "unsafe"
 type EventSignalName = string
 
 const (
-	EsnClicked       EventSignalName = "clicked"
-	EsnChanged       EventSignalName = "changed"
-	EsnActivate      EventSignalName = "activate"
-	EsnKeyPressEvent EventSignalName = "key-press-event"
+	EsnClicked         EventSignalName = "clicked"
+	EsnChanged         EventSignalName = "changed"
+	EsnActivate        EventSignalName = "activate"
+	EsnKeyPressEvent   EventSignalName = "key-press-event"
+	EsnKeyReleaseEvent EventSignalName = "key-release-event"
 )
 
 // TccType 事件类型, 用于区分普通通知事件, 还是特殊事件
@@ -31,7 +32,7 @@ const (
 type TNotifyEvent func(sender *Widget)
 type TTextChangedEvent func(sender *Widget, text string)
 type TTextCommitEvent func(sender *Widget, text string)
-type TTextKeyPressEvent func(sender *Widget, key *EventKey) bool
+type TTextKeyEvent func(sender *Widget, key *EventKey) bool
 
 type CallbackContext struct {
 	widget unsafe.Pointer
@@ -73,7 +74,7 @@ func MakeTextCommitEvent(cb TTextCommitEvent) *Callback {
 	}
 }
 
-func MakeTextKeyPressEvent(cb TTextKeyPressEvent) *Callback {
+func MakeTextKeyEvent(cb TTextKeyEvent) *Callback {
 	return &Callback{
 		type_: TCCTextDidEndEditing,
 		cb: func(ctx *CallbackContext) {
