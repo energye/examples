@@ -150,4 +150,5 @@ button:active {
 		return false
 	})
 	headerBar.SetCustomTitle(entry)
+
 }
