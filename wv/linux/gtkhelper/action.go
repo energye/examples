@@ -6,8 +6,7 @@ package gtkhelper
 #include <string.h>
 #include <gtk/gtk.h>
 
-extern void go_on_clicked(GtkWidget* widget, gpointer user_data);
-extern void go_on_activated(GtkWidget* widget, gpointer user_data);
+extern void go_on_event_handler(GtkWidget* widget, gpointer user_data);
 
 static void remove_signal_handler(GtkWidget* widget, gulong handler_id) {
   	g_print("尝试移除信号处理器: handler_id=%lu, widget=%p\n", handler_id, widget);
@@ -24,8 +23,8 @@ import (
 	"unsafe"
 )
 
-func doOnClick(widget, userData unsafe.Pointer) {
-	fmt.Println("doOnClick userData:", uintptr(userData))
+func doOnEventHandler(widget, userData unsafe.Pointer) {
+	fmt.Println("doOnEventHandler userData:", uintptr(userData))
 	id := uintptr(userData)
 	if cb, ok := eventList[id]; ok {
 		context := &CallbackContext{widget: widget}
@@ -33,13 +32,9 @@ func doOnClick(widget, userData unsafe.Pointer) {
 	}
 }
 
-//export go_on_clicked
-func go_on_clicked(widget *C.GtkWidget, user_data C.gpointer) {
-	doOnClick(unsafe.Pointer(widget), unsafe.Pointer(user_data))
-}
-
-//export go_on_activated
-func go_on_activated(widget *C.GtkWidget, user_data C.gpointer) {
+//export go_on_event_handler
+func go_on_event_handler(widget *C.GtkWidget, user_data C.gpointer) {
+	doOnEventHandler(unsafe.Pointer(widget), unsafe.Pointer(user_data))
 }
 
 // 事件列表
@@ -77,8 +72,8 @@ func (m *SignalHandler) ID() int {
 	return int(m.id)
 }
 
-func registerSignal(widget *C.GtkWidget, signal string) *SignalHandler {
-	cb := C.GCallback(C.go_on_clicked)
+func registerSignal(widget *C.GtkWidget, signal EventSignalName) *SignalHandler {
+	cb := C.GCallback(C.go_on_event_handler)
 	name := C.CString(signal)
 	defer C.free(unsafe.Pointer(name))
 	pointer := C.gpointer(widget)
@@ -90,7 +85,7 @@ func registerSignal(widget *C.GtkWidget, signal string) *SignalHandler {
 	}
 }
 
-func registerAction(widget IWidget, signal string, cb *Callback) *SignalHandler {
+func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *SignalHandler {
 	cWidget := widget.toWidget()
 	sh := registerSignal(cWidget, signal)
 	RegisterEvent(sh.id, cb)

@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
 	"sync"
-	"unsafe"
 	"widget/wg"
 )
 
@@ -64,8 +62,18 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetWidth(1024)
 	m.SetHeight(600)
 	m.ScreenCenter()
-	m.SetDoubleBuffered(true)
+	//m.SetDoubleBuffered(true)
 
+	m.SetOnShow(func(sender lcl.IObject) {
+	})
+
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+
+	})
+	m.Toolbar()
+}
+
+func (m *BrowserWindow) Toolbar() {
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindowPtr := gtkHandle.Gtk3Window()
 	fmt.Println("gtkWindowPtr:", gtkWindowPtr)
@@ -81,11 +89,29 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	btn := gtkhelper.NewButton() // .ButtonNewWithLabel("button")
 	btn.SetRelief(gtkhelper.RELIEF_NONE)
-	gtkhelper.NewCssProvider()
+	cssProvid := gtkhelper.NewCssProvider()
+	defer cssProvid.Unref()
+	cssProvid.LoadFromData(`
+button {
+	background: transparent;
+	border: none;
+	padding: 2px; /* 减小点击区域内边距 */
+}
+button:hover {
+	background: rgba(128, 128, 128, 0.2); /* 悬停时轻微灰色背景 */
+	border-radius: 2px;
+}
+button:active {
+	background: rgba(128, 128, 128, 0.4); /* 点击时加深背景 */
+}
+`)
+
+	btnStyleCtx := btn.GetStyleContext()
+	btnStyleCtx.AddProvider(cssProvid, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	var sh *gtkhelper.SignalHandler
 	sh = btn.SetOnClick(func(sender *gtkhelper.Widget) {
-		println("btn.SetOnClick", sender)
+		println("btn.SetOnClick", sender, "IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		//sh.Disconnect()
 	})
 	println("OnClick handlerId:", sh.HandlerID(), "eventId:", sh.ID())
@@ -94,19 +120,13 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	headerBar.PackStart(btn)
 
-	m.SetOnShow(func(sender lcl.IObject) {
+	entry := gtkhelper.NewEntry()
+	entry.SetPlaceholderText("请输入")
+	entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
+		println("entry.SetOnChanged text:", text)
 	})
-
-	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-
+	entry.SetOnCommit(func(sender *gtkhelper.Widget, text string) {
+		println("entry.SetOnCommit text:", text)
 	})
-
-}
-
-func ToGtkWindow(gtkWindow uintptr) *gtk.Window {
-	cObj := glib.ToGObject(unsafe.Pointer(gtkWindow))
-	obj := glib.Object{GObject: cObj}
-	window := new(gtk.Window)
-	window.InitiallyUnowned = glib.InitiallyUnowned{Object: &obj}
-	return window
+	headerBar.SetCustomTitle(entry)
 }

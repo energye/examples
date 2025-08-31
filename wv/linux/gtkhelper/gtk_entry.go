@@ -426,3 +426,11 @@ func (v *Entry) GetCurrentIconDragSource() int {
 	c := C.gtk_entry_get_current_icon_drag_source(v.native())
 	return int(c)
 }
+
+func (v *Entry) SetOnChanged(fn TTextChangedEvent) *SignalHandler {
+	return registerAction(v, EsnChanged, MakeTextChangedEvent(fn))
+}
+
+func (v *Entry) SetOnCommit(fn TTextCommitEvent) *SignalHandler {
+	return registerAction(v, EsnActivate, MakeTextCommitEvent(fn))
+}

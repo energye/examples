@@ -147,7 +147,7 @@ func (v *Button) GetEventWindow() (*Window, error) {
 }
 
 func (v *Button) SetOnClick(fn TNotifyEvent) *SignalHandler {
-	return registerAction(v, "clicked", MakeNotifyEvent(fn))
+	return registerAction(v, EsnClicked, MakeNotifyEvent(fn))
 	//C.g_signal_connect_data(
 	//	C.gpointer(v.native()),      // 目标控件
 	//	C.CString("clicked"),        // 事件名
