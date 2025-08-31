@@ -31,9 +31,12 @@ const (
 type TNotifyEvent func(sender *Widget)
 type TTextChangedEvent func(sender *Widget, text string)
 type TTextCommitEvent func(sender *Widget, text string)
+type TTextKeyPressEvent func(sender *Widget, key *EventKey) bool
 
 type CallbackContext struct {
 	widget unsafe.Pointer
+	input  any
+	result any
 }
 
 type Callback struct {
@@ -66,6 +69,18 @@ func MakeTextCommitEvent(cb TTextCommitEvent) *Callback {
 		cb: func(ctx *CallbackContext) {
 			text := C.gtk_entry_get_text((*C.GtkEntry)(ctx.widget))
 			cb(wrapWidget(ToGoObject(ctx.widget)), C.GoString(text))
+		},
+	}
+}
+
+func MakeTextKeyPressEvent(cb TTextKeyPressEvent) *Callback {
+	return &Callback{
+		type_: TCCTextDidEndEditing,
+		cb: func(ctx *CallbackContext) {
+			keyPtr := ctx.input.(unsafe.Pointer)
+			key := ToKeyEvent(keyPtr)
+			result := cb(wrapWidget(ToGoObject(ctx.widget)), key)
+			ctx.result = result
 		},
 	}
 }

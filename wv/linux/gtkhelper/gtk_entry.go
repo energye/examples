@@ -434,3 +434,7 @@ func (v *Entry) SetOnChanged(fn TTextChangedEvent) *SignalHandler {
 func (v *Entry) SetOnCommit(fn TTextCommitEvent) *SignalHandler {
 	return registerAction(v, EsnActivate, MakeTextCommitEvent(fn))
 }
+
+func (v *Entry) SetOnKeyPress(fn TTextKeyPressEvent) *SignalHandler {
+	return registerAction(v, EsnKeyPressEvent, MakeTextKeyPressEvent(fn))
+}

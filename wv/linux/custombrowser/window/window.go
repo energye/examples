@@ -126,8 +126,9 @@ button:active {
 	//entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
 	//	println("entry.SetOnChanged text:", text)
 	//})
-	entry.SetOnCommit(func(sender *gtkhelper.Widget, text string) {
-		println("entry.SetOnCommit text:", text)
+	entry.SetOnKeyPress(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
+		println("entry.SetOnChanged key:", key.KeyVal())
+		return false
 	})
 	headerBar.SetCustomTitle(entry)
 }

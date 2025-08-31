@@ -36,8 +36,12 @@ func doOnEventHandler(widget, userData unsafe.Pointer) {
 func doOnKeyPressEventHandler(widget, event, userData unsafe.Pointer) bool {
 	id := uintptr(userData)
 	if cb, ok := eventList[id]; ok {
-		context := &CallbackContext{widget: widget}
+		context := &CallbackContext{widget: widget, input: event}
 		cb.cb(context)
+		result, ok := context.result.(bool)
+		if ok {
+			return result
+		}
 	}
 	return false
 }
@@ -49,7 +53,8 @@ func go_on_event_handler(widget *C.GtkWidget, user_data C.gpointer) {
 
 //export go_on_key_press_handler
 func go_on_key_press_handler(widget *C.GtkWidget, event *C.GdkEventKey, user_data C.gpointer) C.gboolean {
-	return CBool(false)
+	result := doOnKeyPressEventHandler(unsafe.Pointer(widget), unsafe.Pointer(event), unsafe.Pointer(user_data))
+	return CBool(result)
 }
 
 // 事件列表
@@ -88,12 +93,11 @@ func (m *SignalHandler) ID() int {
 	return int(m.id)
 }
 
-func registerSignal(widget *C.GtkWidget, signal EventSignalName) *SignalHandler {
+func registerSignal(widget *C.GtkWidget, cb C.GCallback, signal EventSignalName) *SignalHandler {
 	eventLock.Lock()
 	defer eventLock.Unlock()
 	gEventId++
 	nextEventId := uintptr(gEventId)
-	cb := C.GCallback(C.go_on_event_handler)
 	name := C.CString(signal)
 	defer C.free(unsafe.Pointer(name))
 	pointer := C.gpointer(widget)
@@ -106,8 +110,15 @@ func registerSignal(widget *C.GtkWidget, signal EventSignalName) *SignalHandler 
 }
 
 func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *SignalHandler {
+	var cCb C.GCallback
+	switch signal {
+	case EsnKeyPressEvent:
+		cCb = C.GCallback(C.go_on_key_press_handler)
+	default:
+		cCb = C.GCallback(C.go_on_event_handler)
+	}
 	cWidget := widget.toWidget()
-	sh := registerSignal(cWidget, signal)
+	sh := registerSignal(cWidget, cCb, signal)
 	RegisterEvent(sh.id, cb)
 	return sh
 }
