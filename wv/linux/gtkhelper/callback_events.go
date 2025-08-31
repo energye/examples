@@ -10,9 +10,10 @@ import "unsafe"
 type EventSignalName = string
 
 const (
-	EsnClicked  EventSignalName = "clicked"
-	EsnChanged  EventSignalName = "changed"
-	EsnActivate EventSignalName = "activate"
+	EsnClicked       EventSignalName = "clicked"
+	EsnChanged       EventSignalName = "changed"
+	EsnActivate      EventSignalName = "activate"
+	EsnKeyPressEvent EventSignalName = "key-press-event"
 )
 
 // TccType 事件类型, 用于区分普通通知事件, 还是特殊事件

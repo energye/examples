@@ -122,9 +122,10 @@ button:active {
 
 	entry := gtkhelper.NewEntry()
 	entry.SetPlaceholderText("请输入")
-	entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
-		println("entry.SetOnChanged text:", text)
-	})
+	entry.SetSizeRequest(250, -1)
+	//entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
+	//	println("entry.SetOnChanged text:", text)
+	//})
 	entry.SetOnCommit(func(sender *gtkhelper.Widget, text string) {
 		println("entry.SetOnCommit text:", text)
 	})

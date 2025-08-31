@@ -7,6 +7,7 @@ package gtkhelper
 #include <gtk/gtk.h>
 
 extern void go_on_event_handler(GtkWidget* widget, gpointer user_data);
+extern gboolean go_on_key_press_handler(GtkWidget* entry, GdkEventKey* event, gpointer user_data);
 
 static void remove_signal_handler(GtkWidget* widget, gulong handler_id) {
   	g_print("尝试移除信号处理器: handler_id=%lu, widget=%p\n", handler_id, widget);
@@ -32,15 +33,30 @@ func doOnEventHandler(widget, userData unsafe.Pointer) {
 	}
 }
 
+func doOnKeyPressEventHandler(widget, event, userData unsafe.Pointer) bool {
+	id := uintptr(userData)
+	if cb, ok := eventList[id]; ok {
+		context := &CallbackContext{widget: widget}
+		cb.cb(context)
+	}
+	return false
+}
+
 //export go_on_event_handler
 func go_on_event_handler(widget *C.GtkWidget, user_data C.gpointer) {
 	doOnEventHandler(unsafe.Pointer(widget), unsafe.Pointer(user_data))
 }
 
+//export go_on_key_press_handler
+func go_on_key_press_handler(widget *C.GtkWidget, event *C.GdkEventKey, user_data C.gpointer) C.gboolean {
+	return CBool(false)
+}
+
 // 事件列表
 var (
-	eventList = make(map[uintptr]*Callback)
-	eventLock sync.Mutex
+	eventList = make(map[uintptr]*Callback)          // event list
+	eventLock sync.Mutex                             // register event lock
+	gEventId  uint                          = 100000 // event id
 )
 
 // RegisterEvent 事件注册，使用控件唯一标识 + 事件类型做为事件唯一id
@@ -73,15 +89,19 @@ func (m *SignalHandler) ID() int {
 }
 
 func registerSignal(widget *C.GtkWidget, signal EventSignalName) *SignalHandler {
+	eventLock.Lock()
+	defer eventLock.Unlock()
+	gEventId++
+	nextEventId := uintptr(gEventId)
 	cb := C.GCallback(C.go_on_event_handler)
 	name := C.CString(signal)
 	defer C.free(unsafe.Pointer(name))
 	pointer := C.gpointer(widget)
-	handlerId := C.g_signal_connect_data(pointer, name, cb, pointer, nil, 0)
+	handlerId := C.g_signal_connect_data(pointer, name, cb, C.gpointer(nextEventId), nil, 0)
 	return &SignalHandler{
 		widget:    widget,
 		handlerID: handlerId,
-		id:        uintptr(unsafe.Pointer(pointer)),
+		id:        nextEventId,
 	}
 }
 
