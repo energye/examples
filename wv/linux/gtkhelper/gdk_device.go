@@ -59,9 +59,9 @@ func (v *Device) GetPosition(screen **Screen, x, y *int) error {
 	C.gdk_device_get_position(v.native(), cs, cx, cy)
 
 	if cs != (**C.GdkScreen)(unsafe.Pointer(uintptr(0))) {
-		ms, err := toScreen(*cs)
-		if err != nil {
-			return err
+		ms := toScreen(*cs)
+		if ms == nil {
+			return nilPtrErr
 		}
 		*screen = ms
 	}

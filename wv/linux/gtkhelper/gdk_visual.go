@@ -113,6 +113,6 @@ func (v *Visual) GetVisualType() VisualType {
 }
 
 // GetScreen is a wrapper around gdk_visual_get_screen().
-func (v *Visual) GetScreen() (*Screen, error) {
+func (v *Visual) GetScreen() *Screen {
 	return toScreen(C.gdk_visual_get_screen(v.native()))
 }

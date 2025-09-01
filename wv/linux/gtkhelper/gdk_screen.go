@@ -12,6 +12,18 @@ type Screen struct {
 	*Object
 }
 
+func toScreen(s *C.GdkScreen) *Screen {
+	if s == nil {
+		return nil
+	}
+	return &Screen{ToGoObject(unsafe.Pointer(s))}
+}
+
+// ScreenGetDefault is a wrapper around gdk_screen_get_default().
+func ScreenGetDefault() *Screen {
+	return toScreen(C.gdk_screen_get_default())
+}
+
 // native returns a pointer to the underlying GdkScreen.
 func (v *Screen) native() *C.GdkScreen {
 	if v == nil || v.GObject == nil {
@@ -24,19 +36,6 @@ func (v *Screen) native() *C.GdkScreen {
 // Native returns a pointer to the underlying GdkScreen.
 func (v *Screen) Native() uintptr {
 	return uintptr(unsafe.Pointer(v.native()))
-}
-
-func marshalScreen(p uintptr) (interface{}, error) {
-	c := C.g_value_get_object((*C.GValue)(unsafe.Pointer(p)))
-	obj := &Object{ToCObject(unsafe.Pointer(c))}
-	return &Screen{obj}, nil
-}
-
-func toScreen(s *C.GdkScreen) (*Screen, error) {
-	if s == nil {
-		return nil, nilPtrErr
-	}
-	return &Screen{ToGoObject(unsafe.Pointer(s))}, nil
 }
 
 // GetRGBAVisual is a wrapper around gdk_screen_get_rgba_visual().
@@ -57,11 +56,6 @@ func (v *Screen) GetSystemVisual() (*Visual, error) {
 	}
 
 	return &Visual{ToGoObject(unsafe.Pointer(c))}, nil
-}
-
-// ScreenGetDefault is a wrapper around gdk_screen_get_default().
-func ScreenGetDefault() (*Screen, error) {
-	return toScreen(C.gdk_screen_get_default())
 }
 
 // IsComposited is a wrapper around gdk_screen_is_composited().
