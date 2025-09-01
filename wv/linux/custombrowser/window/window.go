@@ -95,15 +95,16 @@ func (m *BrowserWindow) Toolbar() {
 		return
 	}
 	headerBar.SetShowCloseButton(true)
+	headerBar.SetName("custom-headerbar")
 
 	gtkWindow := gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
 	gtkWindow.SetTitlebar(headerBar)
 
 	btn := gtkhelper.NewButton() // .ButtonNewWithLabel("button")
 	btn.SetRelief(gtkhelper.RELIEF_NONE)
-	cssProvid := gtkhelper.NewCssProvider()
-	defer cssProvid.Unref()
-	cssProvid.LoadFromData(`
+	btnCss := gtkhelper.NewCssProvider()
+	defer btnCss.Unref()
+	btnCss.LoadFromData(`
 button {
 	background: transparent;
 	border: none;
@@ -119,14 +120,12 @@ button:active {
 `)
 
 	btnStyleCtx := btn.GetStyleContext()
-	btnStyleCtx.AddProvider(cssProvid, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	btnStyleCtx.AddProvider(btnCss, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-	var sh *gtkhelper.SignalHandler
-	sh = btn.SetOnClick(func(sender *gtkhelper.Widget) {
+	btn.SetOnClick(func(sender *gtkhelper.Widget) {
 		println("btn.SetOnClick", sender, "IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		//sh.Disconnect()
 	})
-	println("OnClick handlerId:", sh.HandlerID(), "eventId:", sh.ID())
 	btnIcon := gtkhelper.NewImageFromIconName("open-menu-symbolic", gtkhelper.ICON_SIZE_BUTTON)
 	btn.SetImage(btnIcon)
 
@@ -145,5 +144,7 @@ button:active {
 		return false
 	})
 	headerBar.SetCustomTitle(entry)
+
+	//
 
 }
