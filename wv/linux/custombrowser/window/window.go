@@ -154,7 +154,7 @@ button:active {
 	btn1 := m.NewButton("edit-delete-symbolic", "删除项目删除项目")
 	headerBar.PackStart(btn1)
 
-	//
+	// 把 LCL 的Panel转为 gtk3 控件
 	headerBox := lcl.NewPanel(m)
 	headerBox.SetParent(m)
 	headerBox.SetHeight(48)
@@ -165,7 +165,7 @@ button:active {
 	headerBoxHandle := lcl.PlatformHandle(headerBox.Handle())
 	headerBoxWidget := gtkhelper.ToWidget(unsafe.Pointer(headerBoxHandle.Gtk3Widget()))
 	width, height := headerBoxWidget.GetSizeRequest()
-	println("headerBoxWidget", width, height)
+	println("headerBoxWidget", width, height, headerBoxWidget.TypeFromInstance().Name())
 }
 
 func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {

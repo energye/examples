@@ -14,6 +14,12 @@
 #include <locale.h>
 
 
+static GType _g_type_from_instance(gpointer instance) {
+  return (G_TYPE_FROM_INSTANCE(instance));
+}
+static gboolean _g_type_is_value(GType g_type) {
+  return (G_TYPE_IS_VALUE(g_type));
+}
 static GIcon *toGIcon(void *p) { return (G_ICON(p)); }
 static GFileIcon *toGFileIcon(void *p) { return (G_FILE_ICON(p)); }
 

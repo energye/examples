@@ -155,6 +155,15 @@ func GoString(cStr *C.gchar) string {
 	return C.GoString((*C.char)(cStr))
 }
 
+// native returns a pointer to the underlying GObject.
+func (v *Object) native() *C.GObject {
+	if v == nil || v.GObject == nil {
+		return nil
+	}
+	p := unsafe.Pointer(v.GObject)
+	return C.toGObject(p)
+}
+
 // Ref is a wrapper around g_object_ref().
 func (v *Object) Ref() {
 	C.g_object_ref(C.gpointer(v.GObject))
@@ -187,4 +196,9 @@ func (v *Object) StopEmission(s string) {
 	defer C.free(unsafe.Pointer(cstr))
 	C.g_signal_stop_emission_by_name((C.gpointer)(v.GObject),
 		(*C.gchar)(cstr))
+}
+
+// IsA is a wrapper around g_type_is_a().
+func (v *Object) IsA(typ Type) bool {
+	return GoBool(C.g_type_is_a(C.GType(v.TypeFromInstance()), C.GType(typ)))
 }
