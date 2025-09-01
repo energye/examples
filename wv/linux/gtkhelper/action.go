@@ -8,6 +8,8 @@ package gtkhelper
 
 extern void go_on_event_handler(GtkWidget* widget, gpointer user_data);
 extern gboolean go_on_key_press_handler(GtkWidget* entry, GdkEventKey* event, gpointer user_data);
+extern void go_on_button_press(GtkWidget* widget, GdkEventButton* event, gpointer data);
+extern void go_on_leave_enter_notify(GtkWidget* widget, GdkEventCrossing* event, gpointer data);
 
 static void remove_signal_handler(GtkWidget* widget, gulong handler_id) {
   	g_print("尝试移除信号处理器: handler_id=%lu, widget=%p\n", handler_id, widget);
@@ -46,6 +48,22 @@ func doOnKeyPressEventHandler(widget, event, userData unsafe.Pointer) bool {
 	return false
 }
 
+func doButtonPress(widget, event, userData unsafe.Pointer) {
+	id := uintptr(userData)
+	if cb, ok := eventList[id]; ok {
+		context := &CallbackContext{widget: widget, input: event}
+		cb.cb(context)
+	}
+}
+
+func doLeaveEnter(widget, event, userData unsafe.Pointer) {
+	id := uintptr(userData)
+	if cb, ok := eventList[id]; ok {
+		context := &CallbackContext{widget: widget, input: event}
+		cb.cb(context)
+	}
+}
+
 //export go_on_event_handler
 func go_on_event_handler(widget *C.GtkWidget, user_data C.gpointer) {
 	doOnEventHandler(unsafe.Pointer(widget), unsafe.Pointer(user_data))
@@ -55,6 +73,16 @@ func go_on_event_handler(widget *C.GtkWidget, user_data C.gpointer) {
 func go_on_key_press_handler(widget *C.GtkWidget, event *C.GdkEventKey, user_data C.gpointer) C.gboolean {
 	result := doOnKeyPressEventHandler(unsafe.Pointer(widget), unsafe.Pointer(event), unsafe.Pointer(user_data))
 	return CBool(result)
+}
+
+//export go_on_button_press
+func go_on_button_press(widget *C.GtkWidget, event *C.GdkEventButton, user_data C.gpointer) {
+	doButtonPress(unsafe.Pointer(widget), unsafe.Pointer(event), unsafe.Pointer(user_data))
+}
+
+//export go_on_leave_enter_notify
+func go_on_leave_enter_notify(widget *C.GtkWidget, event *C.GdkEventCrossing, user_data C.gpointer) {
+	doLeaveEnter(unsafe.Pointer(widget), unsafe.Pointer(event), unsafe.Pointer(user_data))
 }
 
 // 事件列表
@@ -114,6 +142,10 @@ func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *Signa
 	switch signal {
 	case EsnKeyPressEvent, EsnKeyReleaseEvent:
 		cCb = C.GCallback(C.go_on_key_press_handler)
+	case EsnButtonPressEvent:
+		cCb = C.GCallback(C.go_on_button_press)
+	case EsnEnterNotifyEvent, EsnLeaveNotifyEvent:
+		cCb = C.GCallback(C.go_on_leave_enter_notify)
 	default:
 		cCb = C.GCallback(C.go_on_event_handler)
 	}

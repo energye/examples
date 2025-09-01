@@ -70,3 +70,15 @@ func (v *EventBox) GetVisibleWindow() bool {
 	c := C.gtk_event_box_get_visible_window(v.native())
 	return GoBool(c)
 }
+
+func (v *EventBox) SetOnClick(fn TButtonPressEvent) *SignalHandler {
+	return registerAction(v, EsnButtonPressEvent, MakeButtonPressEvent(fn))
+}
+
+func (v *EventBox) SetOnLeave(fn TLeaveEnterNotifyEvent) *SignalHandler {
+	return registerAction(v, EsnLeaveNotifyEvent, MakeLeaveEnterNotifyEvent(fn))
+}
+
+func (v *EventBox) SetOnEnter(fn TLeaveEnterNotifyEvent) *SignalHandler {
+	return registerAction(v, EsnEnterNotifyEvent, MakeLeaveEnterNotifyEvent(fn))
+}

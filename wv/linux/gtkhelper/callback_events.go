@@ -10,11 +10,14 @@ import "unsafe"
 type EventSignalName = string
 
 const (
-	EsnClicked         EventSignalName = "clicked"
-	EsnChanged         EventSignalName = "changed"
-	EsnActivate        EventSignalName = "activate"
-	EsnKeyPressEvent   EventSignalName = "key-press-event"
-	EsnKeyReleaseEvent EventSignalName = "key-release-event"
+	EsnClicked          EventSignalName = "clicked"
+	EsnChanged          EventSignalName = "changed"
+	EsnActivate         EventSignalName = "activate"
+	EsnKeyPressEvent    EventSignalName = "key-press-event"
+	EsnKeyReleaseEvent  EventSignalName = "key-release-event"
+	EsnButtonPressEvent EventSignalName = "button-press-event"
+	EsnEnterNotifyEvent EventSignalName = "enter-notify-event"
+	EsnLeaveNotifyEvent EventSignalName = "leave-notify-event"
 )
 
 // TccType 事件类型, 用于区分普通通知事件, 还是特殊事件
@@ -33,6 +36,8 @@ type TNotifyEvent func(sender *Widget)
 type TTextChangedEvent func(sender *Widget, text string)
 type TTextCommitEvent func(sender *Widget, text string)
 type TTextKeyEvent func(sender *Widget, key *EventKey) bool
+type TButtonPressEvent func(sender *Widget, event *EventButton)
+type TLeaveEnterNotifyEvent func(sender *Widget, event *EventCrossing)
 
 type CallbackContext struct {
 	widget unsafe.Pointer
@@ -43,6 +48,28 @@ type CallbackContext struct {
 type Callback struct {
 	type_ TccType
 	cb    func(ctx *CallbackContext)
+}
+
+func MakeButtonPressEvent(cb TButtonPressEvent) *Callback {
+	return &Callback{
+		type_: TCCNotify,
+		cb: func(ctx *CallbackContext) {
+			eventPtr := ctx.input.(unsafe.Pointer)
+			event := ToEventButton(eventPtr)
+			cb(wrapWidget(ToGoObject(ctx.widget)), event)
+		},
+	}
+}
+
+func MakeLeaveEnterNotifyEvent(cb TLeaveEnterNotifyEvent) *Callback {
+	return &Callback{
+		type_: TCCNotify,
+		cb: func(ctx *CallbackContext) {
+			eventPtr := ctx.input.(unsafe.Pointer)
+			event := ToEventCrossing(eventPtr)
+			cb(wrapWidget(ToGoObject(ctx.widget)), event)
+		},
+	}
 }
 
 func MakeNotifyEvent(cb TNotifyEvent) *Callback {
