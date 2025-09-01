@@ -31,6 +31,10 @@ func wrapWidget(obj *Object) *Widget {
 	return &Widget{InitiallyUnowned{obj}}
 }
 
+func ToWidget(p unsafe.Pointer) *Widget {
+	return &Widget{InitiallyUnowned{ToGoObject(p)}}
+}
+
 // native returns a pointer to the underlying GtkWidget.
 func (v *Widget) native() *C.GtkWidget {
 	if v == nil || v.GObject == nil {

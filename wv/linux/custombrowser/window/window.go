@@ -10,6 +10,7 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"sync"
+	"unsafe"
 	"widget/wg"
 )
 
@@ -150,10 +151,21 @@ button:active {
 	headerBar.SetCustomTitle(entry)
 
 	//
-	btn1 := m.NewButton("edit-delete-symbolic", "删除项目")
-	headerBar.PackEnd(btn1)
-	//btn2 := m.NewButton("edit-delete-symbolic", "删除项目")
-	//headerBar.PackEnd(btn2)
+	btn1 := m.NewButton("edit-delete-symbolic", "删除项目删除项目")
+	headerBar.PackStart(btn1)
+
+	//
+	headerBox := lcl.NewPanel(m)
+	headerBox.SetParent(m)
+	headerBox.SetHeight(48)
+	headerBox.SetWidth(m.Width())
+	headerBox.SetBevelOuter(types.BvNone)
+	headerBox.SetColor(colors.ClBlue)
+	headerBox.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
+	headerBoxHandle := lcl.PlatformHandle(headerBox.Handle())
+	headerBoxWidget := gtkhelper.ToWidget(unsafe.Pointer(headerBoxHandle.Gtk3Widget()))
+	width, height := headerBoxWidget.GetSizeRequest()
+	println("headerBoxWidget", width, height)
 }
 
 func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {
@@ -211,6 +223,9 @@ func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widge
 	closeBtnStyleCtx := closeBtn.GetStyleContext()
 	closeBtnStyleCtx.AddClass("tab-close-button")
 	closeBtn.SetOpacity(0.7)
+	closeBtn.SetOnClick(func(sender *gtkhelper.Widget) {
+		println("close btn")
+	})
 	//SetWidgetStyle(closeBtn.ToWidget(), closeBtnCss)
 	box.PackEnd(closeBtn, false, false, 4)
 
