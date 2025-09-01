@@ -46,10 +46,7 @@ func NewRectangle(x, y, width, height int) *Rectangle {
 	return &Rectangle{r}
 }
 
-/*
- * GdkRGBA
- */
-// To create a GdkRGBA you have to use NewRGBA function.
+// RGBA To create a GdkRGBA you have to use NewRGBA function.
 type RGBA struct {
 	rgba *C.GdkRGBA
 }
@@ -108,9 +105,10 @@ func (c *RGBA) SetColors(r, g, b, a float64) {
 }
 
 /*
- * The following methods (Get/Set) are made for
- * more convenient use of the GdkRGBA object
- */
+GetRed
+  The following methods (Get/Set) are made for
+  more convenient use of the GdkRGBA object
+*/
 // GetRed get red value from the RGBA.
 func (c *RGBA) GetRed() float64 {
 	return float64(c.rgba.red)

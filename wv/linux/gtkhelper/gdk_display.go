@@ -8,10 +8,6 @@ import (
 	"unsafe"
 )
 
-/*
- * GdkDeviceManager
- */
-
 // DeviceManager is a representation of GDK's GdkDeviceManager.
 type DeviceManager struct {
 	*Object
@@ -37,7 +33,7 @@ func marshalDeviceManager(p uintptr) (interface{}, error) {
 	return &DeviceManager{obj}, nil
 }
 
-// GetDisplay() is a wrapper around gdk_device_manager_get_display().
+// GetDisplay is a wrapper around gdk_device_manager_get_display().
 func (v *DeviceManager) GetDisplay() (*Display, error) {
 	c := C.gdk_device_manager_get_display(v.native())
 	if c == nil {
@@ -46,10 +42,6 @@ func (v *DeviceManager) GetDisplay() (*Display, error) {
 
 	return &Display{ToGoObject(unsafe.Pointer(c))}, nil
 }
-
-/*
- * GdkDisplay
- */
 
 // Display is a representation of GDK's GdkDisplay.
 type Display struct {

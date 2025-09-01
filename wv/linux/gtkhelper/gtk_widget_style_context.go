@@ -17,10 +17,6 @@ const (
 	STYLE_PROVIDER_PRIORITY_USER                              = C.GTK_STYLE_PROVIDER_PRIORITY_USER
 )
 
-/*
- * GtkStyleContext
- */
-
 // StyleContext is a representation of GTK's GtkStyleContext.
 type StyleContext struct {
 	*Object

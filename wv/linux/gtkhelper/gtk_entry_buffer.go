@@ -44,7 +44,7 @@ func NewEntryBuffer(initialChars string, nInitialChars int) (*EntryBuffer, error
 	return e, nil
 }
 
-// GetText() is a wrapper around gtk_entry_buffer_get_text().  A
+// GetText is a wrapper around gtk_entry_buffer_get_text().  A
 // non-nil error is returned in the case that gtk_entry_buffer_get_text
 // returns NULL to differentiate between NULL and an empty string.
 func (v *EntryBuffer) GetText() (string, error) {
@@ -55,7 +55,7 @@ func (v *EntryBuffer) GetText() (string, error) {
 	return GoString(c), nil
 }
 
-// SetText() is a wrapper around gtk_entry_buffer_set_text().
+// SetText is a wrapper around gtk_entry_buffer_set_text().
 func (v *EntryBuffer) SetText(text string) {
 	cstr := C.CString(text)
 	defer C.free(unsafe.Pointer(cstr))
@@ -63,30 +63,30 @@ func (v *EntryBuffer) SetText(text string) {
 		C.gint(len(text)))
 }
 
-// GetBytes() is a wrapper around gtk_entry_buffer_get_bytes().
+// GetBytes is a wrapper around gtk_entry_buffer_get_bytes().
 func (v *EntryBuffer) GetBytes() uint {
 	c := C.gtk_entry_buffer_get_bytes(v.native())
 	return uint(c)
 }
 
-// GetLength() is a wrapper around gtk_entry_buffer_get_length().
+// GetLength is a wrapper around gtk_entry_buffer_get_length().
 func (v *EntryBuffer) GetLength() uint {
 	c := C.gtk_entry_buffer_get_length(v.native())
 	return uint(c)
 }
 
-// GetMaxLength() is a wrapper around gtk_entry_buffer_get_max_length().
+// GetMaxLength is a wrapper around gtk_entry_buffer_get_max_length().
 func (v *EntryBuffer) GetMaxLength() int {
 	c := C.gtk_entry_buffer_get_max_length(v.native())
 	return int(c)
 }
 
-// SetMaxLength() is a wrapper around gtk_entry_buffer_set_max_length().
+// SetMaxLength is a wrapper around gtk_entry_buffer_set_max_length().
 func (v *EntryBuffer) SetMaxLength(maxLength int) {
 	C.gtk_entry_buffer_set_max_length(v.native(), C.gint(maxLength))
 }
 
-// InsertText() is a wrapper around gtk_entry_buffer_insert_text().
+// InsertText is a wrapper around gtk_entry_buffer_insert_text().
 func (v *EntryBuffer) InsertText(position uint, text string) uint {
 	cstr := C.CString(text)
 	defer C.free(unsafe.Pointer(cstr))
@@ -94,20 +94,20 @@ func (v *EntryBuffer) InsertText(position uint, text string) uint {
 	return uint(c)
 }
 
-// DeleteText() is a wrapper around gtk_entry_buffer_delete_text().
+// DeleteText is a wrapper around gtk_entry_buffer_delete_text().
 func (v *EntryBuffer) DeleteText(position uint, nChars int) uint {
 	c := C.gtk_entry_buffer_delete_text(v.native(), C.guint(position),
 		C.gint(nChars))
 	return uint(c)
 }
 
-// EmitDeletedText() is a wrapper around gtk_entry_buffer_emit_deleted_text().
+// EmitDeletedText is a wrapper around gtk_entry_buffer_emit_deleted_text().
 func (v *EntryBuffer) EmitDeletedText(pos, nChars uint) {
 	C.gtk_entry_buffer_emit_deleted_text(v.native(), C.guint(pos),
 		C.guint(nChars))
 }
 
-// EmitInsertedText() is a wrapper around gtk_entry_buffer_emit_inserted_text().
+// EmitInsertedText is a wrapper around gtk_entry_buffer_emit_inserted_text().
 func (v *EntryBuffer) EmitInsertedText(pos uint, text string) {
 	cstr := C.CString(text)
 	defer C.free(unsafe.Pointer(cstr))

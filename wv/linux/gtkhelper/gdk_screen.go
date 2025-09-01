@@ -7,10 +7,6 @@ import (
 	"unsafe"
 )
 
-/*
- * GdkScreen
- */
-
 // Screen is a representation of GDK's GdkScreen.
 type Screen struct {
 	*Object

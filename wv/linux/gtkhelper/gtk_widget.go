@@ -233,41 +233,41 @@ func (v *Widget) Unrealize() {
 	C.gtk_widget_unrealize(v.native())
 }
 
-// Event() is a wrapper around gtk_widget_event().
+// Event is a wrapper around gtk_widget_event().
 func (v *Widget) Event(event *Event) bool {
 	c := C.gtk_widget_event(v.native(),
 		(*C.GdkEvent)(unsafe.Pointer(event.Native())))
 	return GoBool(c)
 }
 
-// Activate() is a wrapper around gtk_widget_activate().
+// Activate is a wrapper around gtk_widget_activate().
 func (v *Widget) Activate() bool {
 	return GoBool(C.gtk_widget_activate(v.native()))
 }
 
-// IsFocus() is a wrapper around gtk_widget_is_focus().
+// IsFocus is a wrapper around gtk_widget_is_focus().
 func (v *Widget) IsFocus() bool {
 	return GoBool(C.gtk_widget_is_focus(v.native()))
 }
 
-// GrabFocus() is a wrapper around gtk_widget_grab_focus().
+// GrabFocus is a wrapper around gtk_widget_grab_focus().
 func (v *Widget) GrabFocus() {
 	C.gtk_widget_grab_focus(v.native())
 }
 
-// GrabDefault() is a wrapper around gtk_widget_grab_default().
+// GrabDefault is a wrapper around gtk_widget_grab_default().
 func (v *Widget) GrabDefault() {
 	C.gtk_widget_grab_default(v.native())
 }
 
-// SetName() is a wrapper around gtk_widget_set_name().
+// SetName is a wrapper around gtk_widget_set_name().
 func (v *Widget) SetName(name string) {
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 	C.gtk_widget_set_name(v.native(), (*C.gchar)(cstr))
 }
 
-// GetName() is a wrapper around gtk_widget_get_name().  A non-nil
+// GetName is a wrapper around gtk_widget_get_name().  A non-nil
 // error is returned in the case that gtk_widget_get_name returns NULL to
 // differentiate between NULL and an empty string.
 func (v *Widget) GetName() (string, error) {

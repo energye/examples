@@ -17,10 +17,6 @@ const (
 	WINDOW_POPUP    WindowType = C.GTK_WINDOW_POPUP
 )
 
-/*
- * GdkGravity
- */
-
 type Gravity int
 
 const (
@@ -176,8 +172,6 @@ const (
 	IMAGE_GICON     ImageType = C.GTK_IMAGE_GICON
 )
 
-// TODO: add GTK_IMAGE_SURFACE for GTK 3.10
-
 func marshalImageType(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return ImageType(c), nil
@@ -194,4 +188,30 @@ const (
 func marshalEntryIconPosition(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return EntryIconPosition(c), nil
+}
+
+// Orientation is a representation of GTK's GtkOrientation.
+type Orientation int
+
+const (
+	ORIENTATION_HORIZONTAL Orientation = C.GTK_ORIENTATION_HORIZONTAL
+	ORIENTATION_VERTICAL   Orientation = C.GTK_ORIENTATION_VERTICAL
+)
+
+func marshalOrientation(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return Orientation(c), nil
+}
+
+// PackType is a representation of GTK's GtkPackType.
+type PackType int
+
+const (
+	PACK_START PackType = C.GTK_PACK_START
+	PACK_END   PackType = C.GTK_PACK_END
+)
+
+func marshalPackType(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return PackType(c), nil
 }

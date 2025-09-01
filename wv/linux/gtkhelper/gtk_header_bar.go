@@ -11,10 +11,6 @@ import "unsafe"
 */
 import "C"
 
-/*
- * GtkHeaderBar
- */
-
 // HeaderBar is a representation of GtkHeaderBar
 type HeaderBar struct {
 	Container
@@ -37,7 +33,7 @@ func wrapHeaderBar(obj *Object) *HeaderBar {
 	return &HeaderBar{Container{Widget{InitiallyUnowned{obj}}}}
 }
 
-// HeaderBarNew is a wrapper around gtk_header_bar_new().
+// NewHeaderBar is a wrapper around gtk_header_bar_new().
 func NewHeaderBar() (*HeaderBar, error) {
 	c := C.gtk_header_bar_new()
 	if c == nil {

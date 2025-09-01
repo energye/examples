@@ -8,10 +8,6 @@ import (
 	"unsafe"
 )
 
-/*
- * GdkDevice
- */
-
 // Device is a representation of GDK's GdkDevice.
 type Device struct {
 	*Object

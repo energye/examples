@@ -10,10 +10,6 @@ import (
 	"unsafe"
 )
 
-/*
- * GIcon
- */
-
 // Icon is a representation of GIO's GIcon.
 // Interface for icons
 type Icon struct {
@@ -85,10 +81,6 @@ func NewIconForString(str string) (*Icon, error) {
 	return i, nil
 }
 
-/*
- * GFileIcon
- */
-
 // FileIcon is a representation of GIO's GFileIcon.
 type FileIcon struct {
 	*Object
@@ -103,7 +95,7 @@ func (v *FileIcon) native() *C.GFileIcon {
 	return C.toGFileIcon(p)
 }
 
-// NativePrivate: to be used inside Gotk3 only.
+// NativePrivate to be used inside Gotk3 only.
 func (v *FileIcon) NativePrivate() *C.GFileIcon {
 	if v == nil || v.GObject == nil {
 		return nil

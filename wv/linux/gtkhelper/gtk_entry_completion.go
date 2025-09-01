@@ -31,7 +31,7 @@ func wrapEntryCompletion(obj *Object) *EntryCompletion {
 	return &EntryCompletion{obj}
 }
 
-// EntryCompletionNew is a wrapper around gtk_entry_completion_new
+// NewEntryCompletion is a wrapper around gtk_entry_completion_new
 func NewEntryCompletion() (*EntryCompletion, error) {
 	c := C.gtk_entry_completion_new()
 	if c == nil {
@@ -40,9 +40,6 @@ func NewEntryCompletion() (*EntryCompletion, error) {
 	obj := ToGoObject(unsafe.Pointer(c))
 	return wrapEntryCompletion(obj), nil
 }
-
-// TODO:
-// gtk_entry_completion_set_match_func().
 
 // SetMinimumKeyLength is a wrapper around gtk_entry_completion_set_minimum_key_length
 func (v *EntryCompletion) SetMinimumKeyLength(minimumLength int) {
@@ -76,10 +73,6 @@ func (v *EntryCompletion) GetInlineCompletion() bool {
 	c := C.gtk_entry_completion_get_inline_completion(v.native())
 	return GoBool(c)
 }
-
-// TODO
-// gtk_entry_completion_set_inline_selection().
-// gtk_entry_completion_get_inline_selection().
 
 // SetPopupCompletion is a wrapper around gtk_entry_completion_set_popup_completion
 func (v *EntryCompletion) SetPopupCompletion(popupCompletion bool) {

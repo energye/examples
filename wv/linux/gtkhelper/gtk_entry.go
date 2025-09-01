@@ -65,7 +65,7 @@ func NewEntryWithBuffer(buffer *EntryBuffer) (*Entry, error) {
 	return wrapEntry(obj), nil
 }
 
-// GetBuffer() is a wrapper around gtk_entry_get_buffer().
+// GetBuffer is a wrapper around gtk_entry_get_buffer().
 func (v *Entry) GetBuffer() (*EntryBuffer, error) {
 	c := C.gtk_entry_get_buffer(v.native())
 	if c == nil {
@@ -75,19 +75,19 @@ func (v *Entry) GetBuffer() (*EntryBuffer, error) {
 	return &EntryBuffer{obj}, nil
 }
 
-// SetBuffer() is a wrapper around gtk_entry_set_buffer().
+// SetBuffer is a wrapper around gtk_entry_set_buffer().
 func (v *Entry) SetBuffer(buffer *EntryBuffer) {
 	C.gtk_entry_set_buffer(v.native(), buffer.native())
 }
 
-// SetText() is a wrapper around gtk_entry_set_text().
+// SetText is a wrapper around gtk_entry_set_text().
 func (v *Entry) SetText(text string) {
 	cstr := C.CString(text)
 	defer C.free(unsafe.Pointer(cstr))
 	C.gtk_entry_set_text(v.native(), (*C.gchar)(cstr))
 }
 
-// GetText() is a wrapper around gtk_entry_get_text().
+// GetText is a wrapper around gtk_entry_get_text().
 func (v *Entry) GetText() string {
 	c := C.gtk_entry_get_text(v.native())
 	if c == nil {
@@ -96,7 +96,7 @@ func (v *Entry) GetText() string {
 	return GoString(c)
 }
 
-// GetTextLength() is a wrapper around gtk_entry_get_text_length().
+// GetTextLength is a wrapper around gtk_entry_get_text_length().
 func (v *Entry) GetTextLength() uint16 {
 	c := C.gtk_entry_get_text_length(v.native())
 	return uint16(c)

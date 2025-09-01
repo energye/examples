@@ -80,19 +80,19 @@ func wrapImage(obj *Object) *Image {
 	return &Image{Widget{InitiallyUnowned{obj}}}
 }
 
-// Clear() is a wrapper around gtk_image_clear().
+// Clear is a wrapper around gtk_image_clear().
 func (v *Image) Clear() {
 	C.gtk_image_clear(v.native())
 }
 
-// SetFromFile() is a wrapper around gtk_image_set_from_file().
+// SetFromFile is a wrapper around gtk_image_set_from_file().
 func (v *Image) SetFromFile(filename string) {
 	cstr := C.CString(filename)
 	defer C.free(unsafe.Pointer(cstr))
 	C.gtk_image_set_from_file(v.native(), (*C.gchar)(cstr))
 }
 
-// SetFromResource() is a wrapper around gtk_image_set_from_resource().
+// SetFromResource is a wrapper around gtk_image_set_from_resource().
 func (v *Image) SetFromResource(resourcePath string) {
 	cstr := C.CString(resourcePath)
 	defer C.free(unsafe.Pointer(cstr))
@@ -105,7 +105,7 @@ func (v *Image) SetFromPixbuf(pixbuf *gdk.Pixbuf) {
 	C.gtk_image_set_from_pixbuf(v.native(), pbptr)
 }
 
-// SetFromIconName() is a wrapper around gtk_image_set_from_icon_name().
+// SetFromIconName is a wrapper around gtk_image_set_from_icon_name().
 func (v *Image) SetFromIconName(iconName string, size IconSize) {
 	cstr := C.CString(iconName)
 	defer C.free(unsafe.Pointer(cstr))
@@ -121,18 +121,18 @@ func (v *Image) SetFromGIcon(icon *glib.Icon, size IconSize) {
 		C.GtkIconSize(size))
 }
 
-// SetPixelSize() is a wrapper around gtk_image_set_pixel_size().
+// SetPixelSize is a wrapper around gtk_image_set_pixel_size().
 func (v *Image) SetPixelSize(pixelSize int) {
 	C.gtk_image_set_pixel_size(v.native(), C.gint(pixelSize))
 }
 
-// GetStorageType() is a wrapper around gtk_image_get_storage_type().
+// GetStorageType is a wrapper around gtk_image_get_storage_type().
 func (v *Image) GetStorageType() ImageType {
 	c := C.gtk_image_get_storage_type(v.native())
 	return ImageType(c)
 }
 
-// GetPixbuf() is a wrapper around gtk_image_get_pixbuf().
+// GetPixbuf is a wrapper around gtk_image_get_pixbuf().
 func (v *Image) GetPixbuf() *gdk.Pixbuf {
 	c := C.gtk_image_get_pixbuf(v.native())
 	if c == nil {
@@ -143,7 +143,7 @@ func (v *Image) GetPixbuf() *gdk.Pixbuf {
 	return pb
 }
 
-// GetAnimation() is a wrapper around gtk_image_get_animation()
+// GetAnimation is a wrapper around gtk_image_get_animation()
 func (v *Image) GetAnimation() *gdk.PixbufAnimation {
 	c := C.gtk_image_get_animation(v.native())
 	if c == nil {
@@ -167,7 +167,7 @@ func (v *Image) SetFromAnimation(animation *gdk.PixbufAnimation) {
 	C.gtk_image_set_from_animation(v.native(), pbaptr)
 }
 
-// GetIconName() is a wrapper around gtk_image_get_icon_name().
+// GetIconName is a wrapper around gtk_image_get_icon_name().
 func (v *Image) GetIconName() (string, IconSize) {
 	var iconName *C.gchar
 	var size C.GtkIconSize
@@ -192,7 +192,7 @@ func (v *Image) GetGIcon() (*glib.Icon, IconSize, error) {
 	return i, IconSize(*size), nil
 }
 
-// GetPixelSize() is a wrapper around gtk_image_get_pixel_size().
+// GetPixelSize is a wrapper around gtk_image_get_pixel_size().
 func (v *Image) GetPixelSize() int {
 	c := C.gtk_image_get_pixel_size(v.native())
 	return int(c)

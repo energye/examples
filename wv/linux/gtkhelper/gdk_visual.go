@@ -8,10 +8,6 @@ import (
 	"unsafe"
 )
 
-/*
- * GdkVisual
- */
-
 // Visual is a representation of GDK's GdkVisual.
 type Visual struct {
 	*Object
