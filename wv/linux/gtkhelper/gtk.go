@@ -215,3 +215,18 @@ func marshalPackType(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return PackType(c), nil
 }
+
+// Justification is a representation of GTK's GtkJustification.
+type Justification int
+
+const (
+	JUSTIFY_LEFT   Justification = C.GTK_JUSTIFY_LEFT
+	JUSTIFY_RIGHT  Justification = C.GTK_JUSTIFY_RIGHT
+	JUSTIFY_CENTER Justification = C.GTK_JUSTIFY_CENTER
+	JUSTIFY_FILL   Justification = C.GTK_JUSTIFY_FILL
+)
+
+func marshalJustification(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return Justification(c), nil
+}

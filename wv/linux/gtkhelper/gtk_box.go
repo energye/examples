@@ -55,13 +55,13 @@ func (v *Box) SetOrientation(o Orientation) {
 }
 
 // NewBox is a wrapper around gtk_box_new().
-func NewBox(orientation Orientation, spacing int) (*Box, error) {
+func NewBox(orientation Orientation, spacing int) *Box {
 	c := C.gtk_box_new(C.GtkOrientation(orientation), C.gint(spacing))
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
 	obj := ToGoObject(unsafe.Pointer(c))
-	return wrapBox(obj), nil
+	return wrapBox(obj)
 }
 
 // PackStart is a wrapper around gtk_box_pack_start().

@@ -146,5 +146,43 @@ button:active {
 	headerBar.SetCustomTitle(entry)
 
 	//
+	btn1 := m.NewButton("edit-delete-symbolic", "删除项目")
+	headerBar.PackEnd(btn1)
+	btn2 := m.NewButton("edit-delete-symbolic", "删除项目")
+	headerBar.PackEnd(btn2)
+}
 
+func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {
+	custBtn := gtkhelper.NewButton()
+
+	btnBox := gtkhelper.NewBox(gtkhelper.ORIENTATION_HORIZONTAL, 8)
+	// 1. 左侧图标
+	btnIcon := gtkhelper.NewImageFromIconName(iconName, gtkhelper.ICON_SIZE_BUTTON)
+	btnIcon.ShowNow()
+	btnBox.PackStart(btnIcon, false, false, 0)
+
+	// 2. 中间文本标签
+	btnLbl := gtkhelper.NewLabel(text)
+	btnLbl.SetXAlign(0.5)
+	btnLbl.SetHExpand(true)
+	btnLbl.ShowNow()
+	btnBox.PackStart(btnLbl, true, true, 0)
+
+	// 3. 右侧关闭按钮
+	closeBtn := gtkhelper.NewButton()
+	closeBtnIcon := gtkhelper.NewImageFromIconName("window-close-symbolic", gtkhelper.ICON_SIZE_BUTTON)
+	closeBtnIcon.SetName("close-btn")
+	closeBtn.SetImage(closeBtnIcon)
+	closeBtn.SetRelief(gtkhelper.RELIEF_NONE)
+	closeBtn.SetBorderWidth(0)
+	closeBtn.SetSizeRequest(24, 24)
+	closeBtn.ShowNow()
+	btnBox.PackEnd(closeBtn, false, false, 0)
+
+	custBtn.SetImage(btnBox)
+	//custBtn.SetImagePosition(gtkhelper.POS_LEFT)
+	custBtn.SetSizeRequest(200, 38)
+	custBtn.SetVExpand(false)
+
+	return custBtn.ToWidget()
 }
