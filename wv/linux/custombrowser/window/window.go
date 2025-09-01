@@ -154,7 +154,6 @@ button:active {
 	headerBar.PackEnd(btn1)
 	//btn2 := m.NewButton("edit-delete-symbolic", "删除项目")
 	//headerBar.PackEnd(btn2)
-	SetWidgetStyle(headerBar.ToWidget(), baseCss)
 }
 
 func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {
@@ -168,24 +167,26 @@ func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widge
 	event.AddEvents(gtkhelper.POINTER_MOTION_MASK | gtkhelper.ENTER_NOTIFY_MASK | gtkhelper.LEAVE_NOTIFY_MASK)
 	styleCtx := event.GetStyleContext()
 	styleCtx.AddClass("tab")
+	styleCtx.AddClass("active")
 	event.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
 		println("event.SetOnEnter")
+		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
-		styleCtx.RemoveClass("hover")
 		styleCtx.AddClass("hover")
 	})
 	event.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
 		println("event.SetOnLeave")
+		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
-		styleCtx.RemoveClass("hover")
+		styleCtx.AddClass("inactive")
 	})
 	event.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
 		println("event.SetOnClick")
+		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
-		styleCtx.RemoveClass("hover")
 		styleCtx.AddClass("active")
 	})
 
@@ -213,11 +214,7 @@ func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widge
 	//SetWidgetStyle(closeBtn.ToWidget(), closeBtnCss)
 	box.PackEnd(closeBtn, false, false, 4)
 
-	styleContext := event.GetStyleContext()
-	styleContext.RemoveClass("active")
-	styleContext.RemoveClass("inactive")
-
-	styleContext.AddClass("active")
+	//styleContext := event.GetStyleContext()
 	//SetWidgetStyle(event.ToWidget(), tabBtnCss)
 	return event.ToWidget()
 }
@@ -252,7 +249,7 @@ func addCSSStyles() {
 	color: #000000;
 }
 
-.tab.inactive.hover {
+.tab.inactive {
 	background-color: #f8f8f8;
 }
 
@@ -279,44 +276,3 @@ func addCSSStyles() {
 	screen := gtkhelper.ScreenGetDefault()
 	gtkhelper.AddProviderForScreen(screen, provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }
-
-var (
-	tabBtnCss = `#eventBox {
-    background-color: #ff0000; 
-    color: blue;
-}
-#eventBox:hover {
-	background-color: #0000ff;
-	border-radius: 2px;
-}
-#eventBox:active {
-	background-color: #00ff00;
-}`
-	baseCss = `
-#tab-active {
-	border: 1px solid #bbb;
-	border-bottom: none;
-	border-top: 2px solid #0a84ff;
-	border-radius: 4px 4px 0 0;
-	margin-top: 1px;
-}
-#tab-inactive {
-	border: 1px solid #ddd;
-	border-bottom: none;
-	border-radius: 4px 4px 0 0;
-	margin-top: 2px;
-}`
-	closeBtnCss = `
-button {
-	background: transparent;
-	border: none;
-	padding: 2px; /* 减小点击区域内边距 */
-}
-button:hover {
-	background: rgba(128, 128, 128, 0.2); /* 悬停时轻微灰色背景 */
-	border-radius: 2px;
-}
-button:active {
-	background: rgba(128, 128, 128, 0.4); /* 点击时加深背景 */
-}`
-)
