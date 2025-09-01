@@ -1,5 +1,6 @@
 package gtkhelper
 
+// #cgo pkg-config: gdk-3.0 gio-2.0 glib-2.0 gobject-2.0 gtk+-3.0
 // #include <gtk/gtk.h>
 // #include "gtk.go.h"
 import "C"
@@ -343,28 +344,9 @@ func (v *Widget) GetEvents() int {
 }
 
 // AddEvents is a wrapper around gtk_widget_add_events().
-func (v *Widget) AddEvents(events int) {
+func (v *Widget) AddEvents(events EventMask) {
 	C.gtk_widget_add_events(v.native(), C.gint(events))
 }
-
-// TODO:
-/*
-// gtk_widget_set_device_events().
-func (v *Widget) SetDeviceEvents() {
-}
-*/
-
-/*
-// gtk_widget_get_device_events().
-func (v *Widget) GetDeviceEvents() {
-}
-*/
-
-/*
-// gtk_widget_add_device_events().
-func (v *Widget) AddDeviceEvents() {
-}
-*/
 
 // FreezeChildNotify is a wrapper around gtk_widget_freeze_child_notify().
 func (v *Widget) FreezeChildNotify() {
