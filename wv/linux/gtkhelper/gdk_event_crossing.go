@@ -107,5 +107,5 @@ func (v *EventCrossing) Detail() NotifyType {
 
 func (v *EventCrossing) Focus() bool {
 	c := v.native().focus
-	return gobool(c)
+	return GoBool(c)
 }

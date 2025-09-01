@@ -50,8 +50,6 @@ func (v *EventTouch) Type() EventType {
 	return EventType(c)
 }
 
-/*TODO GdkWindow *window */
-
 func (v *EventTouch) Time() uint32 {
 	c := v.native().time
 	return uint32(c)
@@ -67,21 +65,15 @@ func (v *EventTouch) Y() float64 {
 	return float64(c)
 }
 
-/*TODO gdouble *axes */
-
 func (v *EventTouch) State() uint {
 	c := v.native().state
 	return uint(c)
 }
 
-/*TODO GdkEventSequence *sequence */
-
 func (v *EventTouch) EmulatingPointer() uint {
 	c := v.native().emulating_pointer
 	return uint(c)
 }
-
-/*TODO GdkDevice *device */
 
 func (v *EventTouch) XRoot() float64 {
 	c := v.native().x_root

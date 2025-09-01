@@ -67,9 +67,9 @@ func (v *EventButton) YRoot() float64 {
 	return float64(c)
 }
 
-func (v *EventButton) Button() Button {
+func (v *EventButton) Button() ButtonType {
 	c := v.native().button
-	return Button(c)
+	return ButtonType(c)
 }
 
 func (v *EventButton) State() uint {
