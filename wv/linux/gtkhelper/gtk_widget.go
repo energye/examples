@@ -546,6 +546,28 @@ func (v *Widget) GetScreen() *Screen {
 	return s
 }
 
+// SetMarginStart is a wrapper around gtk_widget_set_margin_start().
+func (v *Widget) SetMarginStart(margin int) {
+	C.gtk_widget_set_margin_start(v.native(), C.gint(margin))
+}
+
+// GetMarginStart is a wrapper around gtk_widget_get_margin_start().
+func (v *Widget) GetMarginStart() int {
+	c := C.gtk_widget_get_margin_start(v.native())
+	return int(c)
+}
+
+// SetMarginEnd is a wrapper around gtk_widget_set_margin_end().
+func (v *Widget) SetMarginEnd(margin int) {
+	C.gtk_widget_set_margin_end(v.native(), C.gint(margin))
+}
+
+// GetMarginEnd is a wrapper around gtk_widget_get_margin_end().
+func (v *Widget) GetMarginEnd() int {
+	c := C.gtk_widget_get_margin_end(v.native())
+	return int(c)
+}
+
 // Allocation is a representation of GTK's GtkAllocation type.
 type Allocation struct {
 	Rectangle

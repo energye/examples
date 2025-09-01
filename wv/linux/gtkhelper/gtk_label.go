@@ -91,6 +91,17 @@ func (v *Label) SetJustify(jtype Justification) {
 	C.gtk_label_set_justify(v.native(), C.GtkJustification(jtype))
 }
 
+// GetEllipsize is a wrapper around gtk_label_get_ellipsize().
+func (v *Label) GetEllipsize() EllipsizeMode {
+	c := C.gtk_label_get_ellipsize(v.native())
+	return EllipsizeMode(c)
+}
+
+// SetEllipsize is a wrapper around gtk_label_set_ellipsize().
+func (v *Label) SetEllipsize(mode EllipsizeMode) {
+	C.gtk_label_set_ellipsize(v.native(), C.PangoEllipsizeMode(mode))
+}
+
 // GetWidthChars is a wrapper around gtk_label_get_width_chars().
 func (v *Label) GetWidthChars() int {
 	c := C.gtk_label_get_width_chars(v.native())
