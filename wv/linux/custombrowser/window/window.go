@@ -135,12 +135,7 @@ button:active {
 	entry := gtkhelper.NewEntry()
 	entry.SetPlaceholderText("请输入")
 	entry.SetSizeRequest(250, -1)
-	entry.SetOnChanged(func(sender *gtkhelper.Widget, text string) {
-		println("entry.SetOnChanged text:", text)
-	})
-	entry.SetOnCommit(func(sender *gtkhelper.Widget, text string) {
-		println("entry.SetOnCommit text:", text)
-	})
+	entry.SetHAlign(gtkhelper.ALIGN_CENTER)
 	entry.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
 		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
 		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {

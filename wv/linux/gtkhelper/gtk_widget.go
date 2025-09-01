@@ -526,9 +526,25 @@ func (v *Widget) GetStateFlags() StateFlags {
 	return StateFlags(C.gtk_widget_get_state_flags(v.native()))
 }
 
-/*
- * GtkAllocation
- */
+// GetDisplay is a wrapper around gtk_widget_get_display().
+func (v *Widget) GetDisplay() *Display {
+	c := C.gtk_widget_get_display(v.native())
+	if c == nil {
+		return nil
+	}
+	s := &Display{ToGoObject(unsafe.Pointer(c))}
+	return s
+}
+
+// GetScreen is a wrapper around gtk_widget_get_screen().
+func (v *Widget) GetScreen() *Screen {
+	c := C.gtk_widget_get_screen(v.native())
+	if c == nil {
+		return nil
+	}
+	s := &Screen{ToGoObject(unsafe.Pointer(c))}
+	return s
+}
 
 // Allocation is a representation of GTK's GtkAllocation type.
 type Allocation struct {
