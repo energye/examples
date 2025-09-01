@@ -5,7 +5,7 @@ package gtkhelper
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include <stdlib.h>
-#include <h>
+#include <glib.h>
 #include <glib-object.h>
 #include "gtk.go.h"
 */
