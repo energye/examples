@@ -18,9 +18,7 @@ func NewEventButton() *EventButton {
 }
 
 func ToEventButton(p unsafe.Pointer) *EventButton {
-	m := new(EventButton)
-	m.GdkEvent = (*C.GdkEvent)(p)
-	return m
+	return &EventButton{&Event{GdkEvent: (*C.GdkEvent)(p)}}
 }
 
 // EventButtonNewFromEvent returns an EventButton from an Event.

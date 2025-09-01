@@ -18,9 +18,7 @@ func NewEventCrossing() *EventCrossing {
 }
 
 func ToEventCrossing(p unsafe.Pointer) *EventCrossing {
-	m := new(EventCrossing)
-	m.GdkEvent = (*C.GdkEvent)(p)
-	return m
+	return &EventCrossing{&Event{GdkEvent: (*C.GdkEvent)(p)}}
 }
 
 // EventCrossingNewFromEvent returns an EventCrossing from an Event.
