@@ -376,6 +376,17 @@ func (v *Widget) HasVisibleFocus() bool {
 	return GoBool(c)
 }
 
+// SetOpacity is a wrapper around gtk_widget_set_opacity()
+func (v *Widget) SetOpacity(opacity float64) {
+	C.gtk_widget_set_opacity(v.native(), C.double(opacity))
+}
+
+// GetOpacity is a wrapper around gtk_widget_get_opacity()
+func (v *Widget) GetOpacity() float64 {
+	c := C.gtk_widget_get_opacity(v.native())
+	return float64(c)
+}
+
 // HasGrab is a wrapper around gtk_widget_has_grab().
 func (v *Widget) HasGrab() bool {
 	c := C.gtk_widget_has_grab(v.native())

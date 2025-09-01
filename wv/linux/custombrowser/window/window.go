@@ -71,21 +71,23 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	})
 
-	edit := lcl.NewEdit(m)
-	edit.SetParent(m)
-	edit.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
-		fmt.Println("SetOnKeyPress key:", *key)
-	})
-	edit.SetOnKeyUp(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-		fmt.Println("SetOnKeyUp key:", *key)
-	})
-	edit.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-
-	})
+	//edit := lcl.NewEdit(m)
+	//edit.SetParent(m)
+	//edit.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
+	//	fmt.Println("SetOnKeyPress key:", *key)
+	//})
+	//edit.SetOnKeyUp(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
+	//	fmt.Println("SetOnKeyUp key:", *key)
+	//})
+	//edit.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
+	//
+	//})
 	m.Toolbar()
 }
 
 func (m *BrowserWindow) Toolbar() {
+	addCSSStyles()
+
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindowPtr := gtkHandle.Gtk3Window()
 	fmt.Println("gtkWindowPtr:", gtkWindowPtr)
@@ -96,6 +98,8 @@ func (m *BrowserWindow) Toolbar() {
 	}
 	headerBar.SetShowCloseButton(true)
 	headerBar.SetName("custom-headerbar")
+	headerBar.SetVExpand(false)
+	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
 
 	gtkWindow := gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
 	gtkWindow.SetTitlebar(headerBar)
@@ -132,7 +136,7 @@ button:active {
 	headerBar.PackStart(btn)
 
 	entry := gtkhelper.NewEntry()
-	entry.SetPlaceholderText("请输入")
+	entry.SetPlaceholderText("输入网站地址")
 	entry.SetSizeRequest(250, -1)
 	entry.SetHAlign(gtkhelper.ALIGN_CENTER)
 	entry.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
@@ -148,41 +152,171 @@ button:active {
 	//
 	btn1 := m.NewButton("edit-delete-symbolic", "删除项目")
 	headerBar.PackEnd(btn1)
-	btn2 := m.NewButton("edit-delete-symbolic", "删除项目")
-	headerBar.PackEnd(btn2)
+	//btn2 := m.NewButton("edit-delete-symbolic", "删除项目")
+	//headerBar.PackEnd(btn2)
+	SetWidgetStyle(headerBar.ToWidget(), baseCss)
 }
 
 func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {
-	custBtn := gtkhelper.NewButton()
+	event := gtkhelper.NewEventBox()
+	event.SetHExpand(false)
+	event.SetVExpand(false)
+	event.SetSizeRequest(-1, 28)
+	event.SetBorderWidth(0)
+	event.SetVAlign(gtkhelper.ALIGN_CENTER)
+	event.SetVisibleWindow(true)
+	event.AddEvents(gtkhelper.POINTER_MOTION_MASK | gtkhelper.ENTER_NOTIFY_MASK | gtkhelper.LEAVE_NOTIFY_MASK)
+	styleCtx := event.GetStyleContext()
+	styleCtx.AddClass("tab")
+	event.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+		println("event.SetOnEnter")
+		styleCtx.RemoveClass("active")
+		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("hover")
+		styleCtx.AddClass("hover")
+	})
+	event.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+		println("event.SetOnLeave")
+		styleCtx.RemoveClass("active")
+		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("hover")
+	})
+	event.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
+		println("event.SetOnClick")
+		styleCtx.RemoveClass("active")
+		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("hover")
+		styleCtx.AddClass("active")
+	})
 
-	btnBox := gtkhelper.NewBox(gtkhelper.ORIENTATION_HORIZONTAL, 8)
-	// 1. 左侧图标
-	btnIcon := gtkhelper.NewImageFromIconName(iconName, gtkhelper.ICON_SIZE_BUTTON)
-	btnIcon.ShowNow()
-	btnBox.PackStart(btnIcon, false, false, 0)
+	box := gtkhelper.NewBox(gtkhelper.ORIENTATION_HORIZONTAL, 4)
+	event.Add(box)
+	box.SetVAlign(gtkhelper.ALIGN_CENTER)
 
-	// 2. 中间文本标签
-	btnLbl := gtkhelper.NewLabel(text)
-	btnLbl.SetXAlign(0.5)
-	btnLbl.SetHExpand(true)
-	btnLbl.ShowNow()
-	btnBox.PackStart(btnLbl, true, true, 0)
+	icon := gtkhelper.NewImageFromIconName(iconName, gtkhelper.ICON_SIZE_MENU)
+	icon.SetSizeRequest(16, 16)
+	box.PackStart(icon, false, false, 4)
 
-	// 3. 右侧关闭按钮
+	label := gtkhelper.NewLabel(text)
+	label.SetXAlign(0.0)
+	label.SetEllipsize(gtkhelper.ELLIPSIZE_END)
+	label.SetHExpand(true)
+	box.PackStart(label, true, true, 0)
+
 	closeBtn := gtkhelper.NewButton()
-	closeBtnIcon := gtkhelper.NewImageFromIconName("window-close-symbolic", gtkhelper.ICON_SIZE_BUTTON)
-	closeBtnIcon.SetName("close-btn")
+	closeBtnIcon := gtkhelper.NewImageFromIconName("window-close-symbolic", gtkhelper.ICON_SIZE_MENU)
 	closeBtn.SetImage(closeBtnIcon)
-	closeBtn.SetRelief(gtkhelper.RELIEF_NONE)
-	closeBtn.SetBorderWidth(0)
-	closeBtn.SetSizeRequest(24, 24)
-	closeBtn.ShowNow()
-	btnBox.PackEnd(closeBtn, false, false, 0)
+	closeBtn.SetSizeRequest(16, 16)
+	closeBtnStyleCtx := closeBtn.GetStyleContext()
+	closeBtnStyleCtx.AddClass("tab-close-button")
+	closeBtn.SetOpacity(0.7)
+	//SetWidgetStyle(closeBtn.ToWidget(), closeBtnCss)
+	box.PackEnd(closeBtn, false, false, 4)
 
-	custBtn.SetImage(btnBox)
-	//custBtn.SetImagePosition(gtkhelper.POS_LEFT)
-	custBtn.SetSizeRequest(200, 38)
-	custBtn.SetVExpand(false)
+	styleContext := event.GetStyleContext()
+	styleContext.RemoveClass("active")
+	styleContext.RemoveClass("inactive")
 
-	return custBtn.ToWidget()
+	styleContext.AddClass("active")
+	//SetWidgetStyle(event.ToWidget(), tabBtnCss)
+	return event.ToWidget()
 }
+
+func SetWidgetStyle(widget *gtkhelper.Widget, css string) {
+	provider := gtkhelper.NewCssProvider()
+	defer provider.Unref()
+	provider.LoadFromData(css)
+	context := widget.GetStyleContext()
+	context.AddProvider(provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
+}
+
+func addCSSStyles() {
+	provider := gtkhelper.NewCssProvider()
+	defer provider.Unref()
+	css := `
+.tab {
+	background-color: #f0f0f0;
+	border: 1px solid #dddddd;
+	border-bottom: none;
+	border-radius: 4px 4px 0 0;
+	margin-top: 2px;
+	padding: 4px 8px;
+	color: #333333;
+	transition: all 0.2s ease;
+}
+
+.tab.active {
+	background-color: #ffffff;
+	border-top: 2px solid #0a84ff;
+	margin-top: 1px;
+	color: #000000;
+}
+
+.tab.inactive.hover {
+	background-color: #f8f8f8;
+}
+
+.tab-close-button {
+	border-radius: 2px;
+	border: none;
+	background: transparent;
+	padding: 2px;
+	min-width: 16px;
+	min-height: 16px;
+	transition: background-color 0.1s;
+}
+
+.tab-close-button:hover {
+	background-color: rgba(0, 0, 0, 0.1);
+}
+
+.tab-close-button:active {
+	background-color: rgba(0, 0, 0, 0.2);
+}
+	`
+	provider.LoadFromData(css)
+
+	screen := gtkhelper.ScreenGetDefault()
+	gtkhelper.AddProviderForScreen(screen, provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
+}
+
+var (
+	tabBtnCss = `#eventBox {
+    background-color: #ff0000; 
+    color: blue;
+}
+#eventBox:hover {
+	background-color: #0000ff;
+	border-radius: 2px;
+}
+#eventBox:active {
+	background-color: #00ff00;
+}`
+	baseCss = `
+#tab-active {
+	border: 1px solid #bbb;
+	border-bottom: none;
+	border-top: 2px solid #0a84ff;
+	border-radius: 4px 4px 0 0;
+	margin-top: 1px;
+}
+#tab-inactive {
+	border: 1px solid #ddd;
+	border-bottom: none;
+	border-radius: 4px 4px 0 0;
+	margin-top: 2px;
+}`
+	closeBtnCss = `
+button {
+	background: transparent;
+	border: none;
+	padding: 2px; /* 减小点击区域内边距 */
+}
+button:hover {
+	background: rgba(128, 128, 128, 0.2); /* 悬停时轻微灰色背景 */
+	border-radius: 2px;
+}
+button:active {
+	background: rgba(128, 128, 128, 0.4); /* 点击时加深背景 */
+}`
+)
