@@ -64,8 +64,8 @@ func (v *Screen) IsComposited() bool {
 }
 
 // GetRootWindow is a wrapper around gdk_screen_get_root_window().
-func (v *Screen) GetRootWindow() *Window {
-	return toWindow(C.gdk_screen_get_root_window(v.native()))
+func (v *Screen) GetRootWindow() *GdkWindow {
+	return toGdkWindow(C.gdk_screen_get_root_window(v.native()))
 }
 
 // GetDisplay is a wrapper around gdk_screen_get_display().

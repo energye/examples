@@ -76,10 +76,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnConstrainedResize(func(sender lcl.IObject, minWidth *types.TConstraintSize, minHeight *types.TConstraintSize, maxWidth *types.TConstraintSize, maxHeight *types.TConstraintSize) {
 		fmt.Println("SetOnConstrainedResize")
 	})
-	m.SetOnResize(func(sender lcl.IObject) {
-		//fmt.Println("SetOnResize")
-		m.UpdateBrowserBounds()
-	})
+	//m.SetOnResize(func(sender lcl.IObject) {
+	//	//fmt.Println("SetOnResize")
+	//	m.UpdateBrowserBounds()
+	//})
 
 	// Global CSS Style
 	addCSSStyles()
@@ -104,8 +104,30 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarFixed
 
+	sendMouseEvent := func() {
+		display := gtkhelper.DisplayGetDefault()
+		device := display.GetDefaultSeat().GetPointer()
+		//deviceManage := display.GetDeviceManager()
+		//device := deviceManage.GetClientPointer()
+		screen := display.GetDefaultScreen()
+		window := screen.GetRootWindow()
+		println(window)
+		_, x, y, _ := window.GetDevicePosition(device)
+		fmt.Println("sendMouseEvent:", x, y)
+		//event := gtkhelper.NewEventMotion()
+	}
+
 	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
-		println("window SetOnConfigure")
+		m.UpdateBrowserBounds()
+		//mainCtx := gtkhelper.MainContextDefault()
+		//gtkhelper.IdleAdd(func() bool {
+		//	for mainCtx.Pending() {
+		//		println("gtkhelper.IdleAdd Pending")
+		//		mainCtx.Iteration(false)
+		//	}
+		//	return false
+		//})
+		sendMouseEvent()
 		return false
 	})
 

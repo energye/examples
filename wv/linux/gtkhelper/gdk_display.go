@@ -1,8 +1,12 @@
 package gtkhelper
 
-// #cgo pkg-config: gdk-3.0 glib-2.0 gobject-2.0
-// #include <gdk/gdk.h>
-// #include "gdk.go.h"
+/*
+#cgo pkg-config: gdk-3.0 glib-2.0 gobject-2.0
+#include <gdk/gdk.h>
+#include "gdk.go.h"
+
+static GdkSeat *toGdkSeat(void *p) { return ((GdkSeat *)p); }
+*/
 import "C"
 import (
 	"unsafe"
@@ -89,13 +93,12 @@ func DisplayOpen(displayName string) (*Display, error) {
 }
 
 // DisplayGetDefault is a wrapper around gdk_display_get_default().
-func DisplayGetDefault() (*Display, error) {
+func DisplayGetDefault() *Display {
 	c := C.gdk_display_get_default()
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
-
-	return &Display{ToGoObject(unsafe.Pointer(c))}, nil
+	return &Display{ToGoObject(unsafe.Pointer(c))}
 }
 
 // GetName is a wrapper around gdk_display_get_name().
@@ -108,13 +111,12 @@ func (v *Display) GetName() (string, error) {
 }
 
 // GetDefaultScreen is a wrapper around gdk_display_get_default_screen().
-func (v *Display) GetDefaultScreen() (*Screen, error) {
+func (v *Display) GetDefaultScreen() *Screen {
 	c := C.gdk_display_get_default_screen(v.native())
 	if c == nil {
-		return nil, nilPtrErr
+		return nil
 	}
-
-	return &Screen{ToGoObject(unsafe.Pointer(c))}, nil
+	return &Screen{ToGoObject(unsafe.Pointer(c))}
 }
 
 // DeviceIsGrabbed is a wrapper around gdk_display_device_is_grabbed().
@@ -266,12 +268,6 @@ func (v *Display) SupportsInputShapes() bool {
 	return GoBool(c)
 }
 
-// TODO:
-// gdk_display_get_app_launch_context().
-// func (v *Display) GetAppLaunchContext() {
-// 	panic("Not implemented")
-// }
-
 // NotifyStartupComplete is a wrapper around gdk_display_notify_startup_complete().
 func (v *Display) NotifyStartupComplete(startupID string) {
 	cstr := C.CString(startupID)
@@ -279,9 +275,25 @@ func (v *Display) NotifyStartupComplete(startupID string) {
 	C.gdk_display_notify_startup_complete(v.native(), (*C.gchar)(cstr))
 }
 
-/*
- * GdkDisplayManager
- */
+// GetDeviceManager is a wrapper around gdk_display_get_device_manager().
+//func (v *Display) GetDeviceManager() *DeviceManager {
+//	c := C.gdk_display_get_device_manager(v.native())
+//	if c == nil {
+//		return nil
+//	}
+//	return &DeviceManager{ToGoObject(unsafe.Pointer(c))}
+//}
+
+// GetScreen is a wrapper around gdk_display_get_screen().
+//func (v *Display) GetScreen(screenNum int) (*Screen, error) {
+//	c := C.gdk_display_get_screen(v.native(), C.gint(screenNum))
+//	if c == nil {
+//		return nil, nilPtrErr
+//	}
+//
+//	return &Screen{ToGoObject(unsafe.Pointer(c))}, nil
+//}
+
 // DisplayManager is a representation of GDK's GdkDisplayManager.
 type DisplayManager struct {
 	*Object
@@ -350,4 +362,47 @@ func (v *DisplayManager) OpenDisplay(name string) (*Display, error) {
 	}
 	obj := &Object{ToCObject(unsafe.Pointer(c))}
 	return &Display{obj}, nil
+}
+
+// GetClientPointer is a wrapper around gdk_device_manager_get_client_pointer().
+//func (v *DeviceManager) GetClientPointer() *Device {
+//	c := C.gdk_device_manager_get_client_pointer(v.native())
+//	if c == nil {
+//		return nil
+//	}
+//
+//	return &Device{ToGoObject(unsafe.Pointer(c))}
+//}
+
+func (v *Display) GetDefaultSeat() *Seat {
+	return toSeat(C.gdk_display_get_default_seat(v.native()))
+}
+
+type Seat struct {
+	*Object
+}
+
+func (v *Seat) native() *C.GdkSeat {
+	if v == nil || v.GObject == nil {
+		return nil
+	}
+	p := unsafe.Pointer(v.GObject)
+	return C.toGdkSeat(p)
+}
+
+// Native returns a pointer to the underlying GdkCursor.
+func (v *Seat) Native() uintptr {
+	return uintptr(unsafe.Pointer(v.native()))
+}
+
+func toSeat(s *C.GdkSeat) *Seat {
+	if s == nil {
+		return nil
+	}
+	obj := &Object{ToCObject(unsafe.Pointer(s))}
+	return &Seat{obj}
+}
+
+func (v *Seat) GetPointer() *Device {
+	return toDevice(C.gdk_seat_get_pointer(v.native()))
 }

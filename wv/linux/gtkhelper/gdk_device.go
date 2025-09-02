@@ -33,9 +33,9 @@ func marshalDevice(p uintptr) (interface{}, error) {
 	return &Device{obj}, nil
 }
 
-func toDevice(d *C.GdkDevice) (*Device, error) {
+func toDevice(d *C.GdkDevice) *Device {
 	obj := &Object{ToCObject(unsafe.Pointer(d))}
-	return &Device{obj}, nil
+	return &Device{obj}
 }
 
 func (v *Device) GetPosition(screen **Screen, x, y *int) error {

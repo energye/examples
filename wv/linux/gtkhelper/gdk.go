@@ -31,6 +31,13 @@ const (
 	BUTTON_SECONDARY ButtonType = C.GDK_BUTTON_SECONDARY
 )
 
+func EventGetTime(event *Event) uint32 {
+	if event == nil {
+		return uint32(C.gdk_event_get_time(nil))
+	}
+	return uint32(C.gdk_event_get_time(event.GdkEvent))
+}
+
 // Rectangle is a representation of GDK's GdkRectangle type.
 type Rectangle struct {
 	GdkRectangle C.GdkRectangle
