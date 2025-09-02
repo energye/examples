@@ -72,27 +72,30 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	button.AddEvents(gtkhelper.POINTER_MOTION_MASK | gtkhelper.ENTER_NOTIFY_MASK | gtkhelper.LEAVE_NOTIFY_MASK)
 	styleCtx := button.GetStyleContext()
 	styleCtx.AddClass("tab")
-	styleCtx.AddClass("active")
+	isClick := false
 	button.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		println("event.SetOnEnter")
-		styleCtx = sender.GetStyleContext()
-		styleCtx.RemoveClass("active")
-		styleCtx.RemoveClass("inactive")
-		styleCtx.AddClass("hover")
-	})
-	button.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		println("event.SetOnLeave")
-		styleCtx = sender.GetStyleContext()
-		styleCtx.RemoveClass("active")
-		styleCtx.RemoveClass("inactive")
-		styleCtx.AddClass("inactive")
-	})
-	button.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
-		println("event.SetOnClick")
+		println("event.SetOnEnter isClick:", isClick)
 		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
 		styleCtx.AddClass("active")
+		if isClick {
+			isClick = false
+		}
+	})
+	button.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+		println("event.SetOnLeave isClick:", isClick)
+		styleCtx = sender.GetStyleContext()
+		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("active")
+		if isClick {
+			styleCtx.AddClass("active")
+			isClick = false
+		}
+	})
+	button.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
+		println("event.SetOnClick")
+		isClick = true
 		if tabButton.click != nil {
 			tabButton.click()
 		}
