@@ -223,6 +223,7 @@ func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widge
 	closeBtnStyleCtx := closeBtn.GetStyleContext()
 	closeBtnStyleCtx.AddClass("tab-close-button")
 	closeBtn.SetOpacity(0.7)
+	closeBtn.SetFocusOnClick(false)
 	closeBtn.SetOnClick(func(sender *gtkhelper.Widget) {
 		println("close btn")
 	})

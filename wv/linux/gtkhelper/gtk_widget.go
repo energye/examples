@@ -57,42 +57,6 @@ func (v *Widget) ToWidget() *Widget {
 	return v
 }
 
-// GetPreferredHeightForWidth is a wrapper around gtk_widget_get_preferred_height_for_width().
-func (v *Widget) GetPreferredHeightForWidth(width int) (int, int) {
-	var minimum, natural C.gint
-	C.gtk_widget_get_preferred_height_for_width(
-		v.native(),
-		C.gint(width),
-		&minimum,
-		&natural)
-	return int(minimum), int(natural)
-}
-
-// GetPreferredWidthForHeight is a wrapper around gtk_widget_get_preferred_width_for_height().
-func (v *Widget) GetPreferredWidthForHeight(height int) (int, int) {
-	var minimum, natural C.gint
-	C.gtk_widget_get_preferred_width_for_height(
-		v.native(),
-		C.gint(height),
-		&minimum,
-		&natural)
-	return int(minimum), int(natural)
-}
-
-// GetPreferredHeight is a wrapper around gtk_widget_get_preferred_height().
-func (v *Widget) GetPreferredHeight() (int, int) {
-	var minimum, natural C.gint
-	C.gtk_widget_get_preferred_height(v.native(), &minimum, &natural)
-	return int(minimum), int(natural)
-}
-
-// GetPreferredWidth is a wrapper around gtk_widget_get_preferred_width().
-func (v *Widget) GetPreferredWidth() (int, int) {
-	var minimum, natural C.gint
-	C.gtk_widget_get_preferred_width(v.native(), &minimum, &natural)
-	return int(minimum), int(natural)
-}
-
 // GetHAlign is a wrapper around gtk_widget_get_halign().
 func (v *Widget) GetHAlign() Align {
 	c := C.gtk_widget_get_halign(v.native())
@@ -148,10 +112,6 @@ func (v *Widget) SetHExpand(expand bool) {
 	C.gtk_widget_set_hexpand(v.native(), CBool(expand))
 }
 
-// TODO:
-// gtk_widget_get_hexpand_set().
-// gtk_widget_set_hexpand_set().
-
 // GetVExpand is a wrapper around gtk_widget_get_vexpand().
 func (v *Widget) GetVExpand() bool {
 	c := C.gtk_widget_get_vexpand(v.native())
@@ -162,12 +122,6 @@ func (v *Widget) GetVExpand() bool {
 func (v *Widget) SetVExpand(expand bool) {
 	C.gtk_widget_set_vexpand(v.native(), CBool(expand))
 }
-
-// TODO:
-// gtk_widget_get_vexpand_set().
-// gtk_widget_set_vexpand_set().
-// gtk_widget_queue_compute_expand().
-// gtk_widget_compute_expand().
 
 // GetRealized is a wrapper around gtk_widget_get_realized().
 func (v *Widget) GetRealized() bool {
@@ -221,12 +175,6 @@ func (v *Widget) Map() {
 func (v *Widget) Unmap() {
 	C.gtk_widget_unmap(v.native())
 }
-
-// TODO:
-//void gtk_widget_draw(GtkWidget *widget, cairo_t *cr);
-//void gtk_widget_queue_resize(GtkWidget *widget);
-//void gtk_widget_queue_resize_no_redraw(GtkWidget *widget);
-// gtk_widget_queue_allocate().
 
 // Realize is a wrapper around gtk_widget_realize().
 func (v *Widget) Realize() {
@@ -418,11 +366,6 @@ func (v *Widget) GetToplevel() IWidget {
 	return wrapWidget(ToGoObject(unsafe.Pointer(c)))
 }
 
-// TODO:
-// gtk_widget_get_ancestor().
-// gtk_widget_get_visual().
-// gtk_widget_is_ancestor().
-
 // GetTooltipMarkup is a wrapper around gtk_widget_get_tooltip_markup().
 // A non-nil error is returned in the case that gtk_widget_get_tooltip_markup
 // returns NULL to differentiate between NULL and an empty string.
@@ -507,9 +450,6 @@ func (v *Widget) SizeAllocate(allocation *Allocation) {
 	C.gtk_widget_size_allocate(v.native(), allocation.native())
 }
 
-// TODO:
-// gtk_widget_size_allocate_with_baseline().
-
 // SetStateFlags is a wrapper around gtk_widget_set_state_flags().
 func (v *Widget) SetStateFlags(stateFlags StateFlags, clear bool) {
 	C.gtk_widget_set_state_flags(v.native(), C.GtkStateFlags(stateFlags), CBool(clear))
@@ -563,6 +503,126 @@ func (v *Widget) SetMarginEnd(margin int) {
 func (v *Widget) GetMarginEnd() int {
 	c := C.gtk_widget_get_margin_end(v.native())
 	return int(c)
+}
+
+// GetFocusOnClick is a wrapper around gtk_widget_get_focus_on_click().
+func (v *Widget) GetFocusOnClick() bool {
+	c := C.gtk_widget_get_focus_on_click(v.native())
+	return GoBool(c)
+}
+
+// SetFocusOnClick is a wrapper around gtk_widget_set_focus_on_click().
+func (v *Widget) SetFocusOnClick(focusOnClick bool) {
+	C.gtk_widget_set_focus_on_click(v.native(), CBool(focusOnClick))
+}
+
+// ResetStyle is a wrapper around gtk_widget_reset_style().
+func (v *Widget) ResetStyle() {
+	C.gtk_widget_reset_style(v.native())
+}
+
+// InDestruction is a wrapper around gtk_widget_in_destruction().
+func (v *Widget) InDestruction() bool {
+	return GoBool(C.gtk_widget_in_destruction(v.native()))
+}
+
+// Unparent is a wrapper around gtk_widget_unparent().
+func (v *Widget) Unparent() {
+	C.gtk_widget_unparent(v.native())
+}
+
+// Show is a wrapper around gtk_widget_show().
+func (v *Widget) Show() {
+	C.gtk_widget_show(v.native())
+}
+
+// Hide is a wrapper around gtk_widget_hide().
+func (v *Widget) Hide() {
+	C.gtk_widget_hide(v.native())
+}
+
+// GetCanFocus is a wrapper around gtk_widget_get_can_focus().
+func (v *Widget) GetCanFocus() bool {
+	c := C.gtk_widget_get_can_focus(v.native())
+	return GoBool(c)
+}
+
+// SetCanFocus is a wrapper around gtk_widget_set_can_focus().
+func (v *Widget) SetCanFocus(canFocus bool) {
+	C.gtk_widget_set_can_focus(v.native(), CBool(canFocus))
+}
+
+// GetCanDefault is a wrapper around gtk_widget_get_can_default().
+func (v *Widget) GetCanDefault() bool {
+	c := C.gtk_widget_get_can_default(v.native())
+	return GoBool(c)
+}
+
+// SetCanDefault is a wrapper around gtk_widget_set_can_default().
+func (v *Widget) SetCanDefault(canDefault bool) {
+	C.gtk_widget_set_can_default(v.native(), CBool(canDefault))
+}
+
+// SetMapped is a wrapper around gtk_widget_set_mapped().
+func (v *Widget) SetMapped(mapped bool) {
+	C.gtk_widget_set_mapped(v.native(), CBool(mapped))
+}
+
+// GetMapped is a wrapper around gtk_widget_get_mapped().
+func (v *Widget) GetMapped() bool {
+	c := C.gtk_widget_get_mapped(v.native())
+	return GoBool(c)
+}
+
+// GetPreferredHeight is a wrapper around gtk_widget_get_preferred_height().
+func (v *Widget) GetPreferredHeight() (int, int) {
+	var minimum, natural C.gint
+	C.gtk_widget_get_preferred_height(v.native(), &minimum, &natural)
+	return int(minimum), int(natural)
+}
+
+// GetPreferredWidth is a wrapper around gtk_widget_get_preferred_width().
+func (v *Widget) GetPreferredWidth() (int, int) {
+	var minimum, natural C.gint
+	C.gtk_widget_get_preferred_width(v.native(), &minimum, &natural)
+	return int(minimum), int(natural)
+}
+
+// GetPreferredHeightForWidth is a wrapper around gtk_widget_get_preferred_height_for_width().
+func (v *Widget) GetPreferredHeightForWidth(width int) (int, int) {
+	var minimum, natural C.gint
+	C.gtk_widget_get_preferred_height_for_width(
+		v.native(),
+		C.gint(width),
+		&minimum,
+		&natural)
+	return int(minimum), int(natural)
+}
+
+// GetPreferredWidthForHeight is a wrapper around gtk_widget_get_preferred_width_for_height().
+func (v *Widget) GetPreferredWidthForHeight(height int) (int, int) {
+	var minimum, natural C.gint
+	C.gtk_widget_get_preferred_width_for_height(
+		v.native(),
+		C.gint(height),
+		&minimum,
+		&natural)
+	return int(minimum), int(natural)
+}
+
+// GetRequestMode is a wrapper around gtk_widget_get_request_mode().
+func (v *Widget) GetRequestMode() SizeRequestMode {
+	return SizeRequestMode(C.gtk_widget_get_request_mode(v.native()))
+}
+
+// GetPreferredSize is a wrapper around gtk_widget_get_preferred_size().
+func (v *Widget) GetPreferredSize() (*Requisition, *Requisition) {
+	minimum_size := new(C.GtkRequisition)
+	natural_size := new(C.GtkRequisition)
+	C.gtk_widget_get_preferred_size(v.native(), minimum_size, natural_size)
+	minR := requisitionFromNative(minimum_size)
+	natR := requisitionFromNative(natural_size)
+	return minR, natR
 }
 
 // Allocation is a representation of GTK's GtkAllocation type.

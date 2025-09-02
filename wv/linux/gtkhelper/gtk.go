@@ -230,3 +230,17 @@ func marshalJustification(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return Justification(c), nil
 }
+
+// SizeRequestMode is a representation of GTK's GtkSizeRequestMode.
+type SizeRequestMode int
+
+const (
+	SIZE_REQUEST_HEIGHT_FOR_WIDTH SizeRequestMode = C.GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH
+	SIZE_REQUEST_WIDTH_FOR_HEIGHT SizeRequestMode = C.GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT
+	SIZE_REQUEST_CONSTANT_SIZE    SizeRequestMode = C.GTK_SIZE_REQUEST_CONSTANT_SIZE
+)
+
+func marshalSizeRequestMode(p uintptr) (interface{}, error) {
+	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
+	return SizeRequestMode(c), nil
+}
