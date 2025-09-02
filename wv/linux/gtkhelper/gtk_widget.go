@@ -285,6 +285,16 @@ func (v *Widget) GetSizeRequest() (width, height int) {
 	return int(w), int(h)
 }
 
+// GetAllocatedWidth is a wrapper around gtk_widget_get_allocated_width().
+func (v *Widget) GetAllocatedWidth() int {
+	return int(C.gtk_widget_get_allocated_width(v.native()))
+}
+
+// GetAllocatedHeight is a wrapper around gtk_widget_get_allocated_height().
+func (v *Widget) GetAllocatedHeight() int {
+	return int(C.gtk_widget_get_allocated_height(v.native()))
+}
+
 // SetEvents is a wrapper around gtk_widget_set_events().
 func (v *Widget) SetEvents(events int) {
 	C.gtk_widget_set_events(v.native(), C.gint(events))

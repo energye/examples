@@ -1,7 +1,6 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
 )
@@ -11,12 +10,9 @@ var (
 )
 
 func (m *BrowserWindow) UpdateBrowserBounds() {
-	fmt.Println("UpdateAddrWidth:", m.Width())
 	if m.addr != nil {
 		newWidth := int(m.Width()) - (browserWidgetAddrLeft + 32*3)
 		m.addr.SetSizeRequest(newWidth, -1)
-		width, height := m.addr.GetSizeRequest()
-		fmt.Println(" newWidth:", newWidth, "  --  ", width, height)
 	}
 }
 
@@ -33,9 +29,11 @@ func (m *BrowserWindow) BrowserControlBar() {
 
 	addr := gtkhelper.NewEntry()
 	addr.SetPlaceholderText("输入网站地址")
-	//addr.SetSizeRequest(int(m.Width())-(browserWidgetAddrLeft+32), -1)
+	//newWidth := int(m.Width()) - (browserWidgetAddrLeft + 32*3)
+	//addr.SetSizeRequest(newWidth, -1)
+	//fmt.Println("newWidth:", newWidth)
 	addr.SetHAlign(gtkhelper.ALIGN_CENTER)
-	addr.SetMarginEnd(32)
+	//addr.SetHExpand(true)
 	addr.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
 		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
 		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
@@ -46,6 +44,7 @@ func (m *BrowserWindow) BrowserControlBar() {
 	})
 	m.addr = addr
 	m.gtkControlBrowserBarWidget.Put(addr, browserWidgetAddrLeft, 5)
+	m.gtkControlBrowserBarWidget.ShowAll()
 }
 
 type BrowserControlButton struct {

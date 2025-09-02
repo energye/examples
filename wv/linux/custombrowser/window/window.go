@@ -9,6 +9,7 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"sync"
+	"time"
 	"unsafe"
 	"widget/wg"
 )
@@ -24,8 +25,8 @@ type BrowserWindow struct {
 	lcl.TEngForm
 	// gtk3 window
 	gtkWindow                  *gtkhelper.Window
-	gtkControlBrowserBarWidget *gtkhelper.Fixed
 	controlBrowserBar          lcl.IPanel
+	gtkControlBrowserBarWidget *gtkhelper.Fixed
 	mainWindowId               int32 // 窗口ID
 	windowId                   int
 	browses                    []*Browser  // 当前的chrom列表
@@ -47,9 +48,8 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	png.LoadFromFile(assets.GetResourcePath("window-icon_64x64.png"))
 	m.Icon().Assign(png)
 	png.Free()
-
-	m.SetWidth(1024)
-	m.SetHeight(600)
+	m.SetWidth(400)
+	m.SetHeight(200)
 	m.ScreenCenter()
 	m.SetDoubleBuffered(true)
 	size := m.Constraints()
@@ -57,12 +57,20 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	size.SetMinHeight(200)
 
 	m.SetOnShow(func(sender lcl.IObject) {
+		go func() {
+			time.Sleep(500)
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.SetWidth(1024)
+				m.SetHeight(768)
+				m.ScreenCenter()
+			})
+		}()
 	})
-
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
 	})
 	m.SetOnResize(func(sender lcl.IObject) {
+		//fmt.Println("SetOnResize")
 		m.UpdateBrowserBounds()
 	})
 
