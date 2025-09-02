@@ -244,3 +244,7 @@ func marshalSizeRequestMode(p uintptr) (interface{}, error) {
 	c := C.g_value_get_enum((*C.GValue)(unsafe.Pointer(p)))
 	return SizeRequestMode(c), nil
 }
+
+func MainDoEvent(event *Event) {
+	C.gtk_main_do_event(event.native())
+}

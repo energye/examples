@@ -22,6 +22,8 @@ const (
 	WINDOW_EDGE_SOUTH_EAST WindowEdge = C.GDK_WINDOW_EDGE_SOUTH_EAST
 )
 
+const CURRENT_TIME = C.GDK_CURRENT_TIME
+
 // ButtonType constants
 type ButtonType uint
 
@@ -30,13 +32,6 @@ const (
 	BUTTON_MIDDLE    ButtonType = C.GDK_BUTTON_MIDDLE
 	BUTTON_SECONDARY ButtonType = C.GDK_BUTTON_SECONDARY
 )
-
-func EventGetTime(event *Event) uint32 {
-	if event == nil {
-		return uint32(C.gdk_event_get_time(nil))
-	}
-	return uint32(C.gdk_event_get_time(event.GdkEvent))
-}
 
 // Rectangle is a representation of GDK's GdkRectangle type.
 type Rectangle struct {
@@ -168,8 +163,8 @@ func (c *RGBA) String() string {
 	return C.GoString((*C.char)(C.gdk_rgba_to_string(c.rgba)))
 }
 
-// free is a representation of gdk_rgba_free().
-func (c *RGBA) free() {
+// Free is a representation of gdk_rgba_free().
+func (c *RGBA) Free() {
 	C.gdk_rgba_free(c.rgba)
 }
 

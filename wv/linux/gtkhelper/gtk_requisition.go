@@ -53,8 +53,8 @@ func NewRequisition() *Requisition {
 	return requisitionFromNative(c)
 }
 
-// free is a wrapper around gtk_requisition_free().
-func (v *Requisition) free() {
+// Free is a wrapper around gtk_requisition_free().
+func (v *Requisition) Free() {
 	C.gtk_requisition_free(v.native())
 }
 

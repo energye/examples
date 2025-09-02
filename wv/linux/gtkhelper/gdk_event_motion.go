@@ -67,3 +67,25 @@ func (v *EventMotion) State() ModifierType {
 	c := v.native().state
 	return ModifierType(c)
 }
+
+func (v *EventMotion) SetWindowRoot(root *GdkWindow) {
+	v.native().window = root.native()
+}
+
+func (v *EventMotion) SetXY(x, y float64) {
+	v.native().x = C.double(x)
+	v.native().y = C.double(y)
+}
+
+func (v *EventMotion) SetXYRoot(x, y float64) {
+	v.native().x_root = C.double(x)
+	v.native().y_root = C.double(y)
+}
+
+func (v *EventMotion) SetTime(time uint32) {
+	if time == 0 {
+		v.native().time = CURRENT_TIME
+	} else {
+		v.native().time = C.guint32(time)
+	}
+}

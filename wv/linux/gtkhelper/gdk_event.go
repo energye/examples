@@ -24,12 +24,15 @@ func (v *Event) Native() uintptr {
 	return uintptr(unsafe.Pointer(v.native()))
 }
 
-func (v *Event) free() {
+func (v *Event) Free() {
 	C.gdk_event_free(v.native())
 }
 
 func (v *Event) ScanCode() int {
 	return int(C.gdk_event_get_scancode(v.native()))
+}
+func (v *Event) ToEvent() *Event {
+	return v
 }
 
 // EventKey is a representation of GDK's GdkEventKey.

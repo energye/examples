@@ -8,6 +8,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"time"
 	"unsafe"
 )
 
@@ -16,8 +17,8 @@ var (
 	SiteResource string
 	Window       BrowserWindow
 	bgColor      = colors.RGBToColor(56, 57, 60)
-	windowWidth  = 1024
-	windowHeight = 768
+	windowWidth  = 400
+	windowHeight = 200
 )
 
 type BrowserWindow struct {
@@ -61,14 +62,14 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetColor(bgColor)
 
 	m.SetOnShow(func(sender lcl.IObject) {
-		//go func() {
-		//	time.Sleep(500)
-		//	lcl.RunOnMainThreadAsync(func(id uint32) {
-		//		m.SetWidth(1024)
-		//		m.SetHeight(768)
-		//		m.ScreenCenter()
-		//	})
-		//}()
+		go func() {
+			time.Sleep(500)
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				m.SetWidth(1024)
+				m.SetHeight(768)
+				m.ScreenCenter()
+			})
+		}()
 	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
@@ -76,10 +77,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnConstrainedResize(func(sender lcl.IObject, minWidth *types.TConstraintSize, minHeight *types.TConstraintSize, maxWidth *types.TConstraintSize, maxHeight *types.TConstraintSize) {
 		fmt.Println("SetOnConstrainedResize")
 	})
-	//m.SetOnResize(func(sender lcl.IObject) {
-	//	//fmt.Println("SetOnResize")
-	//	m.UpdateBrowserBounds()
-	//})
+	m.SetOnResize(func(sender lcl.IObject) {
+		//fmt.Println("SetOnResize")
+		m.UpdateBrowserBounds()
+	})
 
 	// Global CSS Style
 	addCSSStyles()
@@ -104,21 +105,34 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarFixed
 
-	sendMouseEvent := func() {
-		display := gtkhelper.DisplayGetDefault()
-		device := display.GetDefaultSeat().GetPointer()
-		//deviceManage := display.GetDeviceManager()
-		//device := deviceManage.GetClientPointer()
-		screen := display.GetDefaultScreen()
-		window := screen.GetRootWindow()
-		println(window)
-		_, x, y, _ := window.GetDevicePosition(device)
-		fmt.Println("sendMouseEvent:", x, y)
-		//event := gtkhelper.NewEventMotion()
-	}
-
+	//sendMouseEvent := func() {
+	//	display := gtkhelper.DisplayGetDefault()
+	//	device := display.GetDefaultSeat().GetPointer()
+	//	//deviceManage := display.GetDeviceManager()
+	//	//device := deviceManage.GetClientPointer()
+	//	screen := display.GetDefaultScreen()
+	//	window := screen.GetRootWindow()
+	//	println(window)
+	//	_, x, y, _ := window.GetDevicePosition(device)
+	//	fmt.Println("sendMouseEvent:", x, y)
+	//	event := gtkhelper.NewEventMotion()
+	//	//		defer event.Free()
+	//	event.SetWindowRoot(window)
+	//	event.SetTime(0)
+	//	event.SetXY(float64(x), float64(y))
+	//	gtkhelper.MainDoEvent(event.ToEvent())
+	//	// 发送鼠标移动事件到当前位置
+	//	//GdkEvent *event = gdk_event_new(GDK_MOTION_NOTIFY);
+	//	//event->motion.window = root_window;
+	//	//event->motion.x = x;
+	//	//event->motion.y = y;
+	//	//event->motion.time = gdk_x11_get_server_time(root_window);
+	//	//gtk_main_do_event(event);
+	//	//gdk_event_free(event);
+	//
+	//}
 	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
-		m.UpdateBrowserBounds()
+		//m.UpdateBrowserBounds()
 		//mainCtx := gtkhelper.MainContextDefault()
 		//gtkhelper.IdleAdd(func() bool {
 		//	for mainCtx.Pending() {
@@ -127,7 +141,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//	}
 		//	return false
 		//})
-		sendMouseEvent()
+		//sendMouseEvent()
 		return false
 	})
 
