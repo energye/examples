@@ -8,10 +8,8 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
-	"sync"
 	"time"
 	"unsafe"
-	"widget/wg"
 )
 
 var (
@@ -27,20 +25,14 @@ type BrowserWindow struct {
 	gtkWindow                  *gtkhelper.Window
 	controlBrowserBar          lcl.IPanel
 	gtkControlBrowserBarWidget *gtkhelper.Fixed
-	mainWindowId               int32 // 窗口ID
-	windowId                   int
-	browses                    []*Browser  // 当前的chrom列表
-	addChromBtn                *wg.TButton // 添加浏览器按钮
+	browses                    []*Browser            // 当前的chrom列表
+	addBrowserBtn              *BrowserControlButton // 添加浏览器按钮
 	// 浏览器控制按钮
 	backBtn    *BrowserControlButton
 	forwardBtn *BrowserControlButton
 	refreshBtn *BrowserControlButton
 	addr       *gtkhelper.Entry
-	// 窗口关闭锁，一个一个关闭
-	browserCloseLock    sync.Mutex
-	isWindowButtonClose bool // 点击的窗口关闭按钮
-	isChromCloseing     bool // 当前是否有正在关闭的 chrom
-	windowState         types.TWindowState
+	//
 }
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {

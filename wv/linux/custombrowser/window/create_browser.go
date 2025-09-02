@@ -3,7 +3,6 @@ package window
 import (
 	"github.com/energye/lcl/lcl"
 	wv "github.com/energye/wv/linux"
-	"widget/wg"
 )
 
 type Browser struct {
@@ -12,7 +11,7 @@ type Browser struct {
 	webviewParent                      wv.IWkWebviewParent
 	webview                            wv.IWkWebview
 	oldWndPrc                          uintptr
-	tabSheetBtn                        *wg.TButton
+	tabSheetBtn                        *TabButton
 	tabSheet                           lcl.IPanel
 	isActive                           bool
 	currentURL                         string
