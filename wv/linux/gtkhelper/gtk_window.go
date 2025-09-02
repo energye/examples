@@ -551,3 +551,7 @@ func (v *Window) BeginResizeDrag(edge WindowEdge, button ButtonType, rootX, root
 func (v *Window) BeginMoveDrag(button ButtonType, rootX, rootY int, timestamp uint32) {
 	C.gtk_window_begin_move_drag(v.native(), C.gint(button), C.gint(rootX), C.gint(rootY), C.guint32(timestamp))
 }
+
+func (v *Window) SetOnConfigure(fn TConfigureEvent) *SignalHandler {
+	return registerAction(v, EsnConfigureEvent, MakeConfigureEvent(fn))
+}

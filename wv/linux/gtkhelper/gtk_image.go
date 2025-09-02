@@ -6,9 +6,6 @@ package gtkhelper
 // #include "gtk.go.h"
 import "C"
 import (
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/glib"
-	"runtime"
 	"unsafe"
 )
 
@@ -99,12 +96,6 @@ func (v *Image) SetFromResource(resourcePath string) {
 	C.gtk_image_set_from_resource(v.native(), (*C.gchar)(cstr))
 }
 
-// SetFromFixbuf is a wrapper around gtk_image_set_from_pixbuf().
-func (v *Image) SetFromPixbuf(pixbuf *gdk.Pixbuf) {
-	pbptr := (*C.GdkPixbuf)(unsafe.Pointer(pixbuf.Native()))
-	C.gtk_image_set_from_pixbuf(v.native(), pbptr)
-}
-
 // SetFromIconName is a wrapper around gtk_image_set_from_icon_name().
 func (v *Image) SetFromIconName(iconName string, size IconSize) {
 	cstr := C.CString(iconName)
@@ -114,7 +105,7 @@ func (v *Image) SetFromIconName(iconName string, size IconSize) {
 }
 
 // SetFromGIcon is a wrapper around gtk_image_set_from_gicon()
-func (v *Image) SetFromGIcon(icon *glib.Icon, size IconSize) {
+func (v *Image) SetFromGIcon(icon *Icon, size IconSize) {
 	C.gtk_image_set_from_gicon(
 		v.native(),
 		(*C.GIcon)(icon.NativePrivate()),
@@ -132,41 +123,6 @@ func (v *Image) GetStorageType() ImageType {
 	return ImageType(c)
 }
 
-// GetPixbuf is a wrapper around gtk_image_get_pixbuf().
-func (v *Image) GetPixbuf() *gdk.Pixbuf {
-	c := C.gtk_image_get_pixbuf(v.native())
-	if c == nil {
-		return nil
-	}
-
-	pb := &gdk.Pixbuf{glib.Take(unsafe.Pointer(c))}
-	return pb
-}
-
-// GetAnimation is a wrapper around gtk_image_get_animation()
-func (v *Image) GetAnimation() *gdk.PixbufAnimation {
-	c := C.gtk_image_get_animation(v.native())
-	if c == nil {
-		return nil
-	}
-	return &gdk.PixbufAnimation{glib.Take(unsafe.Pointer(c))}
-}
-
-// NewImageFromAnimation is a wrapper around gtk_image_new_from_animation()
-func NewImageFromAnimation(animation *gdk.PixbufAnimation) (*Image, error) {
-	c := C.gtk_image_new_from_animation((*C.GdkPixbufAnimation)(animation.NativePrivate()))
-	if c == nil {
-		return nil, nilPtrErr
-	}
-	return wrapImage(ToGoObject(unsafe.Pointer(c))), nil
-}
-
-// SetFromAnimation is a wrapper around gtk_image_set_from_animation().
-func (v *Image) SetFromAnimation(animation *gdk.PixbufAnimation) {
-	pbaptr := (*C.GdkPixbufAnimation)(unsafe.Pointer(animation.NativePrivate()))
-	C.gtk_image_set_from_animation(v.native(), pbaptr)
-}
-
 // GetIconName is a wrapper around gtk_image_get_icon_name().
 func (v *Image) GetIconName() (string, IconSize) {
 	var iconName *C.gchar
@@ -176,7 +132,7 @@ func (v *Image) GetIconName() (string, IconSize) {
 }
 
 // GetGIcon is a wrapper around gtk_image_get_gicon()
-func (v *Image) GetGIcon() (*glib.Icon, IconSize, error) {
+func (v *Image) GetGIcon() (*Icon, IconSize, error) {
 	var gicon *C.GIcon
 	var size *C.GtkIconSize
 	C.gtk_image_get_gicon(v.native(), &gicon, size)
@@ -185,10 +141,8 @@ func (v *Image) GetGIcon() (*glib.Icon, IconSize, error) {
 		return nil, ICON_SIZE_INVALID, nilPtrErr
 	}
 
-	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(gicon))}
-	i := &glib.Icon{obj}
-
-	runtime.SetFinalizer(i, func(_ interface{}) { glib.FinalizerStrategy(obj.Unref) })
+	obj := &Object{ToCObject(unsafe.Pointer(gicon))}
+	i := &Icon{obj}
 	return i, IconSize(*size), nil
 }
 

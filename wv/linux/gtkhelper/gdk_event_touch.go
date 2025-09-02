@@ -18,9 +18,7 @@ func NewEventTouch() *EventTouch {
 }
 
 func ToEventTouch(p unsafe.Pointer) *EventTouch {
-	m := new(EventTouch)
-	m.GdkEvent = (*C.GdkEvent)(p)
-	return m
+	return &EventTouch{&Event{GdkEvent: (*C.GdkEvent)(p)}}
 }
 
 // EventTouchNewFromEvent returns an EventTouch from an Event.

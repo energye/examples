@@ -103,6 +103,12 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	println("headerBoxWidget", width, height, browserBarFixed.TypeFromInstance().Name())
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarFixed
+
+	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
+		println("window SetOnConfigure")
+		return false
+	})
+
 	m.Toolbar()
 	m.BrowserControlBar()
 }

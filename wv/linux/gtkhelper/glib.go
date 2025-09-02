@@ -1,13 +1,17 @@
 package gtkhelper
 
-// #cgo pkg-config: gio-2.0 glib-2.0 gobject-2.0
-// #include <gio/gio.h>
-// #include <stdlib.h>
-// #include <glib.h>
-// #include <glib-object.h>
-// #include "glib.go.h"
+/*
+#cgo pkg-config: gio-2.0 glib-2.0 gobject-2.0
+#include <gio/gio.h>
+#include <stdlib.h>
+#include <glib.h>
+#include <glib-object.h>
+#include "glib.go.h"
+*/
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // Type is a representation of GLib's GType.
 type Type uint

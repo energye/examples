@@ -635,10 +635,6 @@ func (v *Widget) GetPreferredSize() (*Requisition, *Requisition) {
 	return minR, natR
 }
 
-func (v *Widget) SetOnConfigure() {
-
-}
-
 // Allocation is a representation of GTK's GtkAllocation type.
 type Allocation struct {
 	Rectangle

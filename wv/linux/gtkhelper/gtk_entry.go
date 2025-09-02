@@ -6,7 +6,6 @@ package gtkhelper
 // #include "gtk.go.h"
 import "C"
 import (
-	"github.com/gotk3/gotk3/pango"
 	"unsafe"
 )
 
@@ -200,10 +199,10 @@ func (v *Entry) GetOverwriteMode() bool {
 }
 
 // GetLayout is a wrapper around gtk_entry_get_layout().
-func (v *Entry) GetLayout() *pango.Layout {
-	c := C.gtk_entry_get_layout(v.native())
-	return pango.WrapLayout(uintptr(unsafe.Pointer(c)))
-}
+//func (v *Entry) GetLayout() *pango.Layout {
+//	c := C.gtk_entry_get_layout(v.native())
+//	return pango.WrapLayout(uintptr(unsafe.Pointer(c)))
+//}
 
 // GetLayoutOffsets is a wrapper around gtk_entry_get_layout_offsets().
 func (v *Entry) GetLayoutOffsets() (x, y int) {

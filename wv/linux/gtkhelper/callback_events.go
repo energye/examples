@@ -18,6 +18,7 @@ const (
 	EsnButtonPressEvent EventSignalName = "button-press-event"
 	EsnEnterNotifyEvent EventSignalName = "enter-notify-event"
 	EsnLeaveNotifyEvent EventSignalName = "leave-notify-event"
+	EsnConfigureEvent   EventSignalName = "configure-event"
 )
 
 // TccType 事件类型, 用于区分普通通知事件, 还是特殊事件
@@ -38,6 +39,7 @@ type TTextCommitEvent func(sender *Widget, text string)
 type TTextKeyEvent func(sender *Widget, key *EventKey) bool
 type TButtonPressEvent func(sender *Widget, event *EventButton)
 type TLeaveEnterNotifyEvent func(sender *Widget, event *EventCrossing)
+type TConfigureEvent func(sender *Widget, event *EventConfigure) bool
 
 type CallbackContext struct {
 	widget unsafe.Pointer
@@ -103,11 +105,23 @@ func MakeTextCommitEvent(cb TTextCommitEvent) *Callback {
 
 func MakeTextKeyEvent(cb TTextKeyEvent) *Callback {
 	return &Callback{
-		type_: TCCTextDidEndEditing,
+		type_: TCCNotify,
 		cb: func(ctx *CallbackContext) {
 			keyPtr := ctx.input.(unsafe.Pointer)
 			key := ToKeyEvent(keyPtr)
 			result := cb(wrapWidget(ToGoObject(ctx.widget)), key)
+			ctx.result = result
+		},
+	}
+}
+
+func MakeConfigureEvent(cb TConfigureEvent) *Callback {
+	return &Callback{
+		type_: TCCNotify,
+		cb: func(ctx *CallbackContext) {
+			eventPtr := ctx.input.(unsafe.Pointer)
+			event := ToEventConfigure(eventPtr)
+			result := cb(wrapWidget(ToGoObject(ctx.widget)), event)
 			ctx.result = result
 		},
 	}

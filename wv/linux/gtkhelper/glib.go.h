@@ -25,5 +25,4 @@ static GFileIcon *toGFileIcon(void *p) { return (G_FILE_ICON(p)); }
 
 static GFile *toGFile(void *p) { return (G_FILE(p)); }
 
-
 #endif
