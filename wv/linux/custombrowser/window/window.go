@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
-	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
@@ -23,11 +22,15 @@ var (
 
 type BrowserWindow struct {
 	lcl.TEngForm
-	box          lcl.IPanel
-	mainWindowId int32 // 窗口ID
-	windowId     int
-	browses      []*Browser  // 当前的chrom列表
-	addChromBtn  *wg.TButton // 添加浏览器按钮
+	// gtk3 window
+	gtkWindow                  *gtkhelper.Window
+	gtkControlBrowserBarWidget *gtkhelper.Fixed
+	controlBrowserBar          lcl.IPanel
+	box                        lcl.IPanel
+	mainWindowId               int32 // 窗口ID
+	windowId                   int
+	browses                    []*Browser  // 当前的chrom列表
+	addChromBtn                *wg.TButton // 添加浏览器按钮
 	// 浏览器控制按钮
 	backBtn    *wg.TButton
 	forwardBtn *wg.TButton
@@ -72,100 +75,31 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	})
 
-	//edit := lcl.NewEdit(m)
-	//edit.SetParent(m)
-	//edit.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
-	//	fmt.Println("SetOnKeyPress key:", *key)
-	//})
-	//edit.SetOnKeyUp(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-	//	fmt.Println("SetOnKeyUp key:", *key)
-	//})
-	//edit.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-	//
-	//})
-	m.Toolbar()
-}
-
-func (m *BrowserWindow) Toolbar() {
+	// Global CSS Style
 	addCSSStyles()
 
+	// Window
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindowPtr := gtkHandle.Gtk3Window()
+	m.gtkWindow = gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
 	fmt.Println("gtkWindowPtr:", gtkWindowPtr)
-
-	headerBar, err := gtkhelper.NewHeaderBar()
-	if err != nil {
-		return
-	}
-	headerBar.SetShowCloseButton(true)
-	headerBar.SetName("custom-headerbar")
-	headerBar.SetVExpand(false)
-	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
-
-	gtkWindow := gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
-	gtkWindow.SetTitlebar(headerBar)
-
-	btn := gtkhelper.NewButton() // .ButtonNewWithLabel("button")
-	btn.SetRelief(gtkhelper.RELIEF_NONE)
-	btnCss := gtkhelper.NewCssProvider()
-	defer btnCss.Unref()
-	btnCss.LoadFromData(`
-button {
-	background: transparent;
-	border: none;
-	padding: 2px; /* 减小点击区域内边距 */
-}
-button:hover {
-	background: rgba(128, 128, 128, 0.2); /* 悬停时轻微灰色背景 */
-	border-radius: 2px;
-}
-button:active {
-	background: rgba(128, 128, 128, 0.4); /* 点击时加深背景 */
-}
-`)
-
-	btnStyleCtx := btn.GetStyleContext()
-	btnStyleCtx.AddProvider(btnCss, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
-	btn.SetOnClick(func(sender *gtkhelper.Widget) {
-		println("btn.SetOnClick", sender, "IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
-		//sh.Disconnect()
-	})
-	btnIcon := gtkhelper.NewImageFromIconName("open-menu-symbolic", gtkhelper.ICON_SIZE_BUTTON)
-	btn.SetImage(btnIcon)
-
-	headerBar.PackStart(btn)
-
-	entry := gtkhelper.NewEntry()
-	entry.SetPlaceholderText("输入网站地址")
-	entry.SetSizeRequest(250, -1)
-	entry.SetHAlign(gtkhelper.ALIGN_CENTER)
-	entry.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
-		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
-		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
-			println("entry.SetOnKeyPress text:", entry.GetText())
-			return true
-		}
-		return false
-	})
-	headerBar.SetCustomTitle(entry)
-
-	//
-	btn1 := m.NewButton("edit-delete-symbolic", "删除项目删除项目")
-	headerBar.PackStart(btn1)
-
+	// Browser Control
 	// 把 LCL 的Panel转为 gtk3 控件
-	headerBox := lcl.NewPanel(m)
-	headerBox.SetParent(m)
-	headerBox.SetHeight(48)
-	headerBox.SetWidth(m.Width())
-	headerBox.SetBevelOuter(types.BvNone)
-	headerBox.SetColor(colors.ClBlue)
-	headerBox.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
-	headerBoxHandle := lcl.PlatformHandle(headerBox.Handle())
-	headerBoxWidget := gtkhelper.ToWidget(unsafe.Pointer(headerBoxHandle.Gtk3Widget()))
-	width, height := headerBoxWidget.GetSizeRequest()
-	println("headerBoxWidget", width, height, headerBoxWidget.TypeFromInstance().Name())
+	controlBrowserBar := lcl.NewPanel(m)
+	controlBrowserBar.SetParent(m)
+	controlBrowserBar.SetHeight(48)
+	controlBrowserBar.SetWidth(m.Width())
+	controlBrowserBar.SetBevelOuter(types.BvNone)
+	//controlBrowserBar.SetColor(colors.ClBlue)
+	controlBrowserBar.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
+	controlBrowserBarHandle := lcl.PlatformHandle(controlBrowserBar.Handle())
+	controlBrowserBarWidget := gtkhelper.ToFixed(unsafe.Pointer(controlBrowserBarHandle.Gtk3Widget()))
+	width, height := controlBrowserBarWidget.GetSizeRequest()
+	println("headerBoxWidget", width, height, controlBrowserBarWidget.TypeFromInstance().Name())
+	m.controlBrowserBar = controlBrowserBar
+	m.gtkControlBrowserBarWidget = controlBrowserBarWidget
+	m.Toolbar()
+	m.BrowserControlBar()
 }
 
 func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widget {
@@ -227,11 +161,8 @@ func (m *BrowserWindow) NewButton(iconName string, text string) *gtkhelper.Widge
 	closeBtn.SetOnClick(func(sender *gtkhelper.Widget) {
 		println("close btn")
 	})
-	//SetWidgetStyle(closeBtn.ToWidget(), closeBtnCss)
 	box.PackEnd(closeBtn, false, false, 4)
 
-	//styleContext := event.GetStyleContext()
-	//SetWidgetStyle(event.ToWidget(), tabBtnCss)
 	return event.ToWidget()
 }
 
@@ -241,54 +172,4 @@ func SetWidgetStyle(widget *gtkhelper.Widget, css string) {
 	provider.LoadFromData(css)
 	context := widget.GetStyleContext()
 	context.AddProvider(provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
-}
-
-func addCSSStyles() {
-	provider := gtkhelper.NewCssProvider()
-	defer provider.Unref()
-	css := `
-.tab {
-	background-color: #f0f0f0;
-	border: 1px solid #dddddd;
-	border-bottom: none;
-	border-radius: 4px 4px 0 0;
-	margin-top: 2px;
-	padding: 4px 8px;
-	color: #333333;
-	transition: all 0.2s ease;
-}
-
-.tab.active {
-	background-color: #ffffff;
-	border-top: 2px solid #0a84ff;
-	margin-top: 1px;
-	color: #000000;
-}
-
-.tab.inactive {
-	background-color: #f8f8f8;
-}
-
-.tab-close-button {
-	border-radius: 2px;
-	border: none;
-	background: transparent;
-	padding: 2px;
-	min-width: 16px;
-	min-height: 16px;
-	transition: background-color 0.1s;
-}
-
-.tab-close-button:hover {
-	background-color: rgba(0, 0, 0, 0.1);
-}
-
-.tab-close-button:active {
-	background-color: rgba(0, 0, 0, 0.2);
-}
-	`
-	provider.LoadFromData(css)
-
-	screen := gtkhelper.ScreenGetDefault()
-	gtkhelper.AddProviderForScreen(screen, provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }
