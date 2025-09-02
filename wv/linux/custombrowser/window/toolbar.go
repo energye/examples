@@ -132,6 +132,17 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 			tabButton.closeClick()
 		}
 	})
+	closeBtn.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+		styleCtx = button.GetStyleContext()
+		styleCtx.RemoveClass("active")
+		styleCtx.RemoveClass("inactive")
+		styleCtx.AddClass("active")
+	})
+	closeBtn.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+		styleCtx = button.GetStyleContext()
+		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("active")
+	})
 	box.PackEnd(closeBtn, false, false, 4)
 
 	return tabButton

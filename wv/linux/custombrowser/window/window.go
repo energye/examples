@@ -73,6 +73,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
 	})
+	m.SetOnConstrainedResize(func(sender lcl.IObject, minWidth *types.TConstraintSize, minHeight *types.TConstraintSize, maxWidth *types.TConstraintSize, maxHeight *types.TConstraintSize) {
+		fmt.Println("SetOnConstrainedResize")
+	})
 	m.SetOnResize(func(sender lcl.IObject) {
 		//fmt.Println("SetOnResize")
 		m.UpdateBrowserBounds()

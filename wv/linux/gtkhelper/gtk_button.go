@@ -146,6 +146,14 @@ func (v *Button) GetEventWindow() (*Window, error) {
 	return w, nil
 }
 
+func (v *Button) SetOnLeave(fn TLeaveEnterNotifyEvent) *SignalHandler {
+	return registerAction(v, EsnLeaveNotifyEvent, MakeLeaveEnterNotifyEvent(fn))
+}
+
+func (v *Button) SetOnEnter(fn TLeaveEnterNotifyEvent) *SignalHandler {
+	return registerAction(v, EsnEnterNotifyEvent, MakeLeaveEnterNotifyEvent(fn))
+}
+
 func (v *Button) SetOnClick(fn TNotifyEvent) *SignalHandler {
 	return registerAction(v, EsnClicked, MakeNotifyEvent(fn))
 	//C.g_signal_connect_data(

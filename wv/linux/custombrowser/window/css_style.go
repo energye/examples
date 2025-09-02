@@ -36,14 +36,13 @@ func addCSSStyles() {
 }
 
 .tab-close-button:hover {
-	background-color: rgba(100, 100, 100, 0.5);
-}
-
-.tab-close-button:active {
 	background-color: rgba(100, 100, 100, 1);
 }
 
-	`
+.tab-close-button:active {
+	background-color: rgba(100, 120, 130, 1);
+}
+`
 	provider.LoadFromData(css)
 
 	screen := gtkhelper.ScreenGetDefault()
