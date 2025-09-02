@@ -42,6 +42,7 @@ func addCSSStyles() {
 .tab-close-button:active {
 	background-color: rgba(0, 0, 0, 0.2);
 }
+
 	`
 	provider.LoadFromData(css)
 

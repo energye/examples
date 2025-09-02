@@ -7,33 +7,37 @@ import (
 
 var (
 	browserWidgetAddrLeft = 125
+	btnSize               = 32
+	btnMargin             = 10
 )
 
 func (m *BrowserWindow) UpdateBrowserBounds() {
+	println("UpdateBrowserBounds:", m.box.Width(), m.browserBar.Width())
 	if m.addr != nil {
-		newWidth := int(m.Width()) - (browserWidgetAddrLeft + 32*3)
+		newWidth := int(m.box.Width()) - (32*4 + 50)
 		m.addr.SetSizeRequest(newWidth, -1)
+		m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-32+10, 5)
 	}
 }
 
 func (m *BrowserWindow) BrowserControlBar() {
+	// 浏览器控制按钮
 	backBtn := m.NewBrowserControlBtn(assets.GetResourcePath("back.png"))
-	m.gtkControlBrowserBarWidget.Put(backBtn.button, 10, 7)
+	m.gtkBrowserBar.Put(backBtn.button, 10, 7)
 	forwardBtn := m.NewBrowserControlBtn(assets.GetResourcePath("forward.png"))
-	m.gtkControlBrowserBarWidget.Put(forwardBtn.button, 45, 7)
+	m.gtkBrowserBar.Put(forwardBtn.button, 32+20, 7)
 	refreshBtn := m.NewBrowserControlBtn(assets.GetResourcePath("refresh.png"))
-	m.gtkControlBrowserBarWidget.Put(refreshBtn.button, 80, 7)
+	m.gtkBrowserBar.Put(refreshBtn.button, 32*2+30, 7)
 	m.backBtn = backBtn
 	m.forwardBtn = forwardBtn
 	m.refreshBtn = refreshBtn
 
+	// 地址栏
 	addr := gtkhelper.NewEntry()
+	addr.SetName("browser-addr")
 	addr.SetPlaceholderText("输入网站地址")
-	//newWidth := int(m.Width()) - (browserWidgetAddrLeft + 32*3)
-	//addr.SetSizeRequest(newWidth, -1)
-	//fmt.Println("newWidth:", newWidth)
 	addr.SetHAlign(gtkhelper.ALIGN_CENTER)
-	//addr.SetHExpand(true)
+	addr.SetHExpand(true)
 	addr.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
 		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
 		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
@@ -42,9 +46,18 @@ func (m *BrowserWindow) BrowserControlBar() {
 		}
 		return false
 	})
+	SetWidgetStyle(addr.ToWidget(), `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
 	m.addr = addr
-	m.gtkControlBrowserBarWidget.Put(addr, browserWidgetAddrLeft, 5)
-	m.gtkControlBrowserBarWidget.ShowAll()
+	m.gtkBrowserBar.Put(addr, 32*4+10, 5)
+
+	// 地址栏右侧图标
+	m.addrRightIcon = m.NewBrowserControlBtn(assets.GetResourcePath("addr-right-btn.png"))
+	m.addrRightIcon.clickSH = m.addrRightIcon.button.SetOnClick(func(sender *gtkhelper.Widget) {
+
+	})
+	m.gtkBrowserBar.Put(m.addrRightIcon.button, int(m.box.Width())-32+10, 5)
+
+	m.UpdateBrowserBounds()
 }
 
 type BrowserControlButton struct {
@@ -57,21 +70,22 @@ func (m *BrowserWindow) NewBrowserControlBtn(imagePath string) *BrowserControlBu
 	btn := new(BrowserControlButton)
 	btn.button = gtkhelper.NewButton() // .ButtonNewWithLabel("button")
 	btn.button.SetRelief(gtkhelper.RELIEF_NONE)
-	btn.button.SetSizeRequest(32, 32)
+	btn.button.SetSizeRequest(btnSize, btnSize)
+	btn.button.SetFocusOnClick(false)
 	btnCss := gtkhelper.NewCssProvider()
 	defer btnCss.Unref()
 	btnCss.LoadFromData(`
 button {
 	background: transparent;
 	border: none;
-	padding: 2px; /* 减小点击区域内边距 */
+	padding: 2px;
 }
 button:hover {
-	background: rgba(128, 128, 128, 0.2); /* 悬停时轻微灰色背景 */
+	background: rgba(128, 128, 128, 0.2);
 	border-radius: 2px;
 }
 button:active {
-	background: rgba(128, 128, 128, 0.4); /* 点击时加深背景 */
+	background: rgba(128, 128, 128, 0.4);
 }
 `)
 

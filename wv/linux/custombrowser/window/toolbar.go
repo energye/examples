@@ -10,15 +10,25 @@ func (m *BrowserWindow) Toolbar() {
 	if err != nil {
 		return
 	}
+	headerBar.SetName("browser-header-bar")
+	SetWidgetStyle(headerBar.ToWidget(), `#browser-header-bar { background: rgba(56, 57, 60, 1); color: #ffffff; background-image: none;}`)
+
 	m.gtkWindow.SetTitlebar(headerBar)
 
-	headerBar.SetShowCloseButton(true)
+	//headerBar.SetShowCloseButton(true)
 	headerBar.SetVExpand(false)
 	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
 
 	// test
 	tabBtn1 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目")
 	headerBar.PackStart(tabBtn1.button)
+
+	closeBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-close.png"))
+	headerBar.PackEnd(closeBtn.button)
+	maxBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-max.png"))
+	headerBar.PackEnd(maxBtn.button)
+	minBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-min.png"))
+	headerBar.PackEnd(minBtn.button)
 
 	// 添加浏览器 button
 	addBrowserBtn := m.NewBrowserControlBtn(assets.GetResourcePath("add.png"))
@@ -27,6 +37,7 @@ func (m *BrowserWindow) Toolbar() {
 	addBrowserBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
 		// 添加浏览器
 	})
+
 }
 
 type TabButton struct {
