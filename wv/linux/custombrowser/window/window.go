@@ -47,7 +47,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	png.Free()
 	m.SetWidth(int32(windowWidth))
 	m.SetHeight(int32(windowHeight))
-	m.ScreenCenter()
 	m.SetDoubleBuffered(true)
 	size := m.Constraints()
 	size.SetMinWidth(400)
@@ -61,25 +60,36 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetAlign(types.AlClient)
 	m.box.SetColor(bgColor)
 
+	isSetSize := false
 	m.SetOnShow(func(sender lcl.IObject) {
+		rect := lcl.Screen.WorkAreaRect()
+		ww := rect.Width()
+		wh := rect.Height()
 		go func() {
-			time.Sleep(500)
+			time.Sleep(time.Second / 250)
 			lcl.RunOnMainThreadAsync(func(id uint32) {
-				m.SetWidth(1024)
-				m.SetHeight(768)
-				m.ScreenCenter()
+				isSetSize = true
+				width := int32(1024)
+				height := int32(768)
+				left := (ww - width) / 2
+				top := (wh - height) / 2
+				m.SetBounds(left, top, width, height)
+				//m.SetWidth(1024)
+				//m.SetHeight(768)
+				//m.ScreenCenter()
+				//Left := (Screen.WorkAreaWidth - Width) div 2;
+				//Top := (Screen.WorkAreaHeight - Height) div 2;
 			})
 		}()
 	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
 	})
-	m.SetOnConstrainedResize(func(sender lcl.IObject, minWidth *types.TConstraintSize, minHeight *types.TConstraintSize, maxWidth *types.TConstraintSize, maxHeight *types.TConstraintSize) {
-		fmt.Println("SetOnConstrainedResize")
-	})
 	m.SetOnResize(func(sender lcl.IObject) {
 		//fmt.Println("SetOnResize")
-		m.UpdateBrowserBounds()
+		if isSetSize {
+			m.UpdateBrowserBounds()
+		}
 	})
 
 	// Global CSS Style

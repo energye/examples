@@ -17,7 +17,11 @@ func addCSSStyles() {
 }
 
 .tab.active {
-	background: rgba(80, 80, 80, 1);
+	background: rgba(80, 80, 80, 0.7);
+}
+
+.tab.click {
+	background: rgba(80, 85, 85, 1);
 }
 
 .tab.inactive {

@@ -78,6 +78,7 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
+		styleCtx.RemoveClass("click")
 		styleCtx.AddClass("active")
 		if isClick {
 			isClick = false
@@ -88,8 +89,9 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("inactive")
 		styleCtx.RemoveClass("active")
+		styleCtx.RemoveClass("click")
 		if isClick {
-			styleCtx.AddClass("active")
+			styleCtx.AddClass("click")
 			isClick = false
 		}
 	})

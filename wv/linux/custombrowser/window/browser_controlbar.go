@@ -6,17 +6,15 @@ import (
 )
 
 var (
-	browserWidgetAddrLeft = 125
-	btnSize               = 32
-	btnMargin             = 10
+	btnSize = 32
 )
 
 func (m *BrowserWindow) UpdateBrowserBounds() {
 	println("UpdateBrowserBounds:", m.box.Width(), m.browserBar.Width())
 	if m.addr != nil {
-		newWidth := int(m.box.Width()) - (32*4 + 50)
+		newWidth := int(m.box.Width()) - (btnSize*4 + 80)
 		m.addr.SetSizeRequest(newWidth, -1)
-		m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-32+10, 5)
+		m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-(btnSize+20), 5)
 	}
 }
 
