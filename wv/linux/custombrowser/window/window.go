@@ -143,6 +143,9 @@ func (m *BrowserWindow) OnCreateTabSheet(currentBrowse *Browser) {
 }
 
 func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
+	if m.gtkToolbar == nil {
+		return
+	}
 	tabSheetBtn := m.NewTabButton("edit-delete-symbolic", "新建标签页")
 	m.gtkToolbar.PackStart(tabSheetBtn.button)
 	currentBrowse.isActive = true

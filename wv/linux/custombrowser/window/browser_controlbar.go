@@ -1,6 +1,7 @@
 package window
 
 import (
+	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
 )
@@ -51,7 +52,11 @@ func (m *BrowserWindow) BrowserControlBar() {
 	// 地址栏右侧图标
 	m.addrRightIcon = m.NewBrowserControlBtn(assets.GetResourcePath("addr-right-btn.png"))
 	m.addrRightIcon.clickSH = m.addrRightIcon.button.SetOnClick(func(sender *gtkhelper.Widget) {
-
+		fmt.Println("地址栏右侧图标")
+		if browse := m.getActiveBrowse(); browse != nil {
+			fmt.Println(browse.windowId)
+			browse.webview.LoadURL("https://energye.github.io")
+		}
 	})
 	m.gtkBrowserBar.Put(m.addrRightIcon.button, int(m.box.Width())-32+10, 5)
 
