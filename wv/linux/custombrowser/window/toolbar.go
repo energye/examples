@@ -86,6 +86,7 @@ type TabButton struct {
 	closeBtnIcon *gtkhelper.Image
 	click        func()
 	closeClick   func()
+	styleCtx     *gtkhelper.StyleContext
 }
 
 func (m *TabButton) SetOnClick(fn func()) {
@@ -96,23 +97,40 @@ func (m *TabButton) SetOnCloseClick(fn func()) {
 	m.closeClick = fn
 }
 
+func (m *TabButton) SetVisible(v bool) {
+	m.button.SetVisible(v)
+}
+
+func (m *TabButton) SetTitle(s string) {
+	m.label.SetText(s)
+}
+
+func (m *TabButton) Active(v bool) {
+	m.styleCtx.RemoveClass("active")
+	m.styleCtx.RemoveClass("inactive")
+	m.styleCtx.RemoveClass("click")
+	if v {
+		m.styleCtx.AddClass("active")
+	}
+}
+
 func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	tabButton := new(TabButton)
 	button := gtkhelper.NewEventBox()
 	tabButton.button = button
 	button.SetHExpand(false)
 	button.SetVExpand(false)
-	button.SetSizeRequest(-1, 28)
+	button.SetSizeRequest(180, 28)
 	button.SetBorderWidth(0)
 	button.SetVAlign(gtkhelper.ALIGN_CENTER)
 	button.SetVisibleWindow(true)
 	button.AddEvents(gtkhelper.POINTER_MOTION_MASK | gtkhelper.ENTER_NOTIFY_MASK | gtkhelper.LEAVE_NOTIFY_MASK)
 	styleCtx := button.GetStyleContext()
+	tabButton.styleCtx = styleCtx
 	styleCtx.AddClass("tab")
 	isClick := false
 	button.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
 		println("event.SetOnEnter isClick:", isClick)
-		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
 		styleCtx.RemoveClass("click")
@@ -123,7 +141,6 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	})
 	button.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
 		println("event.SetOnLeave isClick:", isClick)
-		styleCtx = sender.GetStyleContext()
 		styleCtx.RemoveClass("inactive")
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("click")
@@ -172,13 +189,11 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 		}
 	})
 	closeBtn.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		styleCtx = button.GetStyleContext()
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
 		styleCtx.AddClass("active")
 	})
 	closeBtn.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		styleCtx = button.GetStyleContext()
 		styleCtx.RemoveClass("inactive")
 		styleCtx.RemoveClass("active")
 	})

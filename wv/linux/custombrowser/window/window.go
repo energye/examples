@@ -147,8 +147,16 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	tabSheetBtn := m.NewTabButton("edit-delete-symbolic", "新建标签页")
 	currentBrowse.tabSheetBtn = tabSheetBtn
 	currentBrowse.isActive = true
+	tabSheetBtn.Active(true)
+	tabSheetBtn.SetOnClick(func() {
+
+	})
+	tabSheetBtn.SetOnCloseClick(func() {
+
+	})
 	if m.gtkToolbar != nil {
 		m.gtkToolbar.PackStart(tabSheetBtn.button)
+		m.gtkToolbar.ShowAll() // call show
 	}
 	m.updateOtherTabSheetNoActive(currentBrowse)
 }

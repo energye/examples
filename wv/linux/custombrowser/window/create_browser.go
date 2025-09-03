@@ -3,6 +3,7 @@ package window
 import (
 	"fmt"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	wv "github.com/energye/wv/linux"
@@ -47,10 +48,12 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	newBrowser.webview = wv.NewWebview(m)
 	newBrowser.webview.SetOnLoadChange(func(sender lcl.IObject, loadEvent wvTypes.WebKitLoadEvent) {
 		title := newBrowser.webview.GetTitle()
-		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", title)
+		if title != "" {
+			newBrowser.tabSheetBtn.SetTitle(title)
+		}
+		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", title, "isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		if loadEvent == wvTypes.WEBKIT_LOAD_FINISHED {
 			fmt.Println("title:", title)
-
 		}
 	})
 	newBrowser.webview.SetOnWebProcessTerminated(func(sender lcl.IObject, reason wvTypes.WebKitWebProcessTerminationReason) {
@@ -102,10 +105,7 @@ func (m *Browser) Create() {
 }
 
 func (m *Browser) updateTabSheetActive(isActive bool) {
-	if isActive {
-		m.isActive = true
-	} else {
-		m.isActive = false
-	}
-	m.webviewParent.SetVisible(m.isActive)
+	m.isActive = isActive
+	m.tabSheetBtn.Active(isActive)
+	m.webviewParent.SetVisible(isActive)
 }
