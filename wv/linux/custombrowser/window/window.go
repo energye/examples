@@ -25,12 +25,18 @@ type BrowserWindow struct {
 	lcl.TEngForm
 	box lcl.IPanel
 	// gtk3 window
-	gtkWindow     *gtkhelper.Window
+	gtkWindow *gtkhelper.Window
+	// toolbar
+	gtkToolbar    *gtkhelper.HeaderBar
+	closeBtn      *BrowserControlButton
+	maxBtn        *BrowserControlButton
+	minBtn        *BrowserControlButton
+	addBrowserBtn *BrowserControlButton
+	// browser
 	browserBar    lcl.IPanel
 	gtkBrowserBar *gtkhelper.Fixed
 	gtkBrowserBox *gtkhelper.Box
-	browses       []*Browser            // 当前的chrom列表
-	addBrowserBtn *BrowserControlButton // 添加浏览器按钮
+	browses       []*Browser // 当前的chrom列表
 	// 浏览器控制按钮
 	backBtn       *BrowserControlButton
 	forwardBtn    *BrowserControlButton
@@ -87,6 +93,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		if isSetSize {
 			m.UpdateBrowserBounds()
 		}
+		m.UpdateToolbar()
 	})
 
 	// Global CSS Style
@@ -114,6 +121,14 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	// window move resize event
 	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
+		//if browse := m.getActiveBrowse(); browse != nil {
+		//	browserHandle := lcl.PlatformHandle(browse.webviewParent.Handle())
+		//	browserFixed := gtkhelper.ToFixed(unsafe.Pointer(browserHandle.Gtk3Widget()))
+		//	fmt.Println(browserFixed.GetSizeRequest())
+		//	fmt.Println(m.box.Width())
+		//	//browserFixed.SetSizeRequest(int(m.box.Width()), int(m.box.Height()))
+		//	//browserFixed.QueueDraw()
+		//}
 		return false
 	})
 
@@ -128,7 +143,30 @@ func (m *BrowserWindow) OnCreateTabSheet(currentBrowse *Browser) {
 }
 
 func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
+	tabSheetBtn := m.NewTabButton("edit-delete-symbolic", "新建标签页")
+	m.gtkToolbar.PackStart(tabSheetBtn.button)
+	currentBrowse.isActive = true
+	m.updateOtherTabSheetNoActive(currentBrowse)
+}
 
+// 获得当前激活的 chrom
+func (m *BrowserWindow) getActiveBrowse() *Browser {
+	var result *Browser
+	for _, chrom := range m.browses {
+		if chrom.isActive {
+			result = chrom
+			break
+		}
+	}
+	return result
+}
+
+func (m *BrowserWindow) updateOtherTabSheetNoActive(currentBrowse *Browser) {
+	for _, browse := range m.browses {
+		if browse != currentBrowse {
+			browse.updateTabSheetActive(false)
+		}
+	}
 }
 
 func SetWidgetStyle(widget *gtkhelper.Widget, css string) {

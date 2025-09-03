@@ -15,7 +15,6 @@ type Browser struct {
 	webviewParent                      wv.IWkWebviewParent
 	webview                            wv.IWkWebview
 	tabSheetBtn                        *TabButton
-	tabSheet                           lcl.IPanel
 	isActive                           bool
 	currentURL                         string
 	currentTitle                       string
@@ -34,19 +33,13 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		newBrowser.currentURL = defaultUrl
 	}
 
-	newBrowser.tabSheet = lcl.NewPanel(m)
-	newBrowser.tabSheet.SetParent(m.box)
-	newBrowser.tabSheet.SetTop(m.browserBar.Height())
-	newBrowser.tabSheet.SetLeft(5)
-	newBrowser.tabSheet.SetWidth(m.box.Width() - 10)
-	newBrowser.tabSheet.SetHeight(int32(windowHeight) - (m.browserBar.Height() + 5))
-	newBrowser.tabSheet.SetBevelOuter(types.BvNone)
-	newBrowser.tabSheet.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-	newBrowser.tabSheet.SetDoubleBuffered(true)
-
 	newBrowser.webviewParent = wv.NewWebviewParent(m)
-	newBrowser.webviewParent.SetParent(newBrowser.tabSheet)
-	newBrowser.webviewParent.SetAlign(types.AlClient)
+	newBrowser.webviewParent.SetParent(m.box)
+	newBrowser.webviewParent.SetTop(m.browserBar.Height())
+	newBrowser.webviewParent.SetLeft(5)
+	newBrowser.webviewParent.SetWidth(m.box.Width() - 10)
+	newBrowser.webviewParent.SetHeight(int32(windowHeight) - (m.browserBar.Height() + 5))
+	newBrowser.webviewParent.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	newBrowser.webviewParent.SetDoubleBuffered(true)
 
 	newBrowser.webview = wv.NewWebview(m)
@@ -105,10 +98,10 @@ func (m *Browser) Create() {
 	m.webview.LoadURL(m.currentURL)
 }
 
-func (m *Browser) Show() {
-	m.tabSheet.Show()
-}
-
-func (m *Browser) Hide() {
-	m.tabSheet.Hide()
+func (m *Browser) updateTabSheetActive(isActive bool) {
+	if isActive {
+		m.isActive = true
+	} else {
+		m.isActive = false
+	}
 }

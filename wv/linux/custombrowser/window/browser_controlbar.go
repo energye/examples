@@ -59,13 +59,15 @@ func (m *BrowserWindow) BrowserControlBar() {
 }
 
 type BrowserControlButton struct {
-	button  *gtkhelper.Button
-	image   *gtkhelper.Image
-	clickSH *gtkhelper.SignalHandler
+	button    *gtkhelper.Button
+	image     *gtkhelper.Image
+	imagePath string
+	clickSH   *gtkhelper.SignalHandler
 }
 
 func (m *BrowserWindow) NewBrowserControlBtn(imagePath string) *BrowserControlButton {
 	btn := new(BrowserControlButton)
+	btn.imagePath = imagePath
 	btn.button = gtkhelper.NewButton() // .ButtonNewWithLabel("button")
 	btn.button.SetRelief(gtkhelper.RELIEF_NONE)
 	btn.button.SetSizeRequest(btnSize, btnSize)
@@ -90,6 +92,14 @@ button:active {
 	btnStyleCtx := btn.button.GetStyleContext()
 	btnStyleCtx.AddProvider(btnCss, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
 	btnIcon := gtkhelper.NewImageFromFile(imagePath)
+	btn.image = btnIcon
 	btn.button.SetImage(btnIcon)
 	return btn
+}
+
+func (m *BrowserControlButton) UpdateImage(newImagePath string) {
+	if m.imagePath != newImagePath {
+		m.imagePath = newImagePath
+		m.image.SetFromFile(m.imagePath)
+	}
 }

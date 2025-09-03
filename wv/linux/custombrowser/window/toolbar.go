@@ -3,6 +3,7 @@ package window
 import (
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
+	"github.com/energye/lcl/types"
 )
 
 func (m *BrowserWindow) Toolbar() {
@@ -10,6 +11,7 @@ func (m *BrowserWindow) Toolbar() {
 	if err != nil {
 		return
 	}
+	m.gtkToolbar = headerBar
 	headerBar.SetName("browser-header-bar")
 	SetWidgetStyle(headerBar.ToWidget(), `#browser-header-bar { background: rgba(56, 57, 60, 1); color: #ffffff; background-image: none;}`)
 
@@ -19,21 +21,25 @@ func (m *BrowserWindow) Toolbar() {
 	headerBar.SetVExpand(false)
 	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
 
-	// test
-	tabBtn1 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目1")
-	headerBar.PackStart(tabBtn1.button)
-	tabBtn2 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目2")
-	headerBar.PackStart(tabBtn2.button)
-	tabBtn3 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目3")
-	headerBar.PackStart(tabBtn3.button)
-	tabBtn4 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目4")
-	headerBar.PackStart(tabBtn4.button)
-
 	closeBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-close.png"))
+	m.closeBtn = closeBtn
+	closeBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		m.Close()
+	})
 	headerBar.PackEnd(closeBtn.button)
+
 	maxBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-max.png"))
+	m.maxBtn = maxBtn
+	maxBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		m.Maximize()
+	})
 	headerBar.PackEnd(maxBtn.button)
+
 	minBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-min.png"))
+	m.minBtn = minBtn
+	minBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		m.Minimize()
+	})
 	headerBar.PackEnd(minBtn.button)
 
 	// 添加浏览器 button
@@ -42,8 +48,31 @@ func (m *BrowserWindow) Toolbar() {
 	headerBar.PackEnd(addBrowserBtn.button)
 	addBrowserBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
 		// 添加浏览器
+		newBrowser := m.CreateBrowser("")
+		m.OnCreateTabSheet(newBrowser)
+		newBrowser.Create()
 	})
 
+}
+
+func (m *BrowserWindow) UpdateToolbar() {
+	if m.WindowState() == types.WsNormal {
+		m.maxBtn.UpdateImage(assets.GetResourcePath("btn-max.png"))
+	} else {
+		m.maxBtn.UpdateImage(assets.GetResourcePath("btn-max-re.png"))
+	}
+}
+
+func (m *BrowserWindow) Minimize() {
+	m.SetWindowState(types.WsMinimized)
+}
+
+func (m *BrowserWindow) Maximize() {
+	if m.WindowState() == types.WsNormal {
+		m.SetWindowState(types.WsMaximized)
+	} else {
+		m.SetWindowState(types.WsNormal)
+	}
 }
 
 type TabButton struct {
