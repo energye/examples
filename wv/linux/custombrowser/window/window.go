@@ -37,7 +37,6 @@ type BrowserWindow struct {
 	refreshBtn    *BrowserControlButton
 	addr          *gtkhelper.Entry
 	addrRightIcon *BrowserControlButton
-	//
 }
 
 func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
@@ -74,13 +73,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 				left := (ww - width) / 2
 				top := (wh - height) / 2
 				m.SetBounds(left, top, width, height)
-				//m.SetWidth(1024)
-				//m.SetHeight(768)
-				//m.ScreenCenter()
-				//Left := (Screen.WorkAreaWidth - Width) div 2;
-				//Top := (Screen.WorkAreaHeight - Height) div 2;
 			})
 		}()
+		newBrowser := m.CreateBrowser("")
+		m.OnCreateTabSheet(newBrowser)
+		newBrowser.Create()
 	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
 
@@ -115,48 +112,23 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarFixed
 
-	//sendMouseEvent := func() {
-	//	display := gtkhelper.DisplayGetDefault()
-	//	device := display.GetDefaultSeat().GetPointer()
-	//	//deviceManage := display.GetDeviceManager()
-	//	//device := deviceManage.GetClientPointer()
-	//	screen := display.GetDefaultScreen()
-	//	window := screen.GetRootWindow()
-	//	println(window)
-	//	_, x, y, _ := window.GetDevicePosition(device)
-	//	fmt.Println("sendMouseEvent:", x, y)
-	//	event := gtkhelper.NewEventMotion()
-	//	//		defer event.Free()
-	//	event.SetWindowRoot(window)
-	//	event.SetTime(0)
-	//	event.SetXY(float64(x), float64(y))
-	//	gtkhelper.MainDoEvent(event.ToEvent())
-	//	// 发送鼠标移动事件到当前位置
-	//	//GdkEvent *event = gdk_event_new(GDK_MOTION_NOTIFY);
-	//	//event->motion.window = root_window;
-	//	//event->motion.x = x;
-	//	//event->motion.y = y;
-	//	//event->motion.time = gdk_x11_get_server_time(root_window);
-	//	//gtk_main_do_event(event);
-	//	//gdk_event_free(event);
-	//
-	//}
+	// window move resize event
 	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
-		//m.UpdateBrowserBounds()
-		//mainCtx := gtkhelper.MainContextDefault()
-		//gtkhelper.IdleAdd(func() bool {
-		//	for mainCtx.Pending() {
-		//		println("gtkhelper.IdleAdd Pending")
-		//		mainCtx.Iteration(false)
-		//	}
-		//	return false
-		//})
-		//sendMouseEvent()
 		return false
 	})
 
 	m.Toolbar()
 	m.BrowserControlBar()
+}
+
+func (m *BrowserWindow) OnCreateTabSheet(currentBrowse *Browser) {
+	m.browses = append(m.browses, currentBrowse)
+	currentBrowse.windowId = int32(len(m.browses))
+	m.AddTabSheetBtn(currentBrowse)
+}
+
+func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
+
 }
 
 func SetWidgetStyle(widget *gtkhelper.Widget, css string) {

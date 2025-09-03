@@ -20,8 +20,14 @@ func (m *BrowserWindow) Toolbar() {
 	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
 
 	// test
-	tabBtn1 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目")
+	tabBtn1 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目1")
 	headerBar.PackStart(tabBtn1.button)
+	tabBtn2 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目2")
+	headerBar.PackStart(tabBtn2.button)
+	tabBtn3 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目3")
+	headerBar.PackStart(tabBtn3.button)
+	tabBtn4 := m.NewTabButton("edit-delete-symbolic", "删除项目删除项目4")
+	headerBar.PackStart(tabBtn4.button)
 
 	closeBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-close.png"))
 	headerBar.PackEnd(closeBtn.button)
