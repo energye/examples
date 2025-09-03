@@ -63,6 +63,7 @@ type BrowserControlButton struct {
 	image     *gtkhelper.Image
 	imagePath string
 	clickSH   *gtkhelper.SignalHandler
+	enable    bool
 }
 
 func (m *BrowserWindow) NewBrowserControlBtn(imagePath string) *BrowserControlButton {
@@ -102,4 +103,9 @@ func (m *BrowserControlButton) UpdateImage(newImagePath string) {
 		m.imagePath = newImagePath
 		m.image.SetFromFile(m.imagePath)
 	}
+}
+
+func (m *BrowserControlButton) SetEnable(v bool) {
+	m.enable = v
+	m.button.SetSensitive(v)
 }
