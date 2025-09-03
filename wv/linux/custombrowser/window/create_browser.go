@@ -38,9 +38,11 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	newBrowser.webviewParent.SetTop(m.browserBar.Height())
 	newBrowser.webviewParent.SetLeft(5)
 	newBrowser.webviewParent.SetWidth(m.box.Width() - 10)
-	newBrowser.webviewParent.SetHeight(int32(windowHeight) - (m.browserBar.Height() + 5))
+	newBrowser.webviewParent.SetHeight(m.box.Height() - (m.browserBar.Height() + 5))
 	newBrowser.webviewParent.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	newBrowser.webviewParent.SetDoubleBuffered(true)
+
+	println("CreateBrowser top:", newBrowser.webviewParent.Top(), "left:", newBrowser.webviewParent.Left(), "width:", newBrowser.webviewParent.Width(), "height:", newBrowser.webviewParent.Height())
 
 	newBrowser.webview = wv.NewWebview(m)
 	newBrowser.webview.SetOnLoadChange(func(sender lcl.IObject, loadEvent wvTypes.WebKitLoadEvent) {
@@ -54,9 +56,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	newBrowser.webview.SetOnWebProcessTerminated(func(sender lcl.IObject, reason wvTypes.WebKitWebProcessTerminationReason) {
 		fmt.Println("OnWebProcessTerminated reason:", reason)
 		if reason == wvTypes.WEBKIT_WEB_PROCESS_TERMINATED_BY_API { //  call m.webview.TerminateWebProcess()
-			//lcl.RunOnMainThreadAsync(func(id uint32) {
-			//	m.Close()
-			//})
+
 		}
 	})
 	newBrowser.webview.SetOnDecidePolicy(func(sender lcl.IObject, wkDecision wvTypes.WebKitPolicyDecision, type_ wvTypes.WebKitPolicyDecisionType) bool {
@@ -93,6 +93,9 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 }
 
 func (m *Browser) Create() {
+	if m.webview == nil {
+		return
+	}
 	m.webview.CreateBrowser()
 	m.webviewParent.SetWebview(m.webview)
 	m.webview.LoadURL(m.currentURL)
@@ -104,4 +107,5 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 	} else {
 		m.isActive = false
 	}
+	m.webviewParent.SetVisible(m.isActive)
 }

@@ -59,10 +59,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 
 	m.box = lcl.NewPanel(m)
 	m.box.SetParent(m)
-	m.box.SetWidth(int32(windowWidth))
-	m.box.SetHeight(int32(windowHeight))
+	m.box.SetWidth(m.Width())
+	m.box.SetHeight(m.Height())
 	m.box.SetBevelOuter(types.BvNone)
 	m.box.SetAlign(types.AlClient)
+	m.box.SetDoubleBuffered(true)
 	m.box.SetColor(bgColor)
 
 	isSetSize := false
@@ -143,12 +144,12 @@ func (m *BrowserWindow) OnCreateTabSheet(currentBrowse *Browser) {
 }
 
 func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
-	if m.gtkToolbar == nil {
-		return
-	}
 	tabSheetBtn := m.NewTabButton("edit-delete-symbolic", "新建标签页")
-	m.gtkToolbar.PackStart(tabSheetBtn.button)
+	currentBrowse.tabSheetBtn = tabSheetBtn
 	currentBrowse.isActive = true
+	if m.gtkToolbar != nil {
+		m.gtkToolbar.PackStart(tabSheetBtn.button)
+	}
 	m.updateOtherTabSheetNoActive(currentBrowse)
 }
 

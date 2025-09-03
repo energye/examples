@@ -3,6 +3,7 @@ package window
 import (
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/types"
 )
 
@@ -47,6 +48,7 @@ func (m *BrowserWindow) Toolbar() {
 	m.addBrowserBtn = addBrowserBtn
 	headerBar.PackEnd(addBrowserBtn.button)
 	addBrowserBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		println("IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		// 添加浏览器
 		newBrowser := m.CreateBrowser("")
 		m.OnCreateTabSheet(newBrowser)
