@@ -23,6 +23,7 @@ func init() {
 Now requires GTK >= 3.24.24 and Glib2.0 >= 2.66
 GTK3: dpkg -l | grep libgtk-3-0
 Glib: dpkg -l | grep libglib2.0
+Web2: dpkg -l | grep webkit2
 ldd --version
 */
 func main() {
