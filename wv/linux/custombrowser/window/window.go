@@ -8,7 +8,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
-	"time"
 	"unsafe"
 )
 
@@ -17,8 +16,8 @@ var (
 	SiteResource string
 	Window       BrowserWindow
 	bgColor      = colors.RGBToColor(56, 57, 60)
-	windowWidth  = 400
-	windowHeight = 200
+	windowWidth  = 1024
+	windowHeight = 800
 )
 
 type BrowserWindow struct {
@@ -38,10 +37,11 @@ type BrowserWindow struct {
 	gtkBrowserBox *gtkhelper.Box
 	browses       []*Browser // 当前的chrom列表
 	// 浏览器控制按钮
-	backBtn       *BrowserControlButton
-	forwardBtn    *BrowserControlButton
-	refreshBtn    *BrowserControlButton
-	addr          *gtkhelper.Entry
+	backBtn    *BrowserControlButton
+	forwardBtn *BrowserControlButton
+	refreshBtn *BrowserControlButton
+	// addr          *gtkhelper.Entry
+	addr          lcl.IEdit
 	addrRightIcon *BrowserControlButton
 }
 
@@ -53,6 +53,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetWidth(int32(windowWidth))
 	m.SetHeight(int32(windowHeight))
 	m.SetDoubleBuffered(true)
+	m.WorkAreaCenter()
 	size := m.Constraints()
 	size.SetMinWidth(400)
 	size.SetMinHeight(200)
@@ -66,22 +67,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.box.SetDoubleBuffered(true)
 	m.box.SetColor(bgColor)
 
-	isSetSize := false
 	m.SetOnShow(func(sender lcl.IObject) {
-		rect := lcl.Screen.WorkAreaRect()
-		ww := rect.Width()
-		wh := rect.Height()
-		go func() {
-			time.Sleep(time.Second / 250)
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				isSetSize = true
-				width := int32(1024)
-				height := int32(768)
-				left := (ww - width) / 2
-				top := (wh - height) / 2
-				m.SetBounds(left, top, width, height)
-			})
-		}()
 		newBrowser := m.CreateBrowser("")
 		m.OnCreateTabSheet(newBrowser)
 		newBrowser.Create()
@@ -91,9 +77,6 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	})
 	m.SetOnResize(func(sender lcl.IObject) {
 		//fmt.Println("SetOnResize")
-		if isSetSize {
-			m.UpdateBrowserBounds()
-		}
 		m.UpdateToolbar()
 	})
 
@@ -115,8 +98,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	browserBar.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	browserBarHandle := lcl.PlatformHandle(browserBar.Handle())
 	browserBarFixed := gtkhelper.ToFixed(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
-	width, height := browserBarFixed.GetSizeRequest()
-	println("headerBoxWidget", width, height, browserBarFixed.TypeFromInstance().Name())
+	println("headerBoxWidget", browserBarFixed.TypeFromInstance().Name())
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarFixed
 

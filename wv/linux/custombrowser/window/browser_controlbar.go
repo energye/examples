@@ -1,10 +1,12 @@
 package window
 
 import (
-	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
+	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 	"net/url"
+	"unsafe"
 )
 
 var (
@@ -14,9 +16,9 @@ var (
 func (m *BrowserWindow) UpdateBrowserBounds() {
 	println("UpdateBrowserBounds:", m.box.Width(), m.browserBar.Width())
 	if m.addr != nil {
-		newWidth := int(m.box.Width()) - (btnSize*4 + 80)
-		m.addr.SetSizeRequest(newWidth, -1)
-		m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-(btnSize+20), 5)
+		//newWidth := int(m.box.Width()) - (btnSize*4 + 80)
+		//m.addr.SetSizeRequest(newWidth, -1)
+		//m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-(btnSize+20), 5)
 	}
 }
 
@@ -33,40 +35,37 @@ func (m *BrowserWindow) BrowserControlBar() {
 	m.refreshBtn = refreshBtn
 
 	// 地址栏
-	addr := gtkhelper.NewEntry()
-	addr.SetName("browser-addr")
-	addr.SetPlaceholderText("输入网站地址")
-	addr.SetHAlign(gtkhelper.ALIGN_CENTER)
-	addr.SetHExpand(true)
-	addr.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
-		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
-		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
-			targetUrl := addr.GetText()
+	addr := lcl.NewEdit(m)
+	addr.SetParent(m.box)
+	addr.SetLeft(32*4 + 10)
+	addr.SetTop(5)
+	addr.SetWidth(m.box.Width() - (addr.Left() + 5))
+	addr.SetAlign(types.AlCustom)
+	addr.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
+	addr.SetOnKeyUp(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
+		tempKey := *key
+		if tempKey == 13 || tempKey == 10 {
+			targetUrl := addr.Text()
 			println("entry.SetOnKeyPress text:", targetUrl)
-			if _, err := url.Parse(targetUrl); err != nil {
-				return false
+			var scheme string
+			if u, err := url.Parse(targetUrl); err != nil {
+				return
+			} else {
+				if u.Scheme == "" {
+					scheme = "http://"
+				}
 			}
-			if browse := m.getActiveBrowse(); browse != nil {
-				browse.webview.LoadURL(targetUrl)
-			}
-			return true
-		}
-		return false
-	})
-	SetWidgetStyle(addr.ToWidget(), `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
-	m.addr = addr
-	m.gtkBrowserBar.Put(addr, 32*4+10, 5)
 
-	// 地址栏右侧图标
-	m.addrRightIcon = m.NewBrowserControlBtn(assets.GetResourcePath("addr-right-btn.png"))
-	m.addrRightIcon.clickSH = m.addrRightIcon.button.SetOnClick(func(sender *gtkhelper.Widget) {
-		fmt.Println("地址栏右侧图标")
-		if browse := m.getActiveBrowse(); browse != nil {
-			fmt.Println(browse.windowId)
-			browse.webview.LoadURL("https://energye.github.io")
+			if browse := m.getActiveBrowse(); browse != nil {
+				browse.webview.LoadURL(scheme + targetUrl)
+			}
 		}
 	})
-	m.gtkBrowserBar.Put(m.addrRightIcon.button, int(m.box.Width())-32+10, 5)
+	m.addr = addr
+	addrHandle := lcl.PlatformHandle(addr.Handle())
+	addrWidget := gtkhelper.ToWidget(unsafe.Pointer(addrHandle.Gtk3Widget()))
+	SetWidgetStyle(addrWidget, `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
+	println("addrWidget", addrWidget.TypeFromInstance().Name())
 
 	m.UpdateBrowserBounds()
 }
