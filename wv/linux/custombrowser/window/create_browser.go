@@ -54,9 +54,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
 			}
-			if newBrowser.isActive {
-				newBrowser.tabSheetBtn.SetTitle(title)
-			}
+			newBrowser.tabSheetBtn.SetTitle(title)
 		}
 		newBrowser.currentTitle = title
 		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", title, "isMainThread:", api.MainThreadId() == api.CurrentThreadId())
@@ -148,6 +146,7 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.isActive = isActive
 	if isActive {
 		m.Show()
+		m.mainWindow.addr.SetText(m.currentURL)
 	} else {
 		m.Hide()
 	}
