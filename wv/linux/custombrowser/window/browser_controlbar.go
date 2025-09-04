@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/examples/wv/linux/gtkhelper"
+	"net/url"
 )
 
 var (
@@ -40,7 +41,14 @@ func (m *BrowserWindow) BrowserControlBar() {
 	addr.SetOnKeyRelease(func(sender *gtkhelper.Widget, key *gtkhelper.EventKey) bool {
 		println("entry.SetOnKeyPress key:", key.KeyVal(), gtkhelper.KEY_Return, gtkhelper.KEY_KP_Enter)
 		if key.KeyVal() == gtkhelper.KEY_Return || key.KeyVal() == gtkhelper.KEY_KP_Enter {
-			println("entry.SetOnKeyPress text:", addr.GetText())
+			targetUrl := addr.GetText()
+			println("entry.SetOnKeyPress text:", targetUrl)
+			if _, err := url.Parse(targetUrl); err != nil {
+				return false
+			}
+			if browse := m.getActiveBrowse(); browse != nil {
+				browse.webview.LoadURL(targetUrl)
+			}
 			return true
 		}
 		return false

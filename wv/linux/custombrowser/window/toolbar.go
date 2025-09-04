@@ -109,9 +109,7 @@ func (m *TabButton) SetTitle(s string) {
 
 func (m *TabButton) Active(v bool) {
 	m.isActive = v
-	m.styleCtx.RemoveClass("active")
-	m.styleCtx.RemoveClass("inactive")
-	m.styleCtx.RemoveClass("click")
+	m.removeCss()
 	if v {
 		m.styleCtx.AddClass("active")
 	}
@@ -129,7 +127,7 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	tabButton.button = button
 	button.SetHExpand(false)
 	button.SetVExpand(false)
-	button.SetSizeRequest(180, 28)
+	button.SetSizeRequest(-1, 28)
 	button.SetBorderWidth(0)
 	button.SetVAlign(gtkhelper.ALIGN_CENTER)
 	button.SetVisibleWindow(true)
@@ -174,7 +172,9 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	label := gtkhelper.NewLabel(text)
 	label.SetXAlign(0.0)
 	label.SetEllipsize(gtkhelper.ELLIPSIZE_END)
-	label.SetHExpand(true)
+	label.SetHExpand(false)
+	label.SetVExpand(false)
+	label.SetSizeRequest(45, -1)
 	tabButton.label = label
 	box.PackStart(label, true, true, 0)
 

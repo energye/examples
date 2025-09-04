@@ -106,6 +106,17 @@ func (m *Browser) Create() {
 
 func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.isActive = isActive
+	if isActive {
+		m.Show()
+	} else {
+		m.Hide()
+	}
 	m.tabSheetBtn.Active(isActive)
-	m.webviewParent.SetVisible(isActive)
+}
+
+func (m *Browser) Show() {
+	m.webviewParent.SetVisible(true)
+}
+func (m *Browser) Hide() {
+	m.webviewParent.SetVisible(false)
 }
