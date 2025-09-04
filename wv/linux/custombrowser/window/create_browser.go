@@ -134,11 +134,13 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		return true
 	})
 	//wkContext := wv.WebContext.Default()
-	setting := wv.NewSettings()
-	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS)
+	setting := newBrowser.webview.GetSettings()
+	setting.SetUserAgentWithApplicationDetails("energy.io", "3.0")
+	// SetHardwareAccelerationPolicy VMWare GPU ???不这样配置加载页面卡死，不知道是不是GPU问题
+	// 需要动态判断当前系统环境是否支持？
+	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER)
 	setting.SetEnablePageCache(true)
-	newBrowser.webview.SetSettings(setting)
-	newBrowser.webview.EnabledDevtools(true)
+	setting.SetEnableDeveloperExtras(true)
 	return newBrowser
 }
 
