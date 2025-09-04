@@ -33,6 +33,25 @@ func (m *BrowserWindow) BrowserControlBar() {
 	m.backBtn = backBtn
 	m.forwardBtn = forwardBtn
 	m.refreshBtn = refreshBtn
+	backBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoBack() {
+			browse.webview.GoBack()
+		}
+	})
+	forwardBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoForward() {
+			browse.webview.GoForward()
+		}
+	})
+	refreshBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+		if browse := m.getActiveBrowse(); browse != nil {
+			if browse.isLoading {
+				browse.webview.Stop()
+			} else {
+				browse.webview.Reload()
+			}
+		}
+	})
 
 	// 地址栏
 	addr := lcl.NewEdit(m)

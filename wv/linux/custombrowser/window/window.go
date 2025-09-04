@@ -201,6 +201,16 @@ func (m *BrowserWindow) resetControlBtn() {
 	m.refreshBtn.SetEnable(false)
 }
 
+func (m *BrowserWindow) updateRefreshBtn(browse *Browser, isLoading bool) {
+	if browse.isActive {
+		if isLoading {
+			browse.mainWindow.refreshBtn.UpdateImage(assets.GetResourcePath("stop.png"))
+		} else {
+			browse.mainWindow.refreshBtn.UpdateImage(assets.GetResourcePath("refresh.png"))
+		}
+	}
+}
+
 func SetWidgetStyle(widget *gtkhelper.Widget, css string) {
 	provider := gtkhelper.NewCssProvider()
 	defer provider.Unref()

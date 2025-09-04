@@ -22,7 +22,6 @@ type Browser struct {
 	currentTitle                       string
 	siteFavIcon                        map[string]string
 	isLoading, canGoBack, canGoForward bool
-	isCloseing                         bool
 }
 
 func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
@@ -48,7 +47,10 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 
 	newBrowser.webview = wv.NewWebview(m)
 	newBrowser.webview.RegisterScriptMessageHandler("processMessage")
+
 	newBrowser.webview.SetOnLoadChange(func(sender lcl.IObject, loadEvent wvTypes.WebKitLoadEvent) {
+		newBrowser.canGoBack = newBrowser.webview.CanGoBack()
+		newBrowser.canGoForward = newBrowser.webview.CanGoForward()
 		title := newBrowser.webview.GetTitle()
 		if title != "" {
 			if isDefaultResourceHTML(title) {
@@ -59,6 +61,8 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		newBrowser.currentTitle = title
 		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", title, "isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		if loadEvent == wvTypes.WEBKIT_LOAD_FINISHED {
+			newBrowser.isLoading = false
+			m.updateRefreshBtn(newBrowser, false)
 			fmt.Println("title:", title)
 			var js = `
 (function() {
@@ -75,7 +79,11 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 })();
 `
 			newBrowser.webview.ExecuteScript(js)
+		} else {
+			newBrowser.isLoading = true
+			m.updateRefreshBtn(newBrowser, true)
 		}
+		newBrowser.updateBrowserControlBtn()
 	})
 
 	newBrowser.webview.SetOnProcessMessage(func(sender lcl.IObject, jsValue wv.IWkJSValue, processId wvTypes.TWkProcessId) {
@@ -162,6 +170,14 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 		m.Hide()
 	}
 	m.tabSheetBtn.Active(isActive)
+	// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
+	m.updateBrowserControlBtn()
+}
+
+// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
+func (m *Browser) updateBrowserControlBtn() {
+	m.mainWindow.backBtn.SetEnable(m.canGoBack)
+	m.mainWindow.forwardBtn.SetEnable(m.canGoForward)
 }
 
 func (m *Browser) Show() {
