@@ -47,6 +47,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	println("CreateBrowser top:", newBrowser.webviewParent.Top(), "left:", newBrowser.webviewParent.Left(), "width:", newBrowser.webviewParent.Width(), "height:", newBrowser.webviewParent.Height())
 
 	newBrowser.webview = wv.NewWebview(m)
+	newBrowser.webview.RegisterScriptMessageHandler("processMessage")
 	newBrowser.webview.SetOnLoadChange(func(sender lcl.IObject, loadEvent wvTypes.WebKitLoadEvent) {
 		title := newBrowser.webview.GetTitle()
 		if title != "" {
@@ -61,7 +62,26 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		fmt.Println("OnLoadChange wkLoadEvent:", loadEvent, "title:", title, "isMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		if loadEvent == wvTypes.WEBKIT_LOAD_FINISHED {
 			fmt.Println("title:", title)
+			var js = `
+(function() {
+	var links = document.getElementsByTagName('link');
+	var favicon = '';
+	for (var i = 0; i < links.length; i++) {
+		var rel = links[i].rel.toLowerCase();
+		if (rel.includes('icon')) {
+			favicon = links[i].href;
+			break;
 		}
+	}
+	window.webkit.messageHandlers.processMessage.postMessage('{"type":"internal", favicon":"'+favicon+'"}');
+})();
+`
+			newBrowser.webview.ExecuteScript(js)
+		}
+	})
+
+	newBrowser.webview.SetOnProcessMessage(func(sender lcl.IObject, jsValue wv.IWkJSValue, processId wvTypes.TWkProcessId) {
+		fmt.Println("OnProcessMessage value-type:", jsValue.ValueType(), jsValue.StringValue())
 	})
 	newBrowser.webview.SetOnWebProcessTerminated(func(sender lcl.IObject, reason wvTypes.WebKitWebProcessTerminationReason) {
 		fmt.Println("OnWebProcessTerminated reason:", reason)
@@ -107,9 +127,11 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		}
 		return true
 	})
+	//wkContext := wv.WebContext.Default()
 	setting := wv.NewSettings()
 	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS)
 	newBrowser.webview.SetSettings(setting)
+	newBrowser.webview.EnabledDevtools(true)
 	return newBrowser
 }
 

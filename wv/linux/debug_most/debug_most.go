@@ -309,12 +309,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		wkContext = wv.WebContext.Default()
 		wkContext.RegisterURIScheme("energy", m.webview.AsSchemeRequestDelegate())
 	}
-	m.webview.EnabledDevtools(true)
 	m.webview.RegisterScriptCode(`let test = {"name": "zhangsan"}`)
 	m.webview.RegisterScriptMessageHandler("processMessage")
 
 	setting := wv.NewSettings()
 	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS)
+	setting.SetEnableDeveloperExtras(true)
 	m.webview.SetSettings(setting)
 
 	// 所有webview事件或配置都在 CreateBrowser 之前
