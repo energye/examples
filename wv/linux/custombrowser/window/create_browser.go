@@ -142,6 +142,17 @@ func (m *Browser) Create() {
 	m.webview.LoadURL(m.currentURL)
 }
 
+func (m *Browser) CloseBrowser() {
+	m.webview.Stop()
+	m.webview.TerminateWebProcess()
+	m.webviewParent.FreeChild()
+
+	if m.mainWindow.gtkToolbar != nil {
+		m.mainWindow.gtkToolbar.Remove(m.tabSheetBtn.button)
+	}
+	m.mainWindow.removeTabSheetBrowse(m)
+}
+
 func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.isActive = isActive
 	if isActive {

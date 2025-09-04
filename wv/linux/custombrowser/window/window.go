@@ -135,7 +135,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 		m.updateOtherTabSheetNoActive(currentBrowse)
 	})
 	tabSheetBtn.SetOnCloseClick(func() {
-
+		currentBrowse.CloseBrowser()
 	})
 	if m.gtkToolbar != nil {
 		m.gtkToolbar.PackStart(tabSheetBtn.button)
@@ -162,6 +162,43 @@ func (m *BrowserWindow) updateOtherTabSheetNoActive(currentBrowse *Browser) {
 			browse.updateTabSheetActive(false)
 		}
 	}
+}
+
+func (m *BrowserWindow) removeTabSheetBrowse(browse *Browser) {
+	var isCloseCurrentActive bool
+	if active := m.getActiveBrowse(); active != nil && active == browse {
+		isCloseCurrentActive = true
+	}
+	// 删除当前chrom, 使用 windowId - 1 是当前 chrom 所在下标
+	idx := browse.windowId - 1
+	// 删除
+	m.browses = append(m.browses[:idx], m.browses[idx+1:]...)
+	// 重新设置每个 chromium 的 windowID, 在下次删除时能对应上
+	for id, chrom := range m.browses {
+		chrom.windowId = int32(id + 1)
+	}
+	if len(m.browses) > 0 {
+		// 判断关闭时tabSheet是否为当前激活的
+		// 如果是当前激活的，激活最后一个
+		if isCloseCurrentActive {
+			// 激活最后一个
+			lastChrom := m.browses[len(m.browses)-1]
+			lastChrom.updateTabSheetActive(true)
+			// 其它的不激活
+			m.updateOtherTabSheetNoActive(lastChrom)
+		}
+	} else {
+		// 没有 chrom 清空和还原控制按钮、地址栏
+		m.resetControlBtn()
+	}
+}
+
+// 清空地址栏 和 还原控制按钮
+func (m *BrowserWindow) resetControlBtn() {
+	m.addr.SetText("")
+	m.backBtn.SetEnable(false)
+	m.forwardBtn.SetEnable(false)
+	m.refreshBtn.SetEnable(false)
 }
 
 func SetWidgetStyle(widget *gtkhelper.Widget, css string) {
