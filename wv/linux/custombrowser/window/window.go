@@ -149,7 +149,8 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	currentBrowse.isActive = true
 	tabSheetBtn.Active(true)
 	tabSheetBtn.SetOnClick(func() {
-
+		currentBrowse.updateTabSheetActive(true)
+		m.updateOtherTabSheetNoActive(currentBrowse)
 	})
 	tabSheetBtn.SetOnCloseClick(func() {
 

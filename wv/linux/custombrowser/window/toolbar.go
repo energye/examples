@@ -87,6 +87,8 @@ type TabButton struct {
 	click        func()
 	closeClick   func()
 	styleCtx     *gtkhelper.StyleContext
+	isActive     bool
+	isClick      bool
 }
 
 func (m *TabButton) SetOnClick(fn func()) {
@@ -106,12 +108,19 @@ func (m *TabButton) SetTitle(s string) {
 }
 
 func (m *TabButton) Active(v bool) {
+	m.isActive = v
 	m.styleCtx.RemoveClass("active")
 	m.styleCtx.RemoveClass("inactive")
 	m.styleCtx.RemoveClass("click")
 	if v {
 		m.styleCtx.AddClass("active")
 	}
+}
+
+func (m *TabButton) removeCss() {
+	m.styleCtx.RemoveClass("active")
+	m.styleCtx.RemoveClass("inactive")
+	m.styleCtx.RemoveClass("click")
 }
 
 func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
@@ -128,30 +137,26 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	styleCtx := button.GetStyleContext()
 	tabButton.styleCtx = styleCtx
 	styleCtx.AddClass("tab")
-	isClick := false
 	button.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		println("event.SetOnEnter isClick:", isClick)
-		styleCtx.RemoveClass("active")
-		styleCtx.RemoveClass("inactive")
-		styleCtx.RemoveClass("click")
+		if !tabButton.isActive {
+			tabButton.removeCss()
+		}
 		styleCtx.AddClass("active")
-		if isClick {
-			isClick = false
+		if tabButton.isClick {
+			tabButton.isClick = false
 		}
 	})
 	button.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
-		println("event.SetOnLeave isClick:", isClick)
-		styleCtx.RemoveClass("inactive")
-		styleCtx.RemoveClass("active")
-		styleCtx.RemoveClass("click")
-		if isClick {
+		if !tabButton.isActive {
+			tabButton.removeCss()
+		}
+		if tabButton.isClick {
 			styleCtx.AddClass("click")
-			isClick = false
+			tabButton.isClick = false
 		}
 	})
 	button.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
-		println("event.SetOnClick")
-		isClick = true
+		tabButton.isClick = true
 		if tabButton.click != nil {
 			tabButton.click()
 		}
