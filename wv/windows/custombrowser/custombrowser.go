@@ -24,6 +24,8 @@ func init() {
 }
 
 func main() {
+	os.Setenv("CLUTTER_DEFAULT_FPS", "60")
+	os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "0") // 0=启用合成模式（默认），1=禁用（降低GPU占用）
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	fmt.Println("Go ENERGY Run Main")

@@ -67,15 +67,15 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 			var js = `
 (function() {
 	var links = document.getElementsByTagName('link');
-	var favicon = '';
+	var favicon = [];
 	for (var i = 0; i < links.length; i++) {
 		var rel = links[i].rel.toLowerCase();
 		if (rel.includes('icon')) {
-			favicon = links[i].href;
+			favicon.push(links[i].href);
 			break;
 		}
 	}
-	window.webkit.messageHandlers.processMessage.postMessage('{"type":"internal", favicon":"'+favicon+'"}');
+	window.webkit.messageHandlers.processMessage.postMessage('{"type":"internal", favicon":"'+JSON.stringify(favicon)+'"}');
 })();
 `
 			newBrowser.webview.ExecuteScript(js)
@@ -136,6 +136,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	//wkContext := wv.WebContext.Default()
 	setting := wv.NewSettings()
 	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_ALWAYS)
+	setting.SetEnablePageCache(true)
 	newBrowser.webview.SetSettings(setting)
 	newBrowser.webview.EnabledDevtools(true)
 	return newBrowser

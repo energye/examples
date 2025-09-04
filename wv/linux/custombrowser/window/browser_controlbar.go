@@ -13,15 +13,6 @@ var (
 	btnSize = 32
 )
 
-func (m *BrowserWindow) UpdateBrowserBounds() {
-	println("UpdateBrowserBounds:", m.box.Width(), m.browserBar.Width())
-	if m.addr != nil {
-		//newWidth := int(m.box.Width()) - (btnSize*4 + 80)
-		//m.addr.SetSizeRequest(newWidth, -1)
-		//m.gtkBrowserBar.Move(m.addrRightIcon.button, int(m.box.Width())-(btnSize+20), 5)
-	}
-}
-
 func (m *BrowserWindow) BrowserControlBar() {
 	// 浏览器控制按钮
 	backBtn := m.NewBrowserControlBtn(assets.GetResourcePath("back.png"))
@@ -35,11 +26,13 @@ func (m *BrowserWindow) BrowserControlBar() {
 	m.refreshBtn = refreshBtn
 	backBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
 		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoBack() {
+			browse.webview.Stop()
 			browse.webview.GoBack()
 		}
 	})
 	forwardBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
 		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoForward() {
+			browse.webview.Stop()
 			browse.webview.GoForward()
 		}
 	})
@@ -86,7 +79,6 @@ func (m *BrowserWindow) BrowserControlBar() {
 	SetWidgetStyle(addrWidget, `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
 	println("addrWidget", addrWidget.TypeFromInstance().Name())
 
-	m.UpdateBrowserBounds()
 }
 
 type BrowserControlButton struct {
