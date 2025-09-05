@@ -163,7 +163,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 				} else {
 					newBrowser.currentURL = targetURL
 				}
-				if newBrowser.isActive && targetURL != "" {
+				if newBrowser.isActive {
 					newBrowser.mainWindow.addr.SetText(targetURL)
 				}
 			}
@@ -212,7 +212,11 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.isActive = isActive
 	if isActive {
 		m.Show()
-		m.mainWindow.addr.SetText(m.currentURL)
+		tempURL := m.currentURL
+		if isDefaultResourceHTML(m.currentURL) {
+			tempURL = ""
+		}
+		m.mainWindow.addr.SetText(tempURL)
 	} else {
 		m.Hide()
 	}

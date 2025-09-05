@@ -198,7 +198,6 @@ func (m *BrowserWindow) resetControlBtn() {
 	m.addr.SetText("")
 	m.backBtn.SetEnable(false)
 	m.forwardBtn.SetEnable(false)
-	m.refreshBtn.SetEnable(false)
 }
 
 func (m *BrowserWindow) updateRefreshBtn(browse *Browser, isLoading bool) {
