@@ -3,11 +3,13 @@ package window
 import (
 	"fmt"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/examples/wv/tool"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	wv "github.com/energye/wv/linux"
 	wvTypes "github.com/energye/wv/types/linux"
+	"net/url"
 	"strings"
 )
 
@@ -63,7 +65,8 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		if loadEvent == wvTypes.WEBKIT_LOAD_FINISHED {
 			newBrowser.isLoading = false
 			m.updateRefreshBtn(newBrowser, false)
-			fmt.Println("title:", title)
+			// 获取网站的 favicon logo
+			// 返回到 SetOnExecuteScriptFinished
 			var js = `
 (function() {
 	var links = document.getElementsByTagName('link');
@@ -74,7 +77,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 			favicon.push(links[i].href);
 		}
 	}
-	return '{"option":"internal", "type":"favicon", "data":"'+JSON.stringify(favicon)+'"}';
+	return '{"option":"internal", "type":"favicon", "data":'+JSON.stringify(favicon)+'}';
 })();
 `
 			newBrowser.webview.ExecuteScript(js)
@@ -86,6 +89,47 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	})
 	newBrowser.webview.SetOnExecuteScriptFinished(func(sender lcl.IObject, jsValue wv.IWkJSValue) {
 		fmt.Println("SetOnExecuteScriptFinished value-type:", jsValue.ValueType(), jsValue.StringValue())
+		isString := jsValue.ValueType() == wvTypes.JtString
+		if isString {
+			jsData := jsValue.StringValue()
+			// download favicon logo
+			go func() {
+				data := tool.ToJSData(jsData)
+				if data != nil {
+					faviconUrls := data.Data.([]any)
+					var faviconURL string
+					for _, favicon := range faviconUrls {
+						tempUrl := favicon.(string)
+						if faviconURL == "" {
+							faviconURL = tempUrl
+						}
+						if strings.LastIndex(tempUrl, ".ico") != -1 {
+							faviconURL = tempUrl
+							break
+						}
+					}
+					if faviconURL != "" {
+						var host string
+						if tempUrl, err := url.Parse(newBrowser.currentURL); err != nil {
+							println("[ERROR] OnFavIconUrlChange ICON Parse URL:", err.Error())
+							return
+						} else {
+							host = tempUrl.Host
+						}
+						if tempURL, err := url.Parse(faviconURL); err == nil {
+							if _, ok := newBrowser.siteFavIcon[tempURL.Host]; !ok {
+								tool.DownloadFavicon(SiteResource, host, faviconURL, func(iconPath string) {
+									println("DownloadFavicon:", iconPath)
+									lcl.RunOnMainThreadAsync(func(id uint32) {
+										newBrowser.tabSheetBtn.UpdateImage(iconPath)
+									})
+								})
+							}
+						}
+					}
+				}
+			}()
+		}
 
 	})
 	newBrowser.webview.SetOnWebProcessTerminated(func(sender lcl.IObject, reason wvTypes.WebKitWebProcessTerminationReason) {
@@ -118,7 +162,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 					targetURL = ""
 				}
 				newBrowser.currentURL = targetURL
-				if newBrowser.isActive {
+				if newBrowser.isActive && targetURL != "" {
 					newBrowser.mainWindow.addr.SetText(targetURL)
 				}
 			}

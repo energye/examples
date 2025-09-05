@@ -92,6 +92,7 @@ type TabButton struct {
 	button       *gtkhelper.EventBox
 	box          *gtkhelper.Box
 	icon         *gtkhelper.Image
+	iconPath     string
 	label        *gtkhelper.Label
 	closeBtn     *gtkhelper.Button
 	closeBtnIcon *gtkhelper.Image
@@ -132,7 +133,14 @@ func (m *TabButton) removeCss() {
 	m.styleCtx.RemoveClass("click")
 }
 
-func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
+func (m *TabButton) UpdateImage(newImagePath string) {
+	if m.iconPath != newImagePath {
+		m.iconPath = newImagePath
+		m.icon.SetFromFile(m.iconPath)
+	}
+}
+
+func (m *BrowserWindow) NewTabButton(iconPath string, text string) *TabButton {
 	tabButton := new(TabButton)
 	button := gtkhelper.NewEventBox()
 	tabButton.button = button
@@ -175,7 +183,7 @@ func (m *BrowserWindow) NewTabButton(iconName string, text string) *TabButton {
 	tabButton.box = box
 	button.Add(box)
 
-	icon := gtkhelper.NewImageFromIconName(iconName, gtkhelper.ICON_SIZE_MENU)
+	icon := gtkhelper.NewImageFromFile(iconPath)
 	icon.SetSizeRequest(16, 16)
 	tabButton.icon = icon
 	box.PackStart(icon, false, false, 4)

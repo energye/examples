@@ -11,7 +11,7 @@ import (
 
 var (
 	wd, _            = os.Getwd()
-	cacheRoot        = filepath.Join(wd, "ENERGY_WebView2_Cache") // 浏览器缓存目录
+	cacheRoot        = filepath.Join(wd, "ENERGY_WebKit2_Cache") // 浏览器缓存目录
 	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource")
 )
 

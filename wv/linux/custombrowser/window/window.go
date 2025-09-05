@@ -126,7 +126,7 @@ func (m *BrowserWindow) OnCreateTabSheet(currentBrowse *Browser) {
 }
 
 func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
-	tabSheetBtn := m.NewTabButton("edit-delete-symbolic", "新建标签页")
+	tabSheetBtn := m.NewTabButton(assets.GetResourcePath("icon.png"), "新建标签页")
 	currentBrowse.tabSheetBtn = tabSheetBtn
 	currentBrowse.isActive = true
 	tabSheetBtn.Active(true)
