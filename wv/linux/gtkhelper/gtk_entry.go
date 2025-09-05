@@ -9,6 +9,10 @@ import (
 	"unsafe"
 )
 
+type IEntry interface {
+	toEntry() *C.GtkEntry
+}
+
 // Entry is a representation of GTK's GtkEntry.
 type Entry struct {
 	Widget
@@ -17,8 +21,8 @@ type Entry struct {
 	CellEditable
 }
 
-type IEntry interface {
-	toEntry() *C.GtkEntry
+func ToEntry(p unsafe.Pointer) *Entry {
+	return wrapEntry(ToGoObject(p))
 }
 
 func (v *Entry) toEntry() *C.GtkEntry {
