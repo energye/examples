@@ -144,6 +144,11 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	m.updateOtherTabSheetNoActive(currentBrowse)
 }
 
+func (m *BrowserWindow) SetAddrText(val string) {
+	m.addr.SetText(val)
+	m.addr.SetSelStart(int32(len(val)))
+}
+
 // 获得当前激活的 chrom
 func (m *BrowserWindow) getActiveBrowse() *Browser {
 	var result *Browser
@@ -195,7 +200,7 @@ func (m *BrowserWindow) removeTabSheetBrowse(browse *Browser) {
 
 // 清空地址栏 和 还原控制按钮
 func (m *BrowserWindow) resetControlBtn() {
-	m.addr.SetText("")
+	m.SetAddrText("")
 	m.backBtn.SetEnable(false)
 	m.forwardBtn.SetEnable(false)
 }
