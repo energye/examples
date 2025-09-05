@@ -76,8 +76,9 @@ func (m *BrowserWindow) BrowserControlBar() {
 	m.addr = addr
 	addrHandle := lcl.PlatformHandle(addr.Handle())
 	addrEntry := gtkhelper.ToEntry(unsafe.Pointer(addrHandle.Gtk3Widget()))
+	addrEntry.SetIconFromIconName(gtkhelper.ENTRY_ICON_PRIMARY, "search")
 	SetWidgetStyle(addrEntry.ToWidget(), `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF; caret-color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
-	println("addrEntry", addrEntry.TypeFromInstance().Name())
+	//println("addrEntry", addrEntry.TypeFromInstance().Name())
 
 }
 

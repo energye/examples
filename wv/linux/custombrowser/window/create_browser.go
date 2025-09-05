@@ -163,7 +163,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 				} else {
 					newBrowser.currentURL = targetURL
 				}
-				if newBrowser.isActive {
+				if newBrowser.isActive && targetURL != "" {
 					newBrowser.mainWindow.SetAddrText(targetURL)
 				}
 			}
