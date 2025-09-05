@@ -16,8 +16,8 @@ var (
 	SiteResource string
 	Window       BrowserWindow
 	bgColor      = colors.RGBToColor(56, 57, 60)
-	windowWidth  = 1200
-	windowHeight = 900
+	windowWidth  = 1300
+	windowHeight = 850
 )
 
 type BrowserWindow struct {
