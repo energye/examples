@@ -15,7 +15,7 @@ func (m *BrowserWindow) Toolbar() {
 	}
 	m.gtkToolbar = headerBar
 	headerBar.SetName("browser-header-bar")
-	SetWidgetStyle(headerBar.ToWidget(), `#browser-header-bar { background: rgba(56, 57, 60, 1); color: #ffffff; background-image: none;}`)
+	SetWidgetStyle(headerBar.ToWidget(), `#browser-header-bar { background: rgba(56, 57, 60, 1);border: 0;margin: 0;}`)
 
 	m.gtkWindow.SetTitlebar(headerBar)
 
