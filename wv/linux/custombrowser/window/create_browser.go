@@ -160,8 +160,9 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 			} else {
 				if isDefaultResourceHTML(targetURL) {
 					targetURL = ""
+				} else {
+					newBrowser.currentURL = targetURL
 				}
-				newBrowser.currentURL = targetURL
 				if newBrowser.isActive && targetURL != "" {
 					newBrowser.mainWindow.addr.SetText(targetURL)
 				}
@@ -218,7 +219,7 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.tabSheetBtn.Active(isActive)
 	// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 	m.updateBrowserControlBtn()
-	println("updateTabSheetActive isActive:", isActive, "canGoBack:", m.canGoBack, "canGoForward:", m.canGoForward, "isLoading:", m.isLoading)
+	//println("updateTabSheetActive isActive:", isActive, "canGoBack:", m.canGoBack, "canGoForward:", m.canGoForward, "isLoading:", m.isLoading)
 }
 
 // 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
@@ -243,5 +244,6 @@ func isDefaultResourceHTML(v string) bool {
 		(strings.Index(v, "file://") != -1 && strings.Index(v, "resources") != -1) ||
 		strings.Index(v, "default.html") != -1 ||
 		strings.Index(v, "view-source:file://") != -1 ||
+		strings.Index(v, "about:") != -1 ||
 		strings.Index(v, "devtools://") != -1
 }
