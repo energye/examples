@@ -72,10 +72,9 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		var rel = links[i].rel.toLowerCase();
 		if (rel.includes('icon')) {
 			favicon.push(links[i].href);
-			break;
 		}
 	}
-	window.webkit.messageHandlers.processMessage.postMessage('{"type":"internal", favicon":"'+JSON.stringify(favicon)+'"}');
+	return '{"option":"internal", "type":"favicon", "data":"'+JSON.stringify(favicon)+'"}';
 })();
 `
 			newBrowser.webview.ExecuteScript(js)
@@ -85,9 +84,9 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		}
 		newBrowser.updateBrowserControlBtn()
 	})
+	newBrowser.webview.SetOnExecuteScriptFinished(func(sender lcl.IObject, jsValue wv.IWkJSValue) {
+		fmt.Println("SetOnExecuteScriptFinished value-type:", jsValue.ValueType(), jsValue.StringValue())
 
-	newBrowser.webview.SetOnProcessMessage(func(sender lcl.IObject, jsValue wv.IWkJSValue, processId wvTypes.TWkProcessId) {
-		fmt.Println("OnProcessMessage value-type:", jsValue.ValueType(), jsValue.StringValue())
 	})
 	newBrowser.webview.SetOnWebProcessTerminated(func(sender lcl.IObject, reason wvTypes.WebKitWebProcessTerminationReason) {
 		fmt.Println("OnWebProcessTerminated reason:", reason)
@@ -175,12 +174,16 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 	m.tabSheetBtn.Active(isActive)
 	// 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 	m.updateBrowserControlBtn()
+	println("updateTabSheetActive isActive:", isActive, "canGoBack:", m.canGoBack, "canGoForward:", m.canGoForward, "isLoading:", m.isLoading)
 }
 
 // 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 func (m *Browser) updateBrowserControlBtn() {
-	m.mainWindow.backBtn.SetEnable(m.canGoBack)
-	m.mainWindow.forwardBtn.SetEnable(m.canGoForward)
+	if m.isActive {
+		m.mainWindow.backBtn.SetEnable(m.canGoBack)
+		m.mainWindow.forwardBtn.SetEnable(m.canGoForward)
+		m.mainWindow.updateRefreshBtn(m, m.isLoading)
+	}
 }
 
 func (m *Browser) Show() {

@@ -75,9 +75,9 @@ func (m *BrowserWindow) BrowserControlBar() {
 	})
 	m.addr = addr
 	addrHandle := lcl.PlatformHandle(addr.Handle())
-	addrWidget := gtkhelper.ToWidget(unsafe.Pointer(addrHandle.Gtk3Widget()))
-	SetWidgetStyle(addrWidget, `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
-	println("addrWidget", addrWidget.TypeFromInstance().Name())
+	addrEntry := gtkhelper.ToEntry(unsafe.Pointer(addrHandle.Gtk3Widget()))
+	SetWidgetStyle(addrEntry.ToWidget(), `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF; caret-color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
+	println("addrEntry", addrEntry.TypeFromInstance().Name())
 
 }
 
