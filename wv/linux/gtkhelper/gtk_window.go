@@ -28,6 +28,11 @@ func ToGtkWindow(gtkWindow uintptr) *Window {
 	return window
 }
 
+func ToWindowFromWidget(window IWidget) *Window {
+	widget := unsafe.Pointer(window.toWidget())
+	return toWindow((*C.GdkWindow)(widget))
+}
+
 func toWindow(s *C.GdkWindow) *Window {
 	if s == nil {
 		return nil
