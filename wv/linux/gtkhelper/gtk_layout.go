@@ -37,8 +37,8 @@ func wrapLayout(obj *Object) *Layout {
 	return &Layout{Container{Widget{InitiallyUnowned{obj}}}}
 }
 
-// LayoutNew is a wrapper around gtk_layout_new().
-func LayoutNew(hadjustment, vadjustment *Adjustment) (*Layout, error) {
+// NewLayout is a wrapper around gtk_layout_new().
+func NewLayout(hadjustment, vadjustment *Adjustment) (*Layout, error) {
 	c := C.gtk_layout_new(hadjustment.native(), vadjustment.native())
 	if c == nil {
 		return nil, nilPtrErr
