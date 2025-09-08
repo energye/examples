@@ -54,6 +54,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		newBrowser.canGoBack = newBrowser.webview.CanGoBack()
 		newBrowser.canGoForward = newBrowser.webview.CanGoForward()
 		title := newBrowser.webview.GetTitle()
+		uri := newBrowser.webview.GetURI()
 		if title != "" {
 			if isDefaultResourceHTML(title) {
 				title = "新建标签页"
@@ -84,6 +85,14 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		} else {
 			newBrowser.isLoading = true
 			m.updateRefreshBtn(newBrowser, true)
+
+			if isDefaultResourceHTML(uri) {
+				uri = ""
+			}
+			newBrowser.currentURL = uri
+			if newBrowser.isActive {
+				newBrowser.mainWindow.SetAddrText(uri)
+			}
 		}
 		newBrowser.updateBrowserControlBtn()
 	})
@@ -157,15 +166,6 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 					m.OnCreateTabSheet(newBrowser)
 					newBrowser.Create()
 				})
-			} else {
-				if isDefaultResourceHTML(targetURL) {
-					targetURL = ""
-				} else {
-					newBrowser.currentURL = targetURL
-				}
-				if newBrowser.isActive && targetURL != "" {
-					newBrowser.mainWindow.SetAddrText(targetURL)
-				}
 			}
 		} else {
 			tempResponsePolicyDecision := wv.NewResponsePolicyDecision(wkDecision)
