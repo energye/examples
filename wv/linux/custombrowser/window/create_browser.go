@@ -243,6 +243,10 @@ func (m *Browser) Hide() {
 	m.webviewParent.SetVisible(false)
 }
 
+func (m *Browser) UpdateSize(w, h int32) {
+	m.webviewParent.UpdateSize(int32(w), int32(h))
+}
+
 // 过滤 掉一些特定的 url , 在浏览器首页加载时使用的
 func isDefaultResourceHTML(v string) bool {
 	return v == "about:blank" || v == "DevTools" ||

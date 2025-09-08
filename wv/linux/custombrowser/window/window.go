@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	CacheRoot    string
-	SiteResource string
-	Window       BrowserWindow
-	bgColor      = colors.RGBToColor(56, 57, 60)
-	windowWidth  = 1024 // + 48 // 48(browserBar)
-	windowHeight = 768
+	CacheRoot        string
+	SiteResource     string
+	Window           BrowserWindow
+	bgColor                = colors.RGBToColor(56, 57, 60)
+	windowWidth            = 1024 // + 48 // 48(browserBar)
+	windowHeight           = 768
+	browserBarHeight int32 = 48
 )
 
 type BrowserWindow struct {
@@ -92,7 +93,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// 把 LCL 的Panel转为 gtk3 控件
 	browserBar := lcl.NewPanel(m)
 	browserBar.SetParent(m.box)
-	browserBar.SetHeight(48)
+	browserBar.SetHeight(browserBarHeight)
 	browserBar.SetWidth(m.box.Width())
 	browserBar.SetBevelOuter(types.BvNone)
 	browserBar.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
@@ -112,6 +113,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//	//browserFixed.SetSizeRequest(int(m.box.Width()), int(m.box.Height()))
 		//	//browserFixed.QueueDraw()
 		//}
+
+		// GTK3 bug 手动更新浏览器大小
+		m.UpdateBrowserSize()
 		return false
 	})
 
@@ -133,6 +137,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	tabSheetBtn.SetOnClick(func() {
 		currentBrowse.updateTabSheetActive(true)
 		m.updateOtherTabSheetNoActive(currentBrowse)
+		m.UpdateBrowserSize()
 	})
 	tabSheetBtn.SetOnCloseClick(func() {
 		currentBrowse.CloseBrowser()

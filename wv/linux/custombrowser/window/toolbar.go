@@ -68,6 +68,15 @@ func (m *BrowserWindow) Toolbar() {
 
 }
 
+func (m *BrowserWindow) UpdateBrowserSize() {
+	w, h := m.gtkWindow.GetSize()
+	for _, browser := range m.browses {
+		// 宽: 左右各减5 (10)
+		// 高: 减浏览器控制栏高度+5
+		browser.UpdateSize(int32(w-10), int32(h)-(browserBarHeight+5))
+	}
+}
+
 func (m *BrowserWindow) UpdateToolbar() {
 	if m.WindowState() == types.WsNormal {
 		m.maxBtn.UpdateImage(assets.GetResourcePath("btn-max.png"))
