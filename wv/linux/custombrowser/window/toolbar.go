@@ -68,6 +68,7 @@ func (m *BrowserWindow) Toolbar() {
 
 }
 
+// GTK3 bug 手动更新浏览器大小
 func (m *BrowserWindow) UpdateBrowserSize() {
 	w, h := m.gtkWindow.GetSize()
 	for _, browser := range m.browses {
