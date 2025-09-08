@@ -173,7 +173,6 @@ func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *Signa
 	case EsnConfigureEvent:
 		cCb = C.GCallback(C.go_on_window_configure)
 	default:
-		println("registerAction", signal)
 		cCb = C.GCallback(C.go_on_event_handler)
 	}
 	cWidget := widget.toWidget()
