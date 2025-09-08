@@ -150,6 +150,10 @@ func registerSignal(widget *C.GtkWidget, cb C.GCallback, signal EventSignalName)
 	defer C.free(unsafe.Pointer(name))
 	pointer := C.gpointer(widget)
 	handlerId := C.g_signal_connect_data(pointer, name, cb, C.gpointer(nextEventId), nil, 0)
+	if handlerId == 0 {
+		println("[ERROR] 连接信号失败 signal:", signal)
+		return nil
+	}
 	return &SignalHandler{
 		widget:    widget,
 		handlerID: handlerId,
@@ -169,6 +173,7 @@ func registerAction(widget IWidget, signal EventSignalName, cb *Callback) *Signa
 	case EsnConfigureEvent:
 		cCb = C.GCallback(C.go_on_window_configure)
 	default:
+		println("registerAction", signal)
 		cCb = C.GCallback(C.go_on_event_handler)
 	}
 	cWidget := widget.toWidget()

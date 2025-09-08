@@ -560,3 +560,7 @@ func (v *Window) BeginMoveDrag(button ButtonType, rootX, rootY int, timestamp ui
 func (v *Window) SetOnConfigure(fn TConfigureEvent) *SignalHandler {
 	return registerAction(v, EsnConfigureEvent, MakeConfigureEvent(fn))
 }
+
+func (v *Window) SetOnMap(fn TMapEvent) *SignalHandler {
+	return registerAction(v, EsnMapEvent, MakeMapEvent(fn))
+}

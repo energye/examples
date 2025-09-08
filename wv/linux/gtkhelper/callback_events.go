@@ -19,6 +19,7 @@ const (
 	EsnEnterNotifyEvent EventSignalName = "enter-notify-event"
 	EsnLeaveNotifyEvent EventSignalName = "leave-notify-event"
 	EsnConfigureEvent   EventSignalName = "configure-event"
+	EsnMapEvent         EventSignalName = "map"
 )
 
 // TccType 事件类型, 用于区分普通通知事件, 还是特殊事件
@@ -40,6 +41,7 @@ type TTextKeyEvent func(sender *Widget, key *EventKey) bool
 type TButtonPressEvent func(sender *Widget, event *EventButton)
 type TLeaveEnterNotifyEvent func(sender *Widget, event *EventCrossing)
 type TConfigureEvent func(sender *Widget, event *EventConfigure) bool
+type TMapEvent func(sender *Widget)
 
 type CallbackContext struct {
 	widget unsafe.Pointer
@@ -123,6 +125,15 @@ func MakeConfigureEvent(cb TConfigureEvent) *Callback {
 			event := ToEventConfigure(eventPtr)
 			result := cb(wrapWidget(ToGoObject(ctx.widget)), event)
 			ctx.result = result
+		},
+	}
+}
+
+func MakeMapEvent(cb TMapEvent) *Callback {
+	return &Callback{
+		type_: TCCNotify,
+		cb: func(ctx *CallbackContext) {
+			cb(wrapWidget(ToGoObject(ctx.widget)))
 		},
 	}
 }
