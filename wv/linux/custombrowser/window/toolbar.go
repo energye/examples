@@ -64,6 +64,7 @@ func (m *BrowserWindow) Toolbar() {
 		newBrowser := m.CreateBrowser("")
 		m.OnCreateTabSheet(newBrowser)
 		newBrowser.Create()
+		m.SetAddrText("")
 	})
 
 }
