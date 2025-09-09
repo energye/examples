@@ -17,7 +17,7 @@ var (
 	Window           BrowserWindow
 	bgColor                = colors.RGBToColor(56, 57, 60)
 	windowWidth            = 1024 // + 48 // 48(browserBar)
-	windowHeight           = 850
+	windowHeight           = 900
 	browserBarHeight int32 = 48
 )
 
