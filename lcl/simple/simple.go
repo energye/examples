@@ -39,6 +39,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(400)
 	m.SetHeight(300)
+	m.SetColor(colors.RGBToColor(56, 57, 60))
+	m.SetBorderWidth(0)
 	box := lcl.NewPanel(m)
 	box.SetParent(m)
 	box.SetTop(5)
@@ -48,7 +50,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	box.SetDoubleBuffered(true)
 	box.SetBevelColor(colors.ClBlue)
 	box.SetBevelWidth(5)
-	box.SetAlign(types.AlNone)
+	box.SetAlign(types.AlClient)
 	box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 
 	btn := lcl.NewButton(m)
