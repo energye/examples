@@ -5,6 +5,7 @@ import (
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/colors"
 	"math/rand"
 	"time"
 )
@@ -36,8 +37,22 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("main create")
 	m.SetCaption("Main")
 	m.SetPosition(types.PoScreenCenter)
+	m.SetWidth(400)
+	m.SetHeight(300)
+	box := lcl.NewPanel(m)
+	box.SetParent(m)
+	box.SetTop(5)
+	box.SetLeft(5)
+	box.SetWidth(m.Width() - 10)
+	box.SetHeight(m.Height() - 10)
+	box.SetDoubleBuffered(true)
+	box.SetBevelColor(colors.ClBlue)
+	box.SetBevelWidth(5)
+	box.SetAlign(types.AlNone)
+	box.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+
 	btn := lcl.NewButton(m)
-	btn.SetParent(m)
+	btn.SetParent(box)
 	btn.SetCaption("test")
 	btn.SetOnClick(func(sender lcl.IObject) {
 		rand.Seed(time.Now().UnixNano())
@@ -46,10 +61,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		Form1.Show()
 		Form1.SetFocus()
 	})
-	//m.SetOnWndProc(func(msg *types.TMessage) {
-	//	m.InheritedWndProc(msg)
-	//	fmt.Println("OnWndProc:", msg.Msg)
-	//})
 }
 
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {

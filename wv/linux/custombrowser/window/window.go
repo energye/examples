@@ -17,7 +17,7 @@ var (
 	Window           BrowserWindow
 	bgColor                = colors.RGBToColor(56, 57, 60)
 	windowWidth            = 1024 // + 48 // 48(browserBar)
-	windowHeight           = 768
+	windowHeight           = 850
 	browserBarHeight int32 = 48
 )
 
@@ -33,8 +33,9 @@ type BrowserWindow struct {
 	minBtn        *BrowserControlButton
 	addBrowserBtn *BrowserControlButton
 	// browser
-	browserBar    lcl.IPanel
-	gtkBrowserBar *gtkhelper.Fixed
+	browserBar lcl.IPanel
+	//gtkBrowserBar *gtkhelper.Fixed
+	gtkBrowserBar *gtkhelper.Layout
 	gtkBrowserBox *gtkhelper.Box
 	browses       []*Browser // 当前的chrom列表
 	// 浏览器控制按钮
@@ -55,6 +56,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.SetHeight(int32(windowHeight))
 	m.SetDoubleBuffered(true)
 	m.WorkAreaCenter()
+	m.SetColor(bgColor)
 	size := m.Constraints()
 	size.SetMinWidth(400)
 	size.SetMinHeight(200)
@@ -98,10 +100,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	browserBar.SetBevelOuter(types.BvNone)
 	browserBar.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	browserBarHandle := lcl.PlatformHandle(browserBar.Handle())
-	browserBarFixed := gtkhelper.ToFixed(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
-	println("headerBoxWidget", browserBarFixed.TypeFromInstance().Name())
+	//browserBarWidget := gtkhelper.ToFixed(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
+	browserBarWidget := gtkhelper.ToLayout(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
+	println("headerBoxWidget", browserBarWidget.TypeFromInstance().Name())
 	m.browserBar = browserBar
-	m.gtkBrowserBar = browserBarFixed
+	m.gtkBrowserBar = browserBarWidget
 
 	// window move resize event
 	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
@@ -115,7 +118,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//}
 
 		// GTK3 bug 手动更新浏览器大小
-		m.UpdateBrowserSize()
+		//m.UpdateBrowserSize()
 		return false
 	})
 
@@ -137,7 +140,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	tabSheetBtn.SetOnClick(func() {
 		currentBrowse.updateTabSheetActive(true)
 		m.updateOtherTabSheetNoActive(currentBrowse)
-		m.UpdateBrowserSize()
+		//m.UpdateBrowserSize()
 	})
 	tabSheetBtn.SetOnCloseClick(func() {
 		currentBrowse.CloseBrowser()
