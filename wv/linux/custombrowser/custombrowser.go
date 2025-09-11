@@ -26,10 +26,17 @@ Glib: dpkg -l | grep libglib2.0
 
 Webkit2: >= 2.28
 
+	sudo apt install -y libwebkit2gtk-4.0-37 libjavascriptcoregtk-4.0-18 libsoup2.4-1
+
 	Web2: dpkg -l | grep webkit2
 	Web2: pkg-config --modversion webkit2gtk-4.0
 
 ldd --version
+
+# 查找库文件位置
+sudo find / -name "libwebkit2gtk-4.0.so"
+sudo find / -name "libjavascriptcoregtk-4.0.so"
+sudo find / -name "libsoup-2.4.so.1"
 */
 func main() {
 	window.CacheRoot = cacheRoot
