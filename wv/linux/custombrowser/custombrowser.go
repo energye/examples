@@ -33,10 +33,14 @@ Webkit2: >= 2.28
 
 ldd --version
 
-# 查找库文件位置
+查找库文件位置
 sudo find / -name "libwebkit2gtk-4.0.so"
 sudo find / -name "libjavascriptcoregtk-4.0.so"
 sudo find / -name "libsoup-2.4.so.1"
+
+缺少 GStreamer FDK AAC 插件，这会导致 AAC 格式的音频播放可能无法正常工作
+sudo apt-get update
+sudo apt-get install gstreamer1.0-libav gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-fdk
 */
 func main() {
 	window.CacheRoot = cacheRoot

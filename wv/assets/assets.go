@@ -24,13 +24,7 @@ func GetResourcePath(name string) string {
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}
-	if tool.IsWindows() {
-		sourcePath = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\wv\\assets\\resources", name)
-	} else if tool.IsLinux() {
-		sourcePath = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/examples/wv/assets/resources", name)
-	} else if tool.IsDarwin() {
-		sourcePath = filepath.Join("/Users/yanghy/app/workspace/examples/cef/custombrowser/resources", name)
-	}
+	sourcePath = filepath.Join(wd, "wv", "assets", "resources", name)
 	if tool.IsExist(sourcePath) {
 		return sourcePath
 	}

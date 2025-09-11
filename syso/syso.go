@@ -51,12 +51,11 @@ func TestLoadLibPath() {
 			libname.LibName = liblcl
 			return
 		}
-		// 测试编译输出目录
-		if tool.IsWindows() {
-			liblcl = filepath.Join("E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout", name)
-		} else if tool.IsLinux() {
-			liblcl = filepath.Join("/home/yanghy/app/gopath/src/github.com/energye/workspace/gen/gout", name)
+		liblcl = filepath.Join(wd, "../", "gen", "gout", name)
+		if tool.IsDarwin() {
+			liblcl = ""
 		}
+		// 测试编译输出目录
 		if tool.IsExist(liblcl) {
 			libname.LibName = liblcl
 			return
