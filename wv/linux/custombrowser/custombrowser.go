@@ -42,8 +42,15 @@ func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	wv.Init(nil, nil)
-	lcl.Application.Initialize()
-	lcl.Application.SetScaled(true)
-	lcl.Application.NewForm(&window.Window)
-	lcl.Application.Run()
+
+	load := wv.NewLoader(nil)
+	load.SetLoaderWebKit2DllPath("/usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37")
+	load.SetLoaderJavascriptCoreDllPath("/usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18")
+	load.SetLoaderSoupDllPath("/usr/lib/x86_64-linux-gnu/libsoup-2.4.so.1")
+	if load.StartWebKit2() {
+		lcl.Application.Initialize()
+		lcl.Application.SetScaled(true)
+		lcl.Application.NewForm(&window.Window)
+		lcl.Application.Run()
+	}
 }

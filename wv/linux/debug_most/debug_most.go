@@ -46,12 +46,20 @@ func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
 	wv.Init(nil, resources)
-	lcl.Application.Initialize()
-	lcl.Application.SetScaled(true)
-	mainForm.url = "energy://demo.com/test.html"
-	mainForm.isMainWindow = true
-	lcl.Application.NewForm(&mainForm)
-	lcl.Application.Run()
+
+	load := wv.NewLoader(nil)
+	load.SetLoaderWebKit2DllPath("/usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37")
+	load.SetLoaderJavascriptCoreDllPath("/usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18")
+	load.SetLoaderSoupDllPath("/usr/lib/x86_64-linux-gnu/libsoup-2.4.so.1")
+	if load.StartWebKit2() {
+
+		lcl.Application.Initialize()
+		lcl.Application.SetScaled(true)
+		mainForm.url = "energy://demo.com/test.html"
+		mainForm.isMainWindow = true
+		lcl.Application.NewForm(&mainForm)
+		lcl.Application.Run()
+	}
 }
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
