@@ -221,8 +221,22 @@ func FindLib(libName string) {
 
 	fmt.Printf("找到 %d 个 %s 的有效路径：\n", len(paths), libName)
 	for i, path := range paths {
-		fmt.Printf("%d. %s\n", i+1, path)
+		fmt.Printf("%d. %s => %s\n", i+1, path, GetOriginFilePath(path))
 	}
+}
+
+func GetOriginFilePath(path string) string {
+	targetPath, err := os.Readlink(path)
+	if err != nil {
+		return path
+	}
+	if !filepath.IsAbs(targetPath) {
+		// 获取软链接本身的所在目录
+		dir := filepath.Dir(path)
+		// 拼接软链接目录和目标路径，得到绝对路径
+		targetPath = filepath.Join(dir, targetPath)
+	}
+	return GetOriginFilePath(targetPath)
 }
 
 func main() {
