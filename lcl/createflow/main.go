@@ -78,6 +78,7 @@ func (m *Form3) FormCreate(sender lcl.IObject) {
 	fmt.Println("FormCreate 3")
 	m.SetCaption("form3")
 	m.SetBounds(300, 300, 300, 300)
+	m.SetShowInTaskBar(types.StNever)
 }
 
 func (m *Form3) CreateParams(params *types.TCreateParams) {
