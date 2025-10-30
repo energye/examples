@@ -11,6 +11,14 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/mathgl/mgl32"
+
+	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 // 该示例来自于: github.com/go-gl/example => gl41core-cube
@@ -41,12 +49,12 @@ func main() {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
-	inits.Init(nil, nil)
+	lcl.Init(nil, nil)
 	lcl.RunApp(window)
 }
 
 type WindowForm struct {
-	lcl.TForm
+	lcl.TEngForm
 	openGL             lcl.IOpenGLControl
 	isInitializeOpenGL bool
 }
@@ -54,7 +62,7 @@ type WindowForm struct {
 func (m *WindowForm) FormCreate(sender lcl.IObject) {
 	m.SetWidth(windowWidth)
 	m.SetHeight(windowHeight + 35)
-	m.ScreenCenter()
+	m.WorkAreaCenter()
 	m.SetCaption(" ENERGY OpenGL")
 
 	var (
