@@ -5,11 +5,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/energye/lcl/api/libname"
+	"github.com/energye/lcl/tool"
 	"image"
 	"image/draw"
 	_ "image/png"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -404,5 +407,29 @@ var cubeVertices = []float32{
 }
 
 func init() {
+	wd, _ := os.Getwd()
+	var name string
+	if tool.IsWindows() {
+		name = "liblcl.dll"
+	} else if tool.IsLinux() {
+		name = "liblcl.so"
+	}
+	if name != "" {
+		// 当前目录
+		liblcl := filepath.Join(wd, name)
+		if tool.IsExist(liblcl) {
+			libname.LibName = liblcl
+			return
+		}
+		liblcl = filepath.Join(wd, "../../../", "gen", "gout", name)
+		if tool.IsDarwin() {
+			liblcl = ""
+		}
+		// 测试编译输出目录
+		if tool.IsExist(liblcl) {
+			libname.LibName = liblcl
+			return
+		}
+	}
 	Chdir("")
 }
