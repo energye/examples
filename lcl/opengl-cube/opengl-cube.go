@@ -113,25 +113,26 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 
 	m.openGL = lcl.NewOpenGLControl(m)
 	m.openGL.SetName("openGL")
-	m.openGL.SetParent(m)
 	m.openGL.SetTop(35)
 	m.openGL.SetWidth(windowWidth)
 	m.openGL.SetHeight(windowHeight)
 	m.openGL.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkBottom, types.AkRight))
 	m.openGL.SetOpenGLMajorVersion(4)
 	m.openGL.SetOpenGLMinorVersion(6)
-	m.openGL.MakeCurrent(false)
 	m.openGL.SetOnMouseMove(func(sender lcl.IObject, shift types.TShiftState, x, y int32) {
 		mouseMoveLabel.SetCaption("Mouse Move " + fmt.Sprintf("x: %d, y: %d", x, y))
 	})
 	m.openGL.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		mouseDownLabel.SetCaption("Mouse Down " + fmt.Sprintf("x: %d, y: %d", x, y))
 	})
-
+	m.openGL.SetParent(m)
+	makeCurrent := m.openGL.MakeCurrent(false)
+	println("MakeCurrent:", makeCurrent)
 	// Initialize Glow
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
+
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
