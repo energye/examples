@@ -8,9 +8,9 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"github.com/energye/widget/wg"
 	"net/url"
 	"strings"
-	"widget/wg"
 )
 
 const isDarwin = false
@@ -34,8 +34,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	addBtnRect := types.TRect{Left: 5, Top: 5}
 	addBtnRect.SetSize(40, 40)
 	m.addChromBtn.SetBoundsRect(addBtnRect)
-	m.addChromBtn.SetStartColor(bgColor)
-	m.addChromBtn.SetEndColor(bgColor)
+	m.addChromBtn.SetColor(bgColor)
 	m.addChromBtn.SetRadius(5)
 	m.addChromBtn.SetAlpha(255)
 	m.addChromBtn.SetIcon(getResourcePath("add.png"))
@@ -54,8 +53,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	minBtnRect := types.TRect{Left: m.box.Width() - 45*3, Top: 5}
 	minBtnRect.SetSize(40, 40)
 	m.minBtn.SetBoundsRect(minBtnRect)
-	m.minBtn.SetStartColor(bgColor)
-	m.minBtn.SetEndColor(bgColor)
+	m.minBtn.SetColor(bgColor)
 	m.minBtn.SetRadius(5)
 	m.minBtn.SetAlpha(255)
 	m.minBtn.SetIcon(getResourcePath("btn-min.png"))
@@ -69,8 +67,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	maxBtnRect := types.TRect{Left: m.box.Width() - 45*2, Top: 5}
 	maxBtnRect.SetSize(40, 40)
 	m.maxBtn.SetBoundsRect(maxBtnRect)
-	m.maxBtn.SetStartColor(bgColor)
-	m.maxBtn.SetEndColor(bgColor)
+	m.maxBtn.SetColor(bgColor)
 	m.maxBtn.SetRadius(5)
 	m.maxBtn.SetAlpha(255)
 	m.maxBtn.SetIcon(getResourcePath("btn-max.png"))
@@ -84,8 +81,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	closeBtnRect := types.TRect{Left: m.box.Width() - 45, Top: 5}
 	closeBtnRect.SetSize(40, 40)
 	m.closeBtn.SetBoundsRect(closeBtnRect)
-	m.closeBtn.SetStartColor(bgColor)
-	m.closeBtn.SetEndColor(bgColor)
+	m.closeBtn.SetColor(bgColor)
 	m.closeBtn.SetRadius(5)
 	m.closeBtn.SetAlpha(255)
 	m.closeBtn.SetIcon(getResourcePath("btn-close.png"))
@@ -108,8 +104,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	backBtnRect := types.TRect{Left: 5, Top: 47}
 	backBtnRect.SetSize(40, 40)
 	m.backBtn.SetBoundsRect(backBtnRect)
-	m.backBtn.SetStartColor(bgColor)
-	m.backBtn.SetEndColor(bgColor)
+	m.backBtn.SetColor(bgColor)
 	m.backBtn.SetRadius(5)
 	m.backBtn.SetAlpha(255)
 	m.backBtn.SetIcon(getResourcePath("back.png"))
@@ -127,8 +122,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	forwardBtnRect := types.TRect{Left: 50, Top: 47}
 	forwardBtnRect.SetSize(40, 40)
 	m.forwardBtn.SetBoundsRect(forwardBtnRect)
-	m.forwardBtn.SetStartColor(bgColor)
-	m.forwardBtn.SetEndColor(bgColor)
+	m.forwardBtn.SetColor(bgColor)
 	m.forwardBtn.SetRadius(5)
 	m.forwardBtn.SetAlpha(255)
 	m.forwardBtn.SetIcon(getResourcePath("forward.png"))
@@ -146,8 +140,7 @@ func (m *BrowserWindow) createTitleWidgetControl() {
 	refreshBtnRect := types.TRect{Left: 95, Top: 47}
 	refreshBtnRect.SetSize(40, 40)
 	m.refreshBtn.SetBoundsRect(refreshBtnRect)
-	m.refreshBtn.SetStartColor(bgColor)
-	m.refreshBtn.SetEndColor(bgColor)
+	m.refreshBtn.SetColor(bgColor)
 	m.refreshBtn.SetRadius(5)
 	m.refreshBtn.SetAlpha(255)
 	m.refreshBtn.SetIcon(getResourcePath("refresh.png"))
@@ -220,19 +213,15 @@ func (m *BrowserWindow) createAddrBar() {
 	addrEnter := func(sender lcl.IObject) {
 		dkColor := wg.DarkenColor(color, -0.2)
 		m.addr.SetColor(dkColor)
-		addrLeft.SetStartColor(dkColor)
-		addrLeft.SetEndColor(dkColor)
-		addrRight.SetStartColor(dkColor)
-		addrRight.SetEndColor(dkColor)
+		addrLeft.SetColor(dkColor)
+		addrRight.SetColor(dkColor)
 		addrLeft.Invalidate()
 		addrRight.Invalidate()
 	}
 	addrLeave := func(sender lcl.IObject) {
 		m.addr.SetColor(color)
-		addrLeft.SetStartColor(color)
-		addrLeft.SetEndColor(color)
-		addrRight.SetStartColor(color)
-		addrRight.SetEndColor(color)
+		addrLeft.SetColor(color)
+		addrRight.SetColor(color)
 		addrLeft.Invalidate()
 		addrRight.Invalidate()
 	}
@@ -242,11 +231,10 @@ func (m *BrowserWindow) createAddrBar() {
 	addrLeftRect := types.TRect{Left: 140, Top: top}
 	addrLeftRect.SetSize(30, height)
 	addrLeft.SetBoundsRect(addrLeftRect)
-	addrLeft.SetStartColor(color)
-	addrLeft.SetEndColor(color)
+	addrLeft.SetColor(color)
 	addrLeft.SetRadius(15)
 	addrLeft.SetAlpha(255)
-	addrLeft.IsDisable = true
+	addrLeft.SetDisable(true)
 	addrLeft.RoundedCorner = addrLeft.RoundedCorner.Exclude(wg.RcRightBottom).Exclude(wg.RcRightTop)
 	addrLeft.SetOnClick(addrFocus)
 	addrLeft.SetOnMouseEnter(addrEnter)
@@ -257,11 +245,10 @@ func (m *BrowserWindow) createAddrBar() {
 	addrRightRect := types.TRect{Left: m.addr.Left() + m.addr.Width(), Top: top}
 	addrRightRect.SetSize(30, height)
 	addrRight.SetBoundsRect(addrRightRect)
-	addrRight.SetStartColor(color)
-	addrRight.SetEndColor(color)
+	addrRight.SetColor(color)
 	addrRight.SetRadius(15)
 	addrRight.SetAlpha(255)
-	addrRight.IsDisable = true
+	addrRight.SetDisable(true)
 	addrRight.RoundedCorner = addrRight.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcLeftTop)
 	addrRight.SetOnClick(addrFocus)
 	addrRight.SetOnMouseEnter(addrEnter)
@@ -275,8 +262,7 @@ func (m *BrowserWindow) createAddrBar() {
 	addrRightBtnRect := types.TRect{Left: m.box.Width() - (40 + 5), Top: 47}
 	addrRightBtnRect.SetSize(40, 40)
 	m.addrRightBtn.SetBoundsRect(addrRightBtnRect)
-	m.addrRightBtn.SetStartColor(bgColor)
-	m.addrRightBtn.SetEndColor(colors.RGBToColor(50, 60, 70))
+	m.addrRightBtn.SetColor(bgColor)
 	m.addrRightBtn.SetRadius(35)
 	m.addrRightBtn.SetAlpha(255)
 	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
@@ -311,8 +297,8 @@ func (m *BrowserWindow) updateRefreshBtn(chromium *Chromium, isLoading bool) {
 // 清空地址栏 和 还原控制按钮
 func (m *BrowserWindow) resetControlBtn() {
 	m.addr.SetText("")
-	m.backBtn.IsDisable = true
-	m.forwardBtn.IsDisable = true
+	m.backBtn.SetDisable(true)
+	m.forwardBtn.SetDisable(true)
 	m.backBtn.SetIcon(getResourcePath("back_disable.png"))
 	m.backBtn.Invalidate()
 	m.forwardBtn.SetIcon(getResourcePath("forward_disable.png"))
@@ -325,8 +311,7 @@ func (m *BrowserWindow) resetControlBtn() {
 func (m *Chromium) updateTabSheetActive(isActive bool) {
 	if isActive {
 		activeColor := colors.RGBToColor(86, 88, 93)
-		m.tabSheetBtn.SetStartColor(activeColor)
-		m.tabSheetBtn.SetEndColor(activeColor)
+		m.tabSheetBtn.SetColor(activeColor)
 		m.tabSheet.SetVisible(true)
 		m.isActive = true
 		m.mainWindow.SetAddrText(m.currentURL)
@@ -334,8 +319,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		m.resize(nil)
 	} else {
 		notActiveColor := bgColor //colors.RGBToColor(56, 57, 60)
-		m.tabSheetBtn.SetStartColor(notActiveColor)
-		m.tabSheetBtn.SetEndColor(notActiveColor)
+		m.tabSheetBtn.SetColor(notActiveColor)
 		m.tabSheet.SetVisible(false)
 		m.isActive = false
 	}
@@ -346,8 +330,8 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 
 // 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 func (m *Chromium) updateBrowserControlBtn() {
-	m.mainWindow.backBtn.IsDisable = !m.canGoBack
-	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
+	m.mainWindow.backBtn.SetDisable(!m.canGoBack)
+	m.mainWindow.forwardBtn.SetDisable(!m.canGoForward)
 	backDisable := !m.canGoBack
 	forwardDisable := !m.canGoForward
 	lcl.RunOnMainThreadAsync(func(id uint32) {

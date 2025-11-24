@@ -11,6 +11,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
+	"github.com/energye/widget/wg"
 	"image"
 	"image/png"
 	"io"
@@ -20,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"widget/wg"
 )
 
 type Chromium struct {

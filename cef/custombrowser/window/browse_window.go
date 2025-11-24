@@ -6,10 +6,10 @@ import (
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"github.com/energye/widget/wg"
 	"os"
 	"path/filepath"
 	"sync"
-	"widget/wg"
 )
 
 type BrowserWindow struct {
@@ -241,8 +241,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentChromium *Chromium) {
 	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
 	newTabSheetRect.SetSize(0, 0)
 	newTabSheetBtn.SetBoundsRect(newTabSheetRect)
-	newTabSheetBtn.SetStartColor(colors.RGBToColor(86, 88, 93))
-	newTabSheetBtn.SetEndColor(colors.RGBToColor(86, 88, 93))
+	newTabSheetBtn.SetColor(colors.RGBToColor(86, 88, 93))
 	newTabSheetBtn.RoundedCorner = newTabSheetBtn.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
 	newTabSheetBtn.SetIconFavorite(getResourcePath("icon.png"))
 	newTabSheetBtn.SetIconClose(getResourcePath("sheet_close.png"))
