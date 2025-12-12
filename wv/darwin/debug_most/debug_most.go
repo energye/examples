@@ -8,15 +8,16 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/tools"
+	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
-	"github.com/energye/wv/darwin"
+	wv "github.com/energye/wv/darwin"
+	wvTypes "github.com/energye/wv/types/darwin"
 	"path/filepath"
 	"unsafe"
 )
 
 type TMainForm struct {
-	lcl.IForm
+	lcl.TEngForm
 	url           string
 	webviewParent wv.IWkWebviewParent
 	webview       wv.IWkWebview
@@ -35,10 +36,9 @@ func main() {
 	wv.Init(nil, resources)
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
-	mainForm.IForm = &lcl.TForm{}
 	mainForm.url = "energy://test.com"
 	mainForm.isMainWindow = true
-	lcl.Application.CreateForm(&mainForm)
+	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
 }
 
@@ -72,9 +72,9 @@ func (m *TMainForm) CreateMainMenu() {
 
 	var createMenuItem = func(label, shortCut string, click func(lcl.IObject)) (result lcl.IMenuItem) {
 		result = lcl.NewMenuItem(m)
-		result.SetCaption(label)                          //菜单项显示的文字
-		result.SetShortCut(api.DTextToShortCut(shortCut)) // 快捷键
-		result.SetOnClick(click)                          // 触发事件，回调函数
+		result.SetCaption(label)                         //菜单项显示的文字
+		result.SetShortCut(api.TextToShortCut(shortCut)) // 快捷键
+		result.SetOnClick(click)                         // 触发事件，回调函数
 		return
 	}
 	// 给一级菜单添加菜单项
@@ -88,7 +88,7 @@ func (m *TMainForm) CreateMainMenu() {
 	fileClassA.Add(openItem)
 	mainMenu.Items().Add(fileClassA)
 	mainMenu.Items().Add(aboutClassA)
-	if tools.IsDarwin() {
+	if tool.IsDarwin() {
 		// https://wiki.lazarus.freepascal.org/Mac_Preferences_and_About_Menu
 		// 动态添加的，静态好像是通过设计器将顶级的菜单标题设置为应用程序名，但动态的就是另一种方式
 		appMenu := lcl.NewMenuItem(m)
@@ -98,7 +98,7 @@ func (m *TMainForm) CreateMainMenu() {
 
 		subItem.SetCaption("关于")
 		subItem.SetOnClick(func(sender lcl.IObject) {
-			lcl.ShowMessage("About")
+			api.ShowMessage("About")
 		})
 		appMenu.Add(subItem)
 
@@ -108,9 +108,9 @@ func (m *TMainForm) CreateMainMenu() {
 
 		subItem = lcl.NewMenuItem(m)
 		subItem.SetCaption("首选项")
-		subItem.SetShortCut(api.DTextToShortCut("Meta+,"))
+		subItem.SetShortCut(api.TextToShortCut("Meta+,"))
 		subItem.SetOnClick(func(sender lcl.IObject) {
-			lcl.ShowMessage("Preferences")
+			api.ShowMessage("Preferences")
 		})
 		appMenu.Add(subItem)
 		// 添加
@@ -120,8 +120,8 @@ func (m *TMainForm) CreateMainMenu() {
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("main create")
-	icon, _ := resources.ReadFile("assets/icon.ico")
-	m.Icon().LoadFromBytes(icon)
+	//icon, _ := resources.ReadFile("assets/icon.ico")
+	//m.Icon().LoadFromBytes(icon)
 	m.SetCaption("Main")
 	m.SetWidth(800)
 	m.SetHeight(600)
@@ -132,25 +132,24 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	}
 	m.CreateContextMenu()
 
-	m.webview = wv.NewWkWebview(m)
-	m.webview.SetOnProcessMessage(func(sender wv.IObject, userContentController wv.WKUserContentController, name, message string) {
-		fmt.Println("OnProcessMessage", name, "message:", message)
+	m.webview = wv.NewWebview(m)
+	m.webview.SetOnProcessMessage(func(sender lcl.IObject, userContentController wvTypes.WKUserContentController, name string, data string) {
+		fmt.Println("OnProcessMessage", name, "message:", data)
 		messageData := struct {
 			Name string `json:"n"`
 		}{}
-		json.Unmarshal([]byte(message), &messageData)
+		json.Unmarshal([]byte(data), &messageData)
 		if messageData.Name == "contextmenu" {
 			m.contextMenu.PopUp()
 		}
 	})
-	m.webview.SetOnStartProvisionalNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
+	m.webview.SetOnStartProvisionalNavigation(func(sender lcl.IObject, navigation wvTypes.WKNavigation) {
 		fmt.Println("OnStartProvisionalNavigation")
 	})
-	m.webview.SetOnFinishNavigation(func(sender wv.IObject, navigation wv.WKNavigation) {
+	m.webview.SetOnFinishNavigation(func(sender lcl.IObject, navigation wvTypes.WKNavigation) {
 		fmt.Println("OnFinishNavigation")
 	})
-	m.webview.SetOnDecidePolicyForNavigationActionPreferences(func(sender wv.IObject, navigationAction wv.WKNavigationAction,
-		actionPolicy *wv.WKNavigationActionPolicy, preferences *wv.WKWebpagePreferences) {
+	m.webview.SetOnDecidePolicyForNavigationActionPreferences(func(sender lcl.IObject, navigationAction wvTypes.WKNavigationAction, actionPolicy *wvTypes.WKNavigationActionPolicy, preferences *wvTypes.WKWebpagePreferences) {
 		fmt.Println("OnDecidePolicyForNavigationActionPreferences")
 		//wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
 		//sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
@@ -183,37 +182,37 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.webview.SetOnStopURLSchemeTask(m.OnStopURLSchemeTask)
 
 	// webview parent
-	m.webviewParent = wv.NewWkWebviewParent(m)
+	m.webviewParent = wv.NewWebviewParent(m)
 	m.webviewParent.SetParent(m)
 	m.webviewParent.SetAlign(types.AlClient)
 	m.webviewParent.SetParentDoubleBuffered(true)
 
-	userContentController := wv.WKUserContentControllerRef.New()
-	scriptMessageHandler := wv.NewWKScriptMessageHandler(m.webview.AsReceiveScriptMessageDelegate())
+	userContentController := wv.UserContentController.New()
+	scriptMessageHandler := wv.NewScriptMessageHandler(m.webview.AsReceiveScriptMessageDelegate())
 	// 自定义ipc进程消息对象(在js使用)
 	userContentController.AddScriptMessageHandlerName(scriptMessageHandler, "processMessage")
 
-	configuration := wv.WKWebViewConfigurationRef.New()
+	configuration := wv.WebViewConfiguration.New()
 	configuration.SetUserContentController(userContentController.Data())
 
-	URLSchemeHandler := wv.NewWKURLSchemeHandler(m.webview.AsWKURLSchemeHandlerDelegate())
+	URLSchemeHandler := wv.NewURLSchemeHandler(m.webview.AsWKURLSchemeHandlerDelegate())
 
 	configuration.SetSuppressesIncrementalRendering(true)
 	configuration.SetApplicationNameForUserAgent("energy.cn")
 	// 自定义 url 协议
 	configuration.SetURLSchemeHandlerForURLScheme(URLSchemeHandler.Data(), "energy")
 
-	preference := wv.NewWKPreferences(configuration.Preferences()) //wv.WKPreferencesRef.New()
+	preference := wv.NewPreferences(configuration.Preferences()) //wv.WKPreferencesRef.New()
 	configuration.SetPreferences(preference.Data())
 
 	preference.SetTabFocusesLinks(true)
 	preference.SetFraudulentWebsiteWarningEnabled(true)
-	preference.EnableDevtools()
+	//preference.EnableDevtools()
 
-	navigationDelegate := wv.NewWKNavigationDelegate(m.webview.AsWKNavigationDelegate())
-	uiDelegate := wv.NewWKUIDelegate(m.webview.AsWKUIDelegate())
+	navigationDelegate := wv.NewNavigationDelegate(m.webview.AsWKNavigationDelegate())
+	uiDelegate := wv.NewUIDelegate(m.webview.AsWKUIDelegate())
 
-	frame := &wv.TRect{}
+	frame := types.TRect{}
 	frame.SetWidth(m.Width())
 	frame.SetHeight(m.Height())
 	m.webview.InitWithFrameConfiguration(frame, configuration.Data())
@@ -231,10 +230,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		m.ScreenCenter()
 	})
-	m.webview.SetOnWebContentProcessDidTerminate(func(sender wv.IObject) {
+	m.webview.SetOnWebContentProcessDidTerminate(func(sender lcl.IObject) {
 		fmt.Println("OnWebContentProcessDidTerminate")
 	})
-	m.webview.SetOnWebViewDidClose(func(sender wv.IObject) {
+	m.webview.SetOnWebViewDidClose(func(sender lcl.IObject) {
 		fmt.Println("OnWebViewDidClose")
 	})
 	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
@@ -251,29 +250,28 @@ func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
 }
 
-func (m *TMainForm) OnCreateWebView(sender wv.IObject, configuration wv.WKWebViewConfiguration, navigationAction wv.WKNavigationAction,
-	windowFeatures wv.WKWindowFeatures) wv.WkWebview {
+func (m *TMainForm) OnCreateWebView(sender lcl.IObject, configuration wvTypes.WKWebViewConfiguration, navigationAction wvTypes.WKNavigationAction, windowFeatures wvTypes.WKWindowFeatures) wvTypes.WKWebView {
 	fmt.Println("OnCreateWebView")
-	wkNavigationAction := wv.NewWKNavigationAction(navigationAction)
-	sourceFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.SourceFrame())
-	sourceRequest := wv.NewNSURLRequest(sourceFrameInfo.Request())
-	targetFrameInfo := wv.NewWKFrameInfo(wkNavigationAction.TargetFrame())
-	targetRequest := wv.NewNSURLRequest(targetFrameInfo.Request())
+	wkNavigationAction := wv.NewNavigationAction(navigationAction)
+	sourceFrameInfo := wv.NewFrameInfo(wkNavigationAction.SourceFrame())
+	sourceRequest := wv.NewURLRequest(sourceFrameInfo.Request())
+	targetFrameInfo := wv.NewFrameInfo(wkNavigationAction.TargetFrame())
+	targetRequest := wv.NewURLRequest(targetFrameInfo.Request())
 	if sourceRequest.IsValid() {
-		url := wv.NewNSURL(sourceRequest.URL())
+		url := wv.NewURL(sourceRequest.URL())
 		fmt.Println("\tsource:", url.AbsoluteString())
 		url.Free()
 	}
 	if targetRequest.IsValid() {
-		url := wv.NewNSURL(targetRequest.URL())
+		url := wv.NewURL(targetRequest.URL())
 		fmt.Println("\ttarget:", url.AbsoluteString())
 		fmt.Println("\ttarget:", url.Scheme(), url.Path())
 		url.Free()
 	}
 
-	request := wv.NewNSURLRequest(wkNavigationAction.Request())
+	request := wv.NewURLRequest(wkNavigationAction.Request())
 	if request.IsValid() {
-		url := wv.NewNSURL(request.URL())
+		url := wv.NewURL(request.URL())
 		fmt.Println("\trequest:", url.AbsoluteString())
 		fmt.Println("\trequest:", url.Scheme(), url.Path())
 		window := NewWindow(url.AbsoluteString())
@@ -282,11 +280,11 @@ func (m *TMainForm) OnCreateWebView(sender wv.IObject, configuration wv.WKWebVie
 	}
 	return 0
 }
-func (m *TMainForm) OnStartURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKURLSchemeTask) {
+func (m *TMainForm) OnStartURLSchemeTask(sender lcl.IObject, urlSchemeTask wvTypes.WKURLSchemeTask) {
 	fmt.Println("OnStartURLSchemeTask")
-	tempURLSchemeTask := wv.NewWKURLSchemeTask(urlSchemeTask)
-	request := wv.NewNSURLRequest(tempURLSchemeTask.Request())
-	tempNSURL := wv.NewNSURL(request.URL())
+	tempURLSchemeTask := wv.NewURLSchemeTask(urlSchemeTask)
+	request := wv.NewURLRequest(tempURLSchemeTask.Request())
+	tempNSURL := wv.NewURL(request.URL())
 	tempUrl := tempNSURL.AbsoluteString()
 	tempHost := tempNSURL.Host()
 	tempPath := tempNSURL.Path()
@@ -301,7 +299,7 @@ func (m *TMainForm) OnStartURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKU
 	fmt.Println("tempHTTPHeader:", tempHTTPHeader)
 
 	// 响应对象必须包含所请求资源的 MIME 类型
-	response := wv.NSURLResponseRef.New()
+	response := wv.URLResponse.New()
 	response.InitWithURLMIMETypeExpectedContentLengthTextEncodingName(tempNSURL.Data(), "text/html", tempDataBytesLength, "utf-8")
 
 	tempURLSchemeTask.ReceiveResponse(response.Data())
@@ -311,14 +309,13 @@ func (m *TMainForm) OnStartURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKU
 	response.Free()
 }
 
-func (m *TMainForm) OnStopURLSchemeTask(sender wv.IObject, urlSchemeTask wv.WKURLSchemeTask) {
+func (m *TMainForm) OnStopURLSchemeTask(sender lcl.IObject, urlSchemeTask wvTypes.WKURLSchemeTask) {
 	fmt.Println("OnStopURLSchemeTask")
 }
 
 func NewWindow(url string) *TMainForm {
 	var form = &TMainForm{url: url}
-	form.IForm = &lcl.TForm{}
-	lcl.Application.CreateForm(form)
+	lcl.Application.NewForm(form)
 	return form
 }
 
