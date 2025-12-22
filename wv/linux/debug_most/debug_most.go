@@ -327,7 +327,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	setting.SetEnablePageCache(true)
 	// SetHardwareAccelerationPolicy VMWare GPU ???不这样配置加载页面卡死，不知道是不是GPU问题
 	// 需要动态判断当前系统环境是否支持？
-	setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER)
+	//setting.SetHardwareAccelerationPolicy(wvTypes.WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER)
 	setting.SetEnablePageCache(true)
 	setting.SetEnableDeveloperExtras(true)
 	m.webview.SetSettings(setting)
