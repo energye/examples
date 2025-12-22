@@ -70,7 +70,7 @@ func (f *TMainForm) OnBtn1Click(sender lcl.IObject) {
 	btn.SetCaption("保持")
 	btn.SetModalResult(types.MrNo)
 
-	taskdlg.SetMainIcon(types.TdiQuestion)
+	taskdlg.SetMainIcon(types.TiQuestion)
 	if taskdlg.ExecuteToBool() {
 		if taskdlg.ModalResult() == types.MrYes {
 			api.ShowMessage("项目已移除")
