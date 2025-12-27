@@ -45,6 +45,8 @@ ldd --version
 func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
+	// linux webkit2 > gtk3
+	os.Setenv("--ws", "gtk3")
 	wv.Init(nil, resources)
 
 	load := wv.NewLoader(nil)
@@ -52,7 +54,6 @@ func main() {
 	load.SetLoaderJavascriptCoreDllPath("/usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18")
 	load.SetLoaderSoupDllPath("/usr/lib/x86_64-linux-gnu/libsoup-2.4.so.1")
 	if load.StartWebKit2() {
-
 		lcl.Application.Initialize()
 		lcl.Application.SetScaled(true)
 		mainForm.url = "energy://demo.com/test.html"
