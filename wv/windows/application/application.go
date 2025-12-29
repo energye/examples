@@ -19,9 +19,9 @@ func NewWVLoader() wv.IWVLoader {
 }
 
 func WVCachePath() string {
-	return "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\wv\\windows\\WV2Cache"
+	return "E:\\app\\workspace\\examples\\wv\\windows\\WV2Cache"
 }
 
 func WV2LoaderDllPath() string {
-	return "E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\gen\\gout\\WebView2Loader.dll"
+	return "E:\\app\\workspace\\gen\\gout\\WebView2Loader.dll"
 }
