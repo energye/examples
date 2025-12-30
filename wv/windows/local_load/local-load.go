@@ -20,7 +20,7 @@ func StartWebview() *wv.Application {
 	wvApp := wv.NewWebviewApplication()
 	icon, _ := resources.ReadFile("resources/icon.ico")
 	wvApp.SetOptions(application.Options{
-		//Frameless:  true,
+		Frameless:  true,
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index.html",
 		Windows: application.Windows{
