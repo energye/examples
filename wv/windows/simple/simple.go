@@ -8,7 +8,7 @@ import (
 	"github.com/energye/lcl/lcl"
 )
 
-func startWebview() {
+func StartWebview() {
 	wv.Init()
 	wvApp := wv.NewWebviewApplication()
 	wvApp.SetOptions(application.Options{})
@@ -18,7 +18,7 @@ func startWebview() {
 func main() {
 	lcl.Init(nil, nil)
 
-	startWebview()
+	StartWebview()
 
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
