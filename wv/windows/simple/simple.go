@@ -1,17 +1,20 @@
 package main
 
 import (
-	"github.com/energye/energy/v3/application"
+	"fmt"
+	"github.com/energye/energy/v3/ipc"
+	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/simple/app"
 	"github.com/energye/lcl/lcl"
 )
 
+// StartWebview 启动Webview应用程序
+// 该函数初始化Webview并创建一个新的Webview应用实例，然后启动该应用
 func StartWebview() {
 	wv.Init()
 	wvApp := wv.NewWebviewApplication()
-	wvApp.SetOptions(application.Options{})
 	wvApp.Start()
 }
 
@@ -19,6 +22,11 @@ func main() {
 	lcl.Init(nil, nil)
 
 	StartWebview()
+
+	ipc.On("test", func(context callback.IContext) {
+		fmt.Println(context.BrowserId())
+		context.Result("返回值")
+	})
 
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
