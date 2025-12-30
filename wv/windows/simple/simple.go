@@ -9,13 +9,14 @@ import (
 )
 
 func startWebview() {
+	wv.Init()
 	wvApp := wv.NewWebviewApplication()
 	wvApp.SetOptions(application.Options{})
 	wvApp.Start()
 }
 
 func main() {
-	wv.Init(nil, nil)
+	lcl.Init(nil, nil)
 
 	startWebview()
 
