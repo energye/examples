@@ -17,7 +17,7 @@ var resources embed.FS
 // 该函数初始化Webview并创建一个新的Webview应用实例，然后启动该应用
 func StartWebview() *wv.Application {
 	wv.Init()
-	wvApp := wv.NewWebviewApplication()
+	wvApp := wv.NewApplication()
 	icon, _ := resources.ReadFile("resources/icon.ico")
 	wvApp.SetOptions(application.Options{
 		//Frameless:  true,
