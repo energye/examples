@@ -15,8 +15,7 @@ var resources embed.FS
 
 // StartWebview 启动Webview应用程序
 // 该函数初始化Webview并创建一个新的Webview应用实例，然后启动该应用
-func StartWebview() *wv.Application {
-	wv.Init()
+func StartWebview() {
 	wvApp := wv.NewApplication()
 	icon, _ := resources.ReadFile("resources/icon.ico")
 	wvApp.SetOptions(application.Options{
@@ -34,7 +33,6 @@ func StartWebview() *wv.Application {
 		FS:         resources,
 	})
 	wvApp.Start()
-	return wvApp
 }
 
 func main() {
