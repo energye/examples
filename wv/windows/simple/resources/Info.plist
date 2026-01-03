@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>NSPrincipalClass</key>
+        <string>TCrCocoaApplication</string>
+        <key>CFBundleExecutable</key>
+        <string>myapp4</string>
+        <key>CFBundleName</key>
+        <string>myapp4</string>
+        <key>CFBundleDisplayName</key>
+        <string>MyEnergyApp</string>
+        <key>CFBundleLocalizations</key>
+        <array>
+            <string>zh_CN</string>
+        </array>
+        <key>CFBundleIdentifier</key>
+        <string>CompanyName.productName.AppName</string>
+        <key>CFBundleVersion</key>
+        <string>1.0.0.0</string>
+        <key>CFBundleShortVersionString</key>
+        <string>1.0.0.0</string>
+        <key>CFBundleGetInfoString</key>
+        <string>Your Application Description.</string>
+        <key>CFBundleIconFile</key>
+        <string>myapp4.icns</string>
+        <key>NSHumanReadableCopyright</key>
+        <string>Copyright (C) YYYY-YYYY Your Company Name. All rights reserved.</string>
+        <key>LSUIElement</key>
+        <false/>
+        <key>LSMinimumSystemVersion</key>
+        <string>10.15</string>
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsArbitraryLoads</key>
+            <true/>
+        </dict>
+        <key>NSDarkModeAware</key>
+        <true/>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleInfoDictionaryVersion</key>
+        <string>6.0</string>
+        <key>CFBundleDocumentTypes</key>
+        <array>
+            <dict>
+                <key>CFBundleTypeRole</key>
+                <string>Viewer</string>
+                <key>CFBundleTypeExtensions</key>
+                <array>
+                    <string>*</string>
+                </array>
+                <key>CFBundleTypeOSTypes</key>
+                <array>
+                    <string>fold</string>
+                    <string>disk</string>
+                </array>
+            </dict>
+        </array>
+        <key>NSHighResolutionCapable</key>
+        <true/>
+    </dict>
+</plist>
