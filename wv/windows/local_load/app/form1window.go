@@ -15,9 +15,6 @@ import (
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
-	m.BrowserWindow1.SetDefaultURL("fs://energy/index.html")
-	m.BrowserWindow1.SetAlign(types.AlClient)
-	m.WorkAreaCenter()
 }
 
 func (m *TForm1Window) OnShow(sender lcl.IObject) {

@@ -16,6 +16,7 @@ import (
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 type TForm1Window struct {
@@ -43,4 +44,5 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 func (m *TForm1Window) initComponents() {
 	m.BrowserWindow1 = wv.NewBrowserWindow(m)
 	m.BrowserWindow1.SetParent(m)
+	m.BrowserWindow1.SetAlign(types.AlClient)
 }

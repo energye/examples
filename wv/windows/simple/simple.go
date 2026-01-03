@@ -7,17 +7,9 @@ import (
 	"github.com/energye/lcl/lcl"
 )
 
-// StartWebview 启动Webview应用程序
-// 该函数初始化Webview并创建一个新的Webview应用实例，然后启动该应用
-func StartWebview() {
-	wvApp := wv.NewApplication()
-	wvApp.Start()
-}
-
 func main() {
-	lcl.Init(nil, nil)
-
-	StartWebview()
+	wvApp := wv.Init(nil, nil)
+	wvApp.Start()
 
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
