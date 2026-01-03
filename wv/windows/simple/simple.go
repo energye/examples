@@ -10,6 +10,6 @@ import (
 func main() {
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{DefaultURL: "https://www.baidu.com"})
-
+	//wvApp.SetOptions(application.Options{})
 	wv.Run(app.Forms...)
 }
