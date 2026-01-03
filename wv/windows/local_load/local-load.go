@@ -17,14 +17,11 @@ var resources embed.FS
 // 该函数初始化Webview并创建一个新的Webview应用实例，然后启动该应用
 func StartWebview() {
 	wvApp := wv.NewApplication()
-	icon, _ := resources.ReadFile("resources/icon.ico")
 	wvApp.SetOptions(application.Options{
 		//Frameless:  true,
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index.html",
-		Windows: application.Windows{
-			ICON: icon,
-		},
+		Windows:    application.Windows{},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
 		Scheme:     "fs",
