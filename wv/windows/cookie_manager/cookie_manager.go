@@ -45,12 +45,13 @@ func main() {
 	if r := load.StartWebView2(); r {
 		fmt.Println("StartWebView2", r)
 	}
-
+	api.SetOnReleaseCallback(func() {
+		wv.DestroyGlobalWebView2Loader()
+	})
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&mainForm)
 	lcl.Application.Run()
-	wv.DestroyGlobalWebView2Loader()
 }
 
 type TMainForm struct {

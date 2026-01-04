@@ -30,7 +30,8 @@ func init() {
 }
 func main() {
 	fmt.Println("Go ENERGY Run Main")
-	wv.Init(nil, nil)
+	lcl.Init(nil, nil)
+	wv.Init()
 	exception.SetOnException(func(exception int32, message string) {
 		fmt.Println("ERROR exception:", exception, "message:", message)
 	})
