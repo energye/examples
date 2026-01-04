@@ -8,11 +8,11 @@ import (
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	"github.com/energye/lcl/types/messages"
+	"github.com/energye/widget/wg"
 	wv "github.com/energye/wv/windows"
 	"sync"
 	"syscall"
 	"unsafe"
-	"widget/wg"
 )
 
 var (
@@ -142,8 +142,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 	newTabSheetRect := types.TRect{Left: leftSize, Top: 5}
 	newTabSheetRect.SetSize(0, 0)
 	newTabSheetBtn.SetBoundsRect(newTabSheetRect)
-	newTabSheetBtn.SetStartColor(colors.RGBToColor(86, 88, 93))
-	newTabSheetBtn.SetEndColor(colors.RGBToColor(86, 88, 93))
+	newTabSheetBtn.SetColor(colors.RGBToColor(86, 88, 93))
 	newTabSheetBtn.RoundedCorner = newTabSheetBtn.RoundedCorner.Exclude(wg.RcLeftBottom).Exclude(wg.RcRightBottom)
 	newTabSheetBtn.SetIconFavorite(assets.GetResourcePath("icon.png"))
 	newTabSheetBtn.SetIconClose(assets.GetResourcePath("sheet_close.png"))
@@ -220,8 +219,8 @@ func (m *BrowserWindow) removeTabSheetBrowse(browse *Browser) {
 // 清空地址栏 和 还原控制按钮
 func (m *BrowserWindow) resetControlBtn() {
 	m.addr.SetText("")
-	m.backBtn.IsDisable = true
-	m.forwardBtn.IsDisable = true
+	m.backBtn.SetDisable(true)
+	m.forwardBtn.SetDisable(true)
 	m.backBtn.SetIcon(assets.GetResourcePath("back_disable.png"))
 	m.backBtn.Invalidate()
 	m.forwardBtn.SetIcon(assets.GetResourcePath("forward_disable.png"))

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/custombrowser/window"
 	"github.com/energye/lcl/lcl"
@@ -19,17 +18,14 @@ var (
 	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource")   // 网站资源缓存目录
 )
 
-func init() {
-	TestLoadLibPath()
-}
-
 func main() {
 	os.Setenv("CLUTTER_DEFAULT_FPS", "60")
 	os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "0") // 0=启用合成模式（默认），1=禁用（降低GPU占用）
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	fmt.Println("Go ENERGY Run Main")
-	wv.Init(nil, nil)
+	lcl.Init(nil, nil)
+	wv.Init()
 	// GlobalWebView2Loader
 	load = application.NewWVLoader()
 	fmt.Println("当前目录:", exec.CurrentDir)

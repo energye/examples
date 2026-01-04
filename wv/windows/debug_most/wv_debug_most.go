@@ -4,7 +4,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/debug_most/contextmenu"
 	"github.com/energye/examples/wv/windows/debug_most/cookie"
@@ -31,12 +30,10 @@ var load wv.IWVLoader
 //go:embed assets
 var assets embed.FS
 
-func init() {
-	TestLoadLibPath()
-}
 func main() {
 	utils.Assets = assets
-	wv.Init(nil, nil)
+	lcl.Init(nil, nil)
+	wv.Init()
 	exception.SetOnException(func(exception int32, message string) {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})

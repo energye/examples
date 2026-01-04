@@ -6,11 +6,11 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
+	"github.com/energye/widget/wg"
 	wvTypes "github.com/energye/wv/types/windows"
 	wv "github.com/energye/wv/windows"
 	"net/url"
 	"strings"
-	"widget/wg"
 )
 
 type Browser struct {
@@ -190,8 +190,7 @@ func (m *Browser) resize(sender lcl.IObject) {
 func (m *Browser) updateTabSheetActive(isActive bool) {
 	if isActive {
 		activeColor := colors.RGBToColor(86, 88, 93)
-		m.tabSheetBtn.SetStartColor(activeColor)
-		m.tabSheetBtn.SetEndColor(activeColor)
+		m.tabSheetBtn.SetColor(activeColor)
 		m.tabSheet.SetVisible(true)
 		m.isActive = true
 		m.mainWindow.SetAddrText(m.currentURL)
@@ -199,8 +198,7 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 		m.resize(nil)
 	} else {
 		notActiveColor := bgColor //colors.RGBToColor(56, 57, 60)
-		m.tabSheetBtn.SetStartColor(notActiveColor)
-		m.tabSheetBtn.SetEndColor(notActiveColor)
+		m.tabSheetBtn.SetColor(notActiveColor)
 		m.tabSheet.SetVisible(false)
 		m.isActive = false
 	}
@@ -211,8 +209,8 @@ func (m *Browser) updateTabSheetActive(isActive bool) {
 
 // 根据当前 chromium 浏览器加载状态更新浏览器控制按钮
 func (m *Browser) updateBrowserControlBtn() {
-	m.mainWindow.backBtn.IsDisable = !m.canGoBack
-	m.mainWindow.forwardBtn.IsDisable = !m.canGoForward
+	m.mainWindow.backBtn.SetDisable(!m.canGoBack)
+	m.mainWindow.forwardBtn.SetDisable(!m.canGoForward)
 	backDisable := !m.canGoBack
 	forwardDisable := !m.canGoForward
 	lcl.RunOnMainThreadAsync(func(id uint32) {
