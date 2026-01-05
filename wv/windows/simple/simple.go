@@ -9,8 +9,7 @@ import (
 
 func main() {
 	wvApp := wv.Init(nil, nil)
-	wvApp.SetOptions(application.Options{DefaultURL: "https://www.baidu.com"})
-	//wvApp.SetOptions(application.Options{DefaultURL: "about:blank"})
+	wvApp.SetOptions(application.Options{DefaultURL: "https://www.baidu.com", Caption: "Test Energy"})
 	SetIcon()
 	wv.Run(app.Forms...)
 }
