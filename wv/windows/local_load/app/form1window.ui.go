@@ -21,7 +21,7 @@ import (
 
 type TForm1Window struct {
 	window.TWindow
-	Webview1 *wv.TWebview
+	Webview1 wv.IWebview
 }
 
 var Form1Window TForm1Window
