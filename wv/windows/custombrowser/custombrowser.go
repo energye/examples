@@ -36,9 +36,11 @@ func main() {
 	r := load.StartWebView2()
 	fmt.Println("StartWebView2", r)
 	window.Load = load
+	defer func() {
+		wv.DestroyGlobalWebView2Loader()
+	}()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&window.Window)
 	lcl.Application.Run()
-	wv.DestroyGlobalWebView2Loader()
 }
