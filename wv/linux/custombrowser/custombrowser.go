@@ -1,7 +1,6 @@
 package main
 
 import (
-	. "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/linux/custombrowser/window"
 	"github.com/energye/lcl/lcl"
 	wv "github.com/energye/wv/linux"
@@ -14,10 +13,6 @@ var (
 	cacheRoot        = filepath.Join(wd, "ENERGY_WebKit2_Cache") // 浏览器缓存目录
 	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource")
 )
-
-func init() {
-	TestLoadLibPath()
-}
 
 /*
    Now requires GTK >= 3.24.24 and Glib2.0 >= 2.66
@@ -51,7 +46,9 @@ func init() {
 func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
-	wv.Init(nil, nil)
+	os.Setenv("--ws", "gtk3")
+	lcl.Init(nil, nil)
+	wv.Init()
 
 	load := wv.NewLoader(nil)
 	// 直接通过指定小版本号： sudo apt-get install -y libwebkit2gtk-4.0-37 libjavascriptcoregtk-4.0-18 libsoup2.4-1
