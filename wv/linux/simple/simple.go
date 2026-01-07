@@ -4,7 +4,7 @@ import (
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/examples/wv/linux/simple/app"
-	. "github.com/energye/examples/wv/linux/simple/resources"
+	_ "github.com/energye/examples/wv/linux/simple/resources"
 	"os"
 )
 
@@ -13,6 +13,5 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{DefaultURL: "https://www.baidu.com", Caption: "Test Energy"})
-	SetIcon()
 	wv.Run(app.Forms...)
 }
