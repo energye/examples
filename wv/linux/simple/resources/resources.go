@@ -31,7 +31,7 @@ func SetIcon() {
 	stream.SetPosition(0)
 	png := lcl.NewPortableNetworkGraphic()
 	png.LoadFromStreamWithStream(stream)
-	lcl.Application.Icon().Assign(png)
+	//lcl.Application.Icon().Assign(png)
 	png.Free()
 	stream.Free()
 }
