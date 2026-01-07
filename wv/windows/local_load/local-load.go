@@ -8,12 +8,15 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/lcl"
+	"os"
 )
 
 //go:embed resources
 var resources embed.FS
 
 func main() {
+	// linux webkit2 > gtk3
+	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
 		//Frameless:  true,
@@ -26,6 +29,9 @@ func main() {
 		Domain:     "energy",
 		ResRootDir: "resources",
 		FS:         resources,
+	})
+	wvApp.SetOnCustomSchemes(func(customSchemes *wv.TCustomSchemes) {
+
 	})
 	wvApp.Start()
 
