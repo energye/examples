@@ -4,6 +4,8 @@ import (
 	"embed"
 	"fmt"
 	"github.com/energye/energy/v3/application"
+	"github.com/energye/energy/v3/ipc"
+	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
@@ -34,6 +36,11 @@ func main() {
 
 	})
 	wvApp.Start()
+
+	ipc.On("test", func(context callback.IContext) {
+		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
+		context.Result("ResultData", 123, 888.99, true)
+	})
 
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
