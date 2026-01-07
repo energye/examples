@@ -5,9 +5,19 @@
 
 package app
 
-import "github.com/energye/lcl/lcl"
+import (
+	"github.com/energye/lcl/lcl"
+	"os"
+)
 
 // Forms 应用使用的窗体列表
 var Forms = []lcl.IEngForm{
 	&Form1Window,
+}
+
+func init() {
+	if "WV" == "WV" {
+		// linux webkit2 > gtk3
+		os.Setenv("--ws", "gtk3")
+	}
 }
