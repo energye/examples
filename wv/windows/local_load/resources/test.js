@@ -9,15 +9,15 @@ function myAlertFunction() {
     console.log(window)
 })()
 
-window.setInterval(function () {
+window.setTimeout(function () {
     if (ipc) {
         console.log('ipc.emit-test')
-        ipc.emit("test", [new Date().toString()], function (res1, res2, res3, res4) {
-            console.log("result:", res1, res2, res3, res4)
+        ipc.emit("test", [new Date().toString()], function (res1, res2, res3, res4, res5) {
+            console.log("result:", res1, res2, res3, res4, res5, "now:", new Date().toString())
         })
     }
 }, 1000)
 
-ipc.on('test', function (data) {
-    console.log('ipc.on-test:', data)
+ipc.on('test', function () {
+    console.log('ipc.on-test')
 })

@@ -11,6 +11,7 @@ import (
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/lcl"
 	"os"
+	"time"
 )
 
 //go:embed resources
@@ -39,7 +40,8 @@ func main() {
 
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
-		context.Result("ResultData", 123, 888.99, true)
+		context.Result("ResultData", 123, 888.99, true, time.Now().Second())
+		ipc.Emit("test")
 	})
 
 	// 初始化应用程序实例
