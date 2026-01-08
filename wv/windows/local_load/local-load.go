@@ -26,6 +26,7 @@ func main() {
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index.html",
 		Windows:    application.Windows{},
+		Frameless:  true,
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
 		Scheme:     "fs",
