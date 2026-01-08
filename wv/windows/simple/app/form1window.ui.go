@@ -20,7 +20,7 @@ import (
 
 type TForm1Window struct {
 	window.TWindow
-	BrowserWindow1 *wv.TBrowserWindow
+	BrowserWindow1 wv.IWebview
 }
 
 var Form1Window TForm1Window
@@ -41,6 +41,6 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 
 // initComponents 初始化组件
 func (m *TForm1Window) initComponents() {
-	m.BrowserWindow1 = wv.NewBrowserWindow(m)
+	m.BrowserWindow1 = wv.NewWebview(m)
 	m.BrowserWindow1.SetParent(m)
 }
