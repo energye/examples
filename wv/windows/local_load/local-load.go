@@ -24,7 +24,7 @@ func main() {
 	wvApp.SetOptions(application.Options{
 		//Frameless:  true,
 		Caption:    "energy - webview2",
-		DefaultURL: "fs://energy/index.html",
+		DefaultURL: "fs://energy/index-2.html",
 		Windows:    application.Windows{},
 		Frameless:  true,
 	})
