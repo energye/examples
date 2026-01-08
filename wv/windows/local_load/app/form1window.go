@@ -16,6 +16,11 @@ import (
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
 	m.Webview1.SetWindow(m)
+	m.WorkAreaCenter()
+	m.Webview1.SetAlign(types.AlCustom)
+	m.Webview1.SetWidth(m.Width())
+	m.Webview1.SetHeight(m.Height())
+	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 }
 
 func (m *TForm1Window) OnShow(sender lcl.IObject) {
