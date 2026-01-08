@@ -18,6 +18,6 @@ window.setTimeout(function () {
     }
 }, 1000)
 
-ipc.on('test', function () {
-    console.log('ipc.on-test')
+ipc.on('test', function (data) {
+    console.log('ipc.on-test:',data)
 })

@@ -34,15 +34,12 @@ func main() {
 		ResRootDir: "resources",
 		FS:         resources,
 	})
-	wvApp.SetOnCustomSchemes(func(customSchemes *wv.TCustomSchemes) {
-
-	})
 	wvApp.Start()
 
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
-		context.Result("ResultData", 123, 888.99, true, time.Now().Second())
-		ipc.Emit("test")
+		context.Result("ResultData", 123, 888.99, true, time.Now().String())
+		ipc.Emit("test", "测试数据")
 	})
 
 	// 初始化应用程序实例
