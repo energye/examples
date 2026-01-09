@@ -42,6 +42,29 @@ func main() {
 		ipc.Emit("test", "测试数据")
 	})
 
+	ipc.On("minimize", func(context callback.IContext) {
+		fmt.Println("minimize")
+		app.Form1Window.Minimize()
+	})
+
+	ipc.On("maximize", func(context callback.IContext) {
+		fmt.Println("maximize")
+		app.Form1Window.Maximize()
+	})
+
+	ipc.On("fullscreen", func(context callback.IContext) {
+		fmt.Println("fullscreen")
+		if app.Form1Window.IsFullScreen() {
+			app.Form1Window.ExitFullScreen()
+		} else {
+			app.Form1Window.FullScreen()
+		}
+	})
+
+	ipc.On("close", func(context callback.IContext) {
+		fmt.Println("close")
+	})
+
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
 	// 配置应用程序设置，使主窗体在Windows任务栏上显示

@@ -53,7 +53,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            -webkit-app-region: no-drag;
+            --webkit-app-region: no-drag;
         }
 
         .titlebar-btn {
@@ -172,23 +172,23 @@
 <div class="window-titlebar">
     <div class="titlebar-title">ENERGY - 跨平台 GUI 框架</div>
     <div class="titlebar-buttons">
-        <button class="titlebar-btn minimize" title="最小化">
+        <button class="titlebar-btn" title="最小化" id="minimizeBtn">
             <svg width="10" height="2" viewBox="0 0 10 2" fill="currentColor">
                 <rect width="10" height="2" rx="1"/>
             </svg>
         </button>
-        <button class="titlebar-btn maximize" title="最大化/还原">
+        <button class="titlebar-btn" title="最大化/还原" id="maximizeBtn">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <rect x="1" y="1" width="8" height="8"/>
             </svg>
         </button>
-        <button class="titlebar-btn fullscreen" title="全屏/退出全屏">
+        <button class="titlebar-btn" title="全屏/退出全屏" id="fullscreenBtn">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M1 5h2M9 5h-2M5 1v2M5 9V7"/>
                 <path d="M3 3l4 4M7 7l-4 4M3 7L7 3"/>
             </svg>
         </button>
-        <button class="titlebar-btn close" title="关闭">
+        <button class="titlebar-btn" title="关闭" id="closeBtn">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 9L9 1M9 9L1 1"/>
             </svg>
@@ -214,47 +214,51 @@
 </div>
 
 <script>
-    const minimizeBtn = document.querySelector('.minimize');
-    const maximizeBtn = document.querySelector('.maximize');
-    const fullscreenBtn = document.querySelector('.fullscreen');
-    const closeBtn = document.querySelector('.close');
-
-    minimizeBtn.addEventListener('click', () => {
+    let minimizeBtn = document.getElementById("minimizeBtn");
+    let maximizeBtn = document.getElementById("maximizeBtn");
+    let fullscreenBtn = document.getElementById("fullscreenBtn");
+    let closeBtn = document.getElementById("closeBtn");
+    minimizeBtn.onclick = () => {
         console.log('执行窗口最小化操作');
         minimizeBtn.style.opacity = '0.7';
         setTimeout(() => minimizeBtn.style.opacity = '1', 200);
-    });
+        ipc.emit("minimize");
+    }
 
     let isMaximized = false;
-    maximizeBtn.addEventListener('click', () => {
+
+    maximizeBtn.onclick = () => {
         isMaximized = !isMaximized;
         console.log(isMaximized ? '执行窗口最大化操作' : '执行窗口还原操作');
         maximizeBtn.style.transform = isMaximized ? 'scale(1.1) rotate(180deg)' : 'scale(1.05) rotate(0)';
         setTimeout(() => maximizeBtn.style.transform = isMaximized ? 'scale(1)' : 'scale(1)', 200);
-    });
+        ipc.emit("maximize");
+    }
 
-    fullscreenBtn.addEventListener('click', async () => {
+    fullscreenBtn.onclick = () => {
         try {
             if (!document.fullscreenElement) {
-                await document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen();
                 console.log('进入全屏模式');
             } else {
-                await document.exitFullscreen();
+                document.exitFullscreen();
                 console.log('退出全屏模式');
             }
             fullscreenBtn.style.opacity = '0.7';
             setTimeout(() => fullscreenBtn.style.opacity = '1', 200);
+            ipc.emit("fullscreen");
         } catch (err) {
             console.error('全屏操作失败：', err);
             alert('当前浏览器不支持全屏操作或权限不足');
         }
-    });
+    }
 
-    closeBtn.addEventListener('click', () => {
+    closeBtn.onclick = () => {
         console.log('执行窗口关闭操作');
         closeBtn.style.opacity = '0.7';
         setTimeout(() => closeBtn.style.opacity = '1', 200);
-    });
+        ipc.emit("close");
+    }
 </script>
 </body>
 </html>
