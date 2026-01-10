@@ -8,6 +8,8 @@
 package app
 
 import (
+	"fmt"
+	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -21,6 +23,9 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetHeight(m.Height())
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	m.WorkAreaCenter()
+	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
+		fmt.Println("OnLoadChange:", url, title, load)
+	})
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
