@@ -63,6 +63,9 @@ func main() {
 
 	ipc.On("close", func(context callback.IContext) {
 		fmt.Println("close")
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			app.Form1Window.Close()
+		})
 	})
 
 	// 初始化应用程序实例

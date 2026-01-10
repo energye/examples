@@ -40,6 +40,26 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 	m.OnFormCreate(sender)
 }
 
+// OnShow 窗口显示事件
+func (m *TForm1Window) OnShow(sender lcl.IObject) {
+	m.OnFormShow(sender)
+	m.TWindow.OnShow(sender)
+}
+
+// OnCloseQuery 窗体关闭前询问事件
+func (m *TForm1Window) OnCloseQuery(sender lcl.IObject, canClose *bool) {
+	if !m.OnFormCloseQuery(sender, canClose) {
+		m.TWindow.OnCloseQuery(sender, canClose)
+	}
+}
+
+// OnClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
+func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
+	if !m.OnFormClose(sender, closeAction) {
+		m.TWindow.OnClose(sender, closeAction)
+	}
+}
+
 // initComponents 初始化组件
 func (m *TForm1Window) initComponents() {
 	m.Webview1 = wv.NewWebview(m)
