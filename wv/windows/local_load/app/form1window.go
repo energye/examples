@@ -14,9 +14,10 @@ import (
 
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
+	m.TWindow.OnFormCreate(sender)
+	m.WorkAreaCenter()
 	// TODO 在此处添加窗体初始化代码
 	m.Webview1.SetWindow(m)
-	m.WorkAreaCenter()
 	m.Webview1.SetAlign(types.AlCustom)
 	m.Webview1.SetWidth(m.Width())
 	m.Webview1.SetHeight(m.Height())
@@ -24,16 +25,19 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 }
 
 func (m *TForm1Window) OnShow(sender lcl.IObject) {
+	m.TWindow.OnShow(sender)
 	// TODO 在此处添加窗体显示代码
 	m.Webview1.CreateBrowser()
 }
 
 // OnCloseQuery 窗体关闭前询问事件
 func (m *TForm1Window) OnCloseQuery(sender lcl.IObject, canClose *bool) {
+	m.TWindow.OnCloseQuery(sender, canClose)
 	// TODO 在此处添加窗体关闭前询问代码
 }
 
 // OnClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
 func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
+	m.TWindow.OnClose(sender, closeAction)
 	// TODO 在此处添加窗体关闭代码
 }
