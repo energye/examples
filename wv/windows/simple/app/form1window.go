@@ -19,17 +19,19 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.WorkAreaCenter()
 }
 
-func (m *TForm1Window) OnShow(sender lcl.IObject) {
+func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
 	// TODO 在此处添加窗体显示代码
 	m.BrowserWindow1.CreateBrowser()
 }
 
 // OnCloseQuery 窗体关闭前询问事件
-func (m *TForm1Window) OnCloseQuery(sender lcl.IObject, canClose *bool) {
+func (m *TForm1Window) OnFormCloseQuery(sender lcl.IObject, canClose *bool) bool {
 	// TODO 在此处添加窗体关闭前询问代码
+	return false
 }
 
 // OnClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
-func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
+func (m *TForm1Window) OnFormClose(sender lcl.IObject, closeAction *types.TCloseAction) bool {
 	// TODO 在此处添加窗体关闭代码
+	return false
 }

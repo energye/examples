@@ -16,6 +16,7 @@ import (
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 type TForm1Window struct {
@@ -37,6 +38,26 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 	// 初始化组件
 	m.initComponents()
 	m.OnFormCreate(sender)
+}
+
+// OnShow 窗口显示事件
+func (m *TForm1Window) OnShow(sender lcl.IObject) {
+	m.OnFormShow(sender)
+	m.TWindow.OnShow(sender)
+}
+
+// OnCloseQuery 窗体关闭前询问事件
+func (m *TForm1Window) OnCloseQuery(sender lcl.IObject, canClose *bool) {
+	if !m.OnFormCloseQuery(sender, canClose) {
+		m.TWindow.OnCloseQuery(sender, canClose)
+	}
+}
+
+// OnClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
+func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
+	if !m.OnFormClose(sender, closeAction) {
+		m.TWindow.OnClose(sender, closeAction)
+	}
 }
 
 // initComponents 初始化组件
