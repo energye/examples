@@ -28,6 +28,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	})
 	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
 		//contextMenu.Clear()
+		contextMenu.Add("", wv.CmkSeparator)
 		contextMenu.Add("测试1", wv.CmkCommand)
 		test2, id := contextMenu.Add("测试2", wv.CmkSub)
 		fmt.Println("测试2:", id)
