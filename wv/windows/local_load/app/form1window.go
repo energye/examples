@@ -26,6 +26,18 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load)
 	})
+	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
+		//contextMenu.Clear()
+		contextMenu.Add("测试1", wv.CmkCommand)
+		test2, id := contextMenu.Add("测试2", wv.CmkSub)
+		fmt.Println("测试2:", id)
+		_, id = test2.Add("测试2-测试", wv.CmkCommand)
+		fmt.Println("测试2-测试:", id)
+		contextMenu.Add("测试3", wv.CmkCommand)
+	})
+	m.Webview1.SetOnContextMenuCommand(func(commandId int32) {
+		fmt.Println("OnContextMenuCommand:", commandId)
+	})
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
