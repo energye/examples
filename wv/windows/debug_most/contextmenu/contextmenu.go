@@ -36,7 +36,7 @@ func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {
 		if environment.CreateContextMenuItem("EXIT", baseIntfExitStreamAdapter, wvTypes.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &TempMenuItemItf) {
 			tmpMenuItem := wv.NewCoreWebView2ContextMenuItem(TempMenuItemItf)
 			exitItemId = tmpMenuItem.CommandId()
-			fmt.Println("tmpMenuItem", tmpMenuItem.Instance(), TempMenuItemItf.Instance())
+			fmt.Println("tmpMenuItem", tmpMenuItem.Instance(), TempMenuItemItf.Instance(), "exitItemId:", exitItemId)
 			// 设置菜单事件触发对象为delegateEvents, 点击Exit菜单项后，触发 SetOnCustomItemSelected 事件
 			tmpMenuItem.AddAllBrowserEvents(browser)
 			menuItemCollection.AppendValue(tmpMenuItem.BaseIntf())
@@ -45,6 +45,7 @@ func Contextmenu(form lcl.IForm, browser wv.IWVBrowser) {
 		if environment.CreateContextMenuItem("DevTools", nil, wvTypes.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND, &TempMenuItemItf) {
 			tmpMenuItem := wv.NewCoreWebView2ContextMenuItem(TempMenuItemItf)
 			devtoolsItemId = tmpMenuItem.CommandId()
+			fmt.Println("tmpMenuItem", tmpMenuItem.Instance(), TempMenuItemItf.Instance(), "exitItemId:", devtoolsItemId)
 			tmpMenuItem.AddAllBrowserEvents(browser)
 			menuItemCollection.AppendValue(tmpMenuItem.BaseIntf())
 		}
