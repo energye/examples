@@ -44,6 +44,7 @@ func main() {
 		for _, form := range app.Forms {
 			if tempWindow, ok := form.(*app.TForm1Window); ok && tempWindow.BrowserId() == browserId {
 				currWindow = tempWindow
+				break
 			}
 		}
 		return currWindow
