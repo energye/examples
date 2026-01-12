@@ -17,6 +17,5 @@ func main() {
 }
 
 func init() {
-	TestLoadLibPath()
 	Chdir("lcl/action")
 }
