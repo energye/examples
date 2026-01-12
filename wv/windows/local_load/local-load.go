@@ -28,6 +28,8 @@ func main() {
 		Windows:    application.Windows{},
 		Frameless:  true,
 		//DisableContextMenu: true,
+		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
+		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
 		Scheme:     "fs",
