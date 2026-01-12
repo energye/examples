@@ -37,6 +37,16 @@ func main() {
 	})
 	wvApp.Start()
 
+	getWindow := func(browserId uint32) *app.TForm1Window {
+		var currWindow *app.TForm1Window
+		for _, form := range app.Forms {
+			if tempWindow, ok := form.(*app.TForm1Window); ok && tempWindow.BrowserId() == browserId {
+				currWindow = tempWindow
+			}
+		}
+		return currWindow
+	}
+
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
 		context.Result("ResultData", 123, 888.99, true, time.Now().String())
@@ -44,31 +54,42 @@ func main() {
 	})
 
 	ipc.On("minimize", func(context callback.IContext) {
-		fmt.Println("minimize")
-		app.Form1Window.Minimize()
+		fmt.Println("minimize", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			tempWindow.Minimize()
+		}
 	})
 
 	ipc.On("maximize", func(context callback.IContext) {
-		fmt.Println("maximize")
-		app.Form1Window.Maximize()
+		fmt.Println("maximize", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			tempWindow.Maximize()
+		}
 	})
 
 	ipc.On("fullscreen", func(context callback.IContext) {
-		fmt.Println("fullscreen")
-		if app.Form1Window.IsFullScreen() {
-			app.Form1Window.ExitFullScreen()
-		} else {
-			app.Form1Window.FullScreen()
+		fmt.Println("fullscreen", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			if tempWindow.IsFullScreen() {
+				tempWindow.ExitFullScreen()
+			} else {
+				tempWindow.FullScreen()
+			}
 		}
 	})
 
 	ipc.On("close", func(context callback.IContext) {
-		fmt.Println("close")
-		lcl.RunOnMainThreadAsync(func(id uint32) {
-			app.Form1Window.Close()
-		})
+		fmt.Println("close", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				tempWindow.Close()
+			})
+		}
 	})
-
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
 	// 配置应用程序设置，使主窗体在Windows任务栏上显示
@@ -76,7 +97,7 @@ func main() {
 	// 启用自动缩放功能以支持高DPI显示器
 	lcl.Application.SetScaled(true)
 	// 创建所有窗体
-	lcl.Application.NewForms(&app.Form1Window)
+	lcl.Application.NewForms(app.Forms...)
 	// 启动应用程序消息循环
 	lcl.Application.Run()
 	fmt.Println("run end")

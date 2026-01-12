@@ -18,6 +18,7 @@ import (
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
+	m.SetShowInTaskBar(types.StAlways)
 	m.Webview1.SetWindow(m)
 	m.Webview1.SetAlign(types.AlCustom)
 	m.Webview1.SetWidth(m.Width())
@@ -25,7 +26,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	m.WorkAreaCenter()
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
-		fmt.Println("OnLoadChange:", url, title, load)
+		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
 	})
 	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
 		//contextMenu.Clear()
@@ -49,6 +50,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 			lcl.Application.NewForm(&newWindow)
 			newWindow.Webview1.SetDefaultURL(targetURL)
 			newWindow.Show()
+			Forms = append(Forms, &newWindow)
 		})
 		return true
 	})

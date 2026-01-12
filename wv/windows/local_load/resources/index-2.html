@@ -48,6 +48,9 @@
             text-overflow: ellipsis;
             max-width: calc(100% - 160px);
         }
+        .titlebar-title a{
+            color: #cbd5e1;
+        }
 
         .titlebar-buttons {
             display: flex;
@@ -170,7 +173,11 @@
 </head>
 <body>
 <div class="window-titlebar">
-    <div class="titlebar-title">ENERGY - 跨平台 GUI 框架</div>
+    <div class="titlebar-title">
+        ENERGY - 跨平台 GUI 框架
+        <a href="fs://energy/index-2.html" target="_blank">popup-window</a>
+        <a href="fs://energy/index-2.html">load-window</a>
+    </div>
     <div class="titlebar-buttons">
         <button class="titlebar-btn" title="最小化" id="minimizeBtn">
             <svg width="10" height="2" viewBox="0 0 10 2" fill="currentColor">
