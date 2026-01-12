@@ -10,6 +10,7 @@ package app
 import (
 	"fmt"
 	"github.com/energye/energy/v3/wv"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -40,6 +41,16 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	})
 	m.Webview1.SetOnContextMenuCommand(func(commandId int32) {
 		fmt.Println("OnContextMenuCommand:", commandId)
+	})
+	m.Webview1.SetOnPopupWindow(func(targetURL string) bool {
+		fmt.Println("OnPopupWindow:", targetURL, api.CurrentThreadId() == api.MainThreadId())
+		lcl.RunOnMainThreadAsync(func(id uint32) {
+			newWindow := TForm1Window{}
+			lcl.Application.NewForm(&newWindow)
+			newWindow.Webview1.SetDefaultURL(targetURL)
+			newWindow.Show()
+		})
+		return true
 	})
 }
 
