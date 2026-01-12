@@ -34,6 +34,8 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("测试2:", id)
 		_, id = test2.Add("测试2-测试", wv.CmkCommand)
 		fmt.Println("测试2-测试:", id)
+		_, id = test2.Add("测试3-测试", wv.CmkCommand)
+		fmt.Println("测试3-测试:", id)
 		contextMenu.Add("测试3", wv.CmkCommand)
 	})
 	m.Webview1.SetOnContextMenuCommand(func(commandId int32) {
