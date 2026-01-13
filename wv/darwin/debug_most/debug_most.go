@@ -33,7 +33,8 @@ var resources embed.FS
 
 func main() {
 	httpServer()
-	wv.Init(nil, resources)
+	lcl.Init(nil, resources)
+	wv.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetScaled(true)
 	mainForm.url = "energy://test.com"
