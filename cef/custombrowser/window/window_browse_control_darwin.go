@@ -236,8 +236,7 @@ func (m *Chromium) updateBrowserControlBtn() {
 func (m *Chromium) updateTabSheetActive(isActive bool) {
 	if isActive {
 		activeColor := colors.RGBToColor(86, 88, 93)
-		m.tabSheetBtn.SetStartColor(activeColor)
-		m.tabSheetBtn.SetEndColor(activeColor)
+		m.tabSheetBtn.SetColor(activeColor)
 		m.tabSheet.SetVisible(true)
 		m.isActive = true
 		m.mainWindow.SetAddrText(m.currentURL)
@@ -245,8 +244,7 @@ func (m *Chromium) updateTabSheetActive(isActive bool) {
 		m.resize(nil)
 	} else {
 		notActiveColor := bgColor //colors.RGBToColor(56, 57, 60)
-		m.tabSheetBtn.SetStartColor(notActiveColor)
-		m.tabSheetBtn.SetEndColor(notActiveColor)
+		m.tabSheetBtn.SetColor(notActiveColor)
 		m.tabSheet.SetVisible(false)
 		m.isActive = false
 	}
