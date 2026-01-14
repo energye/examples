@@ -208,8 +208,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	preference.SetTabFocusesLinks(true)
 	preference.SetFraudulentWebsiteWarningEnabled(true)
-	//preference.SetValueForKey(true, "developerExtrasEnabled")
-	wv.EnableDevtools(preference.Data())
+	preference.SetBoolValueForKey(true, "developerExtrasEnabled")
 
 	navigationDelegate := wv.NewNavigationDelegate(m.webview.AsWKNavigationDelegate())
 	uiDelegate := wv.NewUIDelegate(m.webview.AsWKUIDelegate())
