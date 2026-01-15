@@ -130,6 +130,7 @@
             flex-direction: column;
             align-items: center;
             gap: 0.6rem;
+            --webkit-app-region: drag;
         }
 
         .tech-icon {
@@ -172,7 +173,7 @@
     </style>
 </head>
 <body>
-<div class="window-titlebar">
+<div class="window-titlebar" data-webkit-app-region="true">
     <div class="titlebar-title">
         ENERGY - 跨平台 GUI 框架
         <a href="fs://energy/index-2.html" target="_blank">popup-window</a>
@@ -244,13 +245,13 @@
 
     fullscreenBtn.onclick = () => {
         try {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-                console.log('进入全屏模式');
-            } else {
-                document.exitFullscreen();
-                console.log('退出全屏模式');
-            }
+            // if (!document.fullscreenElement) {
+            //     document.documentElement.requestFullscreen();
+            //     console.log('进入全屏模式');
+            // } else {
+            //     document.exitFullscreen();
+            //     console.log('退出全屏模式');
+            // }
             fullscreenBtn.style.opacity = '0.7';
             setTimeout(() => fullscreenBtn.style.opacity = '1', 200);
             ipc.emit("fullscreen");
