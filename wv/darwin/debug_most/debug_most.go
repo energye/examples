@@ -251,7 +251,8 @@ func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("调用此过程  TMainForm.CreateParams:", *params)
 }
 
-func (m *TMainForm) OnCreateWebView(sender lcl.IObject, configuration wvTypes.WKWebViewConfiguration, navigationAction wvTypes.WKNavigationAction, windowFeatures wvTypes.WKWindowFeatures) wvTypes.WKWebView {
+func (m *TMainForm) OnCreateWebView(sender lcl.IObject, configuration wvTypes.WKWebViewConfiguration,
+	navigationAction wvTypes.WKNavigationAction, windowFeatures wvTypes.WKWindowFeatures) wvTypes.WKWebView {
 	fmt.Println("OnCreateWebView")
 	wkNavigationAction := wv.NewNavigationAction(navigationAction)
 	sourceFrameInfo := wv.NewFrameInfo(wkNavigationAction.SourceFrame())
