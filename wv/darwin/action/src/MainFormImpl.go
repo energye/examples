@@ -13,7 +13,6 @@ type TMainForm struct {
 	ActList  lcl.IActionList
 	Tlbar    lcl.IToolBar
 	Tlbtn    lcl.IToolButton
-	Stbar    lcl.IStatusBar
 	Btn      lcl.IButton
 	Chk      lcl.ICheckBox
 	Act      lcl.IAction
@@ -22,16 +21,23 @@ type TMainForm struct {
 
 var MainForm TMainForm
 
-func (f *TMainForm) FormCreate(sender lcl.IObject) {
-	f.SetCaption("Hello")
-	f.SetPosition(types.PoScreenCenter)
-	f.EnabledMaximize(false)
-	f.SetWidth(300)
-	f.SetHeight(200)
-	// 全局设置提示
-	f.SetShowHint(true)
-	// 动态创建
-	f.initComponents()
+func (m *TMainForm) FormCreate(sender lcl.IObject) {
+	//m.Frameless()
+	m.SetWindowTransparent()
+	m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
+	//m.SwitchFrostedMaterial("NSAppearanceNameDarkAqua")
+
+	m.SetCaption("Hello")
+	m.SetPosition(types.PoScreenCenter)
+	//m.SetWidth(300)
+	//m.SetHeight(200)
+
+	m.initComponents()
+
+	//box := lcl.NewPanel(m)
+	//box.SetParent(m)
+	//box.SetColor(colors.ClBlue)
+
 }
 
 func (f *TMainForm) OnActExecute(sender lcl.IObject) {
@@ -59,12 +65,6 @@ func (f *TMainForm) initComponents() {
 
 	f.Tlbtn = lcl.NewToolButton(f)
 	f.Tlbtn.SetParent(f.Tlbar)
-
-	// 底部状态条
-	f.Stbar = lcl.NewStatusBar(f)
-	f.Stbar.SetParent(f)
-	f.Stbar.SetAutoHint(true)
-	f.Stbar.SetSimplePanel(true)
 
 	f.Btn = lcl.NewButton(f)
 	f.Btn.SetParent(f)

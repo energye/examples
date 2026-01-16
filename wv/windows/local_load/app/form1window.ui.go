@@ -64,6 +64,5 @@ func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseActi
 // initComponents 初始化组件
 func (m *TForm1Window) initComponents() {
 	m.Webview1 = wv.NewWebview(m)
-	m.Webview1.SetAlign(types.AlClient)
 	m.Webview1.SetParent(m)
 }

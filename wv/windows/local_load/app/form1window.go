@@ -18,6 +18,8 @@ import (
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
+	m.SetWindowTransparent()
+	m.SwitchFrostedMaterial("NSAppearanceNameDarkAqua")
 	m.SetShowInTaskBar(types.StAlways)
 	m.Webview1.SetWindow(m)
 	m.Webview1.SetAlign(types.AlCustom)
