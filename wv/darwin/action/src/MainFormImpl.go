@@ -31,7 +31,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetPosition(types.PoScreenCenter)
 	//m.SetWidth(300)
 	//m.SetHeight(200)
-
 	m.initComponents()
 
 	//box := lcl.NewPanel(m)
