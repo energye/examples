@@ -23,11 +23,11 @@ func main() {
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
 		//Frameless:  true,
-		Caption: "energy - webview2",
-		//DefaultURL: "fs://energy/index-2.html",
-		DefaultURL: "fs://energy/index.html",
-		Windows:    application.Windows{},
-		Frameless:  true,
+		Caption:    "energy - webview2",
+		DefaultURL: "fs://energy/index-2.html",
+		//DefaultURL: "fs://energy/index.html",
+		Windows:   application.Windows{},
+		Frameless: true,
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
