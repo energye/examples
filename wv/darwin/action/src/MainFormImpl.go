@@ -25,16 +25,6 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	hwnd := m.Handle()
-	_ = hwnd
-	win32.ConfigureWindowDefaultExStyles(hwnd)
-	if !win32.SupportsBackdropTypes() {
-		win32.SetTranslucentBackground(hwnd)
-		fmt.Println("SetTranslucentBackground")
-	} else {
-		win32.EnableTranslucency(hwnd, application.Mica)
-		fmt.Println("EnableTranslucency")
-	}
 	m.SetColor(colors.ClNull)
 
 	//m.SetOptions()
@@ -66,11 +56,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.initComponents()
 
 }
-
-//func (m *TMainForm) OnShow(sender lcl.IObject) {
-//	win32.SetWindowAcrylic(m.Handle(), true)
-//	win32.SetWindowMica(m.Handle(), true, true)
-//}
 
 func (f *TMainForm) OnActExecute(sender lcl.IObject) {
 	api.ShowMessage("点击了action")
