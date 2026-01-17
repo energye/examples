@@ -1,10 +1,13 @@
 package src
 
 import (
+	"fmt"
+	"github.com/energye/energy/v3/pkgs/win32"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/colors"
 )
 
 type TMainForm struct {
@@ -22,22 +25,52 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
+	hwnd := m.Handle()
+	_ = hwnd
+	win32.ConfigureWindowDefaultExStyles(hwnd)
+	if !win32.SupportsBackdropTypes() {
+		win32.SetTranslucentBackground(hwnd)
+		fmt.Println("SetTranslucentBackground")
+	} else {
+		win32.EnableTranslucency(hwnd, application.Mica)
+		fmt.Println("EnableTranslucency")
+	}
+	m.SetColor(colors.ClNull)
+
+	//m.SetOptions()
+	//win32.SetWindowAlpha(hwnd, 100)
+	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
+	//win32.SetWindowBlurBehind(hwnd, true)
+	//win32.SetWindowDisplayAffinity(hwnd, win.WDA_EXCLUDEFROMCAPTURE)
+
 	//m.Frameless()
 	//m.SetWindowTransparent()
 	//m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
 	//m.SwitchFrostedMaterial("NSAppearanceNameDarkAqua")
-	m.SetOptions()
+
 	m.SetCaption("Hello")
 	m.SetPosition(types.PoScreenCenter)
 	//m.SetWidth(300)
 	//m.SetHeight(200)
-	m.initComponents()
 
-	//box := lcl.NewPanel(m)
-	//box.SetParent(m)
-	//box.SetColor(colors.ClBlue)
+	box := lcl.NewPanel(m)
+	box.SetParent(m)
+	//box.SetColor(colors.ClBisque)
+	box.SetColor(colors.ClNull)
+	box.SetLeft(10)
+	box.SetTop(10)
+	box.SetWidth(150)
+	box.SetHeight(150)
+	box.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
+
+	//m.initComponents()
 
 }
+
+//func (m *TMainForm) OnShow(sender lcl.IObject) {
+//	win32.SetWindowAcrylic(m.Handle(), true)
+//	win32.SetWindowMica(m.Handle(), true, true)
+//}
 
 func (f *TMainForm) OnActExecute(sender lcl.IObject) {
 	api.ShowMessage("点击了action")
