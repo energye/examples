@@ -23,10 +23,10 @@ var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.Frameless()
-	m.SetWindowTransparent()
-	m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
+	//m.SetWindowTransparent()
+	//m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
 	//m.SwitchFrostedMaterial("NSAppearanceNameDarkAqua")
-
+	m.SetOptions()
 	m.SetCaption("Hello")
 	m.SetPosition(types.PoScreenCenter)
 	//m.SetWidth(300)
