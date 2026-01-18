@@ -28,7 +28,7 @@ func main() {
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index.html",
 		Windows: application.Windows{
-			BackdropType: application.BtMica,
+			BackdropType: application.BtAcrylic,
 		},
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
