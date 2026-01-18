@@ -27,7 +27,9 @@ func main() {
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index.html",
-		Windows: application.Windows{},
+		Windows: application.Windows{
+			BackdropType: application.BtMica,
+		},
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE

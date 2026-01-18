@@ -1,6 +1,7 @@
 package src
 
 import (
+	"github.com/energye/energy/v3/pkgs/win32"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
@@ -23,6 +24,12 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
+	hWnd := m.Handle()
+	win32.ConfigureWindowDefaultExStyles(hWnd)
+	m.SetColor(colors.ClNull)
+	win32.SetBackgroundColour(hWnd, 0, 0, 0)
+	win32.SetTranslucentBackground(hWnd)
+
 	//m.SetOptions()
 	//win32.SetWindowAlpha(hwnd, 100)
 	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
