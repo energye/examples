@@ -23,7 +23,7 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	//m.SetOptions()
+	m.SetOptions()
 	//win32.SetWindowAlpha(hwnd, 100)
 	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
 	//win32.SetWindowBlurBehind(hwnd, true)
@@ -38,6 +38,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetPosition(types.PoScreenCenter)
 	//m.SetWidth(300)
 	//m.SetHeight(200)
+	//m.SetColor(colors.ClBisque)
 
 	box := lcl.NewPanel(m)
 	box.SetParent(m)
@@ -49,7 +50,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	box.SetHeight(150)
 	box.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
 
-	//m.initComponents()
+	m.initComponents()
 
 }
 

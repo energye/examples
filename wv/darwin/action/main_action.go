@@ -10,8 +10,8 @@ import (
 func main() {
 	application.GApplication = &application.Application{
 		Options: application.Options{
-			Frameless: true,
-			Windows:   application.Windows{Theme: application.Dark},
+			Frameless:           true,
+			WindowIsTransparent: true,
 		},
 	}
 	lcl.Init(nil, nil)
