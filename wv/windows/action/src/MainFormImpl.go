@@ -2,12 +2,9 @@ package src
 
 import (
 	"fmt"
-	"github.com/energye/energy/v3/application"
-	"github.com/energye/energy/v3/pkgs/win32"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/pkgs/win"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
@@ -33,14 +30,14 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	////win32.ConfigureWindowDefaultExStyles(hWnd)
 	//m.SetColor(colors.ClNull)
 	//win32.SetBackgroundColour(hWnd, 0, 0, 0)
-	////win32.SetTranslucentBackground(hWnd)
+	//win32.SetTranslucentBackground(hWnd)
 	//win32.EnableTranslucency(hWnd, int32(application.BtAcrylic))
 
 	//m.SetOptions()
-	//win32.SetWindowAlpha(hwnd, 100)
-	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
-	//win32.SetWindowBlurBehind(hwnd, true)
-	//win32.SetWindowDisplayAffinity(hwnd, win.WDA_EXCLUDEFROMCAPTURE)
+	//win32.SetWindowAlpha(hWnd, 100)
+	//win32.SetWindowColorKey(hWnd, uint32(colors.ClBlue))
+	//win32.SetWindowBlurBehind(hWnd, true)
+	//win32.SetWindowDisplayAffinity(hWnd, win.WDA_EXCLUDEFROMCAPTURE)
 
 	//m.Frameless()
 	//m.SetWindowTransparent()
@@ -68,19 +65,12 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 func (m *TMainForm) CreateParams(params *types.TCreateParams) {
 	fmt.Println("CreateParams")
-	params.ExStyle = params.ExStyle | win.WS_EX_CONTROLPARENT | win.WS_EX_APPWINDOW | win.WS_EX_NOREDIRECTIONBITMAP
+	//params.ExStyle = params.ExStyle | win.WS_EX_CONTROLPARENT | win.WS_EX_APPWINDOW | win.WS_EX_NOREDIRECTIONBITMAP
 	//params.ExStyle = params.ExStyle | win.WS_EX_CONTROLPARENT | win.WS_EX_APPWINDOW
 }
 
 func (m *TMainForm) OnShow(sender lcl.IObject) {
 	fmt.Println("OnShow")
-	hWnd := m.Handle()
-	_ = hWnd
-	//win32.ConfigureWindowDefaultExStyles(hWnd)
-	m.SetColor(colors.ClNull)
-	win32.SetBackgroundColour(hWnd, 0, 0, 0)
-	//win32.SetTranslucentBackground(hWnd)
-	win32.EnableTranslucency(hWnd, int32(application.BtAcrylic))
 }
 
 func (f *TMainForm) OnActExecute(sender lcl.IObject) {
