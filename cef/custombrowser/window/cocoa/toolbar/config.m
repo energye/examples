@@ -1,6 +1,6 @@
-#import "config.h"
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
+#import "config.h"
 
 BOOL isARCMode() {
 #if __has_feature(objc_arc)
