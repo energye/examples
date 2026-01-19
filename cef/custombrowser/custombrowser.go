@@ -106,7 +106,7 @@ func main() {
 	if mainStart {
 		CEFINfo(app)
 		// 结束应用后释放资源
-		api.SetReleaseCallback(func() {
+		api.SetOnReleaseCallback(func() {
 			fmt.Println("Release")
 			if tool.IsLinux() {
 				api.WidgetSetFinalization()
