@@ -17,6 +17,11 @@ import (
 //go:embed resources
 var resources embed.FS
 
+// MacOS build(构建) 时指定去除警告
+// export MACOSX_DEPLOYMENT_TARGET=11.0
+// export CGO_CFLAGS="-mmacosx-version-min=11.0"
+// export CGO_LDFLAGS="-mmacosx-version-min=11.0"
+
 func main() {
 	// linux webkit2 > gtk3
 	os.Setenv("--ws", "gtk3")
@@ -44,7 +49,7 @@ func main() {
 			TitleTransparent: true,
 			TitleHideText:    true,
 			WindowRadius:     8,
-			//ToolBar: &application.ToolBar{},
+			ToolBar:          &application.ToolBar{},
 		},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
