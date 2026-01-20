@@ -24,9 +24,9 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
 	//win32.SetWindowBlurBehind(hwnd, true)
 	//win32.SetWindowDisplayAffinity(hwnd, win.WDA_EXCLUDEFROMCAPTURE)
+	m.SetOptions()
 
 	m.SetBackgroundColor(0, 0, 0, 0)
-	m.Toolbar()
 	//m.Frameless()
 	//m.SetWindowTransparent()
 	//m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
