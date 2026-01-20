@@ -23,7 +23,7 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		Frameless:  true,
+		//Frameless:  true,
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index.html",
@@ -38,8 +38,8 @@ func main() {
 		WindowIsTransparent:  true,
 		WebviewIsTransparent: true,
 		BackgroundColor:      colors.NewARGB(0, 0, 0, 0),
-		MacOS:                application.MacOS{
-			//AppearanceNamed: application.NSAppearanceNameDarkAqua,
+		MacOS: application.MacOS{
+			AppearanceNamed: application.NSAppearanceNameDarkAqua,
 		},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
