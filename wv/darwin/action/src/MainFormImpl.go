@@ -1,10 +1,13 @@
 package src
 
 import (
+	"fmt"
+	"github.com/energye/energy/v3/pkgs/cocoa"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"unsafe"
 )
 
 type TMainForm struct {
@@ -34,14 +37,16 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.SetHeight(200)
 	//m.SetColor(colors.ClBisque)
 
-	//box := lcl.NewPanel(m)
-	//box.SetParent(m)
+	box := lcl.NewPanel(m)
+	box.SetParent(m)
 	//box.SetColor(colors.ClBisque)
-	//box.SetLeft(0)
-	//box.SetTop(0)
-	//box.SetWidth(150)
-	//box.SetHeight(150)
-	//box.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
+	box.SetLeft(0)
+	box.SetTop(0)
+	box.SetWidth(150)
+	box.SetHeight(150)
+	box.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
+
+	fmt.Println("box:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(box.Handle())))
 
 	m.initComponents()
 
@@ -59,26 +64,29 @@ func (f *TMainForm) OnActUpdate(sender lcl.IObject) {
 	lcl.AsAction(sender).SetEnabled(f.Chk.Checked())
 }
 
-func (f *TMainForm) initComponents() {
-	f.Btn = lcl.NewButton(f)
-	f.Btn.SetParent(f)
-	f.Btn.SetLeft(80)
-	f.Btn.SetTop(10)
-	f.Btn.SetCaption("Button")
+func (m *TMainForm) initComponents() {
+	m.Btn = lcl.NewButton(m)
+	m.Btn.SetParent(m)
+	m.Btn.SetLeft(80)
+	m.Btn.SetTop(10)
+	m.Btn.SetCaption("Button")
 
-	f.Chk = lcl.NewCheckBox(f)
-	f.Chk.SetParent(f)
-	f.Chk.SetCaption("action状态演示")
-	f.Chk.SetLeft(f.Btn.Left())
-	f.Chk.SetTop(f.Btn.Top() + f.Btn.Height() + 10)
-	f.Chk.SetChecked(true)
+	m.Chk = lcl.NewCheckBox(m)
+	m.Chk.SetParent(m)
+	m.Chk.SetCaption("action状态演示")
+	m.Chk.SetLeft(m.Btn.Left())
+	m.Chk.SetTop(m.Btn.Top() + m.Btn.Height() + 10)
+	m.Chk.SetChecked(true)
 
 	// mainMenu
-	f.MainMenu = lcl.NewMainMenu(f)
+	m.MainMenu = lcl.NewMainMenu(m)
 
-	menu := lcl.NewMenuItem(f)
+	menu := lcl.NewMenuItem(m)
 	menu.SetCaption("菜单")
-	f.MainMenu.Items().Add(menu)
-	subMenu := lcl.NewMenuItem(f)
+	m.MainMenu.Items().Add(menu)
+	subMenu := lcl.NewMenuItem(m)
 	menu.Add(subMenu)
+
+	fmt.Println("Btn:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Btn.Handle())))
+	fmt.Println("Chk:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Chk.Handle())))
 }
