@@ -19,11 +19,11 @@ import (
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
 	m.SetShowInTaskBar(types.StAlways)
-	m.Webview1.SetWindow(m)
 	m.Webview1.SetAlign(types.AlCustom)
 	m.Webview1.SetWidth(m.Width())
 	m.Webview1.SetHeight(m.Height())
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
+	m.Webview1.SetWindow(m)
 	m.WorkAreaCenter()
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
@@ -55,6 +55,16 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		return true
 	})
 	lcl.NewMainMenu(m)
+	btn := lcl.NewButton(m)
+	btn.SetLeft(610)
+	btn.SetTop(100)
+	btn.SetCaption("按钮")
+	btn.SetParent(m)
+	txt := lcl.NewEdit(m)
+	txt.SetLeft(610)
+	txt.SetTop(200)
+	txt.SetCaption("按钮")
+	txt.SetParent(m)
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {

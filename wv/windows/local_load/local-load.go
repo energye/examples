@@ -31,6 +31,7 @@ func main() {
 		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
+		//DisableResize: true,
 		Windows: application.Windows{
 			BackdropType:    application.BtAcrylic,
 			WindowProtected: true,

@@ -31,9 +31,9 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 	m.TWindow.FormCreate(sender)
 	// 设置窗体属性
 	m.SetCaption("Form1")
-	m.SetHeight(469)
+	m.SetHeight(400)
 	m.SetName("Form1Window")
-	m.SetWidth(737)
+	m.SetWidth(600)
 	// 初始化组件
 	m.initComponents()
 	m.OnFormCreate(sender)
