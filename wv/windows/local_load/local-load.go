@@ -22,7 +22,7 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		Frameless:  true,
+		//Frameless:  true,
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index.html",
