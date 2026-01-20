@@ -54,6 +54,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
+	lcl.NewMainMenu(m)
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {

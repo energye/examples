@@ -10,7 +10,6 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/types/colors"
 	"os"
 	"time"
 )
@@ -27,19 +26,24 @@ func main() {
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index.html",
+		WindowIsTransparent:  true,
+		WebviewIsTransparent: true,
+		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
+		//DisableContextMenu: true,
+		//DisableDevTools: true,
 		Windows: application.Windows{
 			BackdropType:    application.BtAcrylic,
 			WindowProtected: true,
 		},
-		//DisableContextMenu: true,
-		//DisableDevTools: true,
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
-		WindowIsTransparent:  true,
-		WebviewIsTransparent: true,
-		BackgroundColor:      colors.NewARGB(0, 0, 0, 0),
 		MacOS: application.MacOS{
-			AppearanceNamed: application.NSAppearanceNameDarkAqua,
+			//AppearanceNamed:  application.NSAppearanceNameDarkAqua,
+			FullSizeContent:  true,
+			TitleTransparent: true,
+			TitleHideText:    true,
+			//WindowRadius:     8,
+			ToolBar: &application.ToolBar{},
 		},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
