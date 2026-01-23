@@ -30,7 +30,7 @@ func main() {
 		//Frameless:  true,
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
-		//DefaultURL: "fs://energy/index.html",
+		//DefaultURL:           "fs://energy/index.html",
 		WindowIsTransparent:  true,
 		WebviewIsTransparent: true,
 		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
@@ -45,12 +45,12 @@ func main() {
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
 			//AppearanceNamed:   application.NSAppearanceNameDarkAqua,
-			FullSizeContent:  true,
-			TitleTransparent: true,
-			TitleHideText:    true,
-			WindowRadius:     8,
-			//UseWindowDelegate: true,
-			ToolBar: &application.ToolBar{},
+			FullSizeContent:   true,
+			TitleTransparent:  true,
+			TitleHideText:     true,
+			WindowRadius:      8,
+			UseWindowDelegate: true,
+			ToolBar:           &application.ToolBar{},
 		},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{
