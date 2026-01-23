@@ -55,7 +55,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
-	lcl.NewMainMenu(m)
+	//lcl.NewMainMenu(m)
 	btn := lcl.NewButton(m)
 	btn.SetLeft(0)
 	btn.SetTop(100)
