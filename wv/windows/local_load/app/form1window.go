@@ -76,13 +76,13 @@ func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
 // OnFormCloseQuery 窗体关闭前询问事件
 func (m *TForm1Window) OnFormCloseQuery(sender lcl.IObject, canClose *bool) bool {
 	// TODO 在此处添加窗体关闭前询问代码
-
+	fmt.Println("OnFormCloseQuery", m.BrowserId())
 	return false
 }
 
 // OnFormClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
 func (m *TForm1Window) OnFormClose(sender lcl.IObject, closeAction *types.TCloseAction) bool {
 	// TODO 在此处添加窗体关闭代码
-
+	fmt.Println("OnFormClose", m.BrowserId())
 	return false
 }
