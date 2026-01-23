@@ -45,12 +45,12 @@ func main() {
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
 			//AppearanceNamed:   application.NSAppearanceNameDarkAqua,
-			FullSizeContent:   true,
-			TitleTransparent:  true,
-			TitleHideText:     true,
-			WindowRadius:      8,
-			UseWindowDelegate: true,
-			ToolBar:           &application.ToolBar{},
+			FullSizeContent:  true,
+			TitleTransparent: true,
+			TitleHideText:    true,
+			WindowRadius:     8,
+			//UseWindowDelegate: true,
+			ToolBar: &application.ToolBar{},
 		},
 	})
 	wvApp.SetLocalLoad(application.LocalLoad{

@@ -57,14 +57,14 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	})
 	//lcl.NewMainMenu(m)
 	btn := lcl.NewButton(m)
-	btn.SetLeft(0)
+	btn.SetLeft(10)
 	btn.SetTop(100)
 	btn.SetCaption("按钮")
 	btn.SetParent(m)
 	txt := lcl.NewEdit(m)
-	txt.SetLeft(0)
+	txt.SetLeft(10)
 	txt.SetTop(200)
-	txt.SetCaption("按钮")
+	txt.SetText("按钮")
 	txt.SetParent(m)
 }
 
