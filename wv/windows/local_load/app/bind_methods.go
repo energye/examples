@@ -11,8 +11,8 @@ type DemoBind struct {
 	Field3 int
 }
 
-func (m *DemoBind) Test1(data string, data2 int) {
-	fmt.Println("DemoBind.Test1", data, data2)
+func (m *DemoBind) Test1(data string, data2 int, browserId int) {
+	fmt.Println("DemoBind.Test1", data, data2, "browserId:", browserId)
 	m.Field3++
 }
 
@@ -23,7 +23,7 @@ func (m DemoBind) Test2(datas string, datai int, dataf32 float32, datab bool) st
 
 func (m *DemoBind) TestResult() *DemoBind {
 	fmt.Println("DemoBind.TestResult", m)
-	return &DemoBind{"Field1", "Field2" + time.Now().String(), m.Field3}
+	return &DemoBind{Field1: "Field1", Field2: "Field2" + time.Now().String(), Field3: m.Field3}
 }
 
 func (m *DemoBind) test() {
