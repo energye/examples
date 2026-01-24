@@ -27,16 +27,19 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		//Frameless:  true,
+		//Frameless: true,
 		Caption: "energy - webview2",
 		//DefaultURL: "fs://energy/index-2.html",
-		DefaultURL:           "fs://energy/index.html",
-		WindowIsTransparent:  true,
-		WebviewIsTransparent: true,
+		DefaultURL: "fs://energy/index-1.html",
+		//DefaultURL:         "fs://energy/index.html",
+		WindowTransparent:  true,
+		WebviewTransparent: true,
 		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
-		//DisableResize: true,
+		//DisableResize:     true,
+		//DisableMinimize:   true,
+		//DisableSystemMenu: true,
 		Windows: application.Windows{
 			BackdropType:    application.BtAcrylic,
 			WindowProtected: true,
@@ -44,15 +47,16 @@ func main() {
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
-			AppearanceName:    application.NSAppearanceNameDarkAqua,
-			FullSizeContent:   true,
-			TitleTransparent:  true,
-			TitleHideText:     true,
-			WindowRadius:      8,
+			AppearanceName:   application.NSAppearanceNameDarkAqua,
+			FullSizeContent:  true,
+			TitleTransparent: true,
+			TitleHideText:    true,
+			//WindowRadius:      8,
 			UseWindowDelegate: true,
 			ToolBar:           &application.ToolBar{},
 		},
 	})
+
 	wvApp.SetLocalLoad(application.LocalLoad{
 		Scheme:     "fs",
 		Domain:     "energy",
@@ -60,7 +64,8 @@ func main() {
 		FS:         resources,
 	})
 	wvApp.Start()
-
+	wvApp.BindEvent(&app.DemoBind{})
+	wvApp.BindEventPrefix("demo", &app.DemoBind{})
 	getWindow := func(browserId uint32) *app.TForm1Window {
 		var currWindow *app.TForm1Window
 		for _, form := range app.Forms {
