@@ -24,11 +24,12 @@
 <button onclick="DemoBindTest2()">ipc-DemoBind.Test2</button>
 <button onclick="DemoBindTestResult()">ipc-DemoBind.TestResult</button>
 <button onclick="ipc.emit('demo.Test1', ['datastr', 1009])">ipc-demo.test</button>
-
+<a href="fs://energy/index-1.html" target="_blank" style="color:#ffffff;">New-Window</a>
 </body>
 <script type="application/javascript" charset="utf-8">
     function DemoBindTest1() {
-        ipc.emit('DemoBind.Test1', ['datastr', 1009], function(result) {
+        console.log(JSON.stringify(energy.env))
+        ipc.emit('DemoBind.Test1', ['datastr', 1009, energy.getEnv("browser").id], function(result) {
             console.log('result:', result);
         })
     }
