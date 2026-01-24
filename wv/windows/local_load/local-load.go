@@ -64,8 +64,6 @@ func main() {
 		FS:         resources,
 	})
 	wvApp.Start()
-	wvApp.BindEvent(&app.DemoBind{})
-	wvApp.BindEventPrefix("demo", &app.DemoBind{})
 	getWindow := func(browserId uint32) *app.TForm1Window {
 		var currWindow *app.TForm1Window
 		for _, form := range app.Forms {
@@ -76,7 +74,8 @@ func main() {
 		}
 		return currWindow
 	}
-
+	ipc.BindEvent(&app.DemoBind{})
+	ipc.BindEventPrefix("demo", &app.DemoBind{})
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
 		context.Result("ResultData", 123, 888.99, true, time.Now().String())
