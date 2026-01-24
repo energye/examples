@@ -22,6 +22,10 @@ func (m DemoBind) Test2(datas string, datai int, dataf32 float32, datab bool) st
 }
 
 func (m *DemoBind) TestResult() *DemoBind {
-	fmt.Println("DemoBind.TestResult")
+	fmt.Println("DemoBind.TestResult", m)
 	return &DemoBind{"Field1", "Field2" + time.Now().String(), m.Field3}
+}
+
+func (m *DemoBind) test() {
+	fmt.Println("demo.test")
 }
