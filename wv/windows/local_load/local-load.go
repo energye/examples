@@ -28,9 +28,9 @@ func main() {
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
 		//Frameless: true,
-		Caption: "energy - webview2",
-		//DefaultURL: "fs://energy/index-2.html",
-		DefaultURL: "fs://energy/index-1.html",
+		Caption:    "energy - webview2",
+		DefaultURL: "fs://energy/index-2.html",
+		//DefaultURL: "fs://energy/index-1.html",
 		//DefaultURL:         "fs://energy/index.html",
 		WindowTransparent:  true,
 		WebviewTransparent: true,
