@@ -62,7 +62,14 @@ func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseActi
 // initComponents 初始化组件
 func (m *TForm1Window) initComponents() {
 	m.Webview1 = wv.NewWebview(m)
-	m.Webview1.SetWidth(222)
-	m.Webview1.SetHeight(222)
+	m.Webview1.SetAlign(types.AlCustom)
+	m.Webview1.SetAnchors(types.NewSet(types.AkBottom, types.AkLeft, types.AkRight, types.AkTop))
+	m.Webview1.SetBevelColor(11341538)
+	m.Webview1.SetBevelOuter(types.BvRaised)
+	m.Webview1.SetCaption("Webview1")
+	m.Webview1.SetHeight(198)
+	m.Webview1.SetLeft(25)
+	m.Webview1.SetTop(23)
+	m.Webview1.SetWidth(547)
 	m.Webview1.SetParent(m)
 }
