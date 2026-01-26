@@ -9,7 +9,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
@@ -20,14 +19,13 @@ import (
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
 	m.SetShowInTaskBar(types.StAlways)
+	m.Webview1.SetWindow(m)
 	m.Webview1.SetAlign(types.AlNone)
 	m.Webview1.SetTop(0)
-	m.Webview1.SetLeft(100)
-	m.Webview1.SetWidth(m.Width() - 100)
+	m.Webview1.SetLeft(0)
+	m.Webview1.SetWidth(m.Width())
 	m.Webview1.SetHeight(m.Height())
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-	m.Webview1.SetWindow(m)
-	m.WorkAreaCenter()
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
 	})
@@ -63,23 +61,25 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 
 	lcl.NewMainMenu(m)
 
-	btn := lcl.NewButton(m)
-	btn.SetLeft(10)
-	btn.SetTop(100)
-	btn.SetCaption("原生按钮")
-	btn.SetParent(m)
-	txt := lcl.NewEdit(m)
-	txt.SetLeft(10)
-	txt.SetTop(200)
-	txt.SetText("原生文本框")
-	txt.SetParent(m)
-	txt.SetOnChange(func(sender lcl.IObject) {
-		ipc.Emit("native-text-change", txt.Text())
-	})
+	//btn := lcl.NewButton(m)
+	//btn.SetLeft(10)
+	//btn.SetTop(100)
+	//btn.SetCaption("原生按钮")
+	//btn.SetParent(m)
+	//txt := lcl.NewEdit(m)
+	//txt.SetLeft(10)
+	//txt.SetTop(200)
+	//txt.SetText("原生文本框")
+	//txt.SetParent(m)
+	//txt.SetColor(colors.ClBlack)
+	//txt.SetOnChange(func(sender lcl.IObject) {
+	//	ipc.Emit("native-text-change", txt.Text())
+	//})
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
 	// TODO 在此处添加窗体显示代码
+	m.WorkAreaCenter()
 	m.Webview1.CreateBrowser()
 }
 

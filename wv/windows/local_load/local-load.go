@@ -119,6 +119,7 @@ func main() {
 			})
 		}
 	})
+
 	// 初始化应用程序实例
 	lcl.Application.Initialize()
 	// 配置应用程序设置，使主窗体在Windows任务栏上显示

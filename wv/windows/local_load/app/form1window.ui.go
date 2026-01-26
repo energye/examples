@@ -41,8 +41,8 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 
 // OnShow 窗口显示事件
 func (m *TForm1Window) OnShow(sender lcl.IObject) {
-	m.OnFormShow(sender)
 	m.TWindow.OnShow(sender)
+	m.OnFormShow(sender)
 }
 
 // OnCloseQuery 窗体关闭前询问事件
