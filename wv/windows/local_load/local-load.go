@@ -10,6 +10,7 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types/colors"
 	"os"
 	"time"
 )
@@ -27,14 +28,14 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		//Frameless: true,
-		Caption:    "energy - webview2",
-		DefaultURL: "fs://energy/index-2.html",
-		//DefaultURL: "fs://energy/index-1.html",
+		Frameless: true,
+		Caption:   "energy - webview2",
+		//DefaultURL: "fs://energy/index-2.html",
+		DefaultURL: "fs://energy/index-1.html",
 		//DefaultURL:         "fs://energy/index.html",
 		WindowTransparent:  true,
 		WebviewTransparent: true,
-		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
+		BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		//DisableContextMenu: true,
 		//DisableDevTools: true,
 		//DisableResize:     true,
