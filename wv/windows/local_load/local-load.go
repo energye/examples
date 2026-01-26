@@ -75,8 +75,8 @@ func main() {
 		}
 		return currWindow
 	}
-	ipc.BindEvent(&app.DemoBind{})
-	ipc.BindEventPrefix("demo", &app.DemoBind{})
+	//ipc.BindEvent(&app.DemoBind{})
+	//ipc.BindEventPrefix("demo", &app.DemoBind{})
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
 		context.Result("ResultData", 123, 888.99, true, time.Now().String())

@@ -17,6 +17,7 @@ import (
 
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
+	println("OnFormCreate")
 	// TODO 在此处添加窗体初始化代码
 	m.SetShowInTaskBar(types.StAlways)
 	m.Webview1.SetWindow(m)
@@ -75,12 +76,15 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	//txt.SetOnChange(func(sender lcl.IObject) {
 	//	ipc.Emit("native-text-change", txt.Text())
 	//})
+	println("OnFormCreate end")
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
+	println("OnFormShow")
 	// TODO 在此处添加窗体显示代码
 	m.WorkAreaCenter()
 	m.Webview1.CreateBrowser()
+	println("OnFormShow end")
 }
 
 // OnFormCloseQuery 窗体关闭前询问事件
