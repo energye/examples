@@ -81,7 +81,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 	return '{"option":"internal", "type":"favicon", "data":'+JSON.stringify(favicon)+'}';
 })();
 `
-			newBrowser.webview.ExecuteScript(js)
+			newBrowser.webview.ExecuteScript(js, 0)
 		} else {
 			newBrowser.isLoading = true
 			m.updateRefreshBtn(newBrowser, true)
@@ -96,7 +96,7 @@ func (m *BrowserWindow) CreateBrowser(defaultUrl string) *Browser {
 		}
 		newBrowser.updateBrowserControlBtn()
 	})
-	newBrowser.webview.SetOnExecuteScriptFinished(func(sender lcl.IObject, jsValue wv.IWkJSValue) {
+	newBrowser.webview.SetOnExecuteScriptFinished(func(sender lcl.IObject, jsValue wv.IWkJSValue, id int32) {
 		fmt.Println("SetOnExecuteScriptFinished value-type:", jsValue.ValueType(), jsValue.StringValue())
 		isString := jsValue.ValueType() == wvTypes.JtString
 		if isString {

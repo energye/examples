@@ -240,9 +240,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		return true
 	})
-	m.webview.SetOnExecuteScriptFinished(func(sender lcl.IObject, jsValue wv.IWkJSValue) {
-		fmt.Println("OnExecuteScriptFinished")
-	})
 	m.webview.SetOnURISchemeRequest(func(sender lcl.IObject, wkURISchemeRequest wvTypes.WebKitURISchemeRequest) {
 		fmt.Println("OnURISchemeRequest")
 		uriSchemeRequest := wv.NewURISchemeRequest(wkURISchemeRequest)
