@@ -9,9 +9,11 @@ package app
 
 import (
 	"fmt"
+	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/rtl/version"
 	"github.com/energye/lcl/types"
 )
 
@@ -29,6 +31,9 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
+		if load == wv.LcFinish {
+			ipc.Emit("native-text-change", version.OSVersion.ToString())
+		}
 	})
 	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
 		//contextMenu.Clear()
