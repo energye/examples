@@ -15,7 +15,6 @@ var MainForm TMainForm
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("FormCreate")
 	m.WorkAreaCenter()
-	m.SetVisible(false)
 	//m.SetColor(0)
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindow := gtk3.ToGtkWindow(uintptr(gtkHandle.Gtk3Window()))

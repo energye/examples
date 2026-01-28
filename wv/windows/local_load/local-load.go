@@ -28,10 +28,10 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		Frameless:  true,
-		Caption:    "energy - webview2",
-		DefaultURL: "fs://energy/index-2.html",
-		//DefaultURL: "fs://energy/index-1.html",
+		//Frameless:  true,
+		Caption: "energy - webview2",
+		//DefaultURL: "fs://energy/index-2.html",
+		DefaultURL: "fs://energy/index-1.html",
 		//DefaultURL:         "fs://energy/index.html",
 		WindowTransparent:  true,
 		WebviewTransparent: true,
@@ -75,8 +75,8 @@ func main() {
 		}
 		return currWindow
 	}
-	//ipc.BindEvent(&app.DemoBind{})
-	//ipc.BindEventPrefix("demo", &app.DemoBind{})
+	ipc.BindEvent(&app.DemoBind{})
+	ipc.BindEventPrefix("demo", &app.DemoBind{})
 	ipc.On("test", func(context callback.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
 		context.Result("ResultData", 123, 888.99, true, time.Now().String())

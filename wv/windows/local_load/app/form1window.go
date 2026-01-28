@@ -24,8 +24,8 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetAlign(types.AlNone)
 	m.Webview1.SetTop(0)
 	m.Webview1.SetLeft(0)
-	m.Webview1.SetWidth(m.Width())
-	m.Webview1.SetHeight(m.Height())
+	m.Webview1.SetWidth(m.Width() - m.Webview1.Left()*2)
+	m.Webview1.SetHeight(m.Height() - m.Webview1.Top()*2)
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
