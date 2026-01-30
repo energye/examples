@@ -2,9 +2,9 @@ package src
 
 import (
 	"fmt"
+	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/pkgs/gtk3"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/types"
 	"unsafe"
 )
 
@@ -17,22 +17,26 @@ var MainForm TMainForm
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("FormCreate")
 	m.WorkAreaCenter()
-	m.SetBorderStyleToFormBorderStyle(types.BsNone)
+	//m.SetBorderStyleToFormBorderStyle(types.BsNone)
 
 	//m.SetColor(0)
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindow := gtk3.ToGtkWindow(unsafe.Pointer(gtkHandle.Gtk3Window()))
+	options := application.GApplication.Options
+	if options.WindowTransparent {
+		screen := gtkWindow.GetScreen()
+		visual, err := screen.GetRGBAVisual()
+		isComposited := screen.IsComposited()
+		fmt.Println("isComposited:", err == nil && visual != nil && isComposited)
+		if err == nil && visual != nil && isComposited {
+			gtkWindow.SetVisual(visual)
+			gtkWindow.SetAppPaintable(true)
+		}
+	}
+
 	//gtkWindow.SetDecorated(false)
 	fmt.Println(gtkWindow.TypeFromInstance().Name())
-	screen := gtkWindow.GetScreen()
-	visual, err := screen.GetRGBAVisual()
-	if err == nil && visual != nil && screen.IsComposited() {
-		//gtkWindow.SetVisual(visual)
-		//gtkWindow.SetAppPaintable(true)
-	}
-	//m.SetOnPaint(func(sender lcl.IObject) {
-	//	m.Canvas().SetColors(0, 0, lcl.TFPColor{})
-	//})
+
 	lcl.NewButton(m).SetParent(m)
 	lcl.NewPanel(m).SetParent(m)
 

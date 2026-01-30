@@ -9,6 +9,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/api"
@@ -59,15 +60,19 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("OnPopupWindow:", targetURL, api.CurrentThreadId() == api.MainThreadId())
 		lcl.RunOnMainThreadAsync(func(id uint32) {
 			newWindow := TForm1Window{}
+			options := application.GApplication.Options
+			options.DefaultURL = targetURL
+			newWindow.SetOptions(options)
 			lcl.Application.NewForm(&newWindow)
-			newWindow.Webview1.SetDefaultURL(targetURL)
 			newWindow.Show()
 			Forms = append(Forms, &newWindow)
 		})
 		return true
 	})
 
-	lcl.NewMainMenu(m)
+	//m.mainMenu()
+
+	//
 
 	//btn := lcl.NewButton(m)
 	//btn.SetLeft(10)
@@ -106,4 +111,51 @@ func (m *TForm1Window) OnFormClose(sender lcl.IObject, closeAction *types.TClose
 	// TODO 在此处添加窗体关闭代码
 	fmt.Println("OnFormClose", m.BrowserId())
 	return false
+}
+
+func (m *TForm1Window) mainMenu() {
+	mainMenu := lcl.NewMainMenu(m)
+
+	fileMenu := lcl.NewMenuItem(m)
+	fileMenu.SetCaption("文件(&F)")
+	mainMenu.Items().Add(fileMenu)
+
+	subMenu := lcl.NewMenuItem(m)
+	subMenu.SetCaption("新建(&N)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+N"))
+	subMenu.SetOnClick(func(lcl.IObject) {
+		fmt.Println("单击了新建")
+	})
+	fileMenu.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("打开(&O)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+O"))
+	fileMenu.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("保存(&S)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+S"))
+	fileMenu.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("-")
+	fileMenu.Add(subMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("退出(&Q)")
+	subMenu.SetShortCut(api.TextToShortCut("Ctrl+Q"))
+	subMenu.SetOnClick(func(lcl.IObject) {
+		m.Close()
+	})
+	fileMenu.Add(subMenu)
+
+	aboutMenu := lcl.NewMenuItem(m)
+	aboutMenu.SetCaption("关于(&A)")
+	mainMenu.Items().Add(aboutMenu)
+
+	subMenu = lcl.NewMenuItem(m)
+	subMenu.SetCaption("帮助(&H)")
+	aboutMenu.Add(subMenu)
+
 }
