@@ -24,6 +24,8 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.SetShowInTaskBar(types.StAlways)
 	m.Webview1.SetWindow(m)
 	m.Webview1.SetAlign(types.AlNone)
+	m.SetWidth(800)
+	m.SetHeight(600)
 	m.Webview1.SetTop(0)
 	m.Webview1.SetLeft(0)
 	m.Webview1.SetWidth(m.Width() - m.Webview1.Left()*2)
@@ -32,7 +34,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
 		if load == wv.LcFinish {
-			ipc.Emit("native-text-change", version.OSVersion.ToString())
+			ipc.EmitOptions(&ipc.OptionsEvent{BrowserId: m.BrowserId(), Name: "native-text-change", Data: version.OSVersion.ToString()})
 		}
 	})
 	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
