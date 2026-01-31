@@ -89,6 +89,10 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	//	ipc.Emit("native-text-change", txt.Text())
 	//})
 	println("OnFormCreate end")
+
+	tray := application.NewTrayIcon()
+	trayMenu := tray.Menu()
+	trayMenu.AddMenuItem("test", nil)
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
@@ -124,18 +128,24 @@ func (m *TForm1Window) mainMenu() {
 	subMenu.SetCaption("新建(&N)")
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+N"))
 	subMenu.SetOnClick(func(lcl.IObject) {
-		fmt.Println("单击了新建")
+		fmt.Println("新建")
 	})
 	fileMenu.Add(subMenu)
 
 	subMenu = lcl.NewMenuItem(m)
 	subMenu.SetCaption("打开(&O)")
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+O"))
+	subMenu.SetOnClick(func(sender lcl.IObject) {
+		fmt.Println("打开")
+	})
 	fileMenu.Add(subMenu)
 
 	subMenu = lcl.NewMenuItem(m)
 	subMenu.SetCaption("保存(&S)")
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+S"))
+	subMenu.SetOnClick(func(sender lcl.IObject) {
+		fmt.Println("保存")
+	})
 	fileMenu.Add(subMenu)
 
 	subMenu = lcl.NewMenuItem(m)
@@ -146,6 +156,7 @@ func (m *TForm1Window) mainMenu() {
 	subMenu.SetCaption("退出(&Q)")
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+Q"))
 	subMenu.SetOnClick(func(lcl.IObject) {
+		fmt.Println("退出")
 		m.Close()
 	})
 	fileMenu.Add(subMenu)
@@ -156,6 +167,9 @@ func (m *TForm1Window) mainMenu() {
 
 	subMenu = lcl.NewMenuItem(m)
 	subMenu.SetCaption("帮助(&H)")
+	subMenu.SetOnClick(func(sender lcl.IObject) {
+		fmt.Println("帮助")
+	})
 	aboutMenu.Add(subMenu)
 
 }

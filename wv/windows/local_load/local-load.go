@@ -32,11 +32,13 @@ func main() {
 		Caption:    "energy - webview2",
 		DefaultURL: "fs://energy/index-2.html",
 		//DefaultURL: "fs://energy/index-1.html",
-		//DefaultURL: "fs://energy/index.html",
-		WindowTransparent:  true,
-		WebviewTransparent: true,
-		BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
-		DisableDevTools:    true,
+		//DefaultURL:         "fs://energy/index.html",
+		//DefaultURL:         "https://www.bilibili.com/",
+		//WindowTransparent:  true,
+		//WebviewTransparent: true,
+		//BackgroundColor: colors.NewARGB(0, 0, 0, 0),
+		BackgroundColor: colors.NewARGB(250, 250, 250, 250),
+		//DisableDevTools:    true,
 		//DisableContextMenu: true,
 		//DisableResize:     true,
 		//DisableMinimize:   true,
@@ -45,8 +47,8 @@ func main() {
 			BackdropType:    application.BtAcrylic,
 			WindowProtected: true,
 		},
-		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
-		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
+		//Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
+		Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
 			AppearanceName:   application.NSAppearanceNameDarkAqua,
 			FullSizeContent:  true,

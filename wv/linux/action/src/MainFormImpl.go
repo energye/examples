@@ -37,9 +37,20 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//gtkWindow.SetDecorated(false)
 	fmt.Println(gtkWindow.TypeFromInstance().Name())
 
-	lcl.NewButton(m).SetParent(m)
-	lcl.NewPanel(m).SetParent(m)
+	//lcl.NewButton(m).SetParent(m)
+	//lcl.NewPanel(m).SetParent(m)
+	//mainMenu := lcl.NewMainMenu(m)
+	//mainMenu.Items().Add(lcl.NewMenuItem(m))
 
+}
+
+func (m *TMainForm) OnShow(sender lcl.IObject) {
+	fmt.Println("OnShow")
+	m.iterateWidget()
+}
+
+func (m *TMainForm) iterateWidget() {
+	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkContainer := gtk3.ToContainer(unsafe.Pointer(gtkHandle.Gtk3Window()))
 	GtkContainerType := gtk3.TypeFromName("GtkContainer")
 	var iterate func(list *gtk3.List, level int)
@@ -49,6 +60,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 		for i := uint(0); i < list.Length(); i++ {
 			widget := gtk3.ToWidget(list.NthDataRaw(i))
+			//x := widget.GetAllocation().GetX()
+			//y := widget.GetAllocation().GetY()
 			fmt.Println(widget.TypeFromInstance().Name(), "level:", level)
 			if widget.IsA(GtkContainerType) {
 				chdWid := gtk3.ToContainer(list.NthDataRaw(i))
@@ -59,8 +72,4 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	}
 	gtkList := gtkContainer.GetChildren()
 	iterate(gtkList, 1)
-}
-
-func (m *TMainForm) OnShow(sender lcl.IObject) {
-	fmt.Println("OnShow")
 }
