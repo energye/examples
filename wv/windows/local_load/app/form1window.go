@@ -95,8 +95,8 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	trayMenu := tray.Menu()
 	trayMenu.AddMenuItem("退出", nil)
 	trayMenu.AddSeparator()
-	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"}, types.TSize{})
-	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"}, types.TSize{})
+	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"})
+	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"})
 	testMenu := trayMenu.AddMenuItem("test", func() {
 		fmt.Println("test")
 	})
