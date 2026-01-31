@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/energye/examples/lcl/trayicon/data"
-	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	//"os"
 	"runtime"
 )
 
@@ -16,11 +16,8 @@ type TMainForm struct {
 
 var mainForm TMainForm
 
-func init() {
-	TestLoadLibPath()
-	Chdir("lcl/trayicon")
-}
 func main() {
+	//os.Setenv("--ws", "gtk3")
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
