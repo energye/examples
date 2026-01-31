@@ -93,18 +93,19 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 
 	tray := application.NewTrayIcon()
 	trayMenu := tray.Menu()
-	trayMenu.AddMenuItem("退出", nil)
+	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"})
+	exit := trayMenu.AddMenuItem("退出", nil)
+	exit.SetImage("add.png")
 	trayMenu.AddSeparator()
 	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"})
-	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"})
 	testMenu := trayMenu.AddMenuItem("test", func() {
 		fmt.Println("test")
 	})
-	testMenu.SetImage("add.png")
 	test2Menu := testMenu.AddSubMenuItem("test2", nil)
 	test2Menu.SetChecked(true)
 	testMenu.AddSeparator()
 	test2Menu = testMenu.AddSubMenuItem("test22", nil)
+	test2Menu.SetRadio(true)
 
 	//tray.SetIcon("E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png")
 	trayIconData, _ := assets.Assets.ReadFile("resources/add.png")
