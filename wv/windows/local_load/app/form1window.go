@@ -12,6 +12,7 @@ import (
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/wv"
+	"github.com/energye/examples/wv/assets"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl/version"
@@ -92,7 +93,29 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 
 	tray := application.NewTrayIcon()
 	trayMenu := tray.Menu()
-	trayMenu.AddMenuItem("test", nil)
+	trayMenu.AddMenuItem("退出", nil)
+	trayMenu.AddSeparator()
+	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"}, types.TSize{})
+	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"}, types.TSize{})
+	testMenu := trayMenu.AddMenuItem("test", func() {
+		fmt.Println("test")
+	})
+	testMenu.SetImage("add.png")
+	test2Menu := testMenu.AddSubMenuItem("test2", nil)
+	test2Menu.SetChecked(true)
+	testMenu.AddSeparator()
+	test2Menu = testMenu.AddSubMenuItem("test22", nil)
+
+	//tray.SetIcon("E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png")
+	trayIconData, _ := assets.Assets.ReadFile("resources/add.png")
+	tray.SetIconBytes(trayIconData)
+	tray.SetOnMouseUp(func(button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
+		fmt.Println("SetOnMouseUp")
+	})
+	tray.SetOnClick(func() {
+		fmt.Println("SetOnClick")
+	})
+	tray.Show()
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
