@@ -104,7 +104,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	test2Menu.SetChecked(true)
 	testMenu.AddSeparator()
 	test2Menu = testMenu.AddSubMenuItem("test22", func() {
-		fmt.Println("test22", m.BrowserId())
+		fmt.Println("test22", m.BrowserId(), api.CurrentThreadId(), api.MainThreadId())
 	})
 	test2Menu.SetRadio(true)
 
