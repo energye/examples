@@ -47,8 +47,8 @@ func main() {
 			BackdropType:    application.BtAcrylic,
 			WindowProtected: true,
 		},
-		//Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
-		Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
+		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
+		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
 			AppearanceName:   application.NSAppearanceNameDarkAqua,
 			FullSizeContent:  true,

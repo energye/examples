@@ -98,13 +98,14 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	exit.SetImage("add.png")
 	trayMenu.AddSeparator()
 	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"})
-	testMenu := trayMenu.AddMenuItem("test", func() {
-		fmt.Println("test")
-	})
+	testMenu := trayMenu.AddMenuItem("test", nil)
+	_ = testMenu
 	test2Menu := testMenu.AddSubMenuItem("test2", nil)
 	test2Menu.SetChecked(true)
 	testMenu.AddSeparator()
-	test2Menu = testMenu.AddSubMenuItem("test22", nil)
+	test2Menu = testMenu.AddSubMenuItem("test22", func() {
+		fmt.Println("test22", m.BrowserId())
+	})
 	test2Menu.SetRadio(true)
 
 	//tray.SetIcon("E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png")
