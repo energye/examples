@@ -17,6 +17,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl/version"
 	"github.com/energye/lcl/types"
+	"strconv"
 )
 
 // OnFormCreate 窗体初始化事件
@@ -70,7 +71,16 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
-
+	m.Webview1.SetOnDragEnter(func(x, y int32) {
+		fmt.Println("SetOnDragEnter:", x, y)
+	})
+	m.Webview1.SetOnDragLeave(func() {
+		fmt.Println("")
+	})
+	m.Webview1.SetOnDragOver(func(data *wv.TDragData, x, y int32) {
+		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
+		fmt.Println("OnDragOver:", x, y, da, err, data.Filenames)
+	})
 	//m.mainMenu()
 
 	//
