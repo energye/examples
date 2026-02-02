@@ -75,7 +75,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnDragEnter:", x, y)
 	})
 	m.Webview1.SetOnDragLeave(func() {
-		fmt.Println("")
+		fmt.Println("SetOnDragLeave")
 	})
 	m.Webview1.SetOnDragOver(func(data *wv.TDragData, x, y int32) {
 		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
