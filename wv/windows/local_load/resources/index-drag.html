@@ -54,6 +54,7 @@
         dropzone.classList.add('active');
         draggable.style.opacity = '0.5';
     });
+    
     ipc.on('drag-over',function (data,data2) {
         console.log('drag-over')
         dropzone.classList.remove('active');
