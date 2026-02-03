@@ -71,15 +71,18 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
-	m.Webview1.SetOnDragEnter(func(x, y int32) {
-		fmt.Println("SetOnDragEnter:", x, y)
+	m.Webview1.SetOnDragEnter(func(type_ wv.TDragType, x, y int32) bool {
+		fmt.Println("SetOnDragEnter --------------begin------------------", type_, x, y)
+		ipc.Emit("drag-enter")
+		return true
 	})
 	m.Webview1.SetOnDragLeave(func() {
-		fmt.Println("SetOnDragLeave")
+		fmt.Println("SetOnDragLeave", "--------------zzz------------------")
 	})
 	m.Webview1.SetOnDragOver(func(data *wv.TDragData, x, y int32) {
 		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
-		fmt.Println("OnDragOver:", x, y, da, err, data.Filenames)
+		fmt.Println("SetOnDragOver --------------end------------------", x, y, da, err, data.Filenames)
+		ipc.Emit("drag-over", da, data.Filenames)
 	})
 	//m.mainMenu()
 

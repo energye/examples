@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>GTK3 WebKit2 拖拽测试</title>
+    <style>
+        .draggable { width: 200px; height: 100px; background: #42b983; color: white; text-align: center; line-height: 100px; margin: 20px; cursor: move; }
+        .dropzone { width: 400px; height: 200px; border: 2px dashed #ccc; margin: 20px; text-align: center; line-height: 200px; color: #999; }
+        .dropzone.active { border-color: #42b983; background: #f5fbf9; color: #42b983; }
+    </style>
+</head>
+<body>
+<h1>拖拽测试页面</h1>
+<div class='draggable' draggable='true'>可拖拽元素（页面内）</div>
+<div class='dropzone'>放置区域</div>
+<script>
+    // 网页内拖拽：JavaScript 处理逻辑
+    const draggable = document.querySelector('.draggable');
+    const dropzone = document.querySelector('.dropzone');
+
+    // 拖拽开始
+    draggable.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', '这是拖拽的测试数据');
+        draggable.style.opacity = '0.5';
+    });
+
+    // 拖拽结束
+    draggable.addEventListener('dragend', () => {
+        draggable.style.opacity = '1';
+        dropzone.classList.remove('active');
+    });
+
+    // 拖拽悬浮在放置区域
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('active');
+    });
+
+    // 拖拽离开放置区域
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('active');
+    });
+
+    // 拖拽放置到目标区域
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('active');
+        const data = e.dataTransfer.getData('text/plain');
+        dropzone.innerHTML = `已放置：${data}`;
+    });
+
+    ipc.on('drag-enter',function () {
+        console.log('drag-enter')
+        dropzone.classList.add('active');
+        draggable.style.opacity = '0.5';
+    });
+    ipc.on('drag-over',function (data,data2) {
+        console.log('drag-over')
+        dropzone.classList.remove('active');
+        draggable.style.opacity = '1';
+        dropzone.innerHTML = `已放置：${data} - ${data2}`;
+    });
+</script>
+</body>
+</html>
