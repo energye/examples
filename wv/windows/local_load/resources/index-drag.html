@@ -46,7 +46,8 @@
         e.preventDefault();
         dropzone.classList.remove('active');
         const data = e.dataTransfer.getData('text/plain');
-        dropzone.innerHTML = `已放置：${data}`;
+        const path = e.dataTransfer.getData('text/uri-list');
+        dropzone.innerHTML = `已放置：${data} - ${path}`;
     });
 
     ipc.on('drag-enter',function () {
@@ -54,7 +55,7 @@
         dropzone.classList.add('active');
         draggable.style.opacity = '0.5';
     });
-    
+
     ipc.on('drag-over',function (data,data2) {
         console.log('drag-over')
         dropzone.classList.remove('active');
