@@ -28,10 +28,10 @@ func main() {
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
 		//Frameless: true,
-		Caption: "energy - webview2",
-		//DefaultURL: "fs://energy/index-home.html",
+		Caption:    "energy - webview2",
+		DefaultURL: "fs://energy/index-home.html",
 		//DefaultURL: "fs://energy/index-ipc.html",
-		DefaultURL: "fs://energy/index-drag.html",
+		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL:         "https://www.bilibili.com/",
 		//DefaultURL: "https://www.baidu.com/",
 		//DefaultURL: "https://2x.antdv.com/components/overview/",
