@@ -71,10 +71,9 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
-	m.Webview1.SetOnDragEnter(func(type_ wv.TDragType, x, y int32) bool {
+	m.Webview1.SetOnDragEnter(func(type_ wv.TDragType, x, y int32) {
 		fmt.Println("SetOnDragEnter --------------begin------------------", type_, x, y)
 		ipc.Emit("drag-enter")
-		return true
 	})
 	m.Webview1.SetOnDragLeave(func() {
 		fmt.Println("SetOnDragLeave", "--------------zzz------------------")
