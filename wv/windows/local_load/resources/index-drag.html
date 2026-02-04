@@ -50,6 +50,10 @@
         dropzone.innerHTML = `已放置：${data} - ${path}`;
     });
 
+    setInterval(function (){
+        //dropzone.innerHTML = new Date().toString()
+    }, 1000)
+
     ipc.on('drag-enter',function () {
         console.log('drag-enter')
         dropzone.classList.add('active');
