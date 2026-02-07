@@ -104,21 +104,30 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	println("OnFormCreate end")
 
 	tray := application.NewTrayIcon()
+
 	trayMenu := tray.Menu()
-	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/add.png"})
-	exit := trayMenu.AddMenuItem("退出", nil)
-	exit.SetImage("add.png")
+	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/window-icon_64x64.png"})
+	exit := trayMenu.AddMenuItem("退出").SetOnClick(func() {
+		m.Close()
+	})
+	//exit.SetImage("window-icon_64x64.png")
+	testdata, _ := assets.Assets.ReadFile("resources/window-icon_64x64.png")
+	exit.SetBitmap(testdata)
+
 	trayMenu.AddSeparator()
 	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"})
-	testMenu := trayMenu.AddMenuItem("test", nil)
-	_ = testMenu
-	test2Menu := testMenu.AddSubMenuItem("test2", nil)
+	testMenu := trayMenu.AddMenuItem("test")
+	testMenu.SetOnMeasureItem(func(sender lcl.IObject, canvas lcl.ICanvas, width *int32, height *int32) {
+		*height = 32
+	})
+	test2Menu := testMenu.AddSubMenuItem("test2")
 	test2Menu.SetChecked(true)
 	testMenu.AddSeparator()
-	test2Menu = testMenu.AddSubMenuItem("test22", func() {
-		fmt.Println("test22", m.BrowserId(), api.CurrentThreadId(), api.MainThreadId())
-	})
+	test2Menu = testMenu.AddSubMenuItem("test2222")
 	test2Menu.SetRadio(true)
+	test2Menu = testMenu.AddSubMenuItem("test3333")
+	test2Menu.SetRadio(true)
+	test2Menu.SetChecked(true)
 
 	//tray.SetIcon("E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png")
 	trayIconData, _ := assets.Assets.ReadFile("resources/add.png")
