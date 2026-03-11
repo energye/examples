@@ -51,11 +51,11 @@ func main() {
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
-			AppearanceName:   application.NSAppearanceNameDarkAqua,
-			FullSizeContent:  true,
-			TitleTransparent: true,
-			TitleHideText:    true,
-			//WindowRadius:      8,
+			AppearanceName:    application.NSAppearanceNameDarkAqua,
+			FullSizeContent:   true,
+			TitleTransparent:  true,
+			TitleHideText:     true,
+			WindowRadius:      8,
 			UseWindowDelegate: true,
 			ToolBar:           &application.ToolBar{},
 		},
