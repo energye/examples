@@ -111,7 +111,7 @@ func main() {
 	fmt.Println("mainStart:", mainStart, app.ProcessType())
 	if mainStart {
 		// 结束应用后释放资源
-		api.SetReleaseCallback(func() {
+		api.SetOnReleaseCallback(func() {
 			fmt.Println("Release")
 			if tool.IsLinux() {
 				api.WidgetSetFinalization()
@@ -319,7 +319,7 @@ func (m *BrowserWindow) createBrowser(sender lcl.IObject) {
 	}
 	m.timer.SetEnabled(false)
 	rect := m.ClientRect()
-	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
+	created := m.chromium.CreateBrowserWithWHandleRectStrRContextDValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
 	init := m.chromium.Initialized()
 	fmt.Println("createBrowser rect:", rect, "init:", init, "create:", created)
 	if !created && !init {

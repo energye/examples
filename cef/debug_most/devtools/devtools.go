@@ -50,5 +50,5 @@ func ExecuteDevToolsMethod(chromium cef.IChromium) {
 
 func ExecuteJavaScript(chromium cef.IChromium) {
 	var jsCode = `document.body.style.background="#999999";`
-	chromium.ExecuteJavaScriptWithStringX2FrameInt(jsCode, "", chromium.Browser().GetMainFrame(), 0)
+	chromium.ExecuteJavaScriptWithStrX2FrameInt(jsCode, "", chromium.Browser().GetMainFrame(), 0)
 }
