@@ -61,14 +61,14 @@ func main() {
 		font.SetSize(20)
 		//style := font.Style()
 		canvas.BrushToBrush().SetStyle(types.BsClear)
-		canvas.TextOutWithIntX2Unicodestring(100, 30, s)
+		canvas.TextOutWithIntX2Str(100, 30, s)
 		//fmt.Println("canvas.Font()", font.Height(), canvas.Font().Size())
 
 		r := types.TRect{Right: 80, Bottom: 80}
 
 		// 计算文字
 		s = "由于现有第三方的Go UI库不是太庞大就是用的不习惯，或者组件太少。"
-		canvas.TextRectWithRectIntX2String(r, r.Left, r.Top, s)
+		canvas.TextRectWithRectIntX2Str(r, r.Left, r.Top, s)
 
 		s = "测试输出"
 		r = types.TRect{Right: 80, Bottom: 80}
@@ -85,7 +85,7 @@ func main() {
 		pen.SetColor(colors.ClFuchsia)
 		canvas.RectangleWithIntX4(r.Left, r.Top, r.Right, r.Bottom)
 
-		canvas.TextRectWithRectIntX2StringTextStyle(r, 0, 0, s, lcl.TTextStyle{})
+		canvas.TextRectWithRectIntX2StrTStyle(r, 0, 0, s, lcl.TTextStyle{})
 
 		if jpgimg != nil {
 			canvas.DrawWithIntX2Graphic(0, 80, jpgimg)
@@ -114,7 +114,7 @@ func main() {
 		rect := paintbox.ClientRect()
 		s := "在这可以用鼠标绘制"
 		//textFmt := types.NewSet(types.TfCenter, types.TfSingleLine, types.TfVerticalCenter)
-		canvas.TextRectWithRectIntX2StringTextStyle(rect, 0, 0, s, lcl.TTextStyle{})
+		canvas.TextRectWithRectIntX2StrTStyle(rect, 0, 0, s, lcl.TTextStyle{})
 
 		for _, p := range points {
 			if p.Down {
