@@ -1,13 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/energye/examples/lcl/action/src"
 	. "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 )
 
 func main() {
 	lcl.Init(nil, nil)
+	api.SetDebug(true)
+	api.SetOnException(func(exceptionID, message string) {
+		fmt.Println("exceptionID:", exceptionID, "exceptionMessage:", message)
+	})
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&src.MainForm)
