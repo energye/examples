@@ -48,7 +48,7 @@ func (m *Chromium) SetAfterCreate(fn func()) {
 func (m *Chromium) createBrowser(sender lcl.IObject) {
 	rect := m.windowParent.Parent().ClientRect()
 	initd := m.chromium.Initialized()
-	created := m.chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
+	created := m.chromium.CreateBrowserWithWHandleRectStrRContextDValueBool(m.windowParent.Handle(), rect, "", nil, nil, false)
 	m.windowParent.UpdateSize()
 	fmt.Println("initd created:", initd, created)
 }

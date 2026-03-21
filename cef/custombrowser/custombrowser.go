@@ -8,38 +8,11 @@ import (
 	"github.com/energye/examples/cef/custombrowser/window"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"os"
 	"path/filepath"
 )
-
-func init() {
-	var name string
-	if tool.IsWindows() {
-		name = "liblcl.dll"
-	} else if tool.IsLinux() {
-		name = "liblcl.so"
-	}
-	if name != "" {
-		// 当前目录
-		liblcl := filepath.Join(wd, name)
-		if tool.IsExist(liblcl) {
-			libname.LibName = liblcl
-			return
-		}
-		libname.LibName = func() string {
-			wd, _ := os.Getwd()
-			return filepath.Join(wd, "../", "gen", "gout", name)
-		}()
-		if tool.IsExist(liblcl) {
-			libname.LibName = liblcl
-			return
-		}
-	}
-
-}
 
 var (
 	wd, _            = os.Getwd()

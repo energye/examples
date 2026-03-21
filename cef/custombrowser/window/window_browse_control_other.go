@@ -192,7 +192,7 @@ func (m *BrowserWindow) createAddrBar() {
 			}
 			for _, chrom := range m.chroms {
 				if chrom.isActive {
-					chrom.chromium.LoadURLWithStringFrame(tempUrl, chrom.chromium.Browser().GetMainFrame())
+					chrom.chromium.LoadURLWithStrFrame(tempUrl, chrom.chromium.Browser().GetMainFrame())
 				}
 			}
 		}
@@ -268,7 +268,7 @@ func (m *BrowserWindow) createAddrBar() {
 	m.addrRightBtn.SetIcon(getResourcePath("addr-right-btn.png"))
 	m.addrRightBtn.SetOnClick(func(sender lcl.IObject) {
 		if chrom := m.getActiveChrom(); chrom != nil {
-			chrom.chromium.LoadURLWithStringFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
+			chrom.chromium.LoadURLWithStrFrame("https://energye.github.io", chrom.chromium.Browser().GetMainFrame())
 		}
 	})
 
