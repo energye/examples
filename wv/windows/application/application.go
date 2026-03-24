@@ -23,5 +23,5 @@ func WVCachePath() string {
 }
 
 func WV2LoaderDllPath() string {
-	return "E:\\app\\workspace\\gen\\gout\\WebView2Loader.dll"
+	return "C:\\Users\\Administrator\\.energy\\runtime\\WebView2Loader-amd64.dll"
 }

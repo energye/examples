@@ -10,7 +10,7 @@ import (
 	"github.com/energye/examples/wv/windows/debug_most/devtools"
 	"github.com/energye/examples/wv/windows/debug_most/scheme"
 	"github.com/energye/examples/wv/windows/debug_most/utils"
-	"github.com/energye/lcl/api/exception"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool/exec"
 	"github.com/energye/lcl/types"
@@ -34,7 +34,7 @@ func main() {
 	utils.Assets = assets
 	lcl.Init(nil, nil)
 	wv.Init()
-	exception.SetOnException(func(exception int32, message string) {
+	api.SetOnException(func(exception string, message string) {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})
 	load = application.NewWVLoader()
