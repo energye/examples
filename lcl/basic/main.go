@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"os"
 )
 
 type TMainForm struct {
@@ -26,6 +28,8 @@ func init() {
 }
 
 func main() {
+	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3.so"
+	os.Setenv("--ws", "gtk3")
 	lcl.Init(nil, nil)
 	lcl.RunApp(&mainForm, &form1)
 }
@@ -34,7 +38,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("TMainForm FormCreate")
 	m.SetOnWndProc(func(msg *types.TMessage) {
 		m.InheritedWndProc(msg)
-		fmt.Println("msg", msg)
+		//fmt.Println("msg", msg)
 	})
 	m.SetCaption("Hello")
 	m.EnabledMaximize(false)
@@ -56,7 +60,7 @@ func (f *TMainForm) OnCloseQuery(Sender lcl.IObject, CanClose *bool) {
 }
 
 func (f *TMainForm) OnButton1Click(object lcl.IObject) {
-	form1.Show()
+	form1.ShowModal()
 	fmt.Println("清除事件")
 	f.Button1.SetOnClick(f.OnButton1Click)
 	fmt.Println("更换事件")
