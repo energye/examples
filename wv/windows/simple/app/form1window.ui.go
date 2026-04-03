@@ -21,13 +21,14 @@ import (
 
 type TForm1Window struct {
 	window.TWindow
-	BrowserWindow1 wv.IWebview
+	Webview1 wv.IWebview
 }
 
 var Form1Window TForm1Window
 
 // FormCreate 窗体创建接口实现. 自动调用
 func (m *TForm1Window) FormCreate(sender lcl.IObject) {
+	m.TWindow.InternalBeforeFormCreate()
 	// 设置窗体属性
 	m.SetCaption("Form1")
 	m.SetHeight(469)
@@ -38,6 +39,7 @@ func (m *TForm1Window) FormCreate(sender lcl.IObject) {
 	// 初始化组件
 	m.initComponents()
 	m.OnFormCreate(sender)
+	m.TWindow.FormCreate(sender)
 }
 
 // OnShow 窗口显示事件
@@ -62,6 +64,14 @@ func (m *TForm1Window) OnClose(sender lcl.IObject, closeAction *types.TCloseActi
 
 // initComponents 初始化组件
 func (m *TForm1Window) initComponents() {
-	m.BrowserWindow1 = wv.NewWebview(m)
-	m.BrowserWindow1.SetParent(m)
+	m.Webview1 = wv.NewWebview(m)
+	m.Webview1.SetAlign(types.AlRight)
+	m.Webview1.SetAnchors(types.NewSet(types.AkBottom, types.AkLeft, types.AkRight, types.AkTop))
+	m.Webview1.SetCaption("Webview1")
+	m.Webview1.SetHeight(510)
+	m.Webview1.SetLeft(409)
+	m.Webview1.SetName("Webview1")
+	m.Webview1.SetTop(0)
+	m.Webview1.SetWidth(498)
+	m.Webview1.SetParent(m)
 }

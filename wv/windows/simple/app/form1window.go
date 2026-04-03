@@ -15,13 +15,11 @@ import (
 // OnFormCreate 窗体初始化事件
 func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
-	m.BrowserWindow1.SetAlign(types.AlClient)
-	m.WorkAreaCenter()
+	m.Webview1.SetWindow(m)
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
 	// TODO 在此处添加窗体显示代码
-	m.BrowserWindow1.CreateBrowser()
 }
 
 // OnCloseQuery 窗体关闭前询问事件
