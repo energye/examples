@@ -24,16 +24,11 @@ func main() {
 }
 
 func (f *TMainForm) FormCreate(sender lcl.IObject) {
-
 	f.SetCaption("Menu example")
 	f.ScreenCenter()
-	//f.SetBorderStyleForFormBorderStyle(types.BsNone)
 
 	// TMainMenu
 	f.mainMenu = lcl.NewMainMenu(f)
-	f.mainMenu.SetOnMeasureItem(func(sender lcl.IObject, aCanvas lcl.ICanvas, width, height *int32) {
-		*height = 44
-	})
 
 	// macOS下专有的
 	if runtime.GOOS == "darwin" {
@@ -71,7 +66,9 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	item := lcl.NewMenuItem(f)
 	item.SetCaption("文件(&F)")
 
-	subMenu := lcl.NewMenuItem(f)
+	var subMenu lcl.IMenuItem
+
+	subMenu = lcl.NewMenuItem(f)
 	subMenu.SetCaption("新建(&N)")
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+N"))
 	subMenu.SetOnClick(func(lcl.IObject) {
@@ -89,7 +86,7 @@ func (f *TMainForm) FormCreate(sender lcl.IObject) {
 	subMenu.SetShortCut(api.TextToShortCut("Ctrl+S"))
 	item.Add(subMenu)
 
-	// 分割线
+	//分割线
 	subMenu = lcl.NewMenuItem(f)
 	subMenu.SetCaption("-")
 	item.Add(subMenu)

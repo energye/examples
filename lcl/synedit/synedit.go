@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
