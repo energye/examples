@@ -1,0 +1,263 @@
+{
+  "name": "Form1",
+  "class_name": "TEngForm",
+  "mod": "",
+  "type": 0,
+  "properties": [
+    {
+      "name": "Caption",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Height",
+      "value": 534,
+      "type": 1
+    },
+    {
+      "name": "Left",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Name",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Top",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Width",
+      "value": 981,
+      "type": 1
+    }
+  ],
+  "child": [
+    {
+      "name": "SynEdit1",
+      "class_name": "TSynEdit",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Align",
+          "value": "AlLeft",
+          "type": 9
+        },
+        {
+          "name": "Height",
+          "value": 510,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 0,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "SynEdit1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 0,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 246,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "Webview1",
+      "class_name": "TWebview",
+      "mod": "wvEnergy",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Align",
+          "value": "AlRight",
+          "type": 9
+        },
+        {
+          "name": "Anchors",
+          "value": "[AkBottom,AkLeft,AkRight,AkTop]",
+          "type": 8
+        },
+        {
+          "name": "Caption",
+          "value": "Webview1",
+          "type": 0
+        },
+        {
+          "name": "Height",
+          "value": 510,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 409,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "Webview1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 0,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 498,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "Button1",
+      "class_name": "TButton",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Caption",
+          "value": "Button1",
+          "type": 0
+        },
+        {
+          "name": "Height",
+          "value": 25,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 262,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "Button1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 11,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 75,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "ProgressBar1",
+      "class_name": "TProgressBar",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Height",
+          "value": 20,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 261,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "ProgressBar1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 58,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 100,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "LazVirtualDrawTree1",
+      "class_name": "TLazVirtualDrawTree",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Height",
+          "value": 100,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 252,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "LazVirtualDrawTree1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 101,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 143,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "ColorBox1",
+      "class_name": "TColorBox",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Height",
+          "value": 35,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 262,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "ColorBox1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 232,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 100,
+          "type": 1
+        }
+      ]
+    }
+  ]
+}
