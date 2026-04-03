@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	"github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
@@ -31,7 +32,6 @@ var (
 )
 
 func init() {
-	TestLoadLibPath()
 }
 
 func main() {
@@ -185,7 +185,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 		}
 	})
 	m.VST.SetOnHeaderClick(func(sender lcl.IVTHeader, hitInfo lcl.TVTHeaderHitInfo) {
-		var direction types.TSortDirection
+		var direction types.CCtrlsTSortDirection
 		if hitInfo.Shift.In(types.SsShift) {
 			direction = types.SdDescending
 		} else {
@@ -296,7 +296,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			if dataPtr != 0 {
 				data := (*TTreeData)(unsafe.Pointer(dataPtr))
 				data.DataIndex = int32(idx)
-				dataList[data.DataIndex] = &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: Concat("Index ", strconv.Itoa(int(data.DataIndex))), Active: true}
+				dataList[data.DataIndex] = &TDataList{NodePointer: nodePtr, RNDNumber: int32(math.Round(rand.Float64() * 65536)), Text: syso.Concat("Index ", strconv.Itoa(int(data.DataIndex))), Active: true}
 			}
 			idx++
 		}
@@ -330,7 +330,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			nodePtr := nodeData.NodePointer
 			if nodePtr != 0 && nodeData.Active {
 				// 将其显示在VST的中心
-				m.VST.ScrollIntoViewWithPVirtualNodeBoolX2(nodePtr, true, false)
+				m.VST.ScrollIntoViewWithPVNodeBoolX2(nodePtr, true, false)
 				m.ClickNodeEdit.SetText(fmt.Sprintf("%v 随机数: %v", nodeData.Text, nodeData.RNDNumber))
 			} else {
 				m.ClickNodeEdit.SetText("节点不存在")

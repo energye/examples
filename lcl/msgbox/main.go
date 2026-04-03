@@ -1,7 +1,7 @@
 package main
 
 import (
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	TestLoadLibPath()
+
 }
 func main() {
 	lcl.Init(nil, nil)

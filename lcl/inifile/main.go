@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"time"
 )
 
 func init() {
-	TestLoadLibPath()
+
 }
 
 func main() {

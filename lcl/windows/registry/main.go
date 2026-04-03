@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/pkgs/win"
 )
@@ -10,7 +10,7 @@ import (
 // 注册表操作示例
 
 func init() {
-	TestLoadLibPath()
+
 }
 func main() {
 	lcl.Init(nil, nil)

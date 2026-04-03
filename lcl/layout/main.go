@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
 
 func init() {
-	TestLoadLibPath()
+
 }
 
 // 简单介绍下Lazarus中控件的布局方式

@@ -13,7 +13,7 @@ import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 )
@@ -46,7 +46,7 @@ var (
 )
 
 func init() {
-	TestLoadLibPath()
+
 }
 
 func main() {

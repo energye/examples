@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl"
 	"github.com/energye/lcl/types"
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	TestLoadLibPath()
+
 }
 func main() {
 	//fmt.Println("main:currentThreadId:", thread.GetCurrentThreadId())

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -12,7 +12,7 @@ import (
 // 事件公用。啥叫事件公用呢，比如btn, btn2两个控件，处理的大部分是相同的，只是根据不同按钮处理进行不同的选择
 
 func init() {
-	TestLoadLibPath()
+
 }
 func main() {
 	lcl.Init(nil, nil)

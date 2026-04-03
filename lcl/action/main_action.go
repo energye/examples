@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/energye/examples/lcl/action/src"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 )

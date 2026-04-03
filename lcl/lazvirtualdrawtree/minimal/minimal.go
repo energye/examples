@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"strconv"
@@ -26,7 +26,6 @@ var (
 )
 
 func init() {
-	TestLoadLibPath()
 }
 
 func main() {

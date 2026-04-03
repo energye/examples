@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/base"
 	"github.com/energye/lcl/lcl"
@@ -20,7 +20,7 @@ var (
 )
 
 func init() {
-	TestLoadLibPath()
+
 	Chdir("lcl/golcl")
 }
 

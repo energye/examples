@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/messages"
@@ -15,7 +15,7 @@ type TForm1 struct {
 var form1 TForm1
 
 func init() {
-	TestLoadLibPath()
+
 }
 func main() {
 	lcl.Init(nil, nil)
