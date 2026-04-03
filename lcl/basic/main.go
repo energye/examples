@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -24,7 +23,6 @@ var (
 )
 
 func init() {
-	TestLoadLibPath()
 }
 
 func main() {

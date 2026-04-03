@@ -144,5 +144,5 @@ func (f *TMainForm) OnFormPaint(sender lcl.IObject) {
 	//f.Canvas().TextRect(r, 0, 0, "右键弹出菜单")
 	f.Canvas().BrushToBrush().SetStyle(types.BsClear)
 	f.Canvas().FontToFont().SetColor(colors.ClGreen)
-	f.Canvas().TextOutWithIntX2String(10, 80, "右键弹出菜单")
+	f.Canvas().TextOutWithIntX2Str(10, 80, "右键弹出菜单")
 }

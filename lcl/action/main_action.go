@@ -10,7 +10,7 @@ import (
 
 func main() {
 	lcl.Init(nil, nil)
-	fmt.Println(api.LibAbout())
+	fmt.Println(api.LibAbout(), api.Widget())
 	api.SetDebug(true)
 	api.SetOnException(func(exceptionID, message string) {
 		fmt.Println("exceptionID:", exceptionID, "exceptionMessage:", message)

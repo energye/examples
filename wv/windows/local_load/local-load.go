@@ -9,6 +9,7 @@ import (
 	"github.com/energye/energy/v3/wv"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"os"
 	"time"
@@ -23,6 +24,7 @@ var resources embed.FS
 // export CGO_LDFLAGS="-mmacosx-version-min=11.0"
 
 func main() {
+	api.SetDebug(true)
 	// linux webkit2 > gtk3
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
