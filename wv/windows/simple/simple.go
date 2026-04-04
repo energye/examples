@@ -17,7 +17,7 @@ func main() {
 	// 全局初始化
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		DefaultURL: "https://energye.gitee.io",
+		DefaultURL: "https://haokan.baidu.com/v?vid=16283970396480871799",
 		Linux:      application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 	})
