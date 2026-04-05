@@ -60,5 +60,4 @@ func (f *TForm1) OnButton1Click(object lcl.IObject) {
 }
 
 func init() {
-	Chdir("lcl/xbutton")
 }

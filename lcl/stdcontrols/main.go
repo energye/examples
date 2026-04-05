@@ -17,7 +17,6 @@ var mainForm TMainForm
 
 func init() {
 
-	Chdir("lcl/stdcontrols")
 }
 func main() {
 	lcl.Init(nil, nil)
@@ -277,7 +276,8 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	dtp.SetDateDisplayOrder(types.DdoMDY)
 	dtp.SetDateSeparator("-")
 	dtp.SetTimeSeparator(".")
-	dtp.SetHideDateTimeParts(dtp.HideDateTimeParts().Include(types.DtpYear))
+
+	dtp.SetHideDateTimeParts(dtp.HideDateTimeParts().Include(2))
 
 	top += dtp.Height() + 10
 	mdtp := lcl.NewCalendar(mainForm)

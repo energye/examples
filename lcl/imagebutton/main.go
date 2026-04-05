@@ -9,7 +9,6 @@ import (
 
 func init() {
 
-	Chdir("lcl/imagebutton")
 }
 
 func main() {

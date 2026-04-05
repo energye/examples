@@ -11,7 +11,6 @@ import (
 
 func init() {
 
-	Chdir("lcl/treeview")
 }
 func main() {
 	lcl.Init(nil, nil)

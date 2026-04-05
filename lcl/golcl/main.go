@@ -21,7 +21,6 @@ var (
 
 func init() {
 
-	Chdir("lcl/golcl")
 }
 
 func main() {

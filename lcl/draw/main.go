@@ -21,7 +21,6 @@ var (
 
 func init() {
 
-	Chdir("lcl/draw")
 }
 func main() {
 	lcl.Init(nil, nil)

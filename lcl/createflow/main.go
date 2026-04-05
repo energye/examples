@@ -27,7 +27,6 @@ var (
 
 func init() {
 
-	Chdir("lcl/createflow")
 }
 
 func main() {

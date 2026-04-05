@@ -4,10 +4,12 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"os"
 	"strings"
 )
 
 func main() {
+	os.Setenv("--ws1", "gtk3")
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)

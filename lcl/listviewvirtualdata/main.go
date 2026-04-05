@@ -35,7 +35,6 @@ var (
 
 func init() {
 
-	Chdir("lcl/listviewvirtualdata")
 }
 func main() {
 	lcl.Init(nil, nil)

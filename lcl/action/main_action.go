@@ -24,5 +24,4 @@ func main() {
 }
 
 func init() {
-	Chdir("lcl/action")
 }

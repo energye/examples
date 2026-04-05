@@ -39,8 +39,8 @@ func main() {
 	listbox.SetOnDrawItem(func(control lcl.IWinControl, index int32, aRect types.TRect, state types.TOwnerDrawState) {
 		canvas := listbox.Canvas()
 		s := listbox.Items().Strings(index)
-		fw := canvas.TextWidthWithString(s)
-		fh := canvas.TextHeightWithString(s)
+		fw := canvas.TextWidthWithStr(s)
+		fh := canvas.TextHeightWithStr(s)
 		font := canvas.FontToFont()
 		brush := canvas.BrushToBrush()
 		pen := canvas.PenToPen()
@@ -59,7 +59,7 @@ func main() {
 				canvas.DrawFocusRect(aRect)
 			}
 		}
-		canvas.TextOutWithIntX2String(aRect.Left+(aRect.Right-fw)/2, aRect.Top+(itemHeight-fh)/2, s)
+		canvas.TextOutWithIntX2Str(aRect.Left+(aRect.Right-fw)/2, aRect.Top+(itemHeight-fh)/2, s)
 	})
 	lcl.Application.Run()
 }

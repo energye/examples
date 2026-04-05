@@ -69,7 +69,7 @@ func (f *TMainForm) OnButtonClick(sender lcl.IObject) {
 	font.SetSize(16)
 	font.SetColor(colors.ClGreen)
 
-	canvas.TextOutWithIntX2String(0, 0, "这是一个测试")
+	canvas.TextOutWithIntX2Str(0, 0, "这是一个测试")
 
 	// 这里画个图片
 
@@ -89,7 +89,7 @@ func (f *TMainForm) OnButtonClick(sender lcl.IObject) {
 	font.SetColor(colors.ClBlack)
 	// 这里实际要通过相关的api获取打印机canvas大小，而且那东西与dpi有关
 	r := types.TRect{Right: 2000, Bottom: 2000}
-	canvas.TextRectWithRectIntX2StringTextStyle(r, r.Left, r.Top,
+	canvas.TextRectWithRectIntX2StrTStyle(r, r.Left, r.Top,
 		"这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。这是一段文字，只是用来做测试。",
 		lcl.TTextStyle{})
 }

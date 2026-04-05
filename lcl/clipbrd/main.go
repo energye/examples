@@ -30,7 +30,6 @@ var mainForm TMainForm
 
 func init() {
 
-	Chdir("lcl/clipbrd")
 }
 func main() {
 	lcl.Init(nil, nil)
