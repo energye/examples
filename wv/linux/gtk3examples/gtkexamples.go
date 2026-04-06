@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/energye/energy/v3/pkgs/gtk3"
+	"github.com/energye/lcl/api/libname"
 	"log"
 )
 
@@ -36,10 +37,7 @@ func main() {
 
 func Toolbar(gtkWindow *gtk3.Window) {
 
-	headerBar, err := gtk3.NewHeaderBar()
-	if err != nil {
-		return
-	}
+	headerBar := gtk3.NewHeaderBar()
 	headerBar.SetShowCloseButton(true)
 
 	gtkWindow.SetTitlebar(headerBar)
