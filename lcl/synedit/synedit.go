@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	os.Setenv("--ws1", "gtk3")
+	os.Setenv("--ws", "gtk3")
 	lcl.Init(nil, nil)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
