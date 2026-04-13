@@ -2,12 +2,11 @@ package src
 
 import (
 	"fmt"
-	"github.com/energye/energy/v3/pkgs/cocoa"
+	"github.com/energye/energy/v3/pkgs/darwin/cocoa"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"unsafe"
 )
 
 type TMainForm struct {
@@ -20,21 +19,20 @@ type TMainForm struct {
 var MainForm TMainForm
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
-	//win32.SetWindowAlpha(hwnd, 100)
-	//win32.SetWindowColorKey(hwnd, uint32(colors.ClBlue))
-	//win32.SetWindowBlurBehind(hwnd, true)
-	//win32.SetWindowDisplayAffinity(hwnd, win.WDA_EXCLUDEFROMCAPTURE)
-	m.SetBackgroundColor(0, 0, 0, 0)
+	fmt.Println("IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
+	m.InternalBeforeFormCreate()
+
 	//m.Frameless()
-	//m.SetWindowTransparent()
+	m.SetWindowTransparent()
+	cocoa.NewWindowDelegate(m.NSWindow())
 	//m.SwitchFrostedMaterial("NSAppearanceNameLightAqua")
 	//m.SwitchFrostedMaterial("NSAppearanceNameDarkAqua")
 
-	m.SetPosition(types.PoScreenCenter)
+	m.WorkAreaCenter()
 	//m.SetWidth(300)
 	//m.SetHeight(200)
 	//m.SetColor(colors.ClBisque)
-
+	return
 	box := lcl.NewPanel(m)
 	box.SetParent(m)
 	//box.SetColor(colors.ClBisque)
@@ -44,7 +42,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	box.SetHeight(150)
 	box.SetAnchors(types.NewSet(types.AkTop, types.AkLeft, types.AkRight, types.AkBottom))
 
-	fmt.Println("box:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(box.Handle())))
+	//fmt.Println("box:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(box.Handle())))
 
 	m.initComponents()
 
@@ -85,6 +83,6 @@ func (m *TMainForm) initComponents() {
 	subMenu := lcl.NewMenuItem(m)
 	menu.Add(subMenu)
 
-	fmt.Println("Btn:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Btn.Handle())))
-	fmt.Println("Chk:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Chk.Handle())))
+	//fmt.Println("Btn:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Btn.Handle())))
+	//fmt.Println("Chk:", cocoa.GetObjectInheritanceChain(unsafe.Pointer(m.Chk.Handle())))
 }
