@@ -4,6 +4,7 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/font"
 	"os"
 	"strings"
 )
@@ -38,6 +39,11 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SynEdit.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	m.SynEdit.SetAlign(types.AlTop)
 	m.SynEdit.SetBracketHighlightStyle(types.SbhsBoth)
+	synEditFont := m.SynEdit.Font()
+	synEditFont.SetName("Menlo") // Macos
+	synEditFont.SetQuality(types.FqCleartype)
+	synEditFont.SetCharSet(font.DEFAULT_CHARSET)
+	//m.SynEdit.Canvas().SetFontToFont(synEditFont)
 
 	m.SynEdit2 = lcl.NewSynEdit(m)
 	m.SynEdit2.SetParent(m)
