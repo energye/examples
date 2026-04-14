@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/ipc"
-	"github.com/energye/energy/v3/ipc/callback"
 	"github.com/energye/energy/v3/wv"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
@@ -29,12 +28,12 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		Frameless:  true,
-		Caption:    "energy - webview2",
-		DefaultURL: "fs://energy/index-home.html",
+		Frameless: true,
+		Caption:   "energy - webview2",
+		//DefaultURL: "fs://energy/index-home.html",
 		//DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
-		//DefaultURL:         "https://www.bilibili.com/",
+		DefaultURL: "https://www.bilibili.com/",
 		//DefaultURL: "https://www.baidu.com/",
 		//DefaultURL: "https://2x.antdv.com/components/overview/",
 		WindowTransparent:  true,
@@ -53,8 +52,8 @@ func main() {
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
-			AppearanceName:    application.NSAppearanceNameDarkAqua,
-			FullSizeContent:   true,
+			AppearanceName: application.NSAppearanceNameDarkAqua,
+			//FullSizeContent:   true,
 			TitleTransparent:  true,
 			TitleHideText:     true,
 			WindowRadius:      8,
@@ -82,13 +81,13 @@ func main() {
 	}
 	ipc.BindEvent(&app.DemoBind{})
 	ipc.BindEventPrefix("demo", &app.DemoBind{})
-	ipc.On("test", func(context callback.IContext) {
+	ipc.On("test", func(context ipc.IContext) {
 		fmt.Println("ipc-test:", context.BrowserId(), "data:", context.Data())
 		context.Result("ResultData", 123, 888.99, true, time.Now().String())
 		ipc.Emit("test", "测试数据")
 	})
 
-	ipc.On("minimize", func(context callback.IContext) {
+	ipc.On("minimize", func(context ipc.IContext) {
 		fmt.Println("minimize", context.BrowserId())
 		tempWindow := getWindow(context.BrowserId())
 		if tempWindow != nil {
@@ -96,7 +95,7 @@ func main() {
 		}
 	})
 
-	ipc.On("maximize", func(context callback.IContext) {
+	ipc.On("maximize", func(context ipc.IContext) {
 		fmt.Println("maximize", context.BrowserId())
 		tempWindow := getWindow(context.BrowserId())
 		if tempWindow != nil {
@@ -104,7 +103,7 @@ func main() {
 		}
 	})
 
-	ipc.On("fullscreen", func(context callback.IContext) {
+	ipc.On("fullscreen", func(context ipc.IContext) {
 		fmt.Println("fullscreen", context.BrowserId())
 		tempWindow := getWindow(context.BrowserId())
 		if tempWindow != nil {
@@ -116,7 +115,7 @@ func main() {
 		}
 	})
 
-	ipc.On("close", func(context callback.IContext) {
+	ipc.On("close", func(context ipc.IContext) {
 		fmt.Println("close", context.BrowserId())
 		tempWindow := getWindow(context.BrowserId())
 		if tempWindow != nil {
