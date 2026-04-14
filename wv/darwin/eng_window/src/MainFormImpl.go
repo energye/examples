@@ -32,7 +32,6 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	//m.SetWidth(300)
 	//m.SetHeight(200)
 	//m.SetColor(colors.ClBisque)
-	return
 	box := lcl.NewPanel(m)
 	box.SetParent(m)
 	//box.SetColor(colors.ClBisque)

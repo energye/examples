@@ -28,12 +28,12 @@ func main() {
 	os.Setenv("--ws", "gtk3")
 	wvApp := wv.Init(nil, nil)
 	wvApp.SetOptions(application.Options{
-		Frameless: true,
-		Caption:   "energy - webview2",
-		//DefaultURL: "fs://energy/index-home.html",
+		Frameless:  true,
+		Caption:    "energy - webview2",
+		DefaultURL: "fs://energy/index-home.html",
 		//DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
-		DefaultURL: "https://www.bilibili.com/",
+		//DefaultURL: "https://www.bilibili.com/",
 		//DefaultURL: "https://www.baidu.com/",
 		//DefaultURL: "https://2x.antdv.com/components/overview/",
 		WindowTransparent:  true,
@@ -52,8 +52,8 @@ func main() {
 		Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
 		//Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 		MacOS: application.MacOS{
-			AppearanceName: application.NSAppearanceNameDarkAqua,
-			//FullSizeContent:   true,
+			AppearanceName:    application.NSAppearanceNameDarkAqua,
+			FullSizeContent:   true,
 			TitleTransparent:  true,
 			TitleHideText:     true,
 			WindowRadius:      8,
