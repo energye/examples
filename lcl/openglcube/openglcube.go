@@ -119,7 +119,6 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 	m.openGL.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		mouseDownLabel.SetCaption("Mouse Down " + fmt.Sprintf("x: %d, y: %d", x, y))
 	})
-	return
 	// Initialize Glow
 	if err := gl.Init(); err != nil {
 		panic(err)
