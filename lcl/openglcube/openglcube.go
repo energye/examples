@@ -62,6 +62,7 @@ type WindowForm struct {
 	modelUniform       int32
 	angle              float64
 	previousTime       time.Time
+	pauseTime          time.Time
 	isRun              bool
 	isClose            bool
 }
@@ -81,9 +82,12 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 		if m.isRun {
 			startBtn.SetCaption("开始")
 			m.isRun = false
+			m.pauseTime = time.Now()
 		} else {
 			startBtn.SetCaption("暂停")
 			m.isRun = true
+			pauseDuration := time.Since(m.pauseTime) // 计算暂停了多久
+			m.previousTime = m.previousTime.Add(pauseDuration)
 			m.startRenderLoop()
 		}
 	})
@@ -144,7 +148,7 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 }
 
 func (m *WindowForm) initializeOpenGL() {
-	m.openGL.MakeCurrent(false)
+	m.openGL.MakeCurrent(true)
 
 	if err := gl.Init(); err != nil {
 		panic(fmt.Errorf("failed to initialize gl: %w", err))
@@ -236,16 +240,23 @@ func (m *WindowForm) renderFrame() {
 
 func (m *WindowForm) startRenderLoop() {
 	go func() {
+		ticker := time.NewTicker(time.Millisecond * 16)
+		defer ticker.Stop()
 		for {
-			if m.isClose || !m.isRun {
-				break
-			}
-			lcl.RunOnMainThreadAsync(func(id uint32) {
-				if m.isInitializeOpenGL {
-					m.openGL.Invalidate()
+			select {
+			case <-ticker.C:
+				if m.isClose {
+					return
 				}
-			})
-			time.Sleep(time.Millisecond * 16)
+				if !m.isRun {
+					continue
+				}
+				lcl.RunOnMainThreadSync(func() {
+					if m.isInitializeOpenGL {
+						m.openGL.Invalidate()
+					}
+				})
+			}
 		}
 	}()
 }
