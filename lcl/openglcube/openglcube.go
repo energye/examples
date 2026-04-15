@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"github.com/go-gl/gl/v4.6-core/gl"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"go/build"
 	"image"
@@ -13,7 +13,9 @@ import (
 	_ "image/png"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 // 该示例来自于: github.com/go-gl/example => gl41core-cube
@@ -34,16 +36,16 @@ const (
 
 // set CGO_ENABLED=1
 func main() {
-	if err := glfw.Init(); err != nil {
-		log.Fatalln("failed to initialize glfw:", err)
-	}
-	defer glfw.Terminate()
-	glfw.WindowHint(glfw.Resizable, glfw.False)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 6)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-
+	api.SetDebug(true)
+	//if err := glfw.Init(); err != nil {
+	//	log.Fatalln("failed to initialize glfw:", err)
+	//}
+	//defer glfw.Terminate()
+	//glfw.WindowHint(glfw.Resizable, glfw.False)
+	//glfw.WindowHint(glfw.ContextVersionMajor, 4)
+	//glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	//glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	//glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	lcl.Init(nil, nil)
 	lcl.RunApp(window)
 }
@@ -52,6 +54,16 @@ type WindowForm struct {
 	lcl.TEngForm
 	openGL             lcl.IOpenGLControl
 	isInitializeOpenGL bool
+	program            uint32
+	vao                uint32
+	texture            uint32
+	projectionUniform  int32
+	cameraUniform      int32
+	modelUniform       int32
+	angle              float64
+	previousTime       time.Time
+	isRun              bool
+	isClose            bool
 }
 
 func (m *WindowForm) FormCreate(sender lcl.IObject) {
@@ -60,105 +72,120 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 	m.ScreenCenter()
 	m.SetCaption(" ENERGY OpenGL")
 
-	var (
-		isClose = false
-		isRun   = false
-	)
-	var run = func() {
-		if isRun {
-			return
-		}
-		isRun = true
-		go func() {
-			for {
-				if isClose || !isRun {
-					break
-				}
-				m.openGL.Invalidate()
-			}
-		}()
-	}
 	startBtn := lcl.NewButton(m)
 	startBtn.SetParent(m)
 	startBtn.SetCaption("暂停")
 	startBtn.SetLeft(50)
+	startBtn.SetTop(5)
 	startBtn.SetOnClick(func(sender lcl.IObject) {
-		if isRun {
-			startBtn.SetCaption("暂停")
-			isRun = false
-		} else {
+		if m.isRun {
 			startBtn.SetCaption("开始")
-			run()
+			m.isRun = false
+		} else {
+			startBtn.SetCaption("暂停")
+			m.isRun = true
+			m.startRenderLoop()
 		}
+	})
+	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
+		fmt.Println("SetOnCloseQuery canClose:", *canClose)
+		m.isClose = true
+		*canClose = true
 	})
 
 	mouseMoveLabel := lcl.NewLabel(m)
 	mouseMoveLabel.SetParent(m)
 	mouseMoveLabel.SetLeft(150)
+	mouseMoveLabel.SetTop(5)
 	mouseMoveLabel.SetCaption("-- x: 0, y: 0")
 	mouseMoveLabel.Font().SetSize(16)
+
 	mouseDownLabel := lcl.NewLabel(m)
 	mouseDownLabel.SetParent(m)
 	mouseDownLabel.SetLeft(450)
+	mouseDownLabel.SetTop(5)
 	mouseDownLabel.Font().SetSize(16)
 	mouseDownLabel.SetCaption("-- x: 0, y: 0")
 
 	m.openGL = lcl.NewOpenGLControl(m)
 	m.openGL.SetName("openGL")
 	m.openGL.SetParent(m)
+	m.openGL.SetLeft(0)
 	m.openGL.SetTop(35)
 	m.openGL.SetWidth(windowWidth)
 	m.openGL.SetHeight(windowHeight)
 	m.openGL.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkBottom, types.AkRight))
 	m.openGL.SetOpenGLMajorVersion(4)
-	m.openGL.SetOpenGLMinorVersion(6)
-	m.openGL.MakeCurrent(false)
+	m.openGL.SetOpenGLMinorVersion(1)
 	m.openGL.SetOnMouseMove(func(sender lcl.IObject, shift types.TShiftState, x, y int32) {
 		mouseMoveLabel.SetCaption("Mouse Move " + fmt.Sprintf("x: %d, y: %d", x, y))
 	})
 	m.openGL.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
 		mouseDownLabel.SetCaption("Mouse Down " + fmt.Sprintf("x: %d, y: %d", x, y))
 	})
-	// Initialize Glow
+
+	m.openGL.SetOnPaint(func(sender lcl.IObject) {
+		if !m.isInitializeOpenGL {
+			return
+		}
+		m.renderFrame()
+	})
+
+	isFirstShow := true
+	m.SetOnShow(func(sender lcl.IObject) {
+		if isFirstShow {
+			isFirstShow = false
+			m.initializeOpenGL()
+			m.isRun = true
+			m.startRenderLoop()
+		}
+	})
+	fmt.Println("create end")
+}
+
+func (m *WindowForm) initializeOpenGL() {
+	m.openGL.MakeCurrent(false)
+
 	if err := gl.Init(); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to initialize gl: %w", err))
 	}
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
-	// Configure the vertex and fragment shaders
 	program, err := newProgram(vertexShader, fragmentShader)
 	if err != nil {
 		panic(err)
 	}
+	m.program = program
 	gl.UseProgram(program)
+
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 10.0)
-	projectionUniform := gl.GetUniformLocation(program, gl.Str("projection\x00"))
-	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
+	m.projectionUniform = gl.GetUniformLocation(program, gl.Str("projection\x00"))
+	gl.UniformMatrix4fv(m.projectionUniform, 1, false, &projection[0])
 
 	camera := mgl32.LookAtV(mgl32.Vec3{3, 3, 3}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0})
-	cameraUniform := gl.GetUniformLocation(program, gl.Str("camera\x00"))
-	gl.UniformMatrix4fv(cameraUniform, 1, false, &camera[0])
+	m.cameraUniform = gl.GetUniformLocation(program, gl.Str("camera\x00"))
+	gl.UniformMatrix4fv(m.cameraUniform, 1, false, &camera[0])
 
 	model := mgl32.Ident4()
-	modelUniform := gl.GetUniformLocation(program, gl.Str("model\x00"))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
+	m.modelUniform = gl.GetUniformLocation(program, gl.Str("model\x00"))
+	gl.UniformMatrix4fv(m.modelUniform, 1, false, &model[0])
 
 	textureUniform := gl.GetUniformLocation(program, gl.Str("tex\x00"))
 	gl.Uniform1i(textureUniform, 0)
 
 	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
-
-	// Load the texture
-	texture, err := newTexture("/Users/yanghy/app/workspace/examples/lcl/openglcube/square.png")
+	wd, _ := os.Getwd()
+	squarePng := filepath.Join(wd, "square.png")
+	fmt.Println("squarePng:", squarePng)
+	texture, err := newTexture(squarePng)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	m.texture = texture
 
-	// Configure the vertex data
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
+	gl.GenVertexArrays(1, &m.vao)
+	gl.BindVertexArray(m.vao)
 
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
@@ -173,49 +200,54 @@ func (m *WindowForm) FormCreate(sender lcl.IObject) {
 	gl.EnableVertexAttribArray(texCoordAttrib)
 	gl.VertexAttribPointerWithOffset(texCoordAttrib, 2, gl.FLOAT, false, 5*4, 3*4)
 
-	// Configure global settings
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 
-	angle := 0.0
-	previousTime := glfw.GetTime()
-	m.openGL.SetOnPaint(func(sender lcl.IObject) {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	m.angle = 0.0
+	m.previousTime = time.Now()
+	m.isInitializeOpenGL = true
 
-		// Update
-		time := glfw.GetTime()
-		elapsed := time - previousTime
-		previousTime = time
+	fmt.Println("OpenGL initialized")
+}
 
-		angle += elapsed
-		model = mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
+func (m *WindowForm) renderFrame() {
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		// Render
-		gl.UseProgram(program)
-		gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
+	now := time.Now()
+	elapsed := now.Sub(m.previousTime).Seconds()
+	m.previousTime = now
 
-		gl.BindVertexArray(vao)
+	m.angle += elapsed
+	model := mgl32.HomogRotate3D(float32(m.angle), mgl32.Vec3{0, 1, 0})
 
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, texture)
+	gl.UseProgram(m.program)
+	gl.UniformMatrix4fv(m.modelUniform, 1, false, &model[0])
 
-		gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+	gl.BindVertexArray(m.vao)
 
-		// Maintenance
-		m.openGL.SwapBuffers()
-		glfw.PollEvents()
-	})
-	isFirstShow := true
-	m.SetOnShow(func(sender lcl.IObject) {
-		if isFirstShow {
-			isFirstShow = false
-			run()
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, m.texture)
+
+	gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+
+	m.openGL.SwapBuffers()
+}
+
+func (m *WindowForm) startRenderLoop() {
+	go func() {
+		for {
+			if m.isClose || !m.isRun {
+				break
+			}
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				if m.isInitializeOpenGL {
+					m.openGL.Invalidate()
+				}
+			})
+			time.Sleep(time.Millisecond * 16)
 		}
-	})
-	m.SetOnCloseQuery(func(sender lcl.IObject, canClose *bool) {
-		isClose = true
-	})
+	}()
 }
 
 func newTexture(file string) (uint32, error) {
