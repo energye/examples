@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/energye/assetserve"
+	"github.com/energye/energy/v3/platform/darwin/cocoa"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
@@ -40,6 +41,7 @@ func main() {
 	mainForm.url = "energy://test.com"
 	mainForm.isMainWindow = true
 	lcl.Application.NewForm(&mainForm)
+	cocoa.NSApp.InitAppDelegate() // 测试增加代理
 	lcl.Application.Run()
 }
 
