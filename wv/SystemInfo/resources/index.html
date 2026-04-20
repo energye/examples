@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>系统信息查看器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .info-card h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: bold;
+      font-family: monospace;
+    }
+
+    .refresh-btn {
+      display: block;
+      width: 200px;
+      margin: 30px auto;
+      padding: 15px 30px;
+      background: white;
+      color: #667eea;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🖥️ 系统信息查看器</h1>
+    <p class="subtitle">实时查看系统和运行时信息</p>
+  </header>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h2>💻 系统信息</h2>
+      <div id="systemInfo"></div>
+    </div>
+
+    <div class="info-card">
+      <h2>🧠 内存使用</h2>
+      <div id="memoryInfo"></div>
+    </div>
+
+    <div class="info-card">
+      <h2>⚡ 运行时状态</h2>
+      <div id="runtimeInfo"></div>
+    </div>
+  </div>
+
+  <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+</div>
+
+<script>
+  function loadSystemInfo() {
+    ipc.emit('get-system-info', [], function(info) {
+      document.getElementById('systemInfo').innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label">操作系统:</span>
+                        <span class="info-value">${info.os}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">架构:</span>
+                        <span class="info-value">${info.arch}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">CPU核心数:</span>
+                        <span class="info-value">${info.cpuCores}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Go版本:</span>
+                        <span class="info-value">${info.goVersion}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">浏览器ID:</span>
+                        <span class="info-value">${info.browserId}</span>
+                    </div>
+                `;
+
+      document.getElementById('memoryInfo').innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label">已分配内存:</span>
+                        <span class="info-value">${info.allocMemory}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">总分配内存:</span>
+                        <span class="info-value">${info.totalMemory}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GC次数:</span>
+                        <span class="info-value">${info.gcCount}</span>
+                    </div>
+                `;
+
+      document.getElementById('runtimeInfo').innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label">协程数量:</span>
+                        <span class="info-value">${info.goroutines}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">运行时间:</span>
+                        <span class="info-value">${info.uptime}</span>
+                    </div>
+                `;
+    });
+  }
+
+  function refreshData() {
+    ipc.emit('refresh-stats', [], function(stats) {
+      const runtimeInfo = document.getElementById('runtimeInfo');
+      const items = runtimeInfo.querySelectorAll('.info-item');
+      items[0].querySelector('.info-value').textContent = stats.goroutines;
+      items[1].querySelector('.info-value').textContent = stats.uptime;
+
+      const memoryInfo = document.getElementById('memoryInfo');
+      const memItems = memoryInfo.querySelectorAll('.info-item');
+      memItems[0].querySelector('.info-value').textContent = stats.allocMemory;
+      memItems[2].querySelector('.info-value').textContent = stats.gcCount;
+
+      console.log('数据已刷新:', stats);
+    });
+  }
+
+  loadSystemInfo();
+</script>
+</body>
+</html>

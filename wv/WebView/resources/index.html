@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energy WebView 示例</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚀 Energy WebView 完整示例</h1>
+    <p class="subtitle">Go + WebView2 跨平台桌面应用</p>
+  </header>
+
+  <div class="card">
+    <h2>📋 系统信息</h2>
+    <button onclick="getSystemInfo()" class="btn btn-primary">获取系统信息</button>
+    <div id="systemInfo" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h2>🧮 计算器</h2>
+    <div class="calculator">
+      <input type="number" id="numA" placeholder="数字 A" value="10">
+      <select id="operator">
+        <option value="+">+</option>
+        <option value="-">-</option>
+        <option value="*">×</option>
+        <option value="/">÷</option>
+      </select>
+      <input type="number" id="numB" placeholder="数字 B" value="20">
+      <button onclick="calculate()" class="btn btn-success">计算</button>
+    </div>
+    <div id="calcResult" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h2>💬 消息通信</h2>
+    <input type="text" id="messageInput" placeholder="输入消息..." value="Hello from JavaScript!">
+    <button onclick="sendMessage()" class="btn btn-info">发送消息</button>
+    <div id="messageResult" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h2>👥 用户列表</h2>
+    <button onclick="getUserList()" class="btn btn-warning">获取用户列表</button>
+    <div id="userList" class="result-box"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

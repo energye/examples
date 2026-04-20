@@ -72,14 +72,6 @@ func (m *TForm1) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
 // initComponents 初始化组件
 func (m *TForm1) initComponents() {
 	// 组件初始化和设置属性
-	m.SynEdit1 = lcl.NewSynEdit(m)
-	m.SynEdit1.SetAlign(lclTypes.AlLeft)
-	m.SynEdit1.SetHeight(510)
-	m.SynEdit1.SetLeft(0)
-	m.SynEdit1.SetName("SynEdit1")
-	m.SynEdit1.SetTop(0)
-	m.SynEdit1.SetWidth(246)
-	m.SynEdit1.SetParent(m)
 
 	m.Webview1 = wv.NewWebview(m)
 	m.Webview1.SetAlign(lclTypes.AlCustom)
@@ -91,38 +83,5 @@ func (m *TForm1) initComponents() {
 	m.Webview1.SetTop(0)
 	m.Webview1.SetWidth(498)
 	m.Webview1.SetParent(m)
-
-	m.Button1 = lcl.NewButton(m)
-	m.Button1.SetCaption("Button1")
-	m.Button1.SetHeight(25)
-	m.Button1.SetLeft(262)
-	m.Button1.SetName("Button1")
-	m.Button1.SetTop(11)
-	m.Button1.SetWidth(75)
-	m.Button1.SetParent(m)
-
-	m.ProgressBar1 = lcl.NewProgressBar(m)
-	m.ProgressBar1.SetHeight(20)
-	m.ProgressBar1.SetLeft(261)
-	m.ProgressBar1.SetName("ProgressBar1")
-	m.ProgressBar1.SetTop(58)
-	m.ProgressBar1.SetWidth(100)
-	m.ProgressBar1.SetParent(m)
-
-	m.LazVirtualDrawTree1 = lcl.NewLazVirtualDrawTree(m)
-	m.LazVirtualDrawTree1.SetHeight(100)
-	m.LazVirtualDrawTree1.SetLeft(252)
-	m.LazVirtualDrawTree1.SetName("LazVirtualDrawTree1")
-	m.LazVirtualDrawTree1.SetTop(101)
-	m.LazVirtualDrawTree1.SetWidth(143)
-	m.LazVirtualDrawTree1.SetParent(m)
-
-	m.ColorBox1 = lcl.NewColorBox(m)
-	m.ColorBox1.SetHeight(35)
-	m.ColorBox1.SetLeft(262)
-	m.ColorBox1.SetName("ColorBox1")
-	m.ColorBox1.SetTop(232)
-	m.ColorBox1.SetWidth(100)
-	m.ColorBox1.SetParent(m)
 
 }
