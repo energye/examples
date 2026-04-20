@@ -28,30 +28,32 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.notifService = notification.New()
 
 	// 注册通知响应回调
-	m.notifService.(INotificationDarwin).SetOnNotificationResponse(func(result Result) {
-		if result.Error != nil {
-			m.appendLog(fmt.Sprintf("❌ 错误: %v\n", result.Error))
-			return
-		}
+	if notify, ok := m.notifService.(INotificationDarwin); ok {
+		notify.SetOnNotificationResponse(func(result Result) {
+			if result.Error != nil {
+				m.appendLog(fmt.Sprintf("❌ 错误: %v\n", result.Error))
+				return
+			}
 
-		resp := result.Response
-		m.appendLog(fmt.Sprintf("📨 收到通知响应:\n"))
-		m.appendLog(fmt.Sprintf("   ID: %s\n", resp.ID))
-		m.appendLog(fmt.Sprintf("   操作: %s\n", resp.ActionIdentifier))
-		m.appendLog(fmt.Sprintf("   标题: %s\n", resp.Title))
-		m.appendLog(fmt.Sprintf("   副标题: %s\n", resp.Subtitle))
-		m.appendLog(fmt.Sprintf("   内容: %s\n", resp.Body))
+			resp := result.Response
+			m.appendLog(fmt.Sprintf("📨 收到通知响应:\n"))
+			m.appendLog(fmt.Sprintf("   ID: %s\n", resp.ID))
+			m.appendLog(fmt.Sprintf("   操作: %s\n", resp.ActionIdentifier))
+			m.appendLog(fmt.Sprintf("   标题: %s\n", resp.Title))
+			m.appendLog(fmt.Sprintf("   副标题: %s\n", resp.Subtitle))
+			m.appendLog(fmt.Sprintf("   内容: %s\n", resp.Body))
 
-		if resp.UserText != "" {
-			m.appendLog(fmt.Sprintf("   ✍️ 用户输入: %s\n", resp.UserText))
-		}
+			if resp.UserText != "" {
+				m.appendLog(fmt.Sprintf("   ✍️ 用户输入: %s\n", resp.UserText))
+			}
 
-		if len(resp.UserInfo) > 0 {
-			m.appendLog(fmt.Sprintf("   📊 附加数据: %v\n", resp.UserInfo))
-		}
+			if len(resp.UserInfo) > 0 {
+				m.appendLog(fmt.Sprintf("   📊 附加数据: %v\n", resp.UserInfo))
+			}
 
-		m.appendLog("\n")
-	})
+			m.appendLog("\n")
+		})
+	}
 
 	// 主面板
 	mainPanel := lcl.NewPanel(m)
