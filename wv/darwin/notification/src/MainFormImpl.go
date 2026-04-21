@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"github.com/energye/energy/v3/platform/notification"
 	. "github.com/energye/energy/v3/platform/notification/types"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/rtl/version"
@@ -11,9 +12,9 @@ import (
 
 type TMainForm struct {
 	lcl.TEngForm
-	notifService INotification
-	statusLabel  lcl.ILabel
-	logMemo      lcl.IMemo
+	notify      INotification
+	statusLabel lcl.ILabel
+	logMemo     lcl.IMemo
 }
 
 var MainForm TMainForm
@@ -40,10 +41,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.WorkAreaCenter()
 	m.SetCaption("macOS 通知功能完整示例")
 	fmt.Printf("OSVersion: %+v\n", version.OSVersion)
-	m.CreateNotify()
+	m.notify = notification.New()
 
 	// 注册通知响应回调
-	if notify, ok := m.notifService.(INotificationDarwin); ok {
+	if notify, ok := m.notify.(INotificationDarwin); ok {
 		notify.SetOnNotificationResponse(func(result Result) {
 			if result.Error != nil {
 				m.appendLog(fmt.Sprintf("❌ 错误: %v\n", result.Error))
@@ -106,7 +107,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	btnAuth.SetOnClick(func(sender lcl.IObject) {
 		m.setStatus("正在请求权限...")
 		go func() {
-			authorized, err := m.notifService.RequestNotificationAuthorization()
+			authorized, err := m.notify.RequestNotificationAuthorization()
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				if err != nil {
 					m.setStatus(fmt.Sprintf("❌ 权限请求失败: %v", err))
@@ -135,7 +136,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	btnCheck.SetHint("查看当前通知权限状态")
 	btnCheck.SetOnClick(func(sender lcl.IObject) {
 		go func() {
-			authorized, err := m.notifService.CheckNotificationAuthorization()
+			authorized, err := m.notify.CheckNotificationAuthorization()
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				if err != nil {
 					m.setStatus(fmt.Sprintf("检查失败: %v", err))
@@ -169,7 +170,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			Body:     "这是一个基本的通知，没有任何交互按钮 🎉",
 		}
 
-		err := m.notifService.SendNotification(opts)
+		err := m.notify.SendNotification(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 		} else {
@@ -203,7 +204,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			},
 		}
 
-		err := m.notifService.SendNotification(opts)
+		err := m.notify.SendNotification(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 		} else {
@@ -228,7 +229,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			Body:     "您的更改已成功保存到数据库",
 		}
 
-		err := m.notifService.SendNotification(opts)
+		err := m.notify.SendNotification(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 			m.appendLog(fmt.Sprintf("发送成功通知失败: %v\n", err))
@@ -254,7 +255,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			Body:     "磁盘空间仅剩 5%，请及时清理",
 		}
 
-		err := m.notifService.SendNotification(opts)
+		err := m.notify.SendNotification(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 			m.appendLog(fmt.Sprintf("发送警告通知失败: %v\n", err))
@@ -280,7 +281,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			Body:     "无法连接到服务器，请检查网络设置",
 		}
 
-		err := m.notifService.SendNotification(opts)
+		err := m.notify.SendNotification(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 			m.appendLog(fmt.Sprintf("发送错误通知失败: %v\n", err))
@@ -318,7 +319,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			},
 		}
 
-		err := m.notifService.RegisterNotificationCategory(category)
+		err := m.notify.RegisterNotificationCategory(category)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("注册类别失败: %v", err))
 			return
@@ -337,7 +338,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			},
 		}
 
-		err = m.notifService.SendNotificationWithActions(opts)
+		err = m.notify.SendNotificationWithActions(opts)
 		if err != nil {
 			m.setStatus(fmt.Sprintf("发送失败: %v", err))
 		} else {
@@ -374,7 +375,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			},
 		}
 
-		err := m.notifService.RegisterNotificationCategory(category)
+		err := m.notify.RegisterNotificationCategory(category)
 		if err != nil {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.setStatus(fmt.Sprintf("注册类别失败: %v", err))
@@ -388,7 +389,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				Body:       "张三想要添加你为好友",
 				CategoryID: "three_button_category",
 			}
-			err = m.notifService.SendNotificationWithActions(opts)
+			err = m.notify.SendNotificationWithActions(opts)
 			if err != nil {
 				lcl.RunOnMainThreadAsync(func(id uint32) {
 					m.setStatus(fmt.Sprintf("三按钮通知失败: %v", err))
@@ -418,7 +419,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			ReplyButtonTitle: "发送",
 		}
 
-		err := m.notifService.RegisterNotificationCategory(category)
+		err := m.notify.RegisterNotificationCategory(category)
 
 		opts := Options{
 			ID:         fmt.Sprintf("input-%d", time.Now().Unix()),
@@ -433,7 +434,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			},
 		}
 
-		err = m.notifService.SendNotificationWithActions(opts)
+		err = m.notify.SendNotificationWithActions(opts)
 		if err != nil {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.setStatus(fmt.Sprintf("发送失败: %v", err))
@@ -475,7 +476,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			ReplyButtonTitle: "发送",
 		}
 
-		err := m.notifService.RegisterNotificationCategory(category)
+		err := m.notify.RegisterNotificationCategory(category)
 		if err != nil {
 			lcl.RunOnMainThreadAsync(func(id uint32) {
 				m.setStatus(fmt.Sprintf("注册类别失败: %v", err))
@@ -490,7 +491,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				CategoryID: "quick_reply_category",
 			}
 
-			err = m.notifService.SendNotificationWithActions(opts)
+			err = m.notify.SendNotificationWithActions(opts)
 			if err != nil {
 				lcl.RunOnMainThreadAsync(func(id uint32) {
 					m.setStatus(fmt.Sprintf("发送失败: %v", err))
@@ -515,8 +516,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	btnClear.SetWidth(180)
 	btnClear.SetHint("移除所有已显示和待显示的通知")
 	btnClear.SetOnClick(func(sender lcl.IObject) {
-		m.notifService.RemoveAllDeliveredNotifications()
-		m.notifService.RemoveAllPendingNotifications()
+		m.notify.RemoveAllDeliveredNotifications()
+		m.notify.RemoveAllPendingNotifications()
 		m.setStatus("🗑️ 已清除所有通知")
 		m.appendLog("🗑️ 清除所有通知\n")
 	})
@@ -541,7 +542,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 					Body:     fmt.Sprintf("这是第 %d 个测试通知", i),
 				}
 
-				err := m.notifService.SendNotification(opts)
+				err := m.notify.SendNotification(opts)
 				if err != nil {
 					lcl.RunOnMainThreadAsync(func(id uint32) {
 						m.setStatus("❌ 批量发送失败")
