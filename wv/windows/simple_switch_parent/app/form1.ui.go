@@ -35,7 +35,7 @@ var Form1 TForm1
 
 // FormCreate 窗体创建接口实现. 自动调用
 func (m *TForm1) FormCreate(sender lcl.IObject) {
-	m.TWindow.InternalBeforeFormCreate()
+	//m.TWindow.InternalBeforeFormCreate()
 	// 设置窗体属性
 	m.SetCaption("Form1")
 	m.SetHeight(534)
@@ -47,7 +47,7 @@ func (m *TForm1) FormCreate(sender lcl.IObject) {
 	m.initComponents()
 	// 调用用户创建窗体事件
 	m.OnFormCreate(sender)
-	m.TWindow.FormCreate(sender)
+	//m.TWindow.FormCreate(sender)
 }
 
 // OnShow 窗口显示事件
