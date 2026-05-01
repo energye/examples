@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"github.com/energye/energy/v3/platform/win32"
 	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/debug_most/contextmenu"
 	"github.com/energye/examples/wv/windows/debug_most/cookie"
@@ -14,6 +15,7 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool/exec"
 	"github.com/energye/lcl/types"
+	"github.com/energye/lcl/types/colors"
 	wv "github.com/energye/wv/windows"
 	"path/filepath"
 )
@@ -78,12 +80,19 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.windowParent.SetAlign(types.AlCustom) //重置对齐,默认是整个客户端
 	m.windowParent.SetTop(30)
 	m.windowParent.SetHeight(m.Height() - 25)
-	m.windowParent.SetWidth(m.Width())
+	m.windowParent.SetWidth(m.Width() - 200)
+
 	m.windowParent.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
 	//m.windowParent.SetAlign(types.AlClient)
 
 	m.browser = wv.NewBrowser(m)
 	m.windowParent.SetBrowser(m.browser)
+
+	r := colors.Red(colors.ClBlue)
+	g := colors.Green(colors.ClBlue)
+	b := colors.Blue(colors.ClBlue)
+	win32.SetBackgroundColor(m.windowParent.Handle(), r, g, b) // 在设置了 parent 之后获取句柄
+
 	m.browser.SetDefaultURL("myscheme://domain/index.html")
 	//m.browser.SetTargetCompatibleBrowserVersion("95.0.1020.44")
 	fmt.Println("TargetCompatibleBrowserVersion:", m.browser.TargetCompatibleBrowserVersion())
