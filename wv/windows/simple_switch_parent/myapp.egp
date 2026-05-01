@@ -1,0 +1,127 @@
+{
+  "name": "myapp",
+  "egp_name": "myapp.egp",
+  "package": "app",
+  "main": "main.go",
+  "gui_render_framework": "WV",
+  "ui_forms": [
+    {
+      "id": 1,
+      "name": "Form1",
+      "ui_file": "form1.ui",
+      "go_file": "form1.ui.go",
+      "go_user_file": "form1.go",
+      "date_time": "2026-04-03 23:07:12"
+    }
+  ],
+  "active_ui_form": 1,
+  "build_option": {
+    "windows": true,
+    "macos": true,
+    "linux": true,
+    "arch_amd64": true,
+    "arch_386": true,
+    "arch_arm64": true,
+    "arch_arm": true,
+    "arch_loong64": false,
+    "ui_win32": true,
+    "ui_cocoa": true,
+    "ui_gtk2": true,
+    "ui_gtk3": false,
+    "output": "./build",
+    "build_file_name": "myapp",
+    "build_mode_debug": true,
+    "build_mode_release": false,
+    "go_args": "",
+    "code_obfuscation": false,
+    "disable_debug": false,
+    "package_name": "myapp",
+    "win_msi": false,
+    "win_exe": true,
+    "win_default_install": "",
+    "win_associate_file_list": null,
+    "win_associate_protocol_list": null,
+    "win_sign": {
+      "enable": false,
+      "cert": null
+    },
+    "win_appx": {
+      "properties_logo": "",
+      "square_44_x_44_logo": "",
+      "square_150_x_150_logo": "",
+      "wide_310_x_150_logo": "",
+      "splash_screen": "",
+      "associate_file_icon": "",
+      "associate_protocol_logo": ""
+    },
+    "nsis": {
+      "welcome_banner": "",
+      "header_banner": "",
+      "icon": "",
+      "unicon": "",
+      "license": ""
+    },
+    "mac_dmg": false,
+    "mac_pkg": true,
+    "mac_sign": {
+      "enable": false,
+      "cert": [
+        "codesign -f -s \"-\" \"$APP_NAME/Contents/Frameworks/$ENERGY.DYLIB\"",
+        "codesign -f -s \"-\" --options runtime \"$APP_NAME\""
+      ]
+    },
+    "mac_common_lib": false,
+    "linux_deb": true,
+    "depends": ""
+  },
+  "app_option": {
+    "title": "MyEnergyApp",
+    "id": "CompanyName.productName.AppName",
+    "desc": "Your Application Description.",
+    "version": "1.0.0.0",
+    "copyright": "Copyright (C) YYYY-YYYY Your Company Name. All rights reserved.",
+    "icon": {
+      "data": null,
+      "w": 0,
+      "h": 0
+    },
+    "lang": "zh_CN",
+    "windows": {
+      "manifest": {
+        "compatibility_os": 0,
+        "dpi": 0,
+        "run_level": 0,
+        "ui_access": false,
+        "auto_elevate": false,
+        "disable_theming": false,
+        "disable_window_filtering": false,
+        "high_resolution_scrolling_aware": true,
+        "ultra_high_resolution_scrolling_aware": true,
+        "long_path_aware": true,
+        "printer_driver_isolation": false,
+        "gdi_scaling": true,
+        "segment_heap": false,
+        "use_common_controls_v6": true
+      }
+    },
+    "macos": {
+      "PList": {
+        "cf_bundle_executable": "myapp",
+        "cf_bundle_name": "myapp",
+        "cf_bundle_display_name": "MyEnergyApp",
+        "cf_bundle_localizations": [
+          "zh_CN"
+        ],
+        "cf_bundle_identifier": "CompanyName.productName.AppName",
+        "cf_bundle_version": "1.0.0.0",
+        "cf_bundle_short_version_string": "1.0.0.0",
+        "cf_bundle_get_info_string": "Your Application Description.",
+        "cf_bundle_icon_file": "myapp.icns",
+        "cf_bundle_human_readable_copyright": "Copyright (C) YYYY-YYYY Your Company Name. All rights reserved.",
+        "ls_ui_element": 0,
+        "ls_minimum_system_version": 0
+      }
+    },
+    "linux": {}
+  }
+}
