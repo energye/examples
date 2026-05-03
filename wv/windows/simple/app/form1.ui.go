@@ -22,12 +22,7 @@ import (
 
 type TForm1 struct {
 	window.TWindow
-	SynEdit1            lcl.ISynEdit
-	Webview1            wv.IWebview
-	Button1             lcl.IButton
-	ProgressBar1        lcl.IProgressBar
-	LazVirtualDrawTree1 lcl.ILazVirtualDrawTree
-	ColorBox1           lcl.IColorBox
+	Webview1 wv.IWebview
 }
 
 var Form1 TForm1
@@ -45,26 +40,26 @@ func (m *TForm1) FormCreate(sender lcl.IObject) {
 	// 初始化组件
 	m.initComponents()
 	// 调用用户创建窗体事件
-	m.OnFormCreate(sender)
+	window.CallFormCreate(m, sender)
 	m.TWindow.FormCreate(sender)
 }
 
-// OnShow 窗口显示事件
+// OnShow window display event. Automatic call
 func (m *TForm1) OnShow(sender lcl.IObject) {
 	m.TWindow.OnShow(sender)
-	m.OnFormShow(sender)
+	window.CallFormShow(m, sender)
 }
 
-// OnCloseQuery 窗体关闭前询问事件
+// OnCloseQuery Inquire about events before closing the window. Automatic call
 func (m *TForm1) OnCloseQuery(sender lcl.IObject, canClose *bool) {
-	if !m.OnFormCloseQuery(sender, canClose) {
+	if !window.CallFormCloseQuery(m, sender, canClose) {
 		m.TWindow.OnCloseQuery(sender, canClose)
 	}
 }
 
-// OnClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
+// OnClose Triggered only when CanClose value is True in OnCloseQuery
 func (m *TForm1) OnClose(sender lcl.IObject, closeAction *types.TCloseAction) {
-	if !m.OnFormClose(sender, closeAction) {
+	if !window.CallFormClose(m, sender, closeAction) {
 		m.TWindow.OnClose(sender, closeAction)
 	}
 }

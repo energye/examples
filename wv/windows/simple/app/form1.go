@@ -9,28 +9,10 @@ package app
 
 import (
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/types"
 )
 
 // OnFormCreate 窗体初始化事件
 func (m *TForm1) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
 	m.Webview1.SetWindow(m)
-}
-
-// OnFormShow 窗体显示事件
-func (m *TForm1) OnFormShow(sender lcl.IObject) {
-	// TODO 在此处添加窗体显示事件代码
-}
-
-// OnFormCloseQuery 窗体关闭前询问事件
-func (m *TForm1) OnFormCloseQuery(sender lcl.IObject, canClose *bool) bool {
-	// TODO 在此处添加窗体关闭前询问代码
-	return false
-}
-
-// OnFormClose 仅当 OnCloseQuery 中 CanClose 被设置为 True 后会触发
-func (m *TForm1) OnFormClose(sender lcl.IObject, closeAction *types.TCloseAction) bool {
-	// TODO 在此处添加窗体关闭代码
-	return false
 }
