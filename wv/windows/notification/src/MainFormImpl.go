@@ -27,11 +27,7 @@ func (m *TMainForm) setStatus(text string) {
 // appendLog 追加日志文本
 func (m *TMainForm) appendLog(text string) {
 	lcl.RunOnMainThreadAsync(func(id uint32) {
-		currentText := m.logMemo.Lines().Text()
-		m.logMemo.SetText(currentText + text)
-
-		// 滚动到底部
-		//m.logMemo.Perform(types.EM_SCROLLCARET, 0, 0)
+		m.logMemo.Lines().Add(text)
 	})
 }
 
@@ -39,38 +35,34 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.SetWidth(800)
 	m.SetHeight(650)
 	m.WorkAreaCenter()
-	m.SetCaption("macOS 通知功能完整示例")
+	m.SetCaption("windows 通知功能完整示例")
 	fmt.Printf("OSVersion: %+v\n", version.OSVersion)
 	m.notify = notification.New()
 
 	// 注册通知响应回调
-	if notify, ok := m.notify.(INotificationDarwin); ok {
-		notify.SetOnNotificationResponse(func(result Result) {
-			if result.Error != nil {
-				m.appendLog(fmt.Sprintf("❌ 错误: %v\n", result.Error))
-				return
-			}
+	m.notify.SetOnNotificationResponse(func(result Result) {
+		if result.Error != nil {
+			m.appendLog(fmt.Sprintf("❌ 错误: %v\n", result.Error))
+			return
+		}
+		resp := result.Response
+		m.appendLog(fmt.Sprintf("📨 收到通知响应:\n"))
+		m.appendLog(fmt.Sprintf("   ID: %s\n", resp.ID))
+		m.appendLog(fmt.Sprintf("   操作: %s\n", resp.ActionIdentifier))
+		m.appendLog(fmt.Sprintf("   标题: %s\n", resp.Title))
+		m.appendLog(fmt.Sprintf("   副标题: %s\n", resp.Subtitle))
+		m.appendLog(fmt.Sprintf("   内容: %s\n", resp.Body))
 
-			resp := result.Response
-			m.appendLog(fmt.Sprintf("📨 收到通知响应:\n"))
-			m.appendLog(fmt.Sprintf("   ID: %s\n", resp.ID))
-			m.appendLog(fmt.Sprintf("   操作: %s\n", resp.ActionIdentifier))
-			m.appendLog(fmt.Sprintf("   标题: %s\n", resp.Title))
-			m.appendLog(fmt.Sprintf("   副标题: %s\n", resp.Subtitle))
-			m.appendLog(fmt.Sprintf("   内容: %s\n", resp.Body))
+		if resp.UserText != "" {
+			m.appendLog(fmt.Sprintf("   ✍️ 用户输入: %s\n", resp.UserText))
+		}
 
-			if resp.UserText != "" {
-				m.appendLog(fmt.Sprintf("   ✍️ 用户输入: %s\n", resp.UserText))
-			}
+		if len(resp.UserInfo) > 0 {
+			m.appendLog(fmt.Sprintf("   📊 附加数据: %v\n", resp.UserInfo))
+		}
 
-			if len(resp.UserInfo) > 0 {
-				m.appendLog(fmt.Sprintf("   📊 附加数据: %v\n", resp.UserInfo))
-			}
-
-			m.appendLog("\n")
-		})
-	}
-
+		m.appendLog("\n")
+	})
 	// 主面板
 	mainPanel := lcl.NewPanel(m)
 	mainPanel.SetParent(m)
@@ -80,7 +72,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	// 标题标签
 	titleLabel := lcl.NewLabel(mainPanel)
 	titleLabel.SetParent(mainPanel)
-	titleLabel.SetCaption("🔔 macOS 通知功能完整示例")
+	titleLabel.SetCaption("🔔 windows 通知功能完整示例")
 	titleLabel.SetLeft(240)
 	titleLabel.SetTop(10)
 
@@ -313,7 +305,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 				},
 				{
 					ID:          "delete_action",
-					Title:       "🗑️ 删除",
+					Title:       "❌ 删除",
 					Destructive: true,
 				},
 			},
@@ -590,7 +582,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	// 初始日志
 	m.appendLog("========================================\n")
-	m.appendLog("  macOS 通知功能完整示例\n")
+	m.appendLog("  windows 通知功能完整示例\n")
 	m.appendLog("========================================\n\n")
 	m.appendLog("使用说明:\n")
 	m.appendLog("1. 首次使用请点击 '① 请求通知权限'\n")
