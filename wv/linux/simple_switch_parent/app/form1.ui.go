@@ -14,7 +14,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/energye/energy/v3/platform/linux/webkit2gtk"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/lcl"
@@ -22,7 +21,6 @@ import (
 	lclTypes "github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
 	wvw2 "github.com/energye/wv/linux"
-	"unsafe"
 )
 
 type TForm1 struct {
@@ -37,7 +35,6 @@ var Form1 TForm1
 
 // FormCreate 窗体创建接口实现. 自动调用
 func (m *TForm1) FormCreate(sender lcl.IObject) {
-	//m.TWindow.InternalBeforeFormCreate()
 	// 设置窗体属性
 	m.SetPosition(types.PoScreenCenter)
 	m.SetCaption("Form1")
@@ -78,11 +75,10 @@ func (m *TForm1) initComponents() {
 	m.box2.SetColor(colors.ClYellow)
 	m.box2.SetParent(m)
 
-	windParent2 := wvw2.NewWebviewParent(m)
-	windParent2.SetDoubleBuffered(true)
-	windParent2.SetAlign(types.AlClient)
-	windParent2.SetParent(m.box2)
-	//winParent2gtkScrolledWindow := gtk3.AsScrolledWindow(unsafe.Pointer(windParent2.ScrolledWindow()))
+	winParent2 := wvw2.NewWebviewParent(m)
+	winParent2.SetDoubleBuffered(true)
+	winParent2.SetAlign(types.AlClient)
+	winParent2.SetParent(m.box2)
 
 	m.Webview1 = wv.NewWebview(m)
 	m.Webview1.SetAlign(lclTypes.AlClient)
@@ -93,9 +89,9 @@ func (m *TForm1) initComponents() {
 	m.Webview1.SetParent(m.box1)
 
 	winParent1 := m.Webview1.WindowParent().(wvw2.IWkWebviewParent)
-	//winParent1gtkScrolledWindow := gtk3.AsScrolledWindow(unsafe.Pointer(winParent1.ScrolledWindow()))
 
-	webkit2wv := webkit2gtk.AsWebkit2(unsafe.Pointer(m.Webview1.Browser().(wvw2.IWkWebview).WebView()))
+	// 增加一个计数, 否则在 windowParent.SetWebview(nil) 会自动释放
+	webkit2wv := m.Webview1.(*wv.TWebview).GtkWebview()
 	webkit2wv.Ref()
 
 	m.SwitchButton = lcl.NewButton(m)
@@ -109,16 +105,14 @@ func (m *TForm1) initComponents() {
 		browser := m.Webview1.Browser().(wvw2.IWkWebview)
 		if switchPanel {
 			winParent1.SetWebview(nil)
-			windParent2.SetWebview(browser)
+			winParent2.SetWebview(browser)
 			lcl.RunOnMainThreadAsync(func(id uint32) {
-				//windParent2.UpdateSize(m.box2.Width(), m.box2.Height())
-				windParent2.SetBoundsRect(m.box2.BoundsRect())
+				winParent2.SetBoundsRect(m.box2.BoundsRect())
 			})
 		} else {
-			windParent2.SetWebview(nil)
+			winParent2.SetWebview(nil)
 			winParent1.SetWebview(browser)
 			lcl.RunOnMainThreadAsync(func(id uint32) {
-				//winParent1.UpdateSize(m.box1.Width(), m.box1.Height())
 				winParent1.SetBoundsRect(m.box1.BoundsRect())
 			})
 		}
