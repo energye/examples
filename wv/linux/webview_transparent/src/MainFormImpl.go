@@ -3,7 +3,8 @@ package src
 import (
 	"fmt"
 	"github.com/energye/energy/v3/application"
-	"github.com/energye/energy/v3/pkgs/gtk3"
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3Types "github.com/energye/energy/v3/platform/linux/types"
 	"github.com/energye/lcl/lcl"
 	"unsafe"
 )
@@ -21,21 +22,21 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	//m.SetColor(0)
 	gtkHandle := lcl.PlatformHandle(m.Handle())
-	gtkWindow := gtk3.ToGtkWindow(unsafe.Pointer(gtkHandle.Gtk3Window()))
+	gtkWindow := gtk3.AsWindow(unsafe.Pointer(gtkHandle.Gtk3Window()))
 	options := application.GApplication.Options
 	if options.WindowTransparent {
 		screen := gtkWindow.GetScreen()
-		visual, err := screen.GetRGBAVisual()
+		visual := screen.GetRGBAVisual()
 		isComposited := screen.IsComposited()
-		fmt.Println("isComposited:", err == nil && visual != nil && isComposited)
-		if err == nil && visual != nil && isComposited {
+		fmt.Println("isComposited:", visual != nil && isComposited)
+		if visual != nil && isComposited {
 			gtkWindow.SetVisual(visual)
 			gtkWindow.SetAppPaintable(true)
 		}
 	}
 
 	//gtkWindow.SetDecorated(false)
-	fmt.Println(gtkWindow.TypeFromInstance().Name())
+	fmt.Println(gtkWindow.GetName())
 
 	//lcl.NewButton(m).SetParent(m)
 	//lcl.NewPanel(m).SetParent(m)
@@ -51,20 +52,19 @@ func (m *TMainForm) OnShow(sender lcl.IObject) {
 
 func (m *TMainForm) iterateWidget() {
 	gtkHandle := lcl.PlatformHandle(m.Handle())
-	gtkContainer := gtk3.ToContainer(unsafe.Pointer(gtkHandle.Gtk3Window()))
-	GtkContainerType := gtk3.TypeFromName("GtkContainer")
-	var iterate func(list *gtk3.List, level int)
-	iterate = func(list *gtk3.List, level int) {
+	gtkContainer := gtk3.AsContainer(unsafe.Pointer(gtkHandle.Gtk3Window()))
+	var iterate func(list gtk3Types.IList, level int)
+	iterate = func(list gtk3Types.IList, level int) {
 		if list == nil {
 			return
 		}
 		for i := uint(0); i < list.Length(); i++ {
-			widget := gtk3.ToWidget(list.NthDataRaw(i))
+			widget := gtk3.AsWidget(list.NthDataRaw(i))
 			//x := widget.GetAllocation().GetX()
 			//y := widget.GetAllocation().GetY()
-			fmt.Println(widget.TypeFromInstance().Name(), "level:", level)
-			if widget.IsA(GtkContainerType) {
-				chdWid := gtk3.ToContainer(list.NthDataRaw(i))
+			fmt.Println(widget.GetName(), "level:", level)
+			if widget.IsContainer() {
+				chdWid := gtk3.AsContainer(list.NthDataRaw(i))
 				//w, h := chdWid.GetSizeRequest()
 				iterate(chdWid.GetChildren(), level+1)
 			}
