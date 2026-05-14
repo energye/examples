@@ -30,7 +30,8 @@ func main() {
 	wvApp.SetOptions(application.Options{
 		Frameless:  true,
 		Caption:    "energy - webview2",
-		DefaultURL: "fs://energy/index-home.html",
+		DefaultURL: "webkit://gpu",
+		//DefaultURL: "fs://energy/index-home.html",
 		//DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL: "https://www.bilibili.com/",
