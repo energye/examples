@@ -46,9 +46,11 @@ func main() {
 	wv.Init()
 
 	load := wv.NewLoader(nil)
-	//load.SetLoaderWebKit2DllPath("/usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37")
-	//load.SetLoaderJavascriptCoreDllPath("/usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18")
-	//load.SetLoaderSoupDllPath("/usr/lib/x86_64-linux-gnu/libsoup-2.4.so.1")
+	load.SetLoaderWebKit2DllPath("libwebkit2gtk-4.1.so.0")
+	load.SetLoaderJavascriptCoreDllPath("libjavascriptcoregtk-4.1.so.0")
+	load.SetLoaderSoupDllPath("libsoup-3.0.so.0")
+	load.SetWebkit2Version(wvTypes.Wkv4_1)
+
 	if load.StartWebKit2() {
 		lcl.Application.Initialize()
 		lcl.Application.SetScaled(true)
