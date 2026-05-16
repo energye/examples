@@ -6,11 +6,14 @@ import (
 	"github.com/energye/examples/wv/linux/notification/src"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
+	"os"
 )
 
 func main() {
 	api.SetDebug(true)
+	os.Setenv("--ws", "gtk3")
 	lcl.Init(nil, nil)
+	println(api.Widget().IsGTK3())
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	resources.SetIcon()
