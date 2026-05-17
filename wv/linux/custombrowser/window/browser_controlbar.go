@@ -1,8 +1,9 @@
 package window
 
 import (
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3types "github.com/energye/energy/v3/platform/linux/types"
 	"github.com/energye/examples/wv/assets"
-	"github.com/energye/examples/wv/linux/gtkhelper"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"net/url"
@@ -24,19 +25,19 @@ func (m *BrowserWindow) BrowserControlBar() {
 	m.backBtn = backBtn
 	m.forwardBtn = forwardBtn
 	m.refreshBtn = refreshBtn
-	backBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	backBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoBack() {
 			browse.webview.Stop()
 			browse.webview.GoBack()
 		}
 	})
-	forwardBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	forwardBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		if browse := m.getActiveBrowse(); browse != nil && browse.webview.CanGoForward() {
 			browse.webview.Stop()
 			browse.webview.GoForward()
 		}
 	})
-	refreshBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	refreshBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		if browse := m.getActiveBrowse(); browse != nil {
 			if browse.isLoading {
 				browse.webview.Stop()
@@ -75,29 +76,29 @@ func (m *BrowserWindow) BrowserControlBar() {
 	})
 	m.addr = addr
 	addrHandle := lcl.PlatformHandle(addr.Handle())
-	addrEntry := gtkhelper.ToEntry(unsafe.Pointer(addrHandle.Gtk3Widget()))
-	addrEntry.SetIconFromIconName(gtkhelper.ENTRY_ICON_PRIMARY, "search")
+	addrEntry := gtk3.AsEntry(unsafe.Pointer(addrHandle.Gtk3Widget()))
+	addrEntry.SetIconFromIconName(gtk3.ENTRY_ICON_PRIMARY, "search")
 	SetWidgetStyle(addrEntry.ToWidget(), `entry { background: rgba(56, 57, 60, 1); color: #FFFFFF; caret-color: #FFFFFF;} entry:focus { background: rgba(128, 128, 128, 0.4); }`)
 	//println("addrEntry", addrEntry.TypeFromInstance().Name())
 
 }
 
 type BrowserControlButton struct {
-	button    *gtkhelper.Button
-	image     *gtkhelper.Image
+	button    *gtk3.Button
+	image     *gtk3.Image
 	imagePath string
-	clickSH   *gtkhelper.SignalHandler
+	clickSH   gtk3types.ISignalHandlerID
 	enable    bool
 }
 
 func (m *BrowserWindow) NewBrowserControlBtn(imagePath string) *BrowserControlButton {
 	btn := new(BrowserControlButton)
 	btn.imagePath = imagePath
-	btn.button = gtkhelper.NewButton() // .ButtonNewWithLabel("button")
-	btn.button.SetRelief(gtkhelper.RELIEF_NONE)
+	btn.button = gtk3.NewButton() // .ButtonNewWithLabel("button")
+	btn.button.SetRelief(gtk3.RELIEF_NONE)
 	btn.button.SetSizeRequest(btnSize, btnSize)
 	btn.button.SetFocusOnClick(false)
-	btnCss := gtkhelper.NewCssProvider()
+	btnCss := gtk3.NewCssProvider()
 	defer btnCss.Unref()
 	btnCss.LoadFromData(`
 button {
@@ -115,8 +116,8 @@ button:active {
 `)
 
 	btnStyleCtx := btn.button.GetStyleContext()
-	btnStyleCtx.AddProvider(btnCss, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
-	btnIcon := gtkhelper.NewImageFromFile(imagePath)
+	btnStyleCtx.AddProvider(btnCss, gtk3types.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	btnIcon := gtk3.NewImageFromFile(imagePath)
 	btn.image = btnIcon
 	btn.button.SetImage(btnIcon)
 	return btn

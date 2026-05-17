@@ -195,6 +195,9 @@ func (m *Browser) Create() {
 	m.webview.CreateBrowser()
 	m.webviewParent.SetWebview(m.webview)
 	m.webview.LoadURL(m.currentURL)
+
+	br := m.webviewParent.BoundsRect()
+	m.webviewParent.UpdateSize(br.Width(), br.Height())
 }
 
 func (m *Browser) CloseBrowser() {

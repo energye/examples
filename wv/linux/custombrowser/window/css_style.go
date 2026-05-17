@@ -1,9 +1,12 @@
 package window
 
-import "github.com/energye/examples/wv/linux/gtkhelper"
+import (
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3types "github.com/energye/energy/v3/platform/linux/types"
+)
 
 func addCSSStyles() {
-	provider := gtkhelper.NewCssProvider()
+	provider := gtk3.NewCssProvider()
 	defer provider.Unref()
 	css := `
 .tab {
@@ -49,6 +52,6 @@ func addCSSStyles() {
 `
 	provider.LoadFromData(css)
 
-	screen := gtkhelper.ScreenGetDefault()
-	gtkhelper.AddProviderForScreen(screen, provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	screen := gtk3.ScreenGetDefault()
+	gtk3.AddProviderForScreen(screen.(*gtk3.Screen), provider, gtk3types.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }

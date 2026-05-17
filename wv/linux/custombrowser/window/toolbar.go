@@ -2,17 +2,16 @@ package window
 
 import (
 	"fmt"
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3types "github.com/energye/energy/v3/platform/linux/types"
 	"github.com/energye/examples/wv/assets"
-	"github.com/energye/examples/wv/linux/gtkhelper"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/types"
 )
 
 func (m *BrowserWindow) Toolbar() {
-	headerBar, err := gtkhelper.NewHeaderBar()
-	if err != nil {
-		return
-	}
+	headerBar := gtk3.NewHeaderBar()
+
 	m.gtkToolbar = headerBar
 	headerBar.SetName("browser-header-bar")
 	SetWidgetStyle(headerBar.ToWidget(), `#browser-header-bar { background: rgba(56, 57, 60, 1);border: 0;margin: 0;}`)
@@ -21,31 +20,31 @@ func (m *BrowserWindow) Toolbar() {
 
 	//headerBar.SetShowCloseButton(true)
 	headerBar.SetVExpand(false)
-	headerBar.SetVAlign(gtkhelper.ALIGN_CENTER)
+	headerBar.SetVAlign(gtk3.ALIGN_CENTER)
 
 	closeBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-close.png"))
 	m.closeBtn = closeBtn
-	closeBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
-		m.Close()
+	closeBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
+
 	})
 	headerBar.PackEnd(closeBtn.button)
 
 	maxBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-max.png"))
 	m.maxBtn = maxBtn
-	maxBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	maxBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		m.Maximize()
 	})
 	headerBar.PackEnd(maxBtn.button)
 
 	minBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-min.png"))
 	m.minBtn = minBtn
-	minBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	minBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		m.Minimize()
 	})
 	headerBar.PackEnd(minBtn.button)
 
 	m.addrRightIcon = m.NewBrowserControlBtn(assets.GetResourcePath("addr-right-btn.png"))
-	m.addrRightIcon.clickSH = m.addrRightIcon.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	m.addrRightIcon.clickSH = m.addrRightIcon.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		fmt.Println("地址栏右侧图标")
 		if browse := m.getActiveBrowse(); browse != nil {
 			fmt.Println(browse.windowId)
@@ -58,7 +57,7 @@ func (m *BrowserWindow) Toolbar() {
 	addBrowserBtn := m.NewBrowserControlBtn(assets.GetResourcePath("add.png"))
 	m.addBrowserBtn = addBrowserBtn
 	headerBar.PackEnd(addBrowserBtn.button)
-	addBrowserBtn.button.SetOnClick(func(sender *gtkhelper.Widget) {
+	addBrowserBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		println("IsMainThread:", api.MainThreadId() == api.CurrentThreadId())
 		// 添加浏览器
 		newBrowser := m.CreateBrowser("")
@@ -99,16 +98,16 @@ func (m *BrowserWindow) Maximize() {
 }
 
 type TabButton struct {
-	button       *gtkhelper.EventBox
-	box          *gtkhelper.Box
-	icon         *gtkhelper.Image
+	button       *gtk3.EventBox
+	box          *gtk3.Box
+	icon         *gtk3.Image
 	iconPath     string
-	label        *gtkhelper.Label
-	closeBtn     *gtkhelper.Button
-	closeBtnIcon *gtkhelper.Image
+	label        *gtk3.Label
+	closeBtn     *gtk3.Button
+	closeBtnIcon *gtk3.Image
 	click        func()
 	closeClick   func()
-	styleCtx     *gtkhelper.StyleContext
+	styleCtx     *gtk3.StyleContext
 	isActive     bool
 	isClick      bool
 }
@@ -152,19 +151,19 @@ func (m *TabButton) UpdateImage(newImagePath string) {
 
 func (m *BrowserWindow) NewTabButton(iconPath string, text string) *TabButton {
 	tabButton := new(TabButton)
-	button := gtkhelper.NewEventBox()
+	button := gtk3.NewEventBox()
 	tabButton.button = button
 	button.SetHExpand(false)
 	button.SetVExpand(false)
 	button.SetSizeRequest(-1, 28)
 	button.SetBorderWidth(0)
-	button.SetVAlign(gtkhelper.ALIGN_CENTER)
+	button.SetVAlign(gtk3.ALIGN_CENTER)
 	button.SetVisibleWindow(true)
-	button.AddEvents(gtkhelper.POINTER_MOTION_MASK | gtkhelper.ENTER_NOTIFY_MASK | gtkhelper.LEAVE_NOTIFY_MASK)
+	button.AddEvents(gtk3.POINTER_MOTION_MASK | gtk3.ENTER_NOTIFY_MASK | gtk3.LEAVE_NOTIFY_MASK)
 	styleCtx := button.GetStyleContext()
-	tabButton.styleCtx = styleCtx
+	tabButton.styleCtx = styleCtx.(*gtk3.StyleContext)
 	styleCtx.AddClass("tab")
-	button.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+	button.SetOnEnter(func(sender gtk3types.PGtkWidget, event gtk3types.PEventCrossing, userData gtk3types.GPointer) bool {
 		if !tabButton.isActive {
 			tabButton.removeCss()
 		}
@@ -172,8 +171,9 @@ func (m *BrowserWindow) NewTabButton(iconPath string, text string) *TabButton {
 		if tabButton.isClick {
 			tabButton.isClick = false
 		}
+		return false
 	})
-	button.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+	button.SetOnLeave(func(sender gtk3types.PGtkWidget, event gtk3types.PEventCrossing, userData gtk3types.GPointer) bool {
 		if !tabButton.isActive {
 			tabButton.removeCss()
 		}
@@ -181,35 +181,37 @@ func (m *BrowserWindow) NewTabButton(iconPath string, text string) *TabButton {
 			styleCtx.AddClass("click")
 			tabButton.isClick = false
 		}
+		return false
 	})
-	button.SetOnClick(func(sender *gtkhelper.Widget, event *gtkhelper.EventButton) {
+	button.SetOnClick(func(sender gtk3types.PGtkWidget, event gtk3types.PEventButton, userData gtk3types.GPointer) bool {
 		tabButton.isClick = true
 		if tabButton.click != nil {
 			tabButton.click()
 		}
+		return false
 	})
-	box := gtkhelper.NewBox(gtkhelper.ORIENTATION_HORIZONTAL, 4)
-	box.SetVAlign(gtkhelper.ALIGN_CENTER)
+	box := gtk3.NewBox(gtk3.ORIENTATION_HORIZONTAL, 4)
+	box.SetVAlign(gtk3.ALIGN_CENTER)
 	tabButton.box = box
 	button.Add(box)
 
-	icon := gtkhelper.NewImageFromFile(iconPath)
+	icon := gtk3.NewImageFromFile(iconPath)
 	icon.SetSizeRequest(16, 16)
 	tabButton.icon = icon
 	box.PackStart(icon, false, false, 4)
 
-	label := gtkhelper.NewLabel(text)
+	label := gtk3.NewLabel(text)
 	label.SetXAlign(0.0)
-	label.SetEllipsize(gtkhelper.ELLIPSIZE_END)
+	label.SetEllipsize(gtk3.ELLIPSIZE_END)
 	label.SetHExpand(false)
 	label.SetVExpand(false)
 	label.SetSizeRequest(45, -1)
 	tabButton.label = label
 	box.PackStart(label, true, true, 0)
 
-	closeBtn := gtkhelper.NewButton()
+	closeBtn := gtk3.NewButton()
 	tabButton.closeBtn = closeBtn
-	closeBtnIcon := gtkhelper.NewImageFromIconName("window-close-symbolic", gtkhelper.ICON_SIZE_MENU)
+	closeBtnIcon := gtk3.NewImageFromIconName("window-close-symbolic", gtk3.ICON_SIZE_MENU)
 	tabButton.closeBtnIcon = closeBtnIcon
 	closeBtn.SetImage(closeBtnIcon)
 	closeBtn.SetSizeRequest(16, 16)
@@ -217,19 +219,21 @@ func (m *BrowserWindow) NewTabButton(iconPath string, text string) *TabButton {
 	closeBtnStyleCtx.AddClass("tab-close-button")
 	closeBtn.SetOpacity(0.7)
 	closeBtn.SetFocusOnClick(false)
-	closeBtn.SetOnClick(func(sender *gtkhelper.Widget) {
+	closeBtn.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
 		if tabButton.closeClick != nil {
 			tabButton.closeClick()
 		}
 	})
-	closeBtn.SetOnEnter(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+	closeBtn.SetOnEnter(func(sender gtk3types.PGtkWidget, event gtk3types.PEventCrossing, userData gtk3types.GPointer) bool {
 		styleCtx.RemoveClass("active")
 		styleCtx.RemoveClass("inactive")
 		styleCtx.AddClass("active")
+		return false
 	})
-	closeBtn.SetOnLeave(func(sender *gtkhelper.Widget, event *gtkhelper.EventCrossing) {
+	closeBtn.SetOnLeave(func(sender gtk3types.PGtkWidget, event gtk3types.PEventCrossing, userData gtk3types.GPointer) bool {
 		styleCtx.RemoveClass("inactive")
 		styleCtx.RemoveClass("active")
+		return false
 	})
 	box.PackEnd(closeBtn, false, false, 4)
 

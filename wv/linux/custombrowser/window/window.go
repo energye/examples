@@ -3,8 +3,9 @@ package window
 import "C"
 import (
 	"fmt"
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3types "github.com/energye/energy/v3/platform/linux/types"
 	"github.com/energye/examples/wv/assets"
-	"github.com/energye/examples/wv/linux/gtkhelper"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
@@ -25,24 +26,24 @@ type BrowserWindow struct {
 	lcl.TEngForm
 	box lcl.IPanel
 	// gtk3 window
-	gtkWindow *gtkhelper.Window
+	gtkWindow *gtk3.Window
 	// toolbar
-	gtkToolbar    *gtkhelper.HeaderBar
+	gtkToolbar    *gtk3.HeaderBar
 	closeBtn      *BrowserControlButton
 	maxBtn        *BrowserControlButton
 	minBtn        *BrowserControlButton
 	addBrowserBtn *BrowserControlButton
 	// browser
 	browserBar lcl.IPanel
-	//gtkBrowserBar *gtkhelper.Fixed
-	gtkBrowserBar *gtkhelper.Layout
-	gtkBrowserBox *gtkhelper.Box
+	//gtkBrowserBar *gtk3.Fixed
+	gtkBrowserBar *gtk3.Layout
+	gtkBrowserBox *gtk3.Box
 	browses       []*Browser // 当前的chrom列表
 	// 浏览器控制按钮
 	backBtn    *BrowserControlButton
 	forwardBtn *BrowserControlButton
 	refreshBtn *BrowserControlButton
-	// addr          *gtkhelper.Entry
+	// addr          *gtk3.Entry
 	addr          lcl.IEdit
 	addrRightIcon *BrowserControlButton
 }
@@ -89,7 +90,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	// Window
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindowPtr := gtkHandle.Gtk3Window()
-	m.gtkWindow = gtkhelper.ToGtkWindow(uintptr(gtkWindowPtr))
+	m.gtkWindow = gtk3.AsWindow(unsafe.Pointer(gtkWindowPtr)).(*gtk3.Window)
 	fmt.Println("gtkWindowPtr:", gtkWindowPtr)
 	// Browser Control
 	// 把 LCL 的Panel转为 gtk3 控件
@@ -100,17 +101,17 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	browserBar.SetBevelOuter(types.BvNone)
 	browserBar.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight))
 	browserBarHandle := lcl.PlatformHandle(browserBar.Handle())
-	//browserBarWidget := gtkhelper.ToFixed(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
-	browserBarWidget := gtkhelper.ToLayout(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
+	//browserBarWidget := gtk3.ToFixed(unsafe.Pointer(browserBarHandle.Gtk3Widget()))
+	browserBarWidget := gtk3.AsLayout(unsafe.Pointer(browserBarHandle.Gtk3Widget())).(*gtk3.Layout)
 	println("headerBoxWidget", browserBarWidget.TypeFromInstance().Name())
 	m.browserBar = browserBar
 	m.gtkBrowserBar = browserBarWidget
 
 	// window move resize event
-	m.gtkWindow.SetOnConfigure(func(sender *gtkhelper.Widget, event *gtkhelper.EventConfigure) bool {
+	m.gtkWindow.SetOnConfigure(func(sender gtk3types.PGtkWidget, event gtk3types.PEventConfigure, userData gtk3types.GPointer) bool {
 		//if browse := m.getActiveBrowse(); browse != nil {
 		//	browserHandle := lcl.PlatformHandle(browse.webviewParent.Handle())
-		//	browserFixed := gtkhelper.ToFixed(unsafe.Pointer(browserHandle.Gtk3Widget()))
+		//	browserFixed := gtk3.ToFixed(unsafe.Pointer(browserHandle.Gtk3Widget()))
 		//	fmt.Println(browserFixed.GetSizeRequest())
 		//	fmt.Println(m.box.Width())
 		//	//browserFixed.SetSizeRequest(int(m.box.Width()), int(m.box.Height()))
@@ -146,7 +147,7 @@ func (m *BrowserWindow) AddTabSheetBtn(currentBrowse *Browser) {
 		currentBrowse.CloseBrowser()
 	})
 	if m.gtkToolbar != nil {
-		m.gtkToolbar.PackStart(tabSheetBtn.button)
+		m.gtkToolbar.PackStart(tabSheetBtn.button.ToWidget())
 		m.gtkToolbar.ShowAll() // call show
 	}
 	m.updateOtherTabSheetNoActive(currentBrowse)
@@ -223,10 +224,10 @@ func (m *BrowserWindow) updateRefreshBtn(browse *Browser, isLoading bool) {
 	}
 }
 
-func SetWidgetStyle(widget *gtkhelper.Widget, css string) {
-	provider := gtkhelper.NewCssProvider()
+func SetWidgetStyle(widget *gtk3.Widget, css string) {
+	provider := gtk3.NewCssProvider()
 	defer provider.Unref()
 	provider.LoadFromData(css)
 	context := widget.GetStyleContext()
-	context.AddProvider(provider, gtkhelper.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	context.AddProvider(provider, gtk3types.STYLE_PROVIDER_PRIORITY_APPLICATION)
 }
