@@ -10,6 +10,7 @@ import (
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"os"
 	"runtime"
 	"time"
 )
@@ -28,6 +29,7 @@ var startTime = time.Now()
 
 func main() {
 	api.SetDebug(true)
+	os.Setenv("--ws", "gtk3") // for linux
 	wvApp := wv.Init()
 
 	wvApp.SetOptions(application.Options{
