@@ -6,6 +6,7 @@ package resources
 
 import (
 	_ "embed"
+	"github.com/energye/lcl/emfs"
 	"github.com/energye/lcl/lcl"
 )
 
@@ -21,4 +22,7 @@ func SetIcon() {
 	lcl.Application.Icon().Assign(png)
 	png.Free()
 	stream.Free()
+
+	iconFS := emfs.RegisterMemoryFS("energy-application-icon")
+	iconFS.AddFile("icon.png", icon)
 }
