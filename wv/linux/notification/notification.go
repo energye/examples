@@ -12,7 +12,7 @@ import (
 func main() {
 	api.SetDebug(true)
 	os.Setenv("--ws", "gtk3")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	println(api.Widget().IsGTK3())
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
