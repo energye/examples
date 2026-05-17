@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/energye/energy/v3/pkgs/gtk3"
+	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	gtk3types "github.com/energye/energy/v3/platform/linux/types"
 	"log"
 )
 
@@ -22,8 +23,8 @@ func main() {
 	win.Add(l)
 
 	screen := win.GetScreen()
-	visual, err := screen.GetRGBAVisual()
-	if err == nil && visual != nil && screen.IsComposited() {
+	visual := screen.GetRGBAVisual()
+	if visual != nil && screen.IsComposited() {
 		win.SetVisual(visual)
 		win.SetAppPaintable(true)
 	}
@@ -61,7 +62,7 @@ button:active {
 `)
 
 	btnStyleCtx := btn.GetStyleContext()
-	btnStyleCtx.AddProvider(cssProvid, gtk3.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	btnStyleCtx.AddProvider(cssProvid, gtk3types.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	headerBar.PackStart(btn)
 
