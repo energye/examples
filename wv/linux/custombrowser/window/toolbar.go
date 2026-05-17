@@ -25,7 +25,7 @@ func (m *BrowserWindow) Toolbar() {
 	closeBtn := m.NewBrowserControlBtn(assets.GetResourcePath("btn-close.png"))
 	m.closeBtn = closeBtn
 	closeBtn.button.SetOnClick(func(sender gtk3types.PGtkWidget, userData gtk3types.GPointer) {
-
+		m.Close()
 	})
 	headerBar.PackEnd(closeBtn.button)
 
