@@ -37,6 +37,8 @@ func main() {
 		Caption:    "系统信息查看器",
 		Width:      1000,
 		Height:     700,
+		//Linux: application.Linux{HardwareGPU: application.HGPUDisable}, // VM WARE
+		Linux: application.Linux{HardwareGPU: application.HGPUEnable}, // GPU Device
 	})
 
 	wvApp.SetLocalLoad(application.LocalLoad{
