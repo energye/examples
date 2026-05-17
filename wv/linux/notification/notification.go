@@ -41,5 +41,5 @@ func SetIcon() {
 }
 
 func init() {
-	emfs.RegisterEmbedFS("embed", iconFS)
+	emfs.RegisterEmbedFS(emfs.FSName, iconFS)
 }
