@@ -34,7 +34,7 @@ var assets embed.FS
 
 func main() {
 	utils.Assets = assets
-	lcl.Init(nil, nil)
+	lcl.Init()
 	wv.Init()
 	api.SetOnException(func(exception string, message string) {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)

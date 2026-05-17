@@ -18,7 +18,7 @@ var mainForm TMainForm
 func init() {
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	fmt.Println(api.Widget())
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)

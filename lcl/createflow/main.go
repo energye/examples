@@ -30,7 +30,7 @@ func init() {
 }
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	// 创建Form 按参数顺序执行 FormCreate 回调函数

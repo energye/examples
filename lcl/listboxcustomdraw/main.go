@@ -11,7 +11,7 @@ func init() {
 
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	var mainForm lcl.TEngForm

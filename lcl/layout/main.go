@@ -14,7 +14,7 @@ func init() {
 
 // 简单介绍下Lazarus中控件的布局方式
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	var mainForm lcl.TEngForm

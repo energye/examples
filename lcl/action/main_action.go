@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	fmt.Println(api.LibAbout(), api.Widget())
 	api.SetDebug(true)
 	api.SetOnException(func(exceptionID, message string) {

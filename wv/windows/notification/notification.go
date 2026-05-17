@@ -10,7 +10,7 @@ import (
 
 func main() {
 	api.SetDebug(true)
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	resources.SetIcon()

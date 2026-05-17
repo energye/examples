@@ -18,7 +18,7 @@ func main() {
 			BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		},
 	}
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&src.MainForm)

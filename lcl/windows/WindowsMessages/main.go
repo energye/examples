@@ -50,7 +50,7 @@ func (f *TMainForm) OnFormDestroy(object lcl.IObject) {
 }
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.RunApp(&mainForm)
 }
 

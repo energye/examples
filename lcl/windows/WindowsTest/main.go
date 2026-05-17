@@ -28,7 +28,7 @@ func init() {
 
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	// 利用互斥来演示exe单一运行，当然不止这一种方法了
 	// GetLastError 无法获取错误，待研究原因所在。
 	Mutex, _, err := CreateMutex(nil, true, "SingleRunTest")

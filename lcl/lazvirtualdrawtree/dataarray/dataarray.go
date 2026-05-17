@@ -36,7 +36,7 @@ func init() {
 
 func main() {
 	rand.NewSource(time.Now().UnixNano())
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.SetScaled(true)
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)

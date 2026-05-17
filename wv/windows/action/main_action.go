@@ -14,7 +14,7 @@ func main() {
 			Windows:   application.Windows{Theme: application.Dark},
 		},
 	}
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&src.MainForm)

@@ -20,7 +20,7 @@ func init() {
 
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.RunApp(&mainForm)
 }
 

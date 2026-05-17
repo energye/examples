@@ -27,7 +27,7 @@ func init() {
 }
 func main() {
 	fmt.Println("Go ENERGY Run Main")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	wv.Init()
 	api.SetOnException(func(exception string, message string) {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)

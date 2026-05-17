@@ -18,7 +18,7 @@ type TCalculatorForm struct {
 var CalcForm TCalculatorForm
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForms(&CalcForm)

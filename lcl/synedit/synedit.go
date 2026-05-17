@@ -11,7 +11,7 @@ import (
 
 func main() {
 	os.Setenv("--ws", "gtk3")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&MainForm)

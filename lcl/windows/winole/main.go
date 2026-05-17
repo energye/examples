@@ -44,6 +44,6 @@ func (f *TMainForm) OnBtn1Click(object lcl.IObject) {
 }
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.RunApp(&mainForm)
 }

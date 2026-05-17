@@ -18,7 +18,7 @@ type TImageViewerForm struct {
 var ImageViewerForm TImageViewerForm
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForms(&ImageViewerForm)

@@ -13,7 +13,7 @@ func init() {
 }
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	iniFile := lcl.NewIniFile(".\\test.ini", types.NewSet())
 	defer iniFile.Free()
 

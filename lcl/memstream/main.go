@@ -15,7 +15,7 @@ func init() {
 }
 func main() {
 	//fmt.Println("main:currentThreadId:", thread.GetCurrentThreadId())
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	var mainForm lcl.TEngForm

@@ -24,7 +24,7 @@ func init() {
 }
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	// 异常捕获
 	defer func() {
 		err := recover()

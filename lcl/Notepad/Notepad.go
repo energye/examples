@@ -16,7 +16,7 @@ type TNotepadForm struct {
 var NotepadForm TNotepadForm
 
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForms(&NotepadForm)

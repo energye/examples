@@ -42,7 +42,7 @@ func main() {
 	httpServer()
 	// linux webkit2 > gtk3
 	os.Setenv("--ws", "gtk3")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	wv.Init()
 
 	load := wv.NewLoader(nil)

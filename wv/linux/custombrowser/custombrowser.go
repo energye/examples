@@ -47,7 +47,7 @@ func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	os.Setenv("--ws", "gtk3")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	wv.Init()
 
 	load := wv.NewLoader(nil)

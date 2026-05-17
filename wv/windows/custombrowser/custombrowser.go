@@ -24,7 +24,7 @@ func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	fmt.Println("Go ENERGY Run Main")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	wv.Init()
 	// GlobalWebView2Loader
 	load = application.NewWVLoader()

@@ -30,7 +30,7 @@ func init() {
 func main() {
 	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3.so"
 	os.Setenv("--ws", "gtk3")
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.RunApp(&mainForm, &form1)
 }
 

@@ -19,7 +19,7 @@ func init() {
 
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	fmt.Println("MainThreadId: ", rtl.MainThreadId())
 	fmt.Println("CurrentThreadId: ", rtl.CurrentThreadId())
 	go func() {

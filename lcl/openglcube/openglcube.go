@@ -46,7 +46,7 @@ func main() {
 	//glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	//glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	//glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	lcl.Init(nil, nil)
+	lcl.Init()
 	lcl.RunApp(window)
 }
 

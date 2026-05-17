@@ -13,7 +13,7 @@ func init() {
 
 }
 func main() {
-	lcl.Init(nil, nil)
+	lcl.Init()
 	// 64位下传入KEY_WOW64_64KEY
 	//reg := lcl.NewRegistry(win.KEY_ALL_ACCESS|win.KEY_WOW64_64KEY)
 	reg := lcl.NewRegistryWithLongword(win.KEY_ALL_ACCESS | win.KEY_WOW64_64KEY)
