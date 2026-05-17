@@ -26,7 +26,7 @@ func main() {
 	api.SetDebug(true)
 	// linux webkit2 > gtk3
 	os.Setenv("--ws", "gtk3")
-	wvApp := wv.Init(nil, nil)
+	wvApp := wv.Init()
 	wvApp.SetOptions(application.Options{
 		Frameless: true,
 		Caption:   "energy - webview2",

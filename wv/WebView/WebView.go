@@ -25,7 +25,7 @@ var MainForm TMainForm
 
 func main() {
 	api.SetDebug(true)
-	wvApp := wv.Init(nil, nil)
+	wvApp := wv.Init()
 
 	wvApp.SetOptions(application.Options{
 		DefaultURL: "app://custom/index.html",

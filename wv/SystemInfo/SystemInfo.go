@@ -28,7 +28,7 @@ var startTime = time.Now()
 
 func main() {
 	api.SetDebug(true)
-	wvApp := wv.Init(nil, nil)
+	wvApp := wv.Init()
 
 	wvApp.SetOptions(application.Options{
 		DefaultURL: "sysinfo://main/index.html",
