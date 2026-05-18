@@ -21,7 +21,7 @@ var (
 )
 
 func main() {
-	cef.Init(nil, nil)
+	cef.Init()
 	app := application.NewApplication()
 	app.SetFrameworkDirPath(config.Get().FrameworkPath())
 	app.SetMultiThreadedMessageLoop(false)

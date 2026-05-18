@@ -47,7 +47,7 @@ func init() {
 
 func main() {
 	//全局初始化 每个应用都必须调用的
-	cef.Init(nil, nil)
+	cef.Init()
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()
 	}
@@ -143,7 +143,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		//assetsHtml = "https://www.baidu.com"
 	} else if tool.IsWindows() {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
-		assetsHtml = "file://E:\\SWT\\gopath\\src\\github.com\\energye\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+		assetsHtml = "file://C:\\app\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)

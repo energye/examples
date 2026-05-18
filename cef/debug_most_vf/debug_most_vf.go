@@ -19,7 +19,7 @@ func init() {
 
 func main() {
 	//全局初始化 每个应用都必须调用的
-	cef.Init(nil, nil)
+	cef.Init()
 	runtime.LockOSThread()
 	// MacOS使用扩展消息泵
 	cef.AddCrDelegate()

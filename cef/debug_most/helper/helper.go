@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cef.Init(nil, nil)
+	cef.Init()
 	exception.SetOnException(func(exception int32, message string) {
 		fmt.Println("[ERROR] exception:", exception, "message:", message)
 	})

@@ -24,7 +24,7 @@ func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	//全局初始化 每个应用都必须调用的
-	cef.Init(nil, nil)
+	cef.Init()
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()
 	}

@@ -3,7 +3,7 @@ package application
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
-	"github.com/energye/lcl/api/exception"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/config"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/tool/exec"
@@ -15,8 +15,8 @@ var (
 )
 
 func NewApplication() cef.ICefApplication {
-	exception.SetOnException(func(exception int32, message string) {
-		fmt.Println("[ERROR] exception:", exception, "message:", message)
+	api.SetOnException(func(exceptionID, message string) {
+		fmt.Println("[ERROR] exception:", exceptionID, "message:", message)
 	})
 	if GlobalCEFApp == nil {
 		GlobalCEFApp = cef.NewApplication()
