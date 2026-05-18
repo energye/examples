@@ -10,6 +10,7 @@ import (
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types/colors"
 	"os"
 	"time"
 )
@@ -39,7 +40,7 @@ func main() {
 		//DefaultURL: "https://2x.antdv.com/components/overview/",
 		WindowTransparent:  true,
 		WebviewTransparent: true,
-		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
+		BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		//BackgroundColor: colors.NewARGB(250, 250, 250, 250),
 		//DisableDevTools:    true,
 		//DisableContextMenu: true,

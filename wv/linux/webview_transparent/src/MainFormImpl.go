@@ -3,7 +3,7 @@ package src
 import (
 	"fmt"
 	"github.com/energye/energy/v3/application"
-	gtk3 "github.com/energye/energy/v3/platform/linux/gtk3/cgo"
+	"github.com/energye/energy/v3/platform/linux/gtk3"
 	gtk3Types "github.com/energye/energy/v3/platform/linux/types"
 	"github.com/energye/lcl/lcl"
 	"unsafe"

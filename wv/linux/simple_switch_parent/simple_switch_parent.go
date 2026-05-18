@@ -11,12 +11,10 @@ import (
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/examples/wv/linux/simple_switch_parent/app"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/libname"
 )
 
 func main() {
 	api.SetDebug(true)
-	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3.so"
 	// 全局初始化
 	wvApp := wv.Init()
 	wvApp.SetOptions(application.Options{
