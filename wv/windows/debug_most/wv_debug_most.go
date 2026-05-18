@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/energye/energy/v3/platform/win32"
+	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/application"
 	"github.com/energye/examples/wv/windows/debug_most/contextmenu"
 	"github.com/energye/examples/wv/windows/debug_most/cookie"
