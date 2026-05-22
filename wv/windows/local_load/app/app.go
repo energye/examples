@@ -6,8 +6,8 @@
 package app
 
 import (
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
-	"os"
 )
 
 // Forms 应用使用的窗体列表
@@ -17,5 +17,5 @@ var Forms = []lcl.IEngForm{
 
 func init() {
 	// linux webkit2 > gtk3
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 }

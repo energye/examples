@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/energye/examples/wv/linux/custombrowser/window"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	wv "github.com/energye/wv/linux"
 	"os"
@@ -46,7 +47,7 @@ var (
 func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	lcl.Init()
 	wv.Init()
 

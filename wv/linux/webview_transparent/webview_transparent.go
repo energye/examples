@@ -4,13 +4,13 @@ import (
 	"github.com/energye/energy/v3/application"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/linux/webview_transparent/src"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types/colors"
-	"os"
 )
 
 func main() {
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	application.GApplication = &application.Application{
 		Options: application.Options{
 			WindowTransparent:  true,

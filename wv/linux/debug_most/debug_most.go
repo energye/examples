@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/energye/assetserve"
 	"github.com/energye/examples/wv/assets"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	wv "github.com/energye/wv/linux"
 	wvTypes "github.com/energye/wv/types/linux"
-	"os"
 	"path/filepath"
 	"unsafe"
 )
@@ -41,7 +41,7 @@ func main() {
 	//os.Setenv("JSC_SIGNAL_FOR_GC", "SIGUSR")
 	httpServer()
 	// linux webkit2 > gtk3
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	lcl.Init()
 	wv.Init()
 

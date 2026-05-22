@@ -8,9 +8,9 @@ import (
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/energy/v3/wv"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"os"
 	"runtime"
 )
 
@@ -26,7 +26,7 @@ var MainForm TMainForm
 
 func main() {
 	api.SetDebug(true)
-	os.Setenv("--ws", "gtk3") // for linux
+	libname.UseWS = "gtk3" // for linux
 	wvApp := wv.Init()
 
 	wvApp.SetOptions(application.Options{

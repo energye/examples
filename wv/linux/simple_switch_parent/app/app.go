@@ -7,8 +7,8 @@ package app
 
 import (
 	"github.com/energye/energy/v3/application/pack"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
-	"os"
 	"runtime"
 )
 
@@ -25,10 +25,10 @@ var Forms = []lcl.IEngForm{
 func init() {
 	if "WV" == "WV" {
 		// linux webkit2 > gtk3
-		os.Setenv("--ws", "gtk3")
+		libname.UseWS = "gtk3"
 	}
 	if runtime.GOOS == "darwin" {
 		// macOS universal-binary
-		// os.Setenv("--universal-binary", "universal")
+		// os.Setenv("ENERGY_UNIVERSAL_BINARY", "universal")
 	}
 }

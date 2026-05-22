@@ -5,14 +5,14 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/linux/notification/src"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/emfs"
 	"github.com/energye/lcl/lcl"
-	"os"
 )
 
 func main() {
 	api.SetDebug(true)
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	lcl.Init()
 	println(api.Widget().IsGTK3())
 	lcl.Application.Initialize()

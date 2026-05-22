@@ -6,7 +6,6 @@ import (
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
-	"os"
 )
 
 type TMainForm struct {
@@ -29,7 +28,7 @@ func init() {
 
 func main() {
 	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3.so"
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	lcl.Init()
 	lcl.RunApp(&mainForm, &form1)
 }

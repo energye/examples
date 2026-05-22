@@ -9,9 +9,9 @@ import (
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/examples/wv/windows/local_load/app"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types/colors"
-	"os"
 	"time"
 )
 
@@ -26,7 +26,7 @@ var resources embed.FS
 func main() {
 	api.SetDebug(true)
 	// linux webkit2 > gtk3
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	wvApp := wv.Init()
 	wvApp.SetOptions(application.Options{
 		Frameless: true,

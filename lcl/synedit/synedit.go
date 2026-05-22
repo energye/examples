@@ -2,15 +2,15 @@ package main
 
 import (
 	_ "github.com/energye/examples/syso"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/font"
-	"os"
 	"strings"
 )
 
 func main() {
-	os.Setenv("--ws", "gtk3")
+	libname.UseWS = "gtk3"
 	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)

@@ -17,7 +17,7 @@ type TMainForm struct {
 var mainForm TMainForm
 
 func main() {
-	//os.Setenv("--ws", "gtk3")
+	//	libname.UseWS = "gtk3"
 	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
