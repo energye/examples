@@ -54,7 +54,7 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 func (f *TMainForm) OnCloseQuery(Sender lcl.IObject, CanClose *bool) {
 	var buttons types.TMsgDlgButtons
-	buttons = types.NewSet(types.MbYes)
+	buttons = types.NewSet(types.MbYes, types.MbNo)
 	*CanClose = api.MessageDlg("是否退出？", types.MtConfirmation, buttons, types.MbNo) == types.IdYes
 }
 
