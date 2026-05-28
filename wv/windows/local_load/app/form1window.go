@@ -139,6 +139,10 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnClick")
 	})
 	tray.Show()
+
+	m.SetOnThemeChange(func(isDark bool) {
+		fmt.Println("OnThemeChange isDark:", isDark)
+	})
 }
 
 func (m *TForm1Window) OnFormShow(sender lcl.IObject) {
