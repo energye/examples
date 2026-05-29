@@ -23,6 +23,8 @@ var supportedLangs = []struct {
 	{"ko", "한국어"},
 }
 
+// ==================== 主窗体 ====================
+
 type TMainForm struct {
 	lcl.TEngForm
 	// 语言切换
@@ -87,6 +89,17 @@ type TMainForm struct {
 	cancelBtn    lcl.IButton
 	radioGroup   lcl.IRadioGroup
 	checkGroup   lcl.ICheckGroup
+	// === 扩展控件页 ===
+	extraTab      lcl.ITabSheet
+	staticText    lcl.IStaticText
+	maskEdit      lcl.IMaskEdit
+	floatSpinEdit lcl.IFloatSpinEdit
+	trackBar      lcl.ITrackBar
+	progressBar   lcl.IProgressBar
+	upDown        lcl.IUpDown
+	toggleBox     lcl.IToggleBox
+	colorBox      lcl.IColorBox
+	colorButton   lcl.IColorButton
 	// === 动作页 ===
 	actionTab  lcl.ITabSheet
 	actionList lcl.IActionList
@@ -95,13 +108,34 @@ type TMainForm struct {
 	actionSave lcl.IAction
 	actionCopy lcl.IAction
 	actionMemo lcl.IMemo
+	// === 多窗口测试 ===
+	openSubFormBtn lcl.IButton
 	// 弹出菜单
 	popupMenu   lcl.IPopupMenu
 	currentLang string
 	localeDir   string
 }
 
+// ==================== 子窗体 ====================
+
+type TSubForm struct {
+	lcl.TEngForm
+	// 标题
+	titleLabel lcl.ILabel
+	// 输入控件
+	dateEdit      lcl.IDateEdit
+	timeEdit      lcl.ITimeEdit
+	fileNameEdit  lcl.IFileNameEdit
+	directoryEdit lcl.IDirectoryEdit
+	// 按钮
+	okBtn     lcl.IButton
+	cancelBtn lcl.IButton
+	// 状态
+	statusLabel lcl.ILabel
+}
+
 var mainForm TMainForm
+var subForm TSubForm
 
 func main() {
 	libname.LibName = "C:\\app\\workspace\\gen\\gout\\libenergy-amd64.dll"
@@ -109,8 +143,11 @@ func main() {
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
 	lcl.Application.NewForm(&mainForm)
+	lcl.Application.NewForm(&subForm)
 	lcl.Application.Run()
 }
+
+// ==================== 主窗体方法 ====================
 
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.currentLang = "zh-CN"
@@ -119,8 +156,8 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 
 	m.SetCaption("国际化示例")
 	m.SetPosition(types.PoScreenCenter)
-	m.SetWidth(780)
-	m.SetHeight(620)
+	m.SetWidth(800)
+	m.SetHeight(650)
 
 	m.createTopPanel()
 	m.createMainMenu()
@@ -130,15 +167,13 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.createPopupMenu()
 }
 
-// ==================== 顶部语言切换面板 ====================
+// ---------- 顶部语言切换面板 ----------
 
 func (m *TMainForm) createTopPanel() {
 	m.topPanel = lcl.NewPanel(m)
 	m.topPanel.SetParent(m)
-	m.topPanel.SetName("TopPanel")
 	m.topPanel.SetAlign(types.AlTop)
 	m.topPanel.SetHeight(40)
-	m.topPanel.SetCaption("")
 
 	m.langLabel = lcl.NewLabel(m.topPanel)
 	m.langLabel.SetParent(m.topPanel)
@@ -159,9 +194,21 @@ func (m *TMainForm) createTopPanel() {
 	}
 	m.langComboBox.SetItemIndex(0)
 	m.langComboBox.SetOnChange(m.onLangChange)
+
+	// 打开子窗口按钮
+	m.openSubFormBtn = lcl.NewButton(m.topPanel)
+	m.openSubFormBtn.SetParent(m.topPanel)
+	m.openSubFormBtn.SetName("OpenSubFormBtn")
+	m.openSubFormBtn.SetLeft(260)
+	m.openSubFormBtn.SetTop(5)
+	m.openSubFormBtn.SetWidth(120)
+	m.openSubFormBtn.SetHeight(28)
+	m.openSubFormBtn.SetCaption("打开子窗口")
+	m.openSubFormBtn.SetHint("点击打开子窗口")
+	m.openSubFormBtn.SetOnClick(m.onOpenSubForm)
 }
 
-// ==================== 主菜单 ====================
+// ---------- 主菜单 ----------
 
 func (m *TMainForm) createMainMenu() {
 	m.mainMenu = lcl.NewMainMenu(m)
@@ -260,7 +307,7 @@ func (m *TMainForm) createMainMenu() {
 	m.mainMenu.Items().Add(helpItem)
 }
 
-// ==================== 工具栏 ====================
+// ---------- 工具栏 ----------
 
 func (m *TMainForm) createToolBar() {
 	m.toolBar = lcl.NewToolBar(m)
@@ -309,7 +356,7 @@ func (m *TMainForm) createToolBar() {
 	tbPaste.SetHint("粘贴剪贴板内容")
 }
 
-// ==================== 页面控制 ====================
+// ---------- 页面控制 ----------
 
 func (m *TMainForm) createPageControl() {
 	m.pageControl = lcl.NewPageControl(m)
@@ -322,6 +369,7 @@ func (m *TMainForm) createPageControl() {
 	m.createTextTab()
 	m.createListTab()
 	m.createLayoutTab()
+	m.createExtraTab()
 	m.createActionTab()
 }
 
@@ -374,6 +422,7 @@ func (m *TMainForm) createBasicTab() {
 	m.passwordLabel.SetCaption("密码：")
 
 	m.passwordEdit = lcl.NewEdit(m.basicTab)
+	m.passwordEdit.SetParent(m.basicTab)
 	m.passwordEdit.SetName("PasswordEdit")
 	m.passwordEdit.SetLeft(110)
 	m.passwordEdit.SetTop(112)
@@ -381,7 +430,6 @@ func (m *TMainForm) createBasicTab() {
 	m.passwordEdit.SetPasswordChar('*')
 	m.passwordEdit.SetTextHint("请输入密码")
 	m.passwordEdit.SetText("")
-	m.passwordEdit.SetParent(m.basicTab)
 
 	m.enableCheckBox = lcl.NewCheckBox(m.basicTab)
 	m.enableCheckBox.SetParent(m.basicTab)
@@ -770,6 +818,141 @@ func (m *TMainForm) createLayoutTab() {
 	m.cancelBtn.SetHint("取消操作")
 }
 
+// ---------- 扩展控件页 ----------
+
+func (m *TMainForm) createExtraTab() {
+	m.extraTab = lcl.NewTabSheet(m)
+	m.extraTab.SetName("ExtraTab")
+	m.extraTab.SetPageControl(m.pageControl)
+	m.extraTab.SetCaption("扩展控件")
+
+	// StaticText
+	m.staticText = lcl.NewStaticText(m.extraTab)
+	m.staticText.SetParent(m.extraTab)
+	m.staticText.SetName("StaticText")
+	m.staticText.SetLeft(20)
+	m.staticText.SetTop(15)
+	m.staticText.SetCaption("这是静态文本（StaticText）")
+	m.staticText.SetHint("StaticText 提示")
+
+	// MaskEdit
+	maskLabel := lcl.NewLabel(m.extraTab)
+	maskLabel.SetParent(m.extraTab)
+	maskLabel.SetName("MaskEditLabel")
+	maskLabel.SetLeft(20)
+	maskLabel.SetTop(45)
+	maskLabel.SetCaption("电话号码：")
+
+	m.maskEdit = lcl.NewMaskEdit(m.extraTab)
+	m.maskEdit.SetParent(m.extraTab)
+	m.maskEdit.SetName("MaskEdit")
+	m.maskEdit.SetLeft(100)
+	m.maskEdit.SetTop(42)
+	m.maskEdit.SetWidth(200)
+	m.maskEdit.SetTextHint("请输入电话号码")
+	m.maskEdit.SetHint("输入您的电话号码")
+	m.maskEdit.SetText("")
+
+	// FloatSpinEdit
+	floatLabel := lcl.NewLabel(m.extraTab)
+	floatLabel.SetParent(m.extraTab)
+	floatLabel.SetName("FloatSpinLabel")
+	floatLabel.SetLeft(20)
+	floatLabel.SetTop(80)
+	floatLabel.SetCaption("浮点数：")
+
+	m.floatSpinEdit = lcl.NewFloatSpinEdit(m.extraTab)
+	m.floatSpinEdit.SetParent(m.extraTab)
+	m.floatSpinEdit.SetName("FloatSpinEdit")
+	m.floatSpinEdit.SetLeft(100)
+	m.floatSpinEdit.SetTop(77)
+	m.floatSpinEdit.SetWidth(120)
+	m.floatSpinEdit.SetMinValue(0.0)
+	m.floatSpinEdit.SetMaxValue(100.0)
+	m.floatSpinEdit.SetValue(3.14)
+	m.floatSpinEdit.SetHint("输入浮点数")
+
+	// TrackBar
+	trackLabel := lcl.NewLabel(m.extraTab)
+	trackLabel.SetParent(m.extraTab)
+	trackLabel.SetName("TrackBarLabel")
+	trackLabel.SetLeft(20)
+	trackLabel.SetTop(115)
+	trackLabel.SetCaption("滑块：")
+
+	m.trackBar = lcl.NewTrackBar(m.extraTab)
+	m.trackBar.SetParent(m.extraTab)
+	m.trackBar.SetName("TrackBar")
+	m.trackBar.SetBounds(80, 110, 200, 30)
+	m.trackBar.SetMin(0)
+	m.trackBar.SetMax(100)
+	m.trackBar.SetPosition(50)
+	m.trackBar.SetHint("拖动滑块")
+
+	// ProgressBar
+	progressLabel := lcl.NewLabel(m.extraTab)
+	progressLabel.SetParent(m.extraTab)
+	progressLabel.SetName("ProgressLabel")
+	progressLabel.SetLeft(20)
+	progressLabel.SetTop(155)
+	progressLabel.SetCaption("进度条：")
+
+	m.progressBar = lcl.NewProgressBar(m.extraTab)
+	m.progressBar.SetParent(m.extraTab)
+	m.progressBar.SetName("ProgressBar")
+	m.progressBar.SetBounds(80, 150, 200, 25)
+	m.progressBar.SetPosition(60)
+	m.progressBar.SetHint("进度显示")
+
+	// UpDown
+	upDownLabel := lcl.NewLabel(m.extraTab)
+	upDownLabel.SetParent(m.extraTab)
+	upDownLabel.SetName("UpDownLabel")
+	upDownLabel.SetLeft(20)
+	upDownLabel.SetTop(190)
+	upDownLabel.SetCaption("微调框：")
+
+	m.upDown = lcl.NewUpDown(m.extraTab)
+	m.upDown.SetParent(m.extraTab)
+	m.upDown.SetName("UpDown")
+	m.upDown.SetBounds(100, 185, 50, 25)
+	m.upDown.SetMin(0)
+	m.upDown.SetMax(100)
+	m.upDown.SetPosition(50)
+	m.upDown.SetHint("点击调整数值")
+
+	// ToggleBox
+	m.toggleBox = lcl.NewToggleBox(m.extraTab)
+	m.toggleBox.SetParent(m.extraTab)
+	m.toggleBox.SetName("ToggleBox")
+	m.toggleBox.SetBounds(20, 225, 120, 25)
+	m.toggleBox.SetCaption("切换开关")
+	m.toggleBox.SetHint("点击切换状态")
+	m.toggleBox.SetChecked(false)
+
+	// ColorBox
+	colorBoxLabel := lcl.NewLabel(m.extraTab)
+	colorBoxLabel.SetParent(m.extraTab)
+	colorBoxLabel.SetName("ColorBoxLabel")
+	colorBoxLabel.SetLeft(20)
+	colorBoxLabel.SetTop(265)
+	colorBoxLabel.SetCaption("颜色选择：")
+
+	m.colorBox = lcl.NewColorBox(m.extraTab)
+	m.colorBox.SetParent(m.extraTab)
+	m.colorBox.SetName("ColorBox")
+	m.colorBox.SetBounds(100, 260, 150, 25)
+	m.colorBox.SetHint("选择颜色")
+
+	// ColorButton
+	m.colorButton = lcl.NewColorButton(m.extraTab)
+	m.colorButton.SetParent(m.extraTab)
+	m.colorButton.SetName("ColorButton")
+	m.colorButton.SetBounds(270, 260, 80, 25)
+	m.colorButton.SetCaption("颜色")
+	m.colorButton.SetHint("点击选择颜色")
+}
+
 // ---------- 动作页 ----------
 
 func (m *TMainForm) createActionTab() {
@@ -861,7 +1044,7 @@ func (m *TMainForm) createActionTab() {
 	})
 }
 
-// ==================== 状态栏 ====================
+// ---------- 状态栏 ----------
 
 func (m *TMainForm) createStatusBar() {
 	m.statusBar = lcl.NewStatusBar(m)
@@ -881,7 +1064,7 @@ func (m *TMainForm) createStatusBar() {
 	p3.SetText("国际化示例程序 v2.0")
 }
 
-// ==================== 弹出菜单 ====================
+// ---------- 弹出菜单 ----------
 
 func (m *TMainForm) createPopupMenu() {
 	m.popupMenu = lcl.NewPopupMenu(m)
@@ -917,7 +1100,7 @@ func (m *TMainForm) createPopupMenu() {
 	m.memo.SetPopupMenu(m.popupMenu)
 }
 
-// ==================== 事件处理 ====================
+// ---------- 事件处理 ----------
 
 func (m *TMainForm) onLangChange(sender lcl.IObject) {
 	idx := m.langComboBox.ItemIndex()
@@ -954,4 +1137,130 @@ func (m *TMainForm) onAboutClick(sender lcl.IObject) {
 		buttons,
 		0,
 	)
+}
+
+func (m *TMainForm) onOpenSubForm(sender lcl.IObject) {
+	subForm.Show()
+}
+
+// ==================== 子窗体方法 ====================
+
+func (m *TSubForm) FormCreate(sender lcl.IObject) {
+	m.SetName("SubForm")
+	m.SetCaption("子窗口")
+	m.SetPosition(types.PoScreenCenter)
+	m.SetWidth(450)
+	m.SetHeight(350)
+
+	// 标题
+	m.titleLabel = lcl.NewLabel(m)
+	m.titleLabel.SetParent(m)
+	m.titleLabel.SetName("SubFormTitleLabel")
+	m.titleLabel.SetLeft(20)
+	m.titleLabel.SetTop(15)
+	m.titleLabel.SetCaption("这是子窗口，支持国际化：")
+	m.titleLabel.Font().SetSize(14)
+	m.titleLabel.Font().SetBold(true)
+
+	// DateEdit
+	dateLabel := lcl.NewLabel(m)
+	dateLabel.SetParent(m)
+	dateLabel.SetName("DateEditLabel")
+	dateLabel.SetLeft(20)
+	dateLabel.SetTop(50)
+	dateLabel.SetCaption("日期选择：")
+
+	m.dateEdit = lcl.NewDateEdit(m)
+	m.dateEdit.SetParent(m)
+	m.dateEdit.SetName("DateEdit")
+	m.dateEdit.SetLeft(100)
+	m.dateEdit.SetTop(47)
+	m.dateEdit.SetWidth(200)
+	m.dateEdit.SetHint("选择日期")
+	m.dateEdit.SetText("")
+
+	// TimeEdit
+	timeLabel := lcl.NewLabel(m)
+	timeLabel.SetParent(m)
+	timeLabel.SetName("TimeEditLabel")
+	timeLabel.SetLeft(20)
+	timeLabel.SetTop(85)
+	timeLabel.SetCaption("时间选择：")
+
+	m.timeEdit = lcl.NewTimeEdit(m)
+	m.timeEdit.SetParent(m)
+	m.timeEdit.SetName("TimeEdit")
+	m.timeEdit.SetLeft(100)
+	m.timeEdit.SetTop(82)
+	m.timeEdit.SetWidth(200)
+	m.timeEdit.SetHint("选择时间")
+	m.timeEdit.SetText("")
+
+	// FileNameEdit
+	fileLabel := lcl.NewLabel(m)
+	fileLabel.SetParent(m)
+	fileLabel.SetName("FileNameEditLabel")
+	fileLabel.SetLeft(20)
+	fileLabel.SetTop(120)
+	fileLabel.SetCaption("文件选择：")
+
+	m.fileNameEdit = lcl.NewFileNameEdit(m)
+	m.fileNameEdit.SetParent(m)
+	m.fileNameEdit.SetName("FileNameEdit")
+	m.fileNameEdit.SetLeft(100)
+	m.fileNameEdit.SetTop(117)
+	m.fileNameEdit.SetWidth(250)
+	m.fileNameEdit.SetHint("选择文件")
+	m.fileNameEdit.SetTextHint("请选择文件")
+	m.fileNameEdit.SetDialogTitle("选择文件")
+	m.fileNameEdit.SetFilter("文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*")
+	m.fileNameEdit.SetText("")
+
+	// DirectoryEdit
+	dirLabel := lcl.NewLabel(m)
+	dirLabel.SetParent(m)
+	dirLabel.SetName("DirectoryEditLabel")
+	dirLabel.SetLeft(20)
+	dirLabel.SetTop(155)
+	dirLabel.SetCaption("目录选择：")
+
+	m.directoryEdit = lcl.NewDirectoryEdit(m)
+	m.directoryEdit.SetParent(m)
+	m.directoryEdit.SetName("DirectoryEdit")
+	m.directoryEdit.SetLeft(100)
+	m.directoryEdit.SetTop(152)
+	m.directoryEdit.SetWidth(250)
+	m.directoryEdit.SetHint("选择目录")
+	m.directoryEdit.SetTextHint("请选择目录")
+	m.directoryEdit.SetDialogTitle("选择目录")
+	m.directoryEdit.SetText("")
+
+	// 按钮
+	m.okBtn = lcl.NewButton(m)
+	m.okBtn.SetParent(m)
+	m.okBtn.SetName("SubFormOKBtn")
+	m.okBtn.SetBounds(100, 200, 90, 30)
+	m.okBtn.SetCaption("确定")
+	m.okBtn.SetHint("确认操作")
+	m.okBtn.SetOnClick(func(sender lcl.IObject) {
+		m.statusLabel.SetCaption("已点击确定")
+	})
+
+	m.cancelBtn = lcl.NewButton(m)
+	m.cancelBtn.SetParent(m)
+	m.cancelBtn.SetName("SubFormCancelBtn")
+	m.cancelBtn.SetBounds(200, 200, 90, 30)
+	m.cancelBtn.SetCaption("取消")
+	m.cancelBtn.SetHint("取消操作")
+	m.cancelBtn.SetOnClick(func(sender lcl.IObject) {
+		m.Close()
+	})
+
+	// 状态标签
+	m.statusLabel = lcl.NewLabel(m)
+	m.statusLabel.SetParent(m)
+	m.statusLabel.SetName("SubFormStatusLabel")
+	m.statusLabel.SetLeft(20)
+	m.statusLabel.SetTop(250)
+	m.statusLabel.SetCaption("状态：等待操作")
 }
