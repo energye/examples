@@ -1,15 +1,13 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	_ "github.com/energye/examples/syso/windows"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/locales"
 	"github.com/energye/lcl/types"
-	"os"
-	"path/filepath"
 )
 
 // 支持的语言列表
@@ -113,7 +111,6 @@ type TMainForm struct {
 	// 弹出菜单
 	popupMenu   lcl.IPopupMenu
 	currentLang string
-	localeDir   string
 }
 
 // ==================== 子窗体 ====================
@@ -137,8 +134,10 @@ type TSubForm struct {
 var mainForm TMainForm
 var subForm TSubForm
 
+//go:embed lang
+var fsLang embed.FS
+
 func main() {
-	libname.LibName = "C:\\app\\workspace\\gen\\gout\\libenergy-amd64.dll"
 	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
@@ -152,7 +151,6 @@ func main() {
 func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	m.currentLang = "zh-CN"
 	m.SetName("MainForm")
-	m.localeDir = "C:\\app\\workspace\\examples\\lcl\\locales"
 
 	m.SetCaption("国际化示例")
 	m.SetPosition(types.PoScreenCenter)
@@ -1112,8 +1110,7 @@ func (m *TMainForm) onLangChange(sender lcl.IObject) {
 		return
 	}
 	m.currentLang = lang
-
-	data, err := os.ReadFile(filepath.Join(m.localeDir, "locale."+lang+".kv"))
+	data, err := fsLang.ReadFile("lang/" + lang + ".lang")
 	if err != nil {
 		fmt.Println("加载翻译文件失败:", err)
 		return
