@@ -1110,7 +1110,7 @@ func (m *TMainForm) onLangChange(sender lcl.IObject) {
 		return
 	}
 	m.currentLang = lang
-	data, err := fsLang.ReadFile("lang/" + lang + ".lang")
+	data, err := fsLang.ReadFile("lang/" + lang + ".ini")
 	if err != nil {
 		fmt.Println("加载翻译文件失败:", err)
 		return
