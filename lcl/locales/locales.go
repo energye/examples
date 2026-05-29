@@ -364,6 +364,7 @@ func (m *TMainForm) createBasicTab() {
 	m.nameEdit.SetWidth(200)
 	m.nameEdit.SetTextHint("在此输入姓名")
 	m.nameEdit.SetHint("输入您的姓名")
+	m.nameEdit.SetText("")
 
 	m.passwordLabel = lcl.NewLabel(m.basicTab)
 	m.passwordLabel.SetParent(m.basicTab)
@@ -373,13 +374,14 @@ func (m *TMainForm) createBasicTab() {
 	m.passwordLabel.SetCaption("密码：")
 
 	m.passwordEdit = lcl.NewEdit(m.basicTab)
-	m.passwordEdit.SetParent(m.basicTab)
 	m.passwordEdit.SetName("PasswordEdit")
 	m.passwordEdit.SetLeft(110)
 	m.passwordEdit.SetTop(112)
 	m.passwordEdit.SetWidth(200)
 	m.passwordEdit.SetPasswordChar('*')
 	m.passwordEdit.SetTextHint("请输入密码")
+	m.passwordEdit.SetText("")
+	m.passwordEdit.SetParent(m.basicTab)
 
 	m.enableCheckBox = lcl.NewCheckBox(m.basicTab)
 	m.enableCheckBox.SetParent(m.basicTab)
@@ -697,6 +699,7 @@ func (m *TMainForm) createLayoutTab() {
 	m.labeledEdit1.EditLabel().SetCaption("用户名：")
 	m.labeledEdit1.SetTextHint("请输入用户名")
 	m.labeledEdit1.SetHint("输入您的用户名")
+	m.labeledEdit1.SetText("")
 
 	m.labeledEdit2 = lcl.NewLabeledEdit(m.editGroup)
 	m.labeledEdit2.SetParent(m.editGroup)
@@ -706,6 +709,7 @@ func (m *TMainForm) createLayoutTab() {
 	m.labeledEdit2.EditLabel().SetCaption("邮箱：")
 	m.labeledEdit2.SetTextHint("请输入邮箱地址")
 	m.labeledEdit2.SetHint("输入您的邮箱地址")
+	m.labeledEdit2.SetText("")
 
 	// GroupBox + Panel
 	m.panelGroup = lcl.NewGroupBox(m.layoutTab)
