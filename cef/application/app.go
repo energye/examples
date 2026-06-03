@@ -3,8 +3,8 @@ package application
 import (
 	"fmt"
 	"github.com/energye/cef/cef"
+	"github.com/energye/cef/config"
 	"github.com/energye/lcl/api"
-	"github.com/energye/lcl/config"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/tool/exec"
 	"path/filepath"
@@ -26,7 +26,7 @@ func NewApplication() cef.ICefApplication {
 		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
 		// 指定 CEF Framework
 		// 默认 CEF Framework 目录
-		cfg := config.Get()
+		cfg := config.GConfig
 		if cfg != nil {
 			libCef := func() string {
 				if tool.IsWindows() {
@@ -44,7 +44,7 @@ func NewApplication() cef.ICefApplication {
 				if tool.IsExist(filepath.Join(exec.Dir, libCef)) {
 					GlobalCEFApp.SetFrameworkDirPath(exec.Dir)
 					setOtherDirPath(exec.Dir)
-				} else if frameworkDir := cfg.FrameworkPath(); tool.IsExist(filepath.Join(frameworkDir, libCef)) {
+				} else if frameworkDir := cfg.ChromiumPath(); tool.IsExist(filepath.Join(frameworkDir, libCef)) {
 					GlobalCEFApp.SetFrameworkDirPath(frameworkDir)
 					setOtherDirPath(frameworkDir)
 				}
