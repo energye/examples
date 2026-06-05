@@ -10,7 +10,6 @@ import (
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"os"
-	"runtime"
 )
 
 func init() {
@@ -19,8 +18,8 @@ func init() {
 
 func main() {
 	//全局初始化 每个应用都必须调用的
+	lcl.Init()
 	cef.Init()
-	runtime.LockOSThread()
 	// MacOS使用扩展消息泵
 	cef.AddCrDelegate()
 	app := application.NewApplication()
@@ -46,7 +45,6 @@ func main() {
 		} else if api.Widget().IsGTK3() {
 			// CEF message loop
 			// gtk3 使用 vf 窗口
-			app.SetGTKVersion(cefTypes.GtkVersion3) // GTK3
 			app.SetExternalMessagePump(false)
 			app.SetMultiThreadedMessageLoop(false)
 		}
@@ -65,7 +63,7 @@ func main() {
 		viewComponent := cef.NewBrowserViewComponent(component)
 		url := "https://gitee.com/energye/energy"
 		windowComponent.SetOnWindowCreated(func(sender lcl.IObject, window cef.ICefWindow) {
-			ok := chromium.CreateBrowserWithStringBrowserViewComponentRequestContextDictionaryValue(url, viewComponent, nil, nil)
+			ok := chromium.CreateBrowserWithStrBVComponentRContextDValue(url, viewComponent, nil, nil)
 			fmt.Println("SetOnWindowCreated CreateBrowserByBrowserViewComponent:", true)
 			if ok {
 				windowComponent.CenterWindow(cef.TCefSize{800, 600})

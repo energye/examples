@@ -5,7 +5,6 @@ import (
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/types"
 	"github.com/energye/examples/cef/application"
-	"github.com/energye/lcl/config"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -21,9 +20,9 @@ var (
 )
 
 func main() {
+	lcl.Init()
 	cef.Init()
 	app := application.NewApplication()
-	app.SetFrameworkDirPath(config.Get().FrameworkPath())
 	app.SetMultiThreadedMessageLoop(false)
 	app.SetExternalMessagePump(false)
 	app.SetDisablePopupBlocking(true)
@@ -51,7 +50,7 @@ func main() {
 				tabURL = ""
 			}
 		})
-		chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, popupId int32, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+		chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 			browser.GetHost().ExecuteChromeCommand(cefTypes.IDC_NEW_TAB, cefTypes.CEF_WOD_CURRENT_TAB)
 			tabURL = targetUrl
 			fmt.Println("OnBeforePopup", tabURL)
@@ -61,7 +60,7 @@ func main() {
 			fmt.Println("OpenUrlFromTab", tabURL)
 			*outResult = true
 		})
-		chromium.CreateBrowserWithWindowHandleRectStringRequestContextDictionaryValueBool(handle, rect, "tiny browser", nil, nil, true)
+		chromium.CreateBrowserWithWHandleRectStrRContextDValueBool(handle, rect, "tiny browser", nil, nil, true)
 	})
 	app.SetOnGetDefaultClient(func(client *cef.IEngClient) {
 		fmt.Println("OnGetDefaultClient:", chromium)

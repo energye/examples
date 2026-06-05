@@ -47,6 +47,7 @@ func init() {
 
 func main() {
 	//全局初始化 每个应用都必须调用的
+	lcl.Init()
 	cef.Init()
 	if tool.IsDarwin() {
 		cef.AddCrDelegate()

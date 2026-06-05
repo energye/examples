@@ -24,7 +24,6 @@ func NewApplication() cef.ICefApplication {
 	}
 	if !tool.IsDarwin() {
 		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
-		// 指定 CEF Framework
 		// 默认 CEF Framework 目录
 		cfg := config.GConfig
 		if cfg != nil {
@@ -38,14 +37,13 @@ func NewApplication() cef.ICefApplication {
 			}()
 			if libCef != "" {
 				setOtherDirPath := func(v string) {
+					GlobalCEFApp.SetFrameworkDirPath(v)
 					GlobalCEFApp.SetResourcesDirPath(v)
 					GlobalCEFApp.SetLocalesDirPath(filepath.Join(v, "locales"))
 				}
 				if tool.IsExist(filepath.Join(exec.Dir, libCef)) {
-					GlobalCEFApp.SetFrameworkDirPath(exec.Dir)
 					setOtherDirPath(exec.Dir)
 				} else if frameworkDir := cfg.ChromiumPath(); tool.IsExist(filepath.Join(frameworkDir, libCef)) {
-					GlobalCEFApp.SetFrameworkDirPath(frameworkDir)
 					setOtherDirPath(frameworkDir)
 				}
 			}

@@ -4,11 +4,11 @@
 package window
 
 import (
+	"github.com/energye/energy/v3/lcl/wg"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/energye/lcl/types/colors"
-	"github.com/energye/widget/wg"
 	"net/url"
 	"strings"
 )
