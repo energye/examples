@@ -8,8 +8,6 @@ import (
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
-	"github.com/energye/examples/cef/debug_most/scheme"
-	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -55,15 +53,17 @@ func main() {
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
 	//fmt.Println("ProcessType:", app.ProcessType())
-	v8context.Context(app)
-	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-		scheme.ApplicationOnRegCustomSchemes(registrar)
-	})
+	//v8context.Context(app)
+	//app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+	//	scheme.ApplicationOnRegCustomSchemes(registrar)
+	//})
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef.ICefCommandLine) {
 		fmt.Println("SetOnBeforeChildProcessLaunch")
 		//commandLine.AppendSwitch("--enable-gpu-memory-buffer-compositor-resources")
 		//commandLine.AppendSwitch("--enable-main-frame-before-activation")
 	})
+	app.SetEnableGPU(true)
+	//app.SetChromeRuntime(true)
 	if tool.IsDarwin() {
 		app.InitLibLocationFromArgs()
 		// MacOS不需要设置CEF框架目录，它是一个固定的目录结构
@@ -143,6 +143,10 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	} else if tool.IsWindows() {
 		assetsHtml = filepath.Join(utils.RootPath(), "debug_most", "assets", "index.html")
 		assetsHtml = "file://C:\\app\\workspace\\examples\\cef\\debug_most\\assets\\index.html"
+		//assetsHtml = "chrome://gpu"
+		//assetsHtml = "https://webgpu.github.io/webgpu-samples/"
+		//assetsHtml = "https://sketchfab.com/"
+		//assetsHtml = "https://volumeshaderbm.cn/"
 	}
 	fmt.Println("assetsHtml:", assetsHtml)
 	m.chromium.SetDefaultUrl(assetsHtml)
@@ -184,6 +188,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnClose(m.chromiumClose)
 	// 3. 触发后将canClose设置为true, 发送消息到主窗口关闭，触发 m.SetOnCloseQuery
 	m.chromium.SetOnBeforeClose(m.chromiumBeforeClose)
+
 	// 上下文菜单
 	contextmenu.ContextMenu(m.chromium)
 	// cookie
@@ -208,6 +213,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		manager.Release()
 	})
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
+		devtools.ExecuteDevToolsMethod(m.chromium)
 		fmt.Println("SetOnAfterCreated isMainThread:", api.CurrentThreadId() == api.MainThreadId())
 		m.timer.SetEnabled(true)
 	})
@@ -230,6 +236,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 			*outResult = true
 		}
 	})
+
 	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
 		fmt.Printf("beforePopup: %+v\n", windowInfo)
 		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
