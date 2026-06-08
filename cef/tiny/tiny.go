@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
-	"github.com/energye/examples/cef/application"
+	"github.com/energye/cef/109/cef"
+	cefTypes "github.com/energye/cef/109/types"
+	engCEF "github.com/energye/energy/v3/cef"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -20,9 +20,7 @@ var (
 )
 
 func main() {
-	lcl.Init()
-	cef.Init()
-	app := application.NewApplication()
+	app := engCEF.Init()
 	app.SetMultiThreadedMessageLoop(false)
 	app.SetExternalMessagePump(false)
 	app.SetDisablePopupBlocking(true)
@@ -51,7 +49,7 @@ func main() {
 			}
 		})
 		chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
-			browser.GetHost().ExecuteChromeCommand(cefTypes.IDC_NEW_TAB, cefTypes.CEF_WOD_CURRENT_TAB)
+			//browser.GetHost().ExecuteChromeCommand(cefTypes.IDC_NEW_TAB, cefTypes.CEF_WOD_CURRENT_TAB)
 			tabURL = targetUrl
 			fmt.Println("OnBeforePopup", tabURL)
 			*result = true

@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
+	"github.com/energye/cef/109/cef"
+	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/base"
 	engCEF "github.com/energye/energy/v3/cef"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
+	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -47,13 +49,13 @@ func main() {
 	//全局初始化 每个应用都必须调用的
 	app := engCEF.Init()
 	if tool.IsDarwin() {
-		cef.AddCrDelegate()
+		base.AddCrDelegate()
 	}
 	app.SetLogSeverity(cefTypes.LOGSEVERITY_VERBOSE)
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
 	//fmt.Println("ProcessType:", app.ProcessType())
-	//v8context.Context(app)
+	v8context.Context(app)
 	//app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
 	//	scheme.ApplicationOnRegCustomSchemes(registrar)
 	//})
@@ -72,7 +74,7 @@ func main() {
 		app.SetMultiThreadedMessageLoop(false)
 		if app.ProcessType() == cefTypes.PtBrowser {
 			scheduler := cef.NewWorkScheduler(nil)
-			cef.SetGlobalCEFWorkSchedule(scheduler)
+			base.SetGlobalCEFWorkSchedule(scheduler.Instance())
 			//messagepump.GlobalCEFApp = app
 			//messagepump.InitMessagePump()
 			app.SetOnScheduleMessagePumpWork(func(delayMs int64) {

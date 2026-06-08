@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
-	"github.com/energye/examples/cef/application"
+	"github.com/energye/cef/109/cef"
+	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/base"
+	engCEF "github.com/energye/energy/v3/cef"
 	"github.com/energye/examples/cef/custombrowser/window"
 	_ "github.com/energye/examples/syso"
 	"github.com/energye/lcl/api"
@@ -24,13 +25,11 @@ func main() {
 	window.CacheRoot = cacheRoot
 	window.SiteResource = siteResourceRoot
 	//全局初始化 每个应用都必须调用的
-	lcl.Init()
-	cef.Init()
+	app := engCEF.Init()
 	if tool.IsDarwin() {
-		cef.AddCrDelegate()
+		base.AddCrDelegate()
 	}
 
-	app := application.NewApplication()
 	app.SetLocale("zh-CN")
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
@@ -44,7 +43,7 @@ func main() {
 		app.SetMultiThreadedMessageLoop(false)
 		if app.ProcessType() == cefTypes.PtBrowser {
 			scheduler := cef.NewWorkScheduler(nil)
-			cef.SetGlobalCEFWorkSchedule(scheduler)
+			base.SetGlobalCEFWorkSchedule(scheduler.Instance())
 			app.SetOnScheduleMessagePumpWork(func(delayMs int64) {
 				scheduler.ScheduleMessagePumpWork(delayMs)
 			})
@@ -72,9 +71,9 @@ func main() {
 		app.SetDisableZygote(true)
 	}
 
-	app.SetOnAlreadyRunningAppRelaunch(func(commandLine cef.ICefCommandLine, currentDirectory string, result *bool) {
-		*result = true
-	})
+	//app.SetOnAlreadyRunningAppRelaunch(func(commandLine cef.ICefCommandLine, currentDirectory string, result *bool) {
+	//	*result = true
+	//})
 	// 主进程启动
 	mainStart := app.StartMainProcess()
 	if mainStart {

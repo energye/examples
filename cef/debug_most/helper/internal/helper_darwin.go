@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/energye/cef/cef"
+	"github.com/energye/cef/109/cef"
 	"github.com/energye/examples/cef/application"
 )
 

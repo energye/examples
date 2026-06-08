@@ -2,27 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
-	"github.com/energye/examples/cef/application"
-	. "github.com/energye/examples/syso"
+	"github.com/energye/cef/109/cef"
+	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/base"
+	engCEF "github.com/energye/energy/v3/cef"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"os"
 )
 
-func init() {
-	TestLoadLibPath()
-}
-
 func main() {
 	//全局初始化 每个应用都必须调用的
-	lcl.Init()
-	cef.Init()
+	app := engCEF.Init()
 	// MacOS使用扩展消息泵
-	cef.AddCrDelegate()
-	app := application.NewApplication()
+	base.AddCrDelegate()
 	if tool.IsDarwin() {
 		app.SetExternalMessagePump(false)
 		app.SetMultiThreadedMessageLoop(false)

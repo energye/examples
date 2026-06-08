@@ -3,8 +3,8 @@ package v8context
 import (
 	"bytes"
 	"fmt"
-	"github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/types"
+	"github.com/energye/cef/109/cef"
+	cefTypes "github.com/energye/cef/109/types"
 	"github.com/energye/examples/cef/debug_most/domvisitor"
 	"strconv"
 	"unsafe"

@@ -2,7 +2,7 @@ package domvisitor
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
+	"github.com/energye/cef/109/cef"
 )
 
 var dv cef.IEngDomVisitor

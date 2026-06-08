@@ -56,7 +56,7 @@ extern void doMessageLoopWorkCallback();
 */
 import "C"
 import (
-	"github.com/energye/cef/cef"
+	"github.com/energye/cef/109/cef"
 	"github.com/energye/lcl/api"
 	"sync"
 	"time"

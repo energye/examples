@@ -2,7 +2,8 @@ package application
 
 import (
 	"fmt"
-	"github.com/energye/cef/cef"
+	"github.com/energye/cef/109/cef"
+	"github.com/energye/cef/base"
 	"github.com/energye/cef/config"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/tool"
@@ -20,7 +21,7 @@ func NewApplication() cef.ICefApplication {
 	})
 	if GlobalCEFApp == nil {
 		GlobalCEFApp = cef.NewApplication()
-		cef.SetGlobalCEFApplication(GlobalCEFApp)
+		base.SetGlobalCEFApplication(GlobalCEFApp.Instance())
 	}
 	if !tool.IsDarwin() {
 		// 非MacOS需要指定CEF框架目录，执行文件在CEF目录不需要设置
