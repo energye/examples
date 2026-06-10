@@ -5,7 +5,7 @@ import (
 	"github.com/energye/cef/109/cef"
 	cefTypes "github.com/energye/cef/109/types"
 	"github.com/energye/cef/base"
-	engCEF "github.com/energye/energy/v3/cef"
+	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
@@ -47,7 +47,9 @@ func init() {
 
 func main() {
 	//全局初始化 每个应用都必须调用的
-	app := engCEF.Init()
+	lcl.Init()
+	base.Init()
+	app := application.NewApplication()
 	if tool.IsDarwin() {
 		base.AddCrDelegate()
 	}
