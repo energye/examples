@@ -54,6 +54,10 @@ func Context(app cef.ICefApplication) {
 			frameId := ""
 			if frame109, ok := mainFrame.(cef.ICefFrame_109); ok {
 				frameId = strconv.Itoa(int(frame109.GetIdentifier()))
+			} else if frame127, ok := mainFrame.(cef.ICefFrame_127); ok {
+				frameId = frame127.GetIdentifier()
+			} else if frame147, ok := mainFrame.(cef.ICefFrame_147); ok {
+				frameId = frame147.GetIdentifier()
 			}
 			eventName := emitName.GetStringValue()
 			fmt.Println("frameId:", frameId, "ProcessType:", app.ProcessType(), "eventName:", eventName)
