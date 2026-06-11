@@ -1,10 +1,10 @@
-package v8context
+﻿package v8context
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/examples/cef/debug_most/domvisitor"
 	"strconv"
 	"unsafe"
@@ -18,6 +18,7 @@ func Context(app cef.ICefApplication) {
 		onCallback  cef.ICefv8Value
 	)
 	app.SetOnContextCreated(func(browser cef.ICefBrowser, frame cef.ICefFrame, context cef.ICefv8Context) {
+		fmt.Println("browser:", browser, browser.GetIdentifier())
 		onHandler = cef.NewEngV8Handler()
 		onHandler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
 			fmt.Println("ipc.on Execute name:", name)
@@ -34,8 +35,11 @@ func Context(app cef.ICefApplication) {
 		emitHandler.SetOnV8Execute(func(name string, object cef.ICefv8Value, arguments cef.ICefv8ValueArray, retval *cef.ICefv8Value, exception *string) bool {
 			fmt.Println("ipc.emit Execute name:", name)
 			v8ctx := cef.V8ContextRef.Current()
+			fmt.Println("v8ctx")
 			ctxFrame := v8ctx.GetFrame()
+			fmt.Println("ctxFrame")
 			emitName := arguments.Get(0)
+			fmt.Println("emitName")
 			defer func() {
 				object.Release()
 				ctxFrame.Release()
@@ -43,8 +47,16 @@ func Context(app cef.ICefApplication) {
 				emitName.Release()
 				arguments.Free()
 			}()
-			fmt.Println("frameId:", ctxFrame.GetIdentifier(), "ProcessType:", app.ProcessType())
+
+			fmt.Println("browser:", v8ctx.GetBrowser().GetIdentifier())
+			mainFrame := v8ctx.GetBrowser().GetMainFrame()
+			fmt.Println("mainFrame:", mainFrame)
+			frameId := ""
+			if frame109, ok := mainFrame.(cef.ICefFrame_109); ok {
+				frameId = strconv.Itoa(int(frame109.GetIdentifier()))
+			}
 			eventName := emitName.GetStringValue()
+			fmt.Println("frameId:", frameId, "ProcessType:", app.ProcessType(), "eventName:", eventName)
 			if eventName == "domVisitor" {
 				domvisitor.DomVisitor()
 			} else {
@@ -75,6 +87,7 @@ func Context(app cef.ICefApplication) {
 					val.Release()
 				}
 				dataBytes := buf.Bytes()
+				fmt.Println("dataBytes:", string(dataBytes))
 				SendBrowserMessage(ctxFrame, eventName, dataBytes)
 			}
 			return true
@@ -177,14 +190,13 @@ func SendBrowserMessage(frame cef.ICefFrame, name string, data []byte) {
 	var dataPtr = uintptr(0)
 	if len(data) > 0 {
 		dataPtr = uintptr(unsafe.Pointer(&data[0]))
+		dataBin := cef.BinaryValueRef.New(dataPtr, uint32(len(data)))
+		defer dataBin.Release()
+		messageArgumentList.SetBinary(0, dataBin)
 	}
-	dataBin := cef.BinaryValueRef.New(dataPtr, uint32(len(data)))
-	messageArgumentList.SetBinary(0, dataBin)
 	frame.SendProcessMessage(cefTypes.PID_RENDERER, processMessage)
-	if dataBin != nil {
-		dataBin.Release()
-	}
 	messageArgumentList.Clear()
 	messageArgumentList.Release()
 	processMessage.Release()
+	fmt.Println("SendBrowserMessage end")
 }

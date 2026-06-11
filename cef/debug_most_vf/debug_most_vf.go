@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
 	"github.com/energye/cef/base"
-	engCEF "github.com/energye/energy/v3/cef"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
+	"github.com/energye/examples/cef/application"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
@@ -14,7 +14,9 @@ import (
 
 func main() {
 	//全局初始化 每个应用都必须调用的
-	app := engCEF.Init()
+	lcl.Init()
+	base.Init()
+	app := application.NewApplication()
 	// MacOS使用扩展消息泵
 	base.AddCrDelegate()
 	if tool.IsDarwin() {

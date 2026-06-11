@@ -1,10 +1,10 @@
-package main
+﻿package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
 	"github.com/energye/cef/base"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/examples/cef/application"
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
@@ -20,6 +20,7 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"os"
 	"path/filepath"
+	"strconv"
 	"unsafe"
 )
 
@@ -53,7 +54,7 @@ func main() {
 	if tool.IsDarwin() {
 		base.AddCrDelegate()
 	}
-	app.SetLogSeverity(cefTypes.LOGSEVERITY_VERBOSE)
+	app.SetLogSeverity(cefTypes.LOGSEVERITY_DISABLE)
 	app.SetRootCache(cacheRoot)
 	app.SetCache(cacheRoot)
 	//fmt.Println("ProcessType:", app.ProcessType())
@@ -245,7 +246,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		fmt.Printf("beforePopup: %+v\n", windowInfo)
 		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
 		fmt.Println(browser.GetIdentifier())
-		fmt.Println(frame.GetIdentifier(), frame.GetUrl())
+		frameId := ""
+		if frame109, ok := frame.(cef.ICefFrame_109); ok {
+			frameId = strconv.Itoa(int(frame109.GetIdentifier()))
+		}
+		fmt.Println("frameId:", frameId)
 		v8ctx := frame.GetV8Context()
 		if v8ctx != nil {
 			fmt.Println(frame.GetV8Context())
@@ -259,7 +264,11 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	})
 
 	m.chromium.SetOnDownloadUpdated(func(sender lcl.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
-		fmt.Println("DownloadUpdated frameId", browser.GetMainFrame().GetIdentifier(), "Id:", downloadItem.GetId(), "originalUrl:", downloadItem.GetOriginalUrl(), "url:", downloadItem.GetUrl())
+		frameId := ""
+		if frame109, ok := browser.GetMainFrame().(cef.ICefFrame_109); ok {
+			frameId = strconv.Itoa(int(frame109.GetIdentifier()))
+		}
+		fmt.Println("DownloadUpdated frameId", frameId, "Id:", downloadItem.GetId(), "originalUrl:", downloadItem.GetOriginalUrl(), "url:", downloadItem.GetUrl())
 		fmt.Println("\t", downloadItem.GetTotalBytes(), "/", downloadItem.GetReceivedBytes(), "speed:", downloadItem.GetCurrentSpeed(), "fullPath:", downloadItem.GetFullPath())
 	})
 
@@ -282,6 +291,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	})
 	m.chromium.SetOnProcessMessageReceived(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, sourceProcess cefTypes.TCefProcessId,
 		message cef.ICefProcessMessage, outResult *bool) {
+		fmt.Println("主进程 SetOnProcessMessageReceived")
 		fmt.Println("主进程 name:", message.GetName())
 		defer message.Release()
 		if message.GetName() == "jsreturn" {

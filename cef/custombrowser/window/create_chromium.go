@@ -3,8 +3,8 @@ package window
 import (
 	"bytes"
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/energy/v3/lcl/wg"
 	"github.com/energye/examples/cef/utils"
 	"github.com/energye/examples/cef/utils/draw"

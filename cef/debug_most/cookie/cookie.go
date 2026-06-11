@@ -1,9 +1,9 @@
-package cookie
+﻿package cookie
 
 import (
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )

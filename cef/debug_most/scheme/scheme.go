@@ -1,9 +1,9 @@
-package scheme
+﻿package scheme
 
 import (
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/examples/cef/utils"
 	"io/ioutil"
 	"net/url"

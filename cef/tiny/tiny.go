@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/energye/cef/109/cef"
-	cefTypes "github.com/energye/cef/109/types"
-	engCEF "github.com/energye/energy/v3/cef"
+	"github.com/energye/cef/base"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
+	"github.com/energye/examples/cef/application"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -20,7 +21,9 @@ var (
 )
 
 func main() {
-	app := engCEF.Init()
+	lcl.Init()
+	base.Init()
+	app := application.NewApplication()
 	app.SetMultiThreadedMessageLoop(false)
 	app.SetExternalMessagePump(false)
 	app.SetDisablePopupBlocking(true)
