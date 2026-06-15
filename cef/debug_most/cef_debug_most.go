@@ -220,7 +220,9 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 	m.chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 		devtools.ExecuteDevToolsMethod(m.chromium)
 		fmt.Println("SetOnAfterCreated isMainThread:", api.CurrentThreadId() == api.MainThreadId())
-		m.timer.SetEnabled(true)
+		if m.timer != nil {
+			m.timer.SetEnabled(true)
+		}
 	})
 	m.chromium.SetOnDragEnter(func(sender lcl.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cefTypes.TCefDragOperations, outResult *bool) {
 		if mask&cefTypes.DRAG_OPERATION_LINK == cefTypes.DRAG_OPERATION_LINK {
