@@ -34,10 +34,10 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.SetHeight(700)
 
 	m.Browser = cef.NewChromium(m)
-	m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
 	m.Browser.SetAlign(types.AlClient)
 	m.Browser.SetParent(m)
 	m.Browser.SetWindow(m)
+	m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
 
 	m.TWindow.FormCreate(sender)
 }
