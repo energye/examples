@@ -33,7 +33,7 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.SetWidth(1000)
 	m.SetHeight(700)
 
-	m.Browser = cef.NewChromium(m)
+	m.Browser = cef.NewBrowser(m)
 	m.Browser.SetAlign(types.AlClient)
 	m.Browser.SetParent(m)
 	m.Browser.SetWindow(m)
