@@ -3,6 +3,7 @@ package main
 import (
 	cef2 "github.com/energye/cef/cef"
 	"github.com/energye/energy/v3/cef"
+	"github.com/energye/energy/v3/logger"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
@@ -16,9 +17,10 @@ type TForm struct {
 var Form TForm
 
 func main() {
+	logger.L().SetLevel(logger.DebugLevel)
 	app := cef.Init()
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
-
+		println("app.SetOnBeforeChildProcessLaunch")
 	})
 
 	cef.Run(&Form)
