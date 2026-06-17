@@ -9,6 +9,7 @@ import (
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
+	"strconv"
 )
 
 type TForm struct {
@@ -24,6 +25,9 @@ var resources embed.FS
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	app := cef.Init()
+	app.SetOptions(application.Options{
+		AutoPopup: true,
+	})
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
 		println("app.SetOnBeforeChildProcessLaunch")
 	})
@@ -41,7 +45,7 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	println("FormCreate")
 	m.InternalBeforeFormCreate()
 
-	m.SetCaption("ENERGY - CEF Simple 测试示例")
+	m.SetCaption("ENERGY - CEF Simple 测试示例 " + strconv.Itoa(cef2.CEFVersion))
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(1000)
 	m.SetHeight(700)
@@ -52,6 +56,7 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.Browser.SetWindow(m)
 	//m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
 	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
+	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
 
 	m.TWindow.FormCreate(sender)
 }

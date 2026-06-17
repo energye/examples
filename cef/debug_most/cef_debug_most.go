@@ -1,6 +1,7 @@
 ﻿package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/energye/cef/base"
 	"github.com/energye/cef/cef"
@@ -9,6 +10,7 @@ import (
 	"github.com/energye/examples/cef/debug_most/contextmenu"
 	"github.com/energye/examples/cef/debug_most/cookie"
 	"github.com/energye/examples/cef/debug_most/devtools"
+	"github.com/energye/examples/cef/debug_most/scheme"
 	"github.com/energye/examples/cef/debug_most/v8context"
 	"github.com/energye/examples/cef/utils"
 	. "github.com/energye/examples/syso"
@@ -40,6 +42,8 @@ var (
 	wd, _            = os.Getwd()
 	cacheRoot        = filepath.Join(wd, "EnergyCache")         // 浏览器缓存目录
 	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource") // 网站资源缓存目录
+	//go:embed assets
+	resources embed.FS
 )
 
 func init() {
@@ -59,9 +63,9 @@ func main() {
 	app.SetCache(cacheRoot)
 	//fmt.Println("ProcessType:", app.ProcessType())
 	v8context.Context(app)
-	//app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
-	//	scheme.ApplicationOnRegCustomSchemes(registrar)
-	//})
+	app.SetOnRegCustomSchemes(func(registrar cef.ICefSchemeRegistrarRef) {
+		scheme.ApplicationOnRegCustomSchemes(registrar)
+	})
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef.ICefCommandLine) {
 		fmt.Println("SetOnBeforeChildProcessLaunch")
 		//commandLine.AppendSwitch("--enable-gpu-memory-buffer-compositor-resources")
@@ -223,6 +227,7 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		if m.timer != nil {
 			m.timer.SetEnabled(true)
 		}
+		scheme.ChromiumAfterCreated(browser)
 	})
 	m.chromium.SetOnDragEnter(func(sender lcl.IObject, browser cef.ICefBrowser, dragData cef.ICefDragData, mask cefTypes.TCefDragOperations, outResult *bool) {
 		if mask&cefTypes.DRAG_OPERATION_LINK == cefTypes.DRAG_OPERATION_LINK {
