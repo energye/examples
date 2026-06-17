@@ -10,8 +10,8 @@ package app
 import (
 	"fmt"
 	"github.com/energye/energy/v3/application"
+	"github.com/energye/energy/v3/core"
 	"github.com/energye/energy/v3/ipc"
-	"github.com/energye/energy/v3/wv"
 	"github.com/energye/examples/wv/assets"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/lcl"
@@ -34,23 +34,23 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 	m.Webview1.SetWidth(m.Width() - m.Webview1.Left()*2)
 	m.Webview1.SetHeight(m.Height() - m.Webview1.Top()*2)
 	m.Webview1.SetAnchors(types.NewSet(types.AkLeft, types.AkTop, types.AkRight, types.AkBottom))
-	m.Webview1.SetOnLoadChange(func(url, title string, load wv.TLoadChange) {
+	m.Webview1.SetOnLoadChange(func(url, title string, load core.TLoadChange) {
 		fmt.Println("OnLoadChange:", url, title, load, m.BrowserId())
-		if load == wv.LcFinish {
+		if load == core.LcFinish {
 			ipc.EmitOptions(&ipc.OptionsEvent{BrowserId: m.BrowserId(), Name: "native-text-change", Data: version.OSVersion.ToString()})
 		}
 	})
-	m.Webview1.SetOnContextMenu(func(contextMenu *wv.TContextMenuItem) {
+	m.Webview1.SetOnContextMenu(func(contextMenu *core.TContextMenuItem) {
 		//contextMenu.Clear()
-		contextMenu.Add("", wv.CmkSeparator)
-		contextMenu.Add("测试1", wv.CmkCommand)
-		test2, id := contextMenu.Add("测试2", wv.CmkSub)
+		contextMenu.Add("", core.CmkSeparator)
+		contextMenu.Add("测试1", core.CmkCommand)
+		test2, id := contextMenu.Add("测试2", core.CmkSub)
 		fmt.Println("测试2:", id)
-		_, id = test2.Add("测试2-测试", wv.CmkCommand)
+		_, id = test2.Add("测试2-测试", core.CmkCommand)
 		fmt.Println("测试2-测试:", id)
-		_, id = test2.Add("测试3-测试", wv.CmkCommand)
+		_, id = test2.Add("测试3-测试", core.CmkCommand)
 		fmt.Println("测试3-测试:", id)
-		contextMenu.Add("测试3", wv.CmkCommand)
+		contextMenu.Add("测试3", core.CmkCommand)
 	})
 	m.Webview1.SetOnContextMenuCommand(func(commandId int32) {
 		fmt.Println("OnContextMenuCommand:", commandId)
@@ -71,14 +71,14 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		})
 		return true
 	})
-	m.Webview1.SetOnDragEnter(func(type_ wv.TDragType, x, y int32) {
+	m.Webview1.SetOnDragEnter(func(type_ core.TDragType, x, y int32) {
 		fmt.Println("SetOnDragEnter --------------begin------------------", type_, x, y)
 		ipc.Emit("drag-enter")
 	})
 	m.Webview1.SetOnDragLeave(func() {
 		fmt.Println("SetOnDragLeave", "--------------zzz------------------")
 	})
-	m.Webview1.SetOnDragOver(func(data *wv.TDragData, x, y int32) {
+	m.Webview1.SetOnDragOver(func(data *core.TDragData, x, y int32) {
 		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
 		fmt.Println("SetOnDragOver --------------end------------------", x, y, da, err, data.Filenames)
 		ipc.Emit("drag-over", da, data.Filenames)

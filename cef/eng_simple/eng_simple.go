@@ -14,7 +14,7 @@ import (
 
 type TForm struct {
 	window.TWindow
-	Browser *cef.TBrowser
+	Browser cef.IBrowser
 }
 
 var Form TForm
