@@ -26,6 +26,10 @@ func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	app := cef.Init()
 	app.SetOptions(application.Options{
+		//Frameless:         true,
+		//WindowTransparent: true,
+		//WebviewTransparent: true,
+		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		AutoPopup: true,
 	})
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
@@ -55,8 +59,8 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.Browser.SetParent(m)
 	m.Browser.SetWindow(m)
 	//m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
-	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
-	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
+	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
+	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
 
 	m.TWindow.FormCreate(sender)
 }
