@@ -6,6 +6,7 @@ import (
 	cef2 "github.com/energye/cef/cef"
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/cef"
+	"github.com/energye/energy/v3/core"
 	"github.com/energye/energy/v3/logger"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/lcl/lcl"
@@ -66,6 +67,14 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.Browser.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
 		return
+	})
+
+	m.Browser.SetOnPopupWindow(func(targetURL string) bool {
+		return false
+	})
+
+	m.Browser.SetOnLoadChange(func(url, title string, load core.TLoadChange) {
+		fmt.Println("Browser.SetOnLoadChange:", url, title, load)
 	})
 
 	m.TWindow.FormCreate(sender)
