@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENERGY 跨平台 GUI 框架</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            -webkit-user-select: none;
+            overflow: hidden;
+            background-color: transparent;
+            border: 2px solid #334155;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(15, 23, 42, 0.7);
+            box-sizing: border-box;
+        }
+
+        .window-titlebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 38px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 9999;
+            --webkit-app-region: drag;
+        }
+
+        .titlebar-title {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 160px);
+        }
+
+        .titlebar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            --webkit-app-region: no-drag;
+        }
+
+        .titlebar-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .titlebar-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            transform: scale(1.05);
+        }
+
+        .titlebar-btn.close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .gui-container {
+            width: 100%;
+            max-width: 700px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 0 40px rgba(14, 165, 233, 0.15),
+            inset 0 0 10px rgba(56, 189, 248, 0.05);
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .gui-logo {
+            margin-bottom: 1.5rem;
+        }
+
+        .gui-logo h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .gui-logo p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .gui-tech-stack {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+            --webkit-app-region: drag;
+        }
+
+        .tech-icon {
+            width: 135px;
+            height: 60px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: #38bdf8;
+        }
+
+        @media (max-width: 576px) {
+            .gui-container {
+                padding: 2rem 1.5rem;
+                margin-top: 15px;
+            }
+
+            .gui-logo h1 {
+                font-size: 2.5rem;
+            }
+
+            .gui-tech-stack {
+                gap: 1.5rem;
+            }
+
+            .window-titlebar {
+                height: 34px;
+            }
+
+            .titlebar-btn {
+                width: 20px;
+                height: 20px;
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="window-titlebar" data-webkit-app-region="true">
+    <div class="titlebar-title">
+        ENERGY - 跨平台 GUI 框架
+    </div>
+    <div class="titlebar-buttons">
+        <button class="titlebar-btn" title="最小化" id="minimizeBtn">
+            <svg width="10" height="2" viewBox="0 0 10 2" fill="currentColor">
+                <rect width="10" height="2" rx="1"/>
+            </svg>
+        </button>
+        <button class="titlebar-btn" title="最大化/还原" id="maximizeBtn">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round">
+                <rect x="1" y="1" width="8" height="8"/>
+            </svg>
+        </button>
+        <button class="titlebar-btn" title="全屏/退出全屏" id="fullscreenBtn">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round">
+                <path d="M1 5h2M9 5h-2M5 1v2M5 9V7"/>
+                <path d="M3 3l4 4M7 7l-4 4M3 7L7 3"/>
+            </svg>
+        </button>
+        <button class="titlebar-btn" title="关闭" id="closeBtn">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 9L9 1M9 9L1 1"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="gui-container">
+    <div class="gui-logo">
+        <h1>ENERGY</h1>
+    </div>
+    <div id="native-text" style="font-size: 12px;"></div>
+    <div style="margin-bottom: 1.5rem;">
+        <a href="fs://energy/index-home.html" target="_blank" style="color:#ffffff;">New-Window</a>
+        <a href="fs://energy/index-home.html" style="color:#ffffff;">Load-Window</a>
+    </div>
+    <div class="gui-tech-stack">
+        <div class="tech-item">
+            <div class="tech-icon">Native</div>
+        </div>
+        <div class="tech-item">
+            <div class="tech-icon">Web</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let minimizeBtn = document.getElementById("minimizeBtn");
+    let maximizeBtn = document.getElementById("maximizeBtn");
+    let fullscreenBtn = document.getElementById("fullscreenBtn");
+    let closeBtn = document.getElementById("closeBtn");
+    minimizeBtn.onclick = () => {
+        console.log('执行窗口最小化操作');
+        minimizeBtn.style.opacity = '0.7';
+        setTimeout(() => minimizeBtn.style.opacity = '1', 200);
+        ipc.emit("minimize");
+    }
+
+    let isMaximized = false;
+
+    maximizeBtn.onclick = () => {
+        isMaximized = !isMaximized;
+        console.log(isMaximized ? '执行窗口最大化操作' : '执行窗口还原操作');
+        maximizeBtn.style.transform = isMaximized ? 'scale(1.1) rotate(180deg)' : 'scale(1.05) rotate(0)';
+        setTimeout(() => maximizeBtn.style.transform = isMaximized ? 'scale(1)' : 'scale(1)', 200);
+        ipc.emit("maximize");
+    }
+
+    fullscreenBtn.onclick = () => {
+        try {
+            // if (!document.fullscreenElement) {
+            //     document.documentElement.requestFullscreen();
+            //     console.log('进入全屏模式');
+            // } else {
+            //     document.exitFullscreen();
+            //     console.log('退出全屏模式');
+            // }
+            fullscreenBtn.style.opacity = '0.7';
+            setTimeout(() => fullscreenBtn.style.opacity = '1', 200);
+            ipc.emit("fullscreen");
+        } catch (err) {
+            console.error('全屏操作失败：', err);
+            alert('当前浏览器不支持全屏操作或权限不足');
+        }
+    }
+
+    closeBtn.onclick = () => {
+        console.log('执行窗口关闭操作');
+        closeBtn.style.opacity = '0.7';
+        setTimeout(() => closeBtn.style.opacity = '1', 200);
+        ipc.emit("close");
+    }
+    ipc.on('native-text-change', function (text) {
+        console.log('native-text-change:', text);
+        document.getElementById('native-text').innerText = text;
+    })
+</script>
+</body>
+</html>
