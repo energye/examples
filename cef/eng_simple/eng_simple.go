@@ -27,6 +27,7 @@ var resources embed.FS
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	app := cef.Init()
+	//app.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	app.SetOptions(application.Options{
 		//Frameless:         true,
 		//WindowTransparent: true,
@@ -63,6 +64,7 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	//m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
 	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
 	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
+	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-drag.html")
 
 	m.Browser.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
