@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	cef2 "github.com/energye/cef/cef"
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/cef"
@@ -30,7 +31,7 @@ func main() {
 		//WindowTransparent: true,
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
-		AutoPopup: true,
+		AutoPopupWindow: true,
 	})
 	app.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
 		println("app.SetOnBeforeChildProcessLaunch")
@@ -61,6 +62,11 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	//m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
 	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
 	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
+
+	m.Browser.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
+		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
+		return
+	})
 
 	m.TWindow.FormCreate(sender)
 }
