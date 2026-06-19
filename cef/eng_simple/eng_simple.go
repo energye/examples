@@ -90,6 +90,18 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("Browser.SetOnLoadChange:", url, title, load)
 	})
 
+	m.Browser.SetOnDragEnter(func(type_ core.TDragType, x, y int32) {
+		fmt.Println("SetOnDragEnter --------------begin------------------", type_, x, y)
+		ipc.Emit("drag-enter")
+	})
+	m.Browser.SetOnDragLeave(func() {
+		fmt.Println("SetOnDragLeave", "--------------zzz------------------")
+	})
+	m.Browser.SetOnDragOver(func(data *core.TDragData, x, y int32) {
+		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
+		fmt.Println("SetOnDragOver --------------end------------------", x, y, da, err, data.Filenames)
+		ipc.Emit("drag-over", da, data.Filenames)
+	})
 	m.TWindow.FormCreate(sender)
 }
 
