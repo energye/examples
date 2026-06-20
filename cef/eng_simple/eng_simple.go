@@ -32,10 +32,15 @@ func main() {
 	cefApp := cef.Init()
 	//app.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
-		//Frameless:         true,
+		//Frameless: true,
 		//WindowTransparent: true,
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
+		//DefaultURL:"https://energye.gitee.io",
+		//DefaultURL:"fs://energy/index-home.html",
+		//DefaultURL:"fs://energy/index-ipc.html",
+		//DefaultURL:      "fs://energy/index-drag.html",
+		DefaultURL:      "http://chrome.360.cn/html5_labs",
 		AutoPopupWindow: true,
 	})
 	cefApp.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
@@ -72,10 +77,6 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.Browser.SetAlign(types.AlClient)
 	m.Browser.SetParent(m)
 	m.Browser.SetWindow(m)
-	//m.Browser.Chromium().SetDefaultUrl("https://energye.gitee.io")
-	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-home.html")
-	//m.Browser.Chromium().SetDefaultUrl("fs://energy/index-ipc.html")
-	m.Browser.Chromium().SetDefaultUrl("fs://energy/index-drag.html")
 
 	m.Browser.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
