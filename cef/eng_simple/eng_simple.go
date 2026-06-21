@@ -103,6 +103,26 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("SetOnDragOver --------------end------------------", x, y, da, err, data.Filenames)
 		ipc.Emit("drag-over", da, data.Filenames)
 	})
+	m.Browser.SetOnContextMenu(func(contextMenu *core.TContextMenuItem) {
+		//contextMenu.Clear()
+		contextMenu.Add("", core.CmkSeparator)
+		_, id := contextMenu.Add("测试1", core.CmkCommand)
+		fmt.Println("测试1:", id)
+		test2, id := contextMenu.Add("测试2", core.CmkSub)
+		fmt.Println("测试2:", id)
+		_, id = test2.Add("测试2-测试", core.CmkCommand)
+		fmt.Println("测试2-测试:", id)
+		_, id = test2.Add("测试3-测试", core.CmkCommand)
+		fmt.Println("测试3-测试:", id)
+		contextMenu.Add("测试3", core.CmkCommand)
+	})
+	m.Browser.SetOnContextMenuCommand(func(commandId int32) {
+		fmt.Println("OnContextMenuCommand:", commandId)
+		m.Browser.ExecuteScriptCallback("document.title", func(result string, err string) {
+			fmt.Println("ExecuteScriptCallback:", result, err)
+		})
+	})
+
 	m.TWindow.FormCreate(sender)
 }
 
