@@ -39,8 +39,8 @@ func main() {
 		//DefaultURL:"https://energye.gitee.io",
 		//DefaultURL:"fs://energy/index-home.html",
 		//DefaultURL:"fs://energy/index-ipc.html",
-		//DefaultURL:      "fs://energy/index-drag.html",
-		DefaultURL:      "http://chrome.360.cn/html5_labs",
+		DefaultURL: "fs://energy/index-drag.html",
+		//DefaultURL:      "http://chrome.360.cn/html5_labs",
 		AutoPopupWindow: true,
 	})
 	cefApp.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
