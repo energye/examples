@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	cef2 "github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/cef"
 	"github.com/energye/energy/v3/core"
@@ -11,6 +12,7 @@ import (
 	"github.com/energye/energy/v3/logger"
 	"github.com/energye/energy/v3/window"
 	"github.com/energye/examples/cef/eng_simple/app"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"strconv"
@@ -27,10 +29,14 @@ var Form TForm
 //go:embed resources
 var resources embed.FS
 
+func init() {
+	libname.UseWS = "gtk3"
+}
+
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	cefApp := cef.Init()
-	//app.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
+	cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
 		//Frameless: true,
 		//WindowTransparent: true,
