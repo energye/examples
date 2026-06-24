@@ -22,7 +22,6 @@ import (
 	"github.com/energye/lcl/types/messages"
 	"os"
 	"path/filepath"
-	"strconv"
 	"unsafe"
 )
 
@@ -249,32 +248,26 @@ func (m *BrowserWindow) FormCreate(sender lcl.IObject) {
 		}
 	})
 
-	m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
-		fmt.Printf("beforePopup: %+v\n", windowInfo)
-		fmt.Printf("popupFeatures: %+v\n", popupFeatures)
-		fmt.Println(browser.GetIdentifier())
-		frameId := ""
-		if frame109, ok := frame.(cef.ICefFrame_109); ok {
-			frameId = strconv.Itoa(int(frame109.GetIdentifier()))
-		}
-		fmt.Println("frameId:", frameId)
-		v8ctx := frame.GetV8Context()
-		if v8ctx != nil {
-			fmt.Println(frame.GetV8Context())
-			fmt.Println(frame.GetV8Context().GetFrame().GetUrl())
-		}
-		settings.DefaultFontSize = 36
-		settings.StandardFontFamily = "微软雅黑"
-		windowInfo.Bounds = cef.TCefRect{X: 400, Y: 10, Width: 400, Height: 400}
-		windowInfo.WindowName = "杨杨红红岩岩"
-		*result = true
-	})
+	//m.chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+	//	fmt.Printf("beforePopup: %+v\n", windowInfo)
+	//	fmt.Printf("popupFeatures: %+v\n", popupFeatures)
+	//	fmt.Println(browser.GetIdentifier())
+	//	frameId := frame.GetIdentifier()
+	//	fmt.Println("frameId:", frameId)
+	//	v8ctx := frame.GetV8Context()
+	//	if v8ctx != nil {
+	//		fmt.Println(frame.GetV8Context())
+	//		fmt.Println(frame.GetV8Context().GetFrame().GetUrl())
+	//	}
+	//	settings.DefaultFontSize = 36
+	//	settings.StandardFontFamily = "微软雅黑"
+	//	windowInfo.Bounds = cef.TCefRect{X: 400, Y: 10, Width: 400, Height: 400}
+	//	windowInfo.WindowName = "杨杨红红岩岩"
+	//	*result = true
+	//})
 
 	m.chromium.SetOnDownloadUpdated(func(sender lcl.IObject, browser cef.ICefBrowser, downloadItem cef.ICefDownloadItem, callback cef.ICefDownloadItemCallback) {
-		frameId := ""
-		if frame109, ok := browser.GetMainFrame().(cef.ICefFrame_109); ok {
-			frameId = strconv.Itoa(int(frame109.GetIdentifier()))
-		}
+		frameId := browser.GetMainFrame().GetIdentifier()
 		fmt.Println("DownloadUpdated frameId", frameId, "Id:", downloadItem.GetId(), "originalUrl:", downloadItem.GetOriginalUrl(), "url:", downloadItem.GetUrl())
 		fmt.Println("\t", downloadItem.GetTotalBytes(), "/", downloadItem.GetReceivedBytes(), "speed:", downloadItem.GetCurrentSpeed(), "fullPath:", downloadItem.GetFullPath())
 	})
