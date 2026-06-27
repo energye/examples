@@ -10,21 +10,19 @@ import (
 	"github.com/energye/energy/v3/core"
 	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/logger"
-	"github.com/energye/energy/v3/window"
-	"github.com/energye/examples/cef/eng_simple/app"
+	"github.com/energye/examples/cef/eng_simple_vf/app"
+	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
-	"github.com/energye/lcl/types"
 	"strconv"
 	"time"
 )
 
-type TForm struct {
-	window.TWindow
-	Browser cef.IEmbeddedBrowser
+type TBrowserWindow struct {
+	cef.TViewsBrowser
 }
 
-var Form TForm
+var MainBrowserWindow TBrowserWindow
 
 //go:embed resources
 var resources embed.FS
@@ -35,6 +33,7 @@ func init() {
 
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
+	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-127.so"
 	cefApp := cef.Init()
 	cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
@@ -43,9 +42,9 @@ func main() {
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		//DefaultURL:"https://energye.gitee.io",
-		//DefaultURL:"fs://energy/index-home.html",
-		//DefaultURL:"fs://energy/index-ipc.html",
-		DefaultURL: "fs://energy/index-drag.html",
+		DefaultURL: "fs://energy/index-home.html",
+		//DefaultURL: "fs://energy/index-ipc.html",
+		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL:      "http://chrome.360.cn/html5_labs",
 		AutoPopupWindow: true,
 	})
@@ -67,49 +66,38 @@ func main() {
 		ipc.Emit("test", "测试数据")
 	})
 
-	cef.Run(&Form)
+	cef.Run(&MainBrowserWindow)
 }
 
-func (m *TForm) FormCreate(sender lcl.IObject) {
-	println("FormCreate")
-	m.InternalBeforeFormCreate()
-
-	m.SetCaption("ENERGY - CEF Simple 测试示例 " + strconv.Itoa(cef2.CEFVersion))
-	m.SetPosition(types.PoScreenCenter)
-	m.SetWidth(1000)
-	m.SetHeight(700)
-
-	m.Browser = cef.NewEmbeddedBrowser(m)
-	m.Browser.SetAlign(types.AlClient)
-	m.Browser.SetParent(m)
-	m.Browser.SetWindow(m)
-
-	m.Browser.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
+func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
+	println("OnFormCreate", api.CurrentThreadId(), api.MainThreadId())
+	m.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
 		return
 	})
 
-	m.Browser.SetOnPopupWindow(func(targetURL string) bool {
+	m.SetOnPopupWindow(func(targetURL string) bool {
+		fmt.Println("Browser.SetOnPopupWindow targetURL:", targetURL)
 		return false
 	})
 
-	m.Browser.SetOnLoadChange(func(url, title string, load core.TLoadChange) {
+	m.SetOnLoadChange(func(url, title string, load core.TLoadChange) {
 		fmt.Println("Browser.SetOnLoadChange:", url, title, load)
 	})
 
-	m.Browser.SetOnDragEnter(func(type_ core.TDragType, x, y int32) {
+	m.SetOnDragEnter(func(type_ core.TDragType, x, y int32) {
 		fmt.Println("SetOnDragEnter --------------begin------------------", type_, x, y)
 		ipc.Emit("drag-enter")
 	})
-	m.Browser.SetOnDragLeave(func() {
+	m.SetOnDragLeave(func() {
 		fmt.Println("SetOnDragLeave", "--------------zzz------------------")
 	})
-	m.Browser.SetOnDragOver(func(data *core.TDragData, x, y int32) {
+	m.SetOnDragOver(func(data *core.TDragData, x, y int32) {
 		da, err := strconv.Unquote("\"" + string(data.Data) + "\"")
 		fmt.Println("SetOnDragOver --------------end------------------", x, y, da, err, data.Filenames)
 		ipc.Emit("drag-over", da, data.Filenames)
 	})
-	m.Browser.SetOnContextMenu(func(contextMenu *core.TContextMenuItem) {
+	m.SetOnContextMenu(func(contextMenu *core.TContextMenuItem) {
 		//contextMenu.Clear()
 		contextMenu.Add("", core.CmkSeparator)
 		_, id := contextMenu.Add("测试1", core.CmkCommand)
@@ -122,17 +110,11 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("测试3-测试:", id)
 		contextMenu.Add("测试3", core.CmkCommand)
 	})
-	m.Browser.SetOnContextMenuCommand(func(commandId int32) {
+	m.SetOnContextMenuCommand(func(commandId int32) {
 		fmt.Println("OnContextMenuCommand:", commandId)
-		m.Browser.ExecuteScriptCallback("document.title", func(result string, err string) {
+		m.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})
 	})
 
-	m.TWindow.FormCreate(sender)
-}
-
-func (m *TForm) OnShow(sender lcl.IObject) {
-	println("OnShow")
-	m.TWindow.OnShow(sender)
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IPC</title>
+    <script type="application/javascript" src="test.js" charset="utf-8"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            border: solid 1px red;
+            min-height: 100vh;
+        }
+        button{
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<button onclick="DemoBindTest1()">ipc-DemoBind.Test1</button>
+<button onclick="DemoBindTest2()">ipc-DemoBind.Test2</button>
+<button onclick="DemoBindTestResult()">ipc-DemoBind.TestResult</button>
+<button onclick="ipc.emit('demo.Test1', ['datastr', 1009])">ipc-demo.test</button>
+<a href="fs://energy/index-home.html" target="_blank">New-Window</a>
+<a href="https://energye.gitee.io" target="_blank">New-energye window</a>
+<a href="https://energye.gitee.io">energye</a>
+<select id="b-lcl">
+    <option value="main" selected>main</option>
+    <option value="dev">dev</option>
+    <option value="test">test</option>
+    <option value="release/v1">release/v1</option>
+</select>
+<img src="icon.png">
+</body>
+<script type="application/javascript" charset="utf-8">
+    function DemoBindTest1() {
+        console.log(JSON.stringify(energy.env))
+        ipc.emit('DemoBind.Test1', ['datastr', 1009, energy.getEnv("browser").id], function(result) {
+            console.log('result:', result);
+        })
+    }
+    function DemoBindTest2() {
+        ipc.emit('DemoBind.Test2', ['datastr-DemoBind.Test2', 888555, 99999, true], function (result) {
+            console.log('result:', result);
+        })
+    }
+    function DemoBindTestResult() {
+        ipc.emit('DemoBind.TestResult', [], function (result) {
+            console.log('result:', result);
+        })
+    }
+</script>
+</html>

@@ -19,10 +19,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 	fmt.Println("FormCreate")
 	m.WorkAreaCenter()
 	//m.SetBorderStyleToFormBorderStyle(types.BsNone)
-
 	//m.SetColor(0)
 	gtkHandle := lcl.PlatformHandle(m.Handle())
 	gtkWindow := gtk3.AsWindow(unsafe.Pointer(gtkHandle.Gtk3Window()))
+	//gdkWindow := gtk3.AsGdkWindow(unsafe.Pointer(gtkHandle.Gtk3Window()))
 	options := application.GApplication.Options
 	if options.WindowTransparent {
 		screen := gtkWindow.GetScreen()
@@ -34,10 +34,10 @@ func (m *TMainForm) FormCreate(sender lcl.IObject) {
 			gtkWindow.SetAppPaintable(true)
 		}
 	}
-
+	//m.SetWindowState(types.WsMaximized)
 	//gtkWindow.SetDecorated(false)
 	fmt.Println(gtkWindow.GetName())
-
+	//gtkWindow.Realize()
 	//lcl.NewButton(m).SetParent(m)
 	//lcl.NewPanel(m).SetParent(m)
 	//mainMenu := lcl.NewMainMenu(m)
@@ -61,7 +61,7 @@ func (m *TMainForm) iterateWidget() {
 		for i := uint(0); i < list.Length(); i++ {
 			widget := gtk3.AsWidget(list.NthDataRaw(i))
 			//x := widget.GetAllocation().GetX()
-			//y := widget.GetAllocation().GetY()
+			//y := widget.GetAllocation().GetY() 注释
 			fmt.Println(widget.GetName(), "level:", level)
 			if widget.IsContainer() {
 				chdWid := gtk3.AsContainer(list.NthDataRaw(i))

@@ -6,6 +6,7 @@ import (
 	"github.com/energye/cef/cef"
 	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/examples/cef/application"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/tool"
 	"github.com/energye/lcl/types"
@@ -20,9 +21,15 @@ var (
 	siteResourceRoot = filepath.Join(cacheRoot, "SiteResource") // 网站资源缓存目录
 )
 
+func init() {
+	libname.UseWS = "gtk3"
+}
 func main() {
+	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-147.so"
 	lcl.Init()
 	base.Init()
+	fmt.Println(cef.CEFVersion)
+	fmt.Println(cef.LibVersion())
 	app := application.NewApplication()
 	app.SetMultiThreadedMessageLoop(false)
 	app.SetExternalMessagePump(false)
@@ -51,12 +58,12 @@ func main() {
 				tabURL = ""
 			}
 		})
-		chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
-			//browser.GetHost().ExecuteChromeCommand(cefTypes.IDC_NEW_TAB, cefTypes.CEF_WOD_CURRENT_TAB)
-			tabURL = targetUrl
-			fmt.Println("OnBeforePopup", tabURL)
-			*result = true
-		})
+		//chromium.SetOnBeforePopup(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetFrameName string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, popupFeatures cef.TCefPopupFeatures, windowInfo *cef.TCefWindowInfo, client *cef.IEngClient, settings *cef.TCefBrowserSettings, extraInfo *cef.ICefDictionaryValue, noJavascriptAccess *bool, result *bool) {
+		//	//browser.GetHost().ExecuteChromeCommand(cefTypes.IDC_NEW_TAB, cefTypes.CEF_WOD_CURRENT_TAB)
+		//	tabURL = targetUrl
+		//	fmt.Println("OnBeforePopup", tabURL)
+		//	*result = true
+		//})
 		chromium.SetOnOpenUrlFromTab(func(sender lcl.IObject, browser cef.ICefBrowser, frame cef.ICefFrame, targetUrl string, targetDisposition cefTypes.TCefWindowOpenDisposition, userGesture bool, outResult *bool) {
 			fmt.Println("OpenUrlFromTab", tabURL)
 			*outResult = true
