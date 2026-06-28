@@ -9,10 +9,21 @@ package app
 
 import (
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 )
 
 // OnFormCreate 窗体初始化事件
 func (m *TForm1) OnFormCreate(sender lcl.IObject) {
 	// TODO 在此处添加窗体初始化代码
 	m.Webview1.SetWindow(m)
+}
+
+func (m *TForm1) OnFormCloseQuery(sender lcl.IObject, canClose *bool) bool {
+	println("OnFormCloseQuery", *canClose)
+	return false
+}
+
+func (m *TForm1) OnFormClose(sender lcl.IObject, closeAction *types.TCloseAction) bool {
+	println("OnFormClose", *closeAction)
+	return false
 }

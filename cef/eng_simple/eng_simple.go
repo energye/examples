@@ -122,13 +122,13 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 		fmt.Println("测试3-测试:", id)
 		contextMenu.Add("测试3", core.CmkCommand)
 	})
-	m.Browser.SetOnContextMenuCommand(func(commandId int32) {
+	m.Browser.SetOnContextMenuCommand(func(commandId int32, handle *bool) {
 		fmt.Println("OnContextMenuCommand:", commandId)
 		m.Browser.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})
 	})
-
+	m.WorkAreaCenter()
 	m.TWindow.FormCreate(sender)
 }
 

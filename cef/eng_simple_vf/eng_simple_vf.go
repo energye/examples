@@ -4,16 +4,17 @@ import (
 	"embed"
 	"fmt"
 	cef2 "github.com/energye/cef/cef"
-	cefTypes "github.com/energye/cef/cef/types"
 	"github.com/energye/energy/v3/application"
 	"github.com/energye/energy/v3/cef"
 	"github.com/energye/energy/v3/core"
 	"github.com/energye/energy/v3/ipc"
 	"github.com/energye/energy/v3/logger"
 	"github.com/energye/examples/cef/eng_simple_vf/app"
+	"github.com/energye/examples/wv/assets"
 	"github.com/energye/lcl/api"
 	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
+	"github.com/energye/lcl/types"
 	"strconv"
 	"time"
 )
@@ -35,18 +36,22 @@ func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-127.so"
 	cefApp := cef.Init()
-	cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
+	//cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
 		//Frameless: true,
 		//WindowTransparent: true,
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		//DefaultURL:"https://energye.gitee.io",
-		DefaultURL: "fs://energy/index-home.html",
-		//DefaultURL: "fs://energy/index-ipc.html",
+		//DefaultURL: "fs://energy/index-home.html",
+		DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL:      "http://chrome.360.cn/html5_labs",
+		//DefaultURL:      "https://www.baidu.com",
 		AutoPopupWindow: true,
+		Width:           800,
+		Height:          600,
+		//DisableResize:   true,
 	})
 	cefApp.SetOnBeforeChildProcessLaunch(func(commandLine cef2.ICefCommandLine) {
 		println("app.SetOnBeforeChildProcessLaunch")
@@ -71,6 +76,8 @@ func main() {
 
 func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 	println("OnFormCreate", api.CurrentThreadId(), api.MainThreadId())
+	//m.SetIsAlwaysOnTop(true)
+
 	m.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
 		return
@@ -110,11 +117,67 @@ func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("测试3-测试:", id)
 		contextMenu.Add("测试3", core.CmkCommand)
 	})
-	m.SetOnContextMenuCommand(func(commandId int32) {
+	m.SetOnContextMenuCommand(func(commandId int32, handle *bool) {
 		fmt.Println("OnContextMenuCommand:", commandId)
 		m.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})
 	})
+	lcl.RunOnMainThreadAsync(func(id uint32) {
+		fmt.Println("RunOnMainThreadAsync")
+	})
+	tray := application.NewTrayIcon()
+	trayMenu := tray.Menu()
+	trayMenu.SetImageListEmbed(assets.Assets, []string{"resources/window-icon_64x64.png"})
 
+	exit := trayMenu.AddMenuItem("退出").SetOnClick(func() {
+		println("退出")
+		m.Close()
+	})
+	//exit.SetImage("window-icon_64x64.png")
+	testdata, _ := assets.Assets.ReadFile("resources/window-icon_64x64.png")
+	exit.SetBitmap(testdata)
+
+	trayMenu.AddSeparator()
+	//trayMenu.SetImageList([]string{"E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png"})
+	testMenu := trayMenu.AddMenuItem("test")
+	testMenu.SetOnMeasureItem(func(sender lcl.IObject, canvas lcl.ICanvas, width *int32, height *int32) {
+		*height = 32
+	})
+	test2Menu := testMenu.AddSubMenuItem("test2")
+	test2Menu.SetChecked(true)
+	testMenu.AddSeparator()
+	test2Menu = testMenu.AddSubMenuItem("test2222")
+	test2Menu.SetRadio(true)
+	test2Menu = testMenu.AddSubMenuItem("test3333")
+	test2Menu.SetRadio(true)
+	test2Menu.SetChecked(true)
+
+	//tray.SetIcon("E:\\app\\workspace\\examples\\wv\\assets\\resources\\add.png")
+	trayIconData, _ := assets.Assets.ReadFile("resources/add.png")
+	tray.SetIconBytes(trayIconData)
+	tray.SetOnMouseUp(func(button types.TMouseButton, shift types.TShiftState, X int32, Y int32) {
+		fmt.Println("SetOnMouseUp")
+	})
+	tray.SetOnClick(func() {
+		fmt.Println("SetOnClick")
+	})
+	tray.Show()
+}
+
+func (m *TBrowserWindow) OnFormShow(sender lcl.IObject) {
+	m.CenterWindow()
+	println("OnFormShow")
+}
+
+func (m *TBrowserWindow) OnFormCloseQuery(sender lcl.IObject, canClose *bool) bool {
+	println("OnFormCloseQuery")
+	//*canClose = false
+	return false
+}
+
+func (m *TBrowserWindow) OnFormClose(sender lcl.IObject, closeAction *types.TCloseAction) bool {
+	println("OnFormClose")
+	//*closeAction = types.CaMinimize
+	return false
 }

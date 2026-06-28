@@ -52,7 +52,7 @@ func (m *TForm1Window) OnFormCreate(sender lcl.IObject) {
 		fmt.Println("测试3-测试:", id)
 		contextMenu.Add("测试3", core.CmkCommand)
 	})
-	m.Webview1.SetOnContextMenuCommand(func(commandId int32) {
+	m.Webview1.SetOnContextMenuCommand(func(commandId int32, handle *bool) {
 		fmt.Println("OnContextMenuCommand:", commandId)
 		m.Webview1.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
