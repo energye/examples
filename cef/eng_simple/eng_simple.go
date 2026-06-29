@@ -78,7 +78,6 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 	m.SetPosition(types.PoScreenCenter)
 	m.SetWidth(1000)
 	m.SetHeight(700)
-
 	m.Browser = cef.NewEmbeddedBrowser(m)
 	m.Browser.SetAlign(types.AlClient)
 	m.Browser.SetParent(m)
