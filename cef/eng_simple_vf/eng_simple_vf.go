@@ -164,7 +164,7 @@ func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 		contextMenu.Add("测试3", core.CmkCommand)
 	})
 	m.SetOnContextMenuCommand(func(commandId int32, handle *bool) {
-		fmt.Println("OnContextMenuCommand:", commandId)
+		fmt.Println("OnCont extMenuCommand:", commandId)
 		m.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})

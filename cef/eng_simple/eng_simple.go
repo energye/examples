@@ -128,6 +128,9 @@ func (m *TForm) FormCreate(sender lcl.IObject) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})
 	})
+	m.SetOnThemeChange(func(isDark bool) {
+		fmt.Println("SetOnThemeChange isDark:", isDark)
+	})
 	m.WorkAreaCenter()
 	m.TWindow.FormCreate(sender)
 }
