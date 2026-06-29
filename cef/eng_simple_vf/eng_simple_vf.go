@@ -40,7 +40,7 @@ func main() {
 
 	//cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
-		Frameless: true,
+		//Frameless: true,
 		//WindowTransparent: true,
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
@@ -117,13 +117,16 @@ func main() {
 			})
 		}
 	})
-
+	cefApp.SetEnableGPU(true)
 	cef.Run(&MainBrowserWindow)
 }
 
 func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 	println("OnFormCreate", api.CurrentThreadId(), api.MainThreadId())
 	//m.SetIsAlwaysOnTop(true)
+	m.SetTitle("OnFormCreate")
+	pngData, _ := resources.ReadFile("resources/icon.png")
+	m.SetIcon(pngData)
 	m.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
 		return
