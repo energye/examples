@@ -35,16 +35,18 @@ func init() {
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
 	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-127.so"
+	//libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-147.so"
 	cefApp := cef.Init()
+
 	//cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
-		//Frameless: true,
+		Frameless: true,
 		//WindowTransparent: true,
 		//WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),
 		//DefaultURL:"https://energye.gitee.io",
-		//DefaultURL: "fs://energy/index-home.html",
-		DefaultURL: "fs://energy/index-ipc.html",
+		DefaultURL: "fs://energy/index-home.html",
+		//DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL:      "http://chrome.360.cn/html5_labs",
 		//DefaultURL:      "https://www.baidu.com",
@@ -71,13 +73,57 @@ func main() {
 		ipc.Emit("test", "测试数据")
 	})
 
+	getWindow := func(browserId uint32) cef.IViewsBrowser {
+		return cefApp.GetWindow(browserId).(cef.IViewsBrowser)
+	}
+	ipc.On("minimize", func(context ipc.IContext) {
+		fmt.Println("minimize", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			tempWindow.Minimize()
+		}
+	})
+
+	ipc.On("maximize", func(context ipc.IContext) {
+		fmt.Println("maximize", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			if tempWindow.IsMaximize() {
+				tempWindow.Restore()
+			} else {
+				tempWindow.Maximize()
+			}
+		}
+	})
+
+	ipc.On("fullscreen", func(context ipc.IContext) {
+		fmt.Println("fullscreen", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			if tempWindow.IsFullScreen() {
+				tempWindow.ExitFullScreen()
+			} else {
+				tempWindow.FullScreen()
+			}
+		}
+	})
+
+	ipc.On("close", func(context ipc.IContext) {
+		fmt.Println("close", context.BrowserId())
+		tempWindow := getWindow(context.BrowserId())
+		if tempWindow != nil {
+			lcl.RunOnMainThreadAsync(func(id uint32) {
+				tempWindow.Close()
+			})
+		}
+	})
+
 	cef.Run(&MainBrowserWindow)
 }
 
 func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 	println("OnFormCreate", api.CurrentThreadId(), api.MainThreadId())
 	//m.SetIsAlwaysOnTop(true)
-
 	m.SetOnResourceRequest(func(url, path, method string, header map[string]string) (resource string, ok bool) {
 		fmt.Println("Browser.SetOnResourceRequest:", url, path, method, header)
 		return
@@ -105,7 +151,7 @@ func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 		ipc.Emit("drag-over", da, data.Filenames)
 	})
 	m.SetOnContextMenu(func(contextMenu *core.TContextMenuItem) {
-		//contextMenu.Clear()
+		contextMenu.Clear()
 		contextMenu.Add("", core.CmkSeparator)
 		_, id := contextMenu.Add("测试1", core.CmkCommand)
 		fmt.Println("测试1:", id)
@@ -122,6 +168,9 @@ func (m *TBrowserWindow) OnFormCreate(sender lcl.IObject) {
 		m.ExecuteScriptCallback("document.title", func(result string, err string) {
 			fmt.Println("ExecuteScriptCallback:", result, err)
 		})
+	})
+	m.SetOnThemeChange(func(isDark bool) {
+		fmt.Println("SetOnThemeChange isDark:", isDark)
 	})
 	lcl.RunOnMainThreadAsync(func(id uint32) {
 		fmt.Println("RunOnMainThreadAsync")
