@@ -9,7 +9,7 @@ import (
 func main() {
 	gtk3.Init(nil)
 
-	win, err := gtk3.NewWindow(gtk3.WINDOW_TOPLEVEL)
+	win, err := gtk3.NewWindow(gtk3types.WINDOW_TOPLEVEL)
 	if err != nil {
 		log.Fatal("Unable to create window:", err)
 	}
@@ -43,7 +43,7 @@ func Toolbar(gtkWindow *gtk3.Window) {
 	gtkWindow.SetTitlebar(headerBar)
 
 	btn := gtk3.NewButton() // .ButtonNewWithLabel("button")
-	btn.SetRelief(gtk3.RELIEF_NONE)
+	btn.SetRelief(gtk3types.RELIEF_NONE)
 	cssProvid := gtk3.NewCssProvider()
 	defer cssProvid.Unref()
 	cssProvid.LoadFromData(`
