@@ -11,11 +11,11 @@
 package main
 
 import (
- "fmt"
+	"fmt"
 
- "github.com/energye/energy/v3/platform/linux/callback"
- "github.com/energye/energy/v3/platform/linux/gtk3"
- . "github.com/energye/energy/v3/platform/linux/types"
+	"github.com/energye/energy/v3/platform/linux/callback"
+	"github.com/energye/energy/v3/platform/linux/gtk3"
+	. "github.com/energye/energy/v3/platform/linux/types"
 )
 
 var passed, failed int
@@ -968,97 +968,97 @@ func main() {
 
 	msgBtn := gtk3.NewButtonWithLabel("MessageDialog")
 	msgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewMessageDialog(win, DIALOG_MODAL, MESSAGE_INFO, BUTTONS_OK, "这是一条消息")
-	 dlg.FormatSecondaryText("详细信息内容...")
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewMessageDialog(win, DIALOG_MODAL, MESSAGE_INFO, BUTTONS_OK, "这是一条消息")
+		dlg.FormatSecondaryText("详细信息内容...")
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(msgBtn, false, false, 0)
 
 	dlgBtn := gtk3.NewButtonWithLabel("Dialog")
 	dlgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewDialog()
-	 dlg.AddButton("确定", 0)
-	 dlg.AddButton("取消", 1)
-	 dlg.SetDefaultResponse(0)
-	 area := dlg.GetContentArea()
-	 if area != nil {
-	  area.PackStart(gtk3.NewLabel("对话框内容区域"), false, false, 10)
-	 }
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewDialog()
+		dlg.AddButton("确定", 0)
+		dlg.AddButton("取消", 1)
+		dlg.SetDefaultResponse(0)
+		area := dlg.GetContentArea()
+		if area != nil {
+			area.PackStart(gtk3.NewLabel("对话框内容区域"), false, false, 10)
+		}
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(dlgBtn, false, false, 0)
 
 	colorBtn := gtk3.NewButtonWithLabel("ColorChooserDialog")
 	colorBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewColorChooserDialog("选择颜色", win)
-	 dlg.SetUseAlpha(true)
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewColorChooserDialog("选择颜色", win)
+		dlg.SetUseAlpha(true)
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(colorBtn, false, false, 0)
 
 	fontBtn := gtk3.NewButtonWithLabel("FontChooserDialog")
 	fontBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewFontChooserDialog("选择字体", win)
-	 dlg.SetFont("Sans 12")
-	 dlg.SetPreviewText("预览文本 ABCabc 123")
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewFontChooserDialog("选择字体", win)
+		dlg.SetFont("Sans 12")
+		dlg.SetPreviewText("预览文本 ABCabc 123")
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(fontBtn, false, false, 0)
 
 	fileBtn := gtk3.NewButtonWithLabel("FileChooserDialog")
 	fileBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewFileChooserDialog("选择文件", win, FILE_CHOOSER_ACTION_OPEN)
-	 dlg.SetSelectMultiple(false)
-	 imgFilter := gtk3.NewFileFilter()
-	 imgFilter.SetName("图片文件")
-	 imgFilter.AddPattern("*.png")
-	 imgFilter.AddPattern("*.jpg")
-	 imgFilter.AddPattern("*.jpeg")
-	 imgFilter.AddMimeType("image/png")
-	 imgFilter.AddMimeType("image/jpeg")
-	 dlg.AddFilter(imgFilter)
-	 allFilter := gtk3.NewFileFilter()
-	 allFilter.SetName("所有文件")
-	 allFilter.AddPattern("*")
-	 dlg.AddFilter(allFilter)
-	 dlg.SetFilter(imgFilter)
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  if responseId == int32(RESPONSE_ACCEPT) {
-	   fname := dlg.GetFilename()
-	   fmt.Printf("  选择的文件: %s\n", fname)
-	  }
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewFileChooserDialog("选择文件", win, FILE_CHOOSER_ACTION_OPEN)
+		dlg.SetSelectMultiple(false)
+		imgFilter := gtk3.NewFileFilter()
+		imgFilter.SetName("图片文件")
+		imgFilter.AddPattern("*.png")
+		imgFilter.AddPattern("*.jpg")
+		imgFilter.AddPattern("*.jpeg")
+		imgFilter.AddMimeType("image/png")
+		imgFilter.AddMimeType("image/jpeg")
+		dlg.AddFilter(imgFilter)
+		allFilter := gtk3.NewFileFilter()
+		allFilter.SetName("所有文件")
+		allFilter.AddPattern("*")
+		dlg.AddFilter(allFilter)
+		dlg.SetFilter(imgFilter)
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			if responseId == int32(RESPONSE_ACCEPT) {
+				fname := dlg.GetFilename()
+				fmt.Printf("  选择的文件: %s\n", fname)
+			}
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(fileBtn, false, false, 0)
 
 	aboutBtn := gtk3.NewButtonWithLabel("AboutDialog")
 	aboutBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 dlg := gtk3.NewAboutDialog()
-	 dlg.SetProgramName("Energy GTK3")
-	 dlg.SetVersion("3.0.0")
-	 dlg.SetComments("Go 语言 GTK3 绑定库")
-	 dlg.SetWebsite("https://github.com/energye/energy")
-	 dlg.SetWebsiteLabel("GitHub")
-	 dlg.SetLicense("Apache 2.0")
-	 dlg.SetAuthors([]string{"energye"})
-	 dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
-	  dlg.Destroy()
-	 })
-	 dlg.ShowAll()
+		dlg := gtk3.NewAboutDialog()
+		dlg.SetProgramName("Energy GTK3")
+		dlg.SetVersion("3.0.0")
+		dlg.SetComments("Go 语言 GTK3 绑定库")
+		dlg.SetWebsite("https://github.com/energye/energy")
+		dlg.SetWebsiteLabel("GitHub")
+		dlg.SetLicense("Apache 2.0")
+		dlg.SetAuthors([]string{"energye"})
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(aboutBtn, false, false, 0)
 
@@ -1147,23 +1147,85 @@ func main() {
 	infoBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
 	infoMsgBtn := gtk3.NewButtonWithLabel("信息 (蓝色)")
 	infoMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 infoBar.SetMessageType(MESSAGE_INFO)
-	 statusbar.Push(statusCtx, "InfoBar: 信息")
+		infoBar.SetMessageType(MESSAGE_INFO)
+		statusbar.Push(statusCtx, "InfoBar: 信息")
 	})
 	infoBtnRow.PackStart(infoMsgBtn, false, false, 0)
 	warnMsgBtn := gtk3.NewButtonWithLabel("警告 (黄色)")
 	warnMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 infoBar.SetMessageType(MESSAGE_WARNING)
-	 statusbar.Push(statusCtx, "InfoBar: 警告")
+		infoBar.SetMessageType(MESSAGE_WARNING)
+		statusbar.Push(statusCtx, "InfoBar: 警告")
 	})
 	infoBtnRow.PackStart(warnMsgBtn, false, false, 0)
 	errMsgBtn := gtk3.NewButtonWithLabel("错误 (红色)")
 	errMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-	 infoBar.SetMessageType(MESSAGE_ERROR)
-	 statusbar.Push(statusCtx, "InfoBar: 错误")
+		infoBar.SetMessageType(MESSAGE_ERROR)
+		statusbar.Push(statusCtx, "InfoBar: 错误")
 	})
 	infoBtnRow.PackStart(errMsgBtn, false, false, 0)
 	tab11.PackStart(infoBtnRow, false, false, 0)
+
+	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// Scale (HScale)
+	tab11.PackStart(gtk3.NewLabel("GtkScale (滑块, IRange):"), false, false, 0)
+	scaleAdj := gtk3.NewAdjustment(50, 0, 100, 1, 10, 0)
+	hScale := gtk3.NewHScale(scaleAdj)
+	hScale.SetDigits(0)
+	hScale.SetDrawValue(true)
+	hScale.SetValuePos(POS_TOP)
+	hScale.SetSizeRequest(250, -1)
+	tab11.PackStart(hScale, false, false, 0)
+
+	scaleValLabel := gtk3.NewLabel("Scale 值: 50")
+	readScaleBtn := gtk3.NewButtonWithLabel("读取 Scale 值")
+	readScaleBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		scaleValLabel.SetText(fmt.Sprintf("Scale 值: %.0f", hScale.GetValue()))
+	})
+	tab11.PackStart(readScaleBtn, false, false, 0)
+	tab11.PackStart(scaleValLabel, false, false, 0)
+
+	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// Spinner
+	tab11.PackStart(gtk3.NewLabel("GtkSpinner (加载旋转):"), false, false, 0)
+	spinner := gtk3.NewSpinner()
+	spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	spinRow.PackStart(spinner, false, false, 0)
+	startSpin := gtk3.NewButtonWithLabel("开始旋转")
+	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		spinner.Start()
+	})
+	spinRow.PackStart(startSpin, false, false, 0)
+	stopSpin := gtk3.NewButtonWithLabel("停止")
+	stopSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		spinner.Stop()
+	})
+	spinRow.PackStart(stopSpin, false, false, 0)
+	tab11.PackStart(spinRow, false, false, 0)
+
+	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// LevelBar
+	tab11.PackStart(gtk3.NewLabel("GtkLevelBar (等级条):"), false, false, 0)
+	lvBar := gtk3.NewLevelBar()
+	lvBar.SetMinValue(0)
+	lvBar.SetMaxValue(100)
+	lvBar.SetValue(50)
+	tab11.PackStart(lvBar, false, false, 0)
+
+	lvRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	lvDown := gtk3.NewButtonWithLabel("-10")
+	lvDown.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		lvBar.SetValue(lvBar.GetValue() - 10)
+	})
+	lvRow.PackStart(lvDown, false, false, 0)
+	lvUp := gtk3.NewButtonWithLabel("+10")
+	lvUp.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		lvBar.SetValue(lvBar.GetValue() + 10)
+	})
+	lvRow.PackStart(lvUp, false, false, 0)
+	tab11.PackStart(lvRow, false, false, 0)
 
 	notebook.AppendPage(tab11, gtk3.NewLabel("新组件"))
 
@@ -1300,6 +1362,27 @@ func main() {
 	check("NewFontChooserDialog", true)
 	check("NewFileChooserDialog + FileFilter", true)
 	check("NewAboutDialog", true)
+
+	makeSection("[新组件 Stack/Switch/InfoBar/Scale/Spinner/LevelBar]")
+	check("NewStack", stack != nil)
+	check("Stack.AddTitled", true)
+	check("Stack.SetVisibleChild", true)
+	check("NewStackSwitcher", switcher != nil)
+	check("StackSwitcher.SetStack", true)
+	check("NewSwitch", sw != nil)
+	check("Switch.SetActive/GetActive", !sw.GetActive())
+	check("NewInfoBar", infoBar != nil)
+	check("InfoBar.SetMessageType", true)
+	check("InfoBar.AddButton", true)
+	check("NewHScale", hScale != nil)
+	check("Scale.SetDigits(0)", hScale.GetDigits() == 0)
+	check("Scale.SetDrawValue(true)", hScale.GetDrawValue())
+	check("Scale.SetValuePos", true)
+	check("NewSpinner", spinner != nil)
+	check("Spinner.Start/Stop", true)
+	check("NewLevelBar", lvBar != nil)
+	check("LevelBar.SetMinValue/MaxValue", true)
+	check("LevelBar.SetValue/GetValue", true)
 
 	makeSection("[Window属性]")
 	check("Window.Decorated", win.GetDecorated())
