@@ -1065,6 +1065,109 @@ func main() {
 	notebook.AppendPage(tab10, gtk3.NewLabel("对话框"))
 
 	// ============================================================
+	// Tab 11: 新组件 (Stack/Switch/InfoBar)
+	// ============================================================
+	tab11 := gtk3.NewBox(ORIENTATION_VERTICAL, 8)
+	tab11.SetMarginTop(10)
+	tab11.SetMarginBottom(10)
+	tab11.SetMarginStart(10)
+	tab11.SetMarginEnd(10)
+
+	swInfo := gtk3.NewLabel("Switch 状态: OFF")
+	sw := gtk3.NewSwitch()
+	sw.SetActive(false)
+	swRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	swRow.PackStart(gtk3.NewLabel("GtkSwitch:"), false, false, 0)
+	swRow.PackStart(sw, false, false, 0)
+	readSwBtn := gtk3.NewButtonWithLabel("读取状态")
+	readSwBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		if sw.GetActive() {
+			swInfo.SetText("Switch 状态: ON ✅")
+		} else {
+			swInfo.SetText("Switch 状态: OFF ❌")
+		}
+	})
+	swRow.PackStart(readSwBtn, false, false, 0)
+	swRow.PackStart(swInfo, false, false, 0)
+	tab11.PackStart(swRow, false, false, 0)
+
+	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// Stack + StackSwitcher
+	tab11.PackStart(gtk3.NewLabel("GtkStack + StackSwitcher (无标签页切换):"), false, false, 0)
+	stack := gtk3.NewStack()
+	stack.SetTransitionDuration(300)
+	stack.SetTransitionType(STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT)
+	page1 := gtk3.NewLabel("页面 1 — 这是第一页的内容")
+	page1.SetSizeRequest(300, 100)
+	stack.AddTitled(page1, "page1", "第一页")
+	page2 := gtk3.NewLabel("页面 2 — 这是第二页的内容")
+	page2.SetSizeRequest(300, 100)
+	stack.AddTitled(page2, "page2", "第二页")
+	page3 := gtk3.NewLabel("页面 3 — 这是第三页的内容")
+	page3.SetSizeRequest(300, 100)
+	stack.AddTitled(page3, "page3", "第三页")
+
+	switcher := gtk3.NewStackSwitcher()
+	switcher.SetStack(stack)
+	tab11.PackStart(switcher, false, false, 0)
+	tab11.PackStart(stack, false, false, 0)
+
+	// Stack 切换按钮
+	stackBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	btnP1 := gtk3.NewButtonWithLabel("第一页")
+	btnP1.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		stack.SetVisibleChild(page1)
+	})
+	stackBtnRow.PackStart(btnP1, false, false, 0)
+	btnP2 := gtk3.NewButtonWithLabel("第二页")
+	btnP2.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		stack.SetVisibleChild(page2)
+	})
+	stackBtnRow.PackStart(btnP2, false, false, 0)
+	btnP3 := gtk3.NewButtonWithLabel("第三页")
+	btnP3.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		stack.SetVisibleChild(page3)
+	})
+	stackBtnRow.PackStart(btnP3, false, false, 0)
+	tab11.PackStart(stackBtnRow, false, false, 0)
+
+	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// InfoBar
+	tab11.PackStart(gtk3.NewLabel("GtkInfoBar (内联消息条，带按钮):"), false, false, 0)
+	infoBar := gtk3.NewInfoBar()
+	infoBar.SetMessageType(MESSAGE_INFO)
+	infoBar.SetShowCloseButton(true)
+	infoBar.GetContentArea().PackStart(gtk3.NewLabel("这是一条 InfoBar 消息 — 点击下方按钮切换类型"), false, false, 10)
+	infoBar.AddButton("操作一", 1)
+	infoBar.AddButton("操作二", 2)
+	tab11.PackStart(infoBar, false, false, 0)
+
+	infoBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	infoMsgBtn := gtk3.NewButtonWithLabel("信息 (蓝色)")
+	infoMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	 infoBar.SetMessageType(MESSAGE_INFO)
+	 statusbar.Push(statusCtx, "InfoBar: 信息")
+	})
+	infoBtnRow.PackStart(infoMsgBtn, false, false, 0)
+	warnMsgBtn := gtk3.NewButtonWithLabel("警告 (黄色)")
+	warnMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	 infoBar.SetMessageType(MESSAGE_WARNING)
+	 statusbar.Push(statusCtx, "InfoBar: 警告")
+	})
+	infoBtnRow.PackStart(warnMsgBtn, false, false, 0)
+	errMsgBtn := gtk3.NewButtonWithLabel("错误 (红色)")
+	errMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	 infoBar.SetMessageType(MESSAGE_ERROR)
+	 statusbar.Push(statusCtx, "InfoBar: 错误")
+	})
+	infoBtnRow.PackStart(errMsgBtn, false, false, 0)
+	tab11.PackStart(infoBtnRow, false, false, 0)
+
+	notebook.AppendPage(tab11, gtk3.NewLabel("新组件"))
+
+	// ============================================================
 	// 底部状态栏
 	// ============================================================
 	mainBox.PackStart(statusbar, false, false, 0)
