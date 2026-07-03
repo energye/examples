@@ -35,9 +35,75 @@ func main() {
 		gtk3.MainQuit()
 	})
 
+	// Main layout: menu bar + notebook
+	mainBox := gtk3.NewBox(ORIENTATION_VERTICAL, 0)
+	win.Add(mainBox)
+
+	// Statusbar (declared early for menu callbacks)
+	statusbar := gtk3.NewStatusbar()
+	ctxId := statusbar.GetContextId("main")
+	statusbar.Push(ctxId, "就绪")
+
+	// Menu bar at window top
+	menuBar := gtk3.NewMenuBar()
+
+	// File menu
+	fileMenu := gtk3.NewMenu()
+	fileMenuItem := gtk3.MenuItemNewWithLabel("文件")
+	fileMenuItem.SetSubmenu(fileMenu)
+
+	openItem := gtk3.MenuItemNewWithLabel("打开")
+	openItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		fcDlg := gtk3.NewFileChooserDialog("打开文件", win, FILE_CHOOSER_ACTION_OPEN)
+		fcDlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			if responseId == int32(RESPONSE_ACCEPT) {
+				fname := fcDlg.GetFilename()
+				statusbar.Push(ctxId, "打开: "+fname)
+			}
+			fcDlg.Destroy()
+		})
+		fcDlg.ShowAll()
+	})
+	fileMenu.Append(openItem)
+
+	fileMenu.Append(gtk3.SeparatorMenuItemNew())
+
+	quitItem := gtk3.MenuItemNewWithLabel("退出")
+	quitItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		gtk3.MainQuit()
+	})
+	fileMenu.Append(quitItem)
+
+	menuBar.Append(fileMenuItem)
+
+	// Help menu
+	helpMenu := gtk3.NewMenu()
+	helpMenuItem := gtk3.MenuItemNewWithLabel("帮助")
+	helpMenuItem.SetSubmenu(helpMenu)
+
+	aboutItem := gtk3.MenuItemNewWithLabel("关于")
+	aboutItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		about := gtk3.NewAboutDialog()
+		about.SetProgramName("Energy GTK3")
+		about.SetVersion("3.0.0")
+		about.SetComments("Go 语言 GTK3 绑定库")
+		about.SetWebsite("https://github.com/energye/energy")
+		about.SetWebsiteLabel("GitHub")
+		about.SetLicense("Apache 2.0")
+		about.SetAuthors([]string{"energye"})
+		about.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			about.Destroy()
+		})
+		about.ShowAll()
+	})
+	helpMenu.Append(aboutItem)
+
+	menuBar.Append(helpMenuItem)
+	mainBox.PackStart(menuBar, false, false, 0)
+
 	// Main Notebook
 	notebook := gtk3.NewNotebook()
-	win.Add(notebook)
+	mainBox.PackStart(notebook, true, true, 0)
 
 	// ==============================
 	// Tab 1: 基础组件
@@ -266,9 +332,6 @@ func main() {
 	pbar.Pulse()
 	tab6.PackStart(pbar, false, false, 0)
 
-	statusbar := gtk3.NewStatusbar()
-	ctxId := statusbar.GetContextId("main")
-	statusbar.Push(ctxId, "就绪")
 	tab6.PackStart(statusbar, false, false, 0)
 
 	notebook.AppendPage(tab6, gtk3.NewLabel("进度状态"))
@@ -326,69 +389,13 @@ func main() {
 	notebook.AppendPage(tab8, gtk3.NewLabel("CSS样式"))
 
 	// ==============================
-	// Tab 9: 菜单
+	// Tab 9: 事件
 	// ==============================
 	tab9 := gtk3.NewBox(ORIENTATION_VERTICAL, 8)
 	tab9.SetMarginTop(10)
 	tab9.SetMarginBottom(10)
 	tab9.SetMarginStart(10)
 	tab9.SetMarginEnd(10)
-
-	menuBar := gtk3.NewMenuBar()
-
-	// File menu
-	fileMenu := gtk3.NewMenu()
-	fileMenuItem := gtk3.NewMenuItem()
-	fileMenuItem.SetSubmenu(fileMenu)
-
-	openItem := gtk3.MenuItemNewWithLabel("打开")
-	openItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
-		fcDlg := gtk3.NewFileChooserDialog("打开文件", win, FILE_CHOOSER_ACTION_OPEN)
-		fcDlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
-			if responseId == 0 {
-				fname := fcDlg.GetFilename()
-				statusbar.Push(ctxId, "打开: "+fname)
-			}
-			fcDlg.Destroy()
-		})
-		fcDlg.ShowAll()
-	})
-	fileMenu.Append(openItem)
-
-	fileMenu.Append(gtk3.SeparatorMenuItemNew())
-
-	quitItem := gtk3.MenuItemNewWithLabel("退出")
-	quitItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
-		gtk3.MainQuit()
-	})
-	fileMenu.Append(quitItem)
-
-	menuBar.Append(fileMenuItem)
-
-	// Help menu
-	helpMenu := gtk3.NewMenu()
-	helpMenuItem := gtk3.NewMenuItem()
-	helpMenuItem.SetSubmenu(helpMenu)
-
-	aboutItem := gtk3.MenuItemNewWithLabel("关于")
-	aboutItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
-		about := gtk3.NewAboutDialog()
-		about.SetProgramName("Energy GTK3")
-		about.SetVersion("3.0.0")
-		about.SetComments("Go 语言 GTK3 绑定库")
-		about.SetWebsite("https://github.com/energye/energy")
-		about.SetWebsiteLabel("GitHub")
-		about.SetLicense("Apache 2.0")
-		about.SetAuthors([]string{"energye"})
-		about.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
-			about.Destroy()
-		})
-		about.ShowAll()
-	})
-	helpMenu.Append(aboutItem)
-
-	menuBar.Append(helpMenuItem)
-	tab9.PackStart(menuBar, false, false, 0)
 
 	// EventBox with click
 	evtBox := gtk3.NewEventBox()
@@ -400,7 +407,7 @@ func main() {
 	})
 	tab9.PackStart(evtBox, false, false, 0)
 
-	notebook.AppendPage(tab9, gtk3.NewLabel("菜单事件"))
+	notebook.AppendPage(tab9, gtk3.NewLabel("事件"))
 
 	// ==============================
 	// Tab 10: 对话框
@@ -415,7 +422,7 @@ func main() {
 	msgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewMessageDialog(win, DIALOG_MODAL, MESSAGE_INFO, BUTTONS_OK, "这是一条消息")
 		dlg.FormatSecondaryText("详细信息内容...")
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
@@ -432,7 +439,7 @@ func main() {
 		if area != nil {
 			area.PackStart(gtk3.NewLabel("对话框内容区域"), false, false, 10)
 		}
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
@@ -443,7 +450,7 @@ func main() {
 	colorBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewColorChooserDialog("选择颜色", win)
 		dlg.SetUseAlpha(true)
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
@@ -455,7 +462,7 @@ func main() {
 		dlg := gtk3.NewFontChooserDialog("选择字体", win)
 		dlg.SetFont("Sans 12")
 		dlg.SetPreviewText("预览文本 ABCabc 123")
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
@@ -466,8 +473,22 @@ func main() {
 	fileBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewFileChooserDialog("选择文件", win, FILE_CHOOSER_ACTION_OPEN)
 		dlg.SetSelectMultiple(false)
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
-			if responseId == 0 {
+		// 文件过滤器
+		imgFilter := gtk3.NewFileFilter()
+		imgFilter.SetName("图片文件")
+		imgFilter.AddPattern("*.png")
+		imgFilter.AddPattern("*.jpg")
+		imgFilter.AddPattern("*.jpeg")
+		imgFilter.AddMimeType("image/png")
+		imgFilter.AddMimeType("image/jpeg")
+		dlg.AddFilter(imgFilter)
+		allFilter := gtk3.NewFileFilter()
+		allFilter.SetName("所有文件")
+		allFilter.AddPattern("*")
+		dlg.AddFilter(allFilter)
+		dlg.SetFilter(imgFilter)
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			if responseId == int32(RESPONSE_ACCEPT) {
 				fname := dlg.GetFilename()
 				fmt.Printf("  选择的文件: %s\n", fname)
 			}
@@ -487,7 +508,7 @@ func main() {
 		dlg.SetWebsiteLabel("GitHub")
 		dlg.SetLicense("Apache 2.0")
 		dlg.SetAuthors([]string{"energye"})
-		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
