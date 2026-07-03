@@ -344,11 +344,14 @@ func main() {
 	openItem := gtk3.MenuItemNewWithLabel("打开")
 	openItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
 		fcDlg := gtk3.NewFileChooserDialog("打开文件", win, FILE_CHOOSER_ACTION_OPEN)
-		result := fcDlg.Run()
-		if result == 0 {
-			fname := fcDlg.GetFilename()
-			statusbar.Push(ctxId, "打开: "+fname)
-		}
+		fcDlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			if responseId == 0 {
+				fname := fcDlg.GetFilename()
+				statusbar.Push(ctxId, "打开: "+fname)
+			}
+			fcDlg.Destroy()
+		})
+		fcDlg.ShowAll()
 	})
 	fileMenu.Append(openItem)
 
@@ -377,7 +380,10 @@ func main() {
 		about.SetWebsiteLabel("GitHub")
 		about.SetLicense("Apache 2.0")
 		about.SetAuthors([]string{"energye"})
-		about.Run()
+		about.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			about.Destroy()
+		})
+		about.ShowAll()
 	})
 	helpMenu.Append(aboutItem)
 
@@ -409,7 +415,10 @@ func main() {
 	msgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewMessageDialog(win, DIALOG_MODAL, MESSAGE_INFO, BUTTONS_OK, "这是一条消息")
 		dlg.FormatSecondaryText("详细信息内容...")
-		dlg.Run()
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(msgBtn, false, false, 0)
 
@@ -423,7 +432,10 @@ func main() {
 		if area != nil {
 			area.PackStart(gtk3.NewLabel("对话框内容区域"), false, false, 10)
 		}
-		dlg.Run()
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(dlgBtn, false, false, 0)
 
@@ -431,7 +443,10 @@ func main() {
 	colorBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewColorChooserDialog("选择颜色", win)
 		dlg.SetUseAlpha(true)
-		dlg.Run()
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(colorBtn, false, false, 0)
 
@@ -440,7 +455,10 @@ func main() {
 		dlg := gtk3.NewFontChooserDialog("选择字体", win)
 		dlg.SetFont("Sans 12")
 		dlg.SetPreviewText("预览文本 ABCabc 123")
-		dlg.Run()
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(fontBtn, false, false, 0)
 
@@ -448,11 +466,14 @@ func main() {
 	fileBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		dlg := gtk3.NewFileChooserDialog("选择文件", win, FILE_CHOOSER_ACTION_OPEN)
 		dlg.SetSelectMultiple(false)
-		result := dlg.Run()
-		if result == 0 {
-			fname := dlg.GetFilename()
-			fmt.Printf("  选择的文件: %s\n", fname)
-		}
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			if responseId == 0 {
+				fname := dlg.GetFilename()
+				fmt.Printf("  选择的文件: %s\n", fname)
+			}
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(fileBtn, false, false, 0)
 
@@ -466,7 +487,10 @@ func main() {
 		dlg.SetWebsiteLabel("GitHub")
 		dlg.SetLicense("Apache 2.0")
 		dlg.SetAuthors([]string{"energye"})
-		dlg.Run()
+		dlg.SetOnResponse(func(sender PGtkWidget, responseId int, userData GPointer) {
+			dlg.Destroy()
+		})
+		dlg.ShowAll()
 	})
 	tab10.PackStart(aboutBtn, false, false, 0)
 
