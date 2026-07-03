@@ -493,7 +493,7 @@ func main() {
 	notebook.AppendPage(tab4, gtk3.NewLabel("文本编辑"))
 
 	// ============================================================
-	// Tab 5: 数据表格 (TreeView / ListStore / TreeViewColumn / TreeSelection)
+	// Tab 5: 数据表格 & 树形视图 (ListStore / TreeStore / TreeView / TreeSelection)
 	// ============================================================
 	tab5 := gtk3.NewBox(ORIENTATION_VERTICAL, 8)
 	tab5.SetMarginTop(10)
@@ -501,7 +501,69 @@ func main() {
 	tab5.SetMarginStart(10)
 	tab5.SetMarginEnd(10)
 
+	// ─────────────────────────────────────────────
+	// 上部: TreeStore 树形结构 (部门 → 员工)
+	// ─────────────────────────────────────────────
+	treeLabel := gtk3.NewLabel("树形视图 (TreeStore: 部门 → 员工)")
+	treeLabel.SetMarkup("<b>树形视图 (TreeStore: 部门 → 员工)</b>")
+	tab5.PackStart(treeLabel, false, false, 0)
+
+	treeSelInfo := gtk3.NewLabel("选择: 无")
+	tab5.PackStart(treeSelInfo, false, false, 0)
+
+	treeStore := gtk3.NewTreeStore(TYPE_STRING, TYPE_STRING)
+
+	// 部门数据: name → employees[]
+	type deptData struct {
+		name      string
+		employees []string
+	}
+	depts := []deptData{
+		{"技术部", []string{"张三", "李四", "王五"}},
+		{"市场部", []string{"赵六", "钱七"}},
+		{"人事部", []string{"孙八", "周九", "吴十"}},
+	}
+	// 填充树形数据
+	for _, d := range depts {
+		deptIter := treeStore.Append(nil)
+		treeStore.SetValue(deptIter, 0, d.name)
+		treeStore.SetValue(deptIter, 1, fmt.Sprintf("%d人", len(d.employees)))
+		for _, emp := range d.employees {
+			empIter := treeStore.Append(deptIter)
+			treeStore.SetValue(empIter, 0, "  "+emp)
+			treeStore.SetValue(empIter, 1, "员工")
+		}
+	}
+
+	treeView2 := gtk3.NewTreeView()
+	treeView2.SetTreeModel(treeStore)
+	for i, title := range []string{"名称", "说明"} {
+		renderer := gtk3.NewCellRendererText()
+		col := gtk3.NewTreeViewColumn()
+		col.SetTitle(title)
+		col.PackStart(renderer, false)
+		col.AddAttribute(renderer, "text", i)
+		treeView2.AppendColumn(col)
+	}
+	treeView2.SetHeadersVisible(true)
+	treeView2.ExpandAll()
+
+	swTree := gtk3.NewScrolledWindow(nil, nil)
+	swTree.SetMinContentHeight(180)
+	swTree.Add(treeView2)
+	tab5.PackStart(swTree, false, false, 0)
+
+	tab5.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// ─────────────────────────────────────────────
+	// 下部: ListStore 平面表格 (员工详情)
+	// ─────────────────────────────────────────────
 	selInfo := gtk3.NewLabel("选择: 无")
+	listLabel := gtk3.NewLabel("")
+	listLabel.SetMarkup("<b>平面表格 (ListStore: 员工详情)</b>")
+	tab5.PackStart(listLabel, false, false, 0)
+	tab5.PackStart(selInfo, false, false, 0)
+
 	store := gtk3.NewListStore(TYPE_STRING, TYPE_STRING, TYPE_STRING)
 	type row struct{ name, email, role string }
 	rows := []row{
@@ -509,6 +571,10 @@ func main() {
 		{"李四", "li@example.com", "设计师"},
 		{"王五", "wang@example.com", "产品经理"},
 		{"赵六", "zhao@example.com", "测试"},
+		{"钱七", "qian@example.com", "市场专员"},
+		{"孙八", "sun@example.com", "招聘经理"},
+		{"周九", "zhou@example.com", "培训专员"},
+		{"吴十", "wu@example.com", "薪酬专员"},
 	}
 	for _, d := range rows {
 		iter := store.Append()
@@ -532,19 +598,18 @@ func main() {
 	treeView.SetHeadersVisible(true)
 	treeView.ExpandAll()
 
-	tab5.PackStart(selInfo, false, false, 0)
 	tw := gtk3.NewScrolledWindow(nil, nil)
 	tw.Add(treeView)
 	tab5.PackStart(tw, true, true, 0)
 
-	// 添加/删除行演示
+	// 操作按钮
 	treeBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	addRowBtn := gtk3.NewButtonWithLabel("添加行")
+	addRowBtn := gtk3.NewButtonWithLabel("添加员工")
 	addRowBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		iter := store.Append()
-		store.SetValue(iter, 0, fmt.Sprintf("用户%d", len(rows)+1))
-		store.SetValue(iter, 1, fmt.Sprintf("user%d@test.com", len(rows)+1))
-		store.SetValue(iter, 2, "新角色")
+		store.SetValue(iter, 0, fmt.Sprintf("员工%d", len(rows)+1))
+		store.SetValue(iter, 1, fmt.Sprintf("emp%d@test.com", len(rows)+1))
+		store.SetValue(iter, 2, "新员工")
 		rows = append(rows, row{"", "", ""})
 	})
 	treeBtnRow.PackStart(addRowBtn, false, false, 0)
