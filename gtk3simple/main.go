@@ -370,21 +370,23 @@ func main() {
 	hScale.SetDrawValue(true)
 	hScale.SetValuePos(POS_TOP)
 	hScale.SetSizeRequest(300, -1)
-	tab2.PackStart(hScale, false, false, 0)
+	// 实时回调: 拖动滑块立即更新标签
 	scaleValLabel := gtk3.NewLabel("Scale 当前值: 50")
-	readScaleBtn := gtk3.NewButtonWithLabel("读取 Scale 值")
-	readScaleBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	hScale.SetOnValueChanged(func(sender PGtkWidget, userData GPointer) {
 		scaleValLabel.SetText(fmt.Sprintf("Scale 当前值: %.0f", hScale.GetValue()))
 	})
-	tab2.PackStart(readScaleBtn, false, false, 0)
+	tab2.PackStart(hScale, false, false, 0)
 	tab2.PackStart(scaleValLabel, false, false, 0)
 
 	tab2.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
 
-	// -- GtkSearchEntry (搜索框)
-	tab2.PackStart(gtk3.NewLabel("GtkSearchEntry (搜索输入框):"), false, false, 0)
+	// -- GtkSearchEntry (搜索框) + 实时回调
+	tab2.PackStart(gtk3.NewLabel("GtkSearchEntry (搜索输入框, 带实时回调):"), false, false, 0)
 	searchEntry := gtk3.NewSearchEntry()
 	searchEntry.SetPlaceholderText("输入关键词搜索...")
+	searchEntry.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		statusbar.Push(statusCtx, "搜索: "+searchEntry.GetText())
+	})
 	tab2.PackStart(searchEntry, false, false, 0)
 
 	tab2Sw := gtk3.NewScrolledWindow(nil, nil)
@@ -1106,6 +1108,20 @@ func main() {
 		})
 	}
 	tab9.PackStart(themeLabel, false, false, 0)
+
+	tab9.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkPopover (气泡弹出)
+	tab9.PackStart(gtk3.NewLabel("GtkPopover (气泡弹出面板):"), false, false, 0)
+	popBtn := gtk3.NewButtonWithLabel("点击弹出气泡")
+	popover := gtk3.NewPopover()
+	popover.SetRelativeTo(popBtn)
+	popover.SetPosition(POS_BOTTOM)
+	popover.Add(gtk3.NewLabel("这是气泡内的内容\n点击外部关闭"))
+	popBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		popover.Popup()
+	})
+	tab9.PackStart(popBtn, false, false, 0)
 
 	tab9Sw := gtk3.NewScrolledWindow(nil, nil)
 	tab9Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
