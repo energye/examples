@@ -126,6 +126,7 @@ func main() {
 	// ============================================================
 	notebook := gtk3.NewNotebook()
 	notebook.SetTabPos(POS_TOP)
+	notebook.SetScrollable(true)
 	mainBox.PackStart(notebook, true, true, 0)
 
 	// ============================================================
@@ -195,6 +196,25 @@ func main() {
 	checkRow.PackStart(toggle, false, false, 0)
 	tab1.PackStart(checkRow, false, false, 0)
 
+	// -- Switch
+	swRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	sw := gtk3.NewSwitch()
+	sw.SetActive(false)
+	swInfo := gtk3.NewLabel("GtkSwitch 状态: OFF")
+	swRow.PackStart(gtk3.NewLabel("GtkSwitch:"), false, false, 0)
+	swRow.PackStart(sw, false, false, 0)
+	swRow.PackStart(swInfo, false, false, 0)
+	readSwBtn := gtk3.NewButtonWithLabel("读取状态")
+	readSwBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		if sw.GetActive() {
+			swInfo.SetText("GtkSwitch 状态: ON ✅")
+		} else {
+			swInfo.SetText("GtkSwitch 状态: OFF ❌")
+		}
+	})
+	swRow.PackStart(readSwBtn, false, false, 0)
+	tab1.PackStart(swRow, false, false, 0)
+
 	// -- Image
 	imgRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 10)
 	imgInfo := gtk3.NewImageFromIconName("dialog-information", ICON_SIZE_DIALOG)
@@ -230,7 +250,11 @@ func main() {
 
 	tab1.PackStart(propRow, false, false, 0)
 
-	notebook.AppendPage(tab1, gtk3.NewLabel("基础组件"))
+	// -- 包装 ScrolledWindow 使之可滚动 --
+	tab1Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab1Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab1Sw.Add(tab1)
+	notebook.AppendPage(tab1Sw, gtk3.NewLabel("基础组件"))
 
 	// ============================================================
 	// Tab 2: 输入组件 (Entry / SpinButton / ComboBox / RadioButton / EntryCompletion)
@@ -336,7 +360,37 @@ func main() {
 	rBox.PackStart(radio3, false, false, 0)
 	tab2.PackStart(rBox, false, false, 0)
 
-	notebook.AppendPage(tab2, gtk3.NewLabel("输入组件"))
+	tab2.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkScale (滑块)
+	tab2.PackStart(gtk3.NewLabel("GtkScale (滑块, 拖动实时调值):"), false, false, 0)
+	scaleAdj := gtk3.NewAdjustment(50, 0, 100, 1, 10, 0)
+	hScale := gtk3.NewHScale(scaleAdj)
+	hScale.SetDigits(0)
+	hScale.SetDrawValue(true)
+	hScale.SetValuePos(POS_TOP)
+	hScale.SetSizeRequest(300, -1)
+	tab2.PackStart(hScale, false, false, 0)
+	scaleValLabel := gtk3.NewLabel("Scale 当前值: 50")
+	readScaleBtn := gtk3.NewButtonWithLabel("读取 Scale 值")
+	readScaleBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		scaleValLabel.SetText(fmt.Sprintf("Scale 当前值: %.0f", hScale.GetValue()))
+	})
+	tab2.PackStart(readScaleBtn, false, false, 0)
+	tab2.PackStart(scaleValLabel, false, false, 0)
+
+	tab2.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkSearchEntry (搜索框)
+	tab2.PackStart(gtk3.NewLabel("GtkSearchEntry (搜索输入框):"), false, false, 0)
+	searchEntry := gtk3.NewSearchEntry()
+	searchEntry.SetPlaceholderText("输入关键词搜索...")
+	tab2.PackStart(searchEntry, false, false, 0)
+
+	tab2Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab2Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab2Sw.Add(tab2)
+	notebook.AppendPage(tab2Sw, gtk3.NewLabel("输入组件"))
 
 	// ============================================================
 	// Tab 3: 布局容器 (Box / Grid / Fixed / ScrolledWindow / Layout / Overlay)
@@ -422,7 +476,57 @@ func main() {
 	tab3.PackStart(gtk3.NewLabel("Overlay: 底层+覆盖层"), false, false, 0)
 	tab3.PackStart(ol, false, false, 0)
 
-	notebook.AppendPage(tab3, gtk3.NewLabel("布局容器"))
+	tab3.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkStack + StackSwitcher
+	tab3.PackStart(gtk3.NewLabel("GtkStack (堆叠容器, 配合 StackSwitcher):"), false, false, 0)
+	stack := gtk3.NewStack()
+	stack.SetTransitionDuration(300)
+	stack.SetTransitionType(STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT)
+	page1 := gtk3.NewLabel("页面 1 — 第一页内容")
+	page1.SetSizeRequest(300, 80)
+	stack.AddTitled(page1, "p1", "第一页")
+	page2 := gtk3.NewLabel("页面 2 — 第二页内容")
+	page2.SetSizeRequest(300, 80)
+	stack.AddTitled(page2, "p2", "第二页")
+	page3 := gtk3.NewLabel("页面 3 — 第三页内容")
+	page3.SetSizeRequest(300, 80)
+	stack.AddTitled(page3, "p3", "第三页")
+	switcher := gtk3.NewStackSwitcher()
+	switcher.SetStack(stack)
+	tab3.PackStart(switcher, false, false, 0)
+	tab3.PackStart(stack, false, false, 0)
+
+	tab3.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkPaned (分割面板)
+	tab3.PackStart(gtk3.NewLabel("GtkPaned (可拖拽分隔条):"), false, false, 0)
+	paned := gtk3.NewPaned(ORIENTATION_HORIZONTAL)
+	paned.Add1(gtk3.NewLabel("左侧面板"))
+	paned.Add2(gtk3.NewLabel("右侧面板"))
+	paned.SetPosition(200)
+	paned.SetSizeRequest(400, 80)
+	tab3.PackStart(paned, false, false, 0)
+
+	tab3.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkRevealer (展开动画)
+	tab3.PackStart(gtk3.NewLabel("GtkRevealer (点击按钮展开/收起):"), false, false, 0)
+	revealer := gtk3.NewRevealer()
+	revealer.SetTransitionDuration(500)
+	revealer.SetTransitionType(REVEALER_TRANSITION_TYPE_SLIDE_DOWN)
+	revealer.Add(gtk3.NewLabel("Revealer 中隐藏的内容 — 点击按钮展开"))
+	tab3.PackStart(revealer, false, false, 0)
+	revealBtn := gtk3.NewButtonWithLabel("切换展开/收起")
+	revealBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		revealer.SetRevealChild(!revealer.GetRevealChild())
+	})
+	tab3.PackStart(revealBtn, false, false, 0)
+
+	tab3Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab3Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab3Sw.Add(tab3)
+	notebook.AppendPage(tab3Sw, gtk3.NewLabel("布局容器"))
 
 	// ============================================================
 	// Tab 4: 文本编辑 (TextView / TextBuffer / TextTag / 插入 / 选中)
@@ -490,7 +594,10 @@ func main() {
 
 	tab4.PackStart(toolRow, false, false, 0)
 
-	notebook.AppendPage(tab4, gtk3.NewLabel("文本编辑"))
+	tab4Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab4Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab4Sw.Add(tab4)
+	notebook.AppendPage(tab4Sw, gtk3.NewLabel("文本编辑"))
 
 	// ============================================================
 	// Tab 5: 数据表格 & 树形视图 (ListStore / TreeStore / TreeView / TreeSelection)
@@ -622,7 +729,10 @@ func main() {
 
 	tab5.PackStart(treeBtnRow, false, false, 0)
 
-	notebook.AppendPage(tab5, gtk3.NewLabel("数据表格"))
+	tab5Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab5Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab5Sw.Add(tab5)
+	notebook.AppendPage(tab5Sw, gtk3.NewLabel("数据表格"))
 
 	// ============================================================
 	// Tab 6: 进度状态 (ProgressBar / Statusbar / Adjustment 联动)
@@ -687,7 +797,43 @@ func main() {
 
 	tab6.PackStart(statCtl, false, false, 0)
 
-	notebook.AppendPage(tab6, gtk3.NewLabel("进度状态"))
+	tab6.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkSpinner (加载旋转)
+	tab6.PackStart(gtk3.NewLabel("GtkSpinner (加载旋转动画):"), false, false, 0)
+	spinner := gtk3.NewSpinner()
+	spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	spinRow.PackStart(spinner, false, false, 0)
+	startSpin := gtk3.NewButtonWithLabel("开始旋转")
+	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { spinner.Start() })
+	spinRow.PackStart(startSpin, false, false, 0)
+	stopSpin := gtk3.NewButtonWithLabel("停止")
+	stopSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { spinner.Stop() })
+	spinRow.PackStart(stopSpin, false, false, 0)
+	tab6.PackStart(spinRow, false, false, 0)
+
+	tab6.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+
+	// -- GtkLevelBar (等级条)
+	tab6.PackStart(gtk3.NewLabel("GtkLevelBar (等级/评分条):"), false, false, 0)
+	lvBar := gtk3.NewLevelBar()
+	lvBar.SetMinValue(0)
+	lvBar.SetMaxValue(100)
+	lvBar.SetValue(50)
+	tab6.PackStart(lvBar, false, false, 0)
+	lvRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	lvDown := gtk3.NewButtonWithLabel("-10")
+	lvDown.SetOnClick(func(sender PGtkWidget, userData GPointer) { lvBar.SetValue(lvBar.GetValue() - 10) })
+	lvRow.PackStart(lvDown, false, false, 0)
+	lvUp := gtk3.NewButtonWithLabel("+10")
+	lvUp.SetOnClick(func(sender PGtkWidget, userData GPointer) { lvBar.SetValue(lvBar.GetValue() + 10) })
+	lvRow.PackStart(lvUp, false, false, 0)
+	tab6.PackStart(lvRow, false, false, 0)
+
+	tab6Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab6Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab6Sw.Add(tab6)
+	notebook.AppendPage(tab6Sw, gtk3.NewLabel("进度状态"))
 
 	// ============================================================
 	// Tab 7: 窗口操作 (Maximize / Fullscreen / Iconify / Move / Resize / Decorated / KeepAbove)
@@ -839,7 +985,10 @@ func main() {
 	})
 	tab7.PackStart(refreshBtn, false, false, 0)
 
-	notebook.AppendPage(tab7, gtk3.NewLabel("窗口操作"))
+	tab7Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab7Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab7Sw.Add(tab7)
+	notebook.AppendPage(tab7Sw, gtk3.NewLabel("窗口操作"))
 
 	// ============================================================
 	// Tab 8: CSS样式 (CssProvider / StyleContext / StateFlags)
@@ -895,7 +1044,10 @@ func main() {
 	})
 	tab8.PackStart(stateBtn, false, false, 0)
 
-	notebook.AppendPage(tab8, gtk3.NewLabel("CSS样式"))
+	tab8Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab8Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab8Sw.Add(tab8)
+	notebook.AppendPage(tab8Sw, gtk3.NewLabel("CSS样式"))
 
 	// ============================================================
 	// Tab 9: 事件交互 (EventBox / Button Enter-Leave / Settings Theme)
@@ -955,7 +1107,10 @@ func main() {
 	}
 	tab9.PackStart(themeLabel, false, false, 0)
 
-	notebook.AppendPage(tab9, gtk3.NewLabel("事件交互"))
+	tab9Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab9Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab9Sw.Add(tab9)
+	notebook.AppendPage(tab9Sw, gtk3.NewLabel("事件交互"))
 
 	// ============================================================
 	// Tab 10: 对话框 (Message/Dialog/ColorChooser/FontChooser/FileChooser/About)
@@ -1062,172 +1217,39 @@ func main() {
 	})
 	tab10.PackStart(aboutBtn, false, false, 0)
 
-	notebook.AppendPage(tab10, gtk3.NewLabel("对话框"))
+	tab10.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
 
-	// ============================================================
-	// Tab 11: 新组件 (Stack/Switch/InfoBar)
-	// ============================================================
-	tab11 := gtk3.NewBox(ORIENTATION_VERTICAL, 8)
-	tab11.SetMarginTop(10)
-	tab11.SetMarginBottom(10)
-	tab11.SetMarginStart(10)
-	tab11.SetMarginEnd(10)
-
-	swInfo := gtk3.NewLabel("Switch 状态: OFF")
-	sw := gtk3.NewSwitch()
-	sw.SetActive(false)
-	swRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	swRow.PackStart(gtk3.NewLabel("GtkSwitch:"), false, false, 0)
-	swRow.PackStart(sw, false, false, 0)
-	readSwBtn := gtk3.NewButtonWithLabel("读取状态")
-	readSwBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		if sw.GetActive() {
-			swInfo.SetText("Switch 状态: ON ✅")
-		} else {
-			swInfo.SetText("Switch 状态: OFF ❌")
-		}
-	})
-	swRow.PackStart(readSwBtn, false, false, 0)
-	swRow.PackStart(swInfo, false, false, 0)
-	tab11.PackStart(swRow, false, false, 0)
-
-	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
-
-	// Stack + StackSwitcher
-	tab11.PackStart(gtk3.NewLabel("GtkStack + StackSwitcher (无标签页切换):"), false, false, 0)
-	stack := gtk3.NewStack()
-	stack.SetTransitionDuration(300)
-	stack.SetTransitionType(STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT)
-	page1 := gtk3.NewLabel("页面 1 — 这是第一页的内容")
-	page1.SetSizeRequest(300, 100)
-	stack.AddTitled(page1, "page1", "第一页")
-	page2 := gtk3.NewLabel("页面 2 — 这是第二页的内容")
-	page2.SetSizeRequest(300, 100)
-	stack.AddTitled(page2, "page2", "第二页")
-	page3 := gtk3.NewLabel("页面 3 — 这是第三页的内容")
-	page3.SetSizeRequest(300, 100)
-	stack.AddTitled(page3, "page3", "第三页")
-
-	switcher := gtk3.NewStackSwitcher()
-	switcher.SetStack(stack)
-	tab11.PackStart(switcher, false, false, 0)
-	tab11.PackStart(stack, false, false, 0)
-
-	// Stack 切换按钮
-	stackBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	btnP1 := gtk3.NewButtonWithLabel("第一页")
-	btnP1.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		stack.SetVisibleChild(page1)
-	})
-	stackBtnRow.PackStart(btnP1, false, false, 0)
-	btnP2 := gtk3.NewButtonWithLabel("第二页")
-	btnP2.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		stack.SetVisibleChild(page2)
-	})
-	stackBtnRow.PackStart(btnP2, false, false, 0)
-	btnP3 := gtk3.NewButtonWithLabel("第三页")
-	btnP3.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		stack.SetVisibleChild(page3)
-	})
-	stackBtnRow.PackStart(btnP3, false, false, 0)
-	tab11.PackStart(stackBtnRow, false, false, 0)
-
-	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
-
-	// InfoBar
-	tab11.PackStart(gtk3.NewLabel("GtkInfoBar (内联消息条，带按钮):"), false, false, 0)
+	// -- GtkInfoBar (内联消息条)
+	tab10.PackStart(gtk3.NewLabel("GtkInfoBar (内联消息条, 切换类型/关闭):"), false, false, 0)
 	infoBar := gtk3.NewInfoBar()
 	infoBar.SetMessageType(MESSAGE_INFO)
 	infoBar.SetShowCloseButton(true)
-	infoBar.GetContentArea().PackStart(gtk3.NewLabel("这是一条 InfoBar 消息 — 点击下方按钮切换类型"), false, false, 10)
+	infoBar.GetContentArea().PackStart(gtk3.NewLabel("InfoBar 消息 — 点击下方按钮切换类型"), false, false, 10)
 	infoBar.AddButton("操作一", 1)
 	infoBar.AddButton("操作二", 2)
-	tab11.PackStart(infoBar, false, false, 0)
+	tab10.PackStart(infoBar, false, false, 0)
+	ibtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	ibtnRow.PackStart(gtk3.NewButtonWithLabel("信息"), false, false, 0)
+	ibtnRow.PackStart(gtk3.NewButtonWithLabel("警告"), false, false, 0)
+	ibtnRow.PackStart(gtk3.NewButtonWithLabel("错误"), false, false, 0)
+	tab10.PackStart(ibtnRow, false, false, 0)
 
-	infoBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	infoMsgBtn := gtk3.NewButtonWithLabel("信息 (蓝色)")
-	infoMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		infoBar.SetMessageType(MESSAGE_INFO)
-		statusbar.Push(statusCtx, "InfoBar: 信息")
-	})
-	infoBtnRow.PackStart(infoMsgBtn, false, false, 0)
-	warnMsgBtn := gtk3.NewButtonWithLabel("警告 (黄色)")
-	warnMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		infoBar.SetMessageType(MESSAGE_WARNING)
-		statusbar.Push(statusCtx, "InfoBar: 警告")
-	})
-	infoBtnRow.PackStart(warnMsgBtn, false, false, 0)
-	errMsgBtn := gtk3.NewButtonWithLabel("错误 (红色)")
-	errMsgBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		infoBar.SetMessageType(MESSAGE_ERROR)
-		statusbar.Push(statusCtx, "InfoBar: 错误")
-	})
-	infoBtnRow.PackStart(errMsgBtn, false, false, 0)
-	tab11.PackStart(infoBtnRow, false, false, 0)
+	tab10.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
 
-	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
+	// -- GtkListBox (列表选择)
+	tab10.PackStart(gtk3.NewLabel("GtkListBox (列表项选择):"), false, false, 0)
+	listBox := gtk3.NewListBox()
+	listBox.SetSelectionMode(SELECTION_SINGLE)
+	listBox.SetSizeRequest(300, 100)
+	listBox.Prepend(gtk3.NewLabel("选项一"))
+	listBox.Prepend(gtk3.NewLabel("选项二"))
+	listBox.Prepend(gtk3.NewLabel("选项三"))
+	tab10.PackStart(listBox, false, false, 0)
 
-	// Scale (HScale)
-	tab11.PackStart(gtk3.NewLabel("GtkScale (滑块, IRange):"), false, false, 0)
-	scaleAdj := gtk3.NewAdjustment(50, 0, 100, 1, 10, 0)
-	hScale := gtk3.NewHScale(scaleAdj)
-	hScale.SetDigits(0)
-	hScale.SetDrawValue(true)
-	hScale.SetValuePos(POS_TOP)
-	hScale.SetSizeRequest(250, -1)
-	tab11.PackStart(hScale, false, false, 0)
-
-	scaleValLabel := gtk3.NewLabel("Scale 值: 50")
-	readScaleBtn := gtk3.NewButtonWithLabel("读取 Scale 值")
-	readScaleBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		scaleValLabel.SetText(fmt.Sprintf("Scale 值: %.0f", hScale.GetValue()))
-	})
-	tab11.PackStart(readScaleBtn, false, false, 0)
-	tab11.PackStart(scaleValLabel, false, false, 0)
-
-	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
-
-	// Spinner
-	tab11.PackStart(gtk3.NewLabel("GtkSpinner (加载旋转):"), false, false, 0)
-	spinner := gtk3.NewSpinner()
-	spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	spinRow.PackStart(spinner, false, false, 0)
-	startSpin := gtk3.NewButtonWithLabel("开始旋转")
-	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		spinner.Start()
-	})
-	spinRow.PackStart(startSpin, false, false, 0)
-	stopSpin := gtk3.NewButtonWithLabel("停止")
-	stopSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		spinner.Stop()
-	})
-	spinRow.PackStart(stopSpin, false, false, 0)
-	tab11.PackStart(spinRow, false, false, 0)
-
-	tab11.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
-
-	// LevelBar
-	tab11.PackStart(gtk3.NewLabel("GtkLevelBar (等级条):"), false, false, 0)
-	lvBar := gtk3.NewLevelBar()
-	lvBar.SetMinValue(0)
-	lvBar.SetMaxValue(100)
-	lvBar.SetValue(50)
-	tab11.PackStart(lvBar, false, false, 0)
-
-	lvRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	lvDown := gtk3.NewButtonWithLabel("-10")
-	lvDown.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		lvBar.SetValue(lvBar.GetValue() - 10)
-	})
-	lvRow.PackStart(lvDown, false, false, 0)
-	lvUp := gtk3.NewButtonWithLabel("+10")
-	lvUp.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		lvBar.SetValue(lvBar.GetValue() + 10)
-	})
-	lvRow.PackStart(lvUp, false, false, 0)
-	tab11.PackStart(lvRow, false, false, 0)
-
-	notebook.AppendPage(tab11, gtk3.NewLabel("新组件"))
+	tab10Sw := gtk3.NewScrolledWindow(nil, nil)
+	tab10Sw.SetPolicy(POLICY_NEVER, POLICY_AUTOMATIC)
+	tab10Sw.Add(tab10)
+	notebook.AppendPage(tab10Sw, gtk3.NewLabel("对话框"))
 
 	// ============================================================
 	// 底部状态栏
@@ -1383,6 +1405,16 @@ func main() {
 	check("NewLevelBar", lvBar != nil)
 	check("LevelBar.SetMinValue/MaxValue", true)
 	check("LevelBar.SetValue/GetValue", true)
+	check("NewPaned", paned != nil)
+	check("Paned.Add1/Add2", true)
+	check("Paned.SetPosition/GetPosition", paned.GetPosition() == 200)
+	check("NewListBox", listBox != nil)
+	check("ListBox.SetSelectionMode", listBox.GetSelectionMode() == SELECTION_SINGLE)
+	check("NewPopover", true)
+	check("NewSearchEntry", searchEntry != nil)
+	check("NewRevealer", revealer != nil)
+	check("Revealer.SetTransitionDuration", revealer.GetTransitionDuration() == 500)
+	check("Revealer.SetTransitionType", true)
 
 	makeSection("[Window属性]")
 	check("Window.Decorated", win.GetDecorated())
