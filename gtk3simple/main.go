@@ -769,7 +769,7 @@ func main() {
 		treeView.AppendColumn(col)
 	}
 	sel := treeView.GetSelection()
-	sel.SetMode(SELECTION_SINGLE)
+	sel.SetMode(SELECTION_MULTIPLE)
 	sel.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
 		fmt.Println("[event] TreeSelection.Changed")
 		selInfo.SetText("TreeSelection changed: 选中行已变化 (changed)")
@@ -808,9 +808,11 @@ func main() {
 	 // -- TreeSelection 新增 API 测试按钮
 	 getSelBtn := gtk3.NewButtonWithLabel("获取选中行")
 	 getSelBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  // GetSelected 只能在 SINGLE/BROWSE 模式下使用
+	  // 临时切换模式获取选中行后恢复
+	  sel.SetMode(SELECTION_SINGLE)
 	  model, iter := sel.GetSelected()
 	  if model != nil && iter != nil {
-	   // 验证 GetSelected 返回了有效数据
 	   selInfo.SetText(fmt.Sprintf("GetSelected 成功: model=%v", model.Instance()))
 	   fmt.Println("[test] TreeSelection.GetSelected → OK")
 	   statusbar.Push(statusCtx, "GetSelected: 有选中行")
@@ -819,6 +821,7 @@ func main() {
 	   fmt.Println("[test] TreeSelection.GetSelected → nil (无选中行)")
 	   statusbar.Push(statusCtx, "GetSelected: 无选中行")
 	  }
+	  sel.SetMode(SELECTION_MULTIPLE)
 	 })
 	 treeBtnRow.PackStart(getSelBtn, false, false, 0)
 
@@ -1486,7 +1489,7 @@ func main() {
 	check("NewTreeView", treeView != nil)
 	check("TreeView.SetModel", true)
 	check("TreeView.AppendColumn (3列)", true)
-	check("TreeSelection.SetMode(SINGLE)", sel.GetMode() == SELECTION_SINGLE)
+	check("TreeSelection.SetMode(MULTIPLE)", sel.GetMode() == SELECTION_MULTIPLE)
 	 check("TreeSelection.GetSelected", true)
 	 check("TreeSelection.CountSelectedRows", true)
 	 check("TreeSelection.SelectAll", true)
