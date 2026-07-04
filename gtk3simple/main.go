@@ -13,7 +13,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/energye/energy/v3/platform/linux/callback"
 	"github.com/energye/energy/v3/platform/linux/gtk3"
 	. "github.com/energye/energy/v3/platform/linux/types"
 )
@@ -50,7 +49,15 @@ func main() {
 	win.SetTitlebar(hbar)
 
 	win.SetOnDestroy(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Window.Destroy → MainQuit")
 		gtk3.MainQuit()
+	})
+	win.SetOnMap(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Window.Map")
+	})
+	win.SetOnConfigure(func(sender PGtkWidget, event PEventConfigure, userData GPointer) bool {
+		fmt.Println("[event] Window.Configure")
+		return false
 	})
 
 	// ============================================================
@@ -76,8 +83,10 @@ func main() {
 
 	openItem := gtk3.MenuItemNewWithLabel("打开")
 	openItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] MenuItem.Activate → 打开文件")
 		fcDlg := gtk3.NewFileChooserDialog("打开文件", win, FILE_CHOOSER_ACTION_OPEN)
 		fcDlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			fmt.Println("[event] FileChooser.Response id:", responseId)
 			if responseId == int32(RESPONSE_ACCEPT) {
 				fname := fcDlg.GetFilename()
 				statusbar.Push(statusCtx, "打开: "+fname)
@@ -91,6 +100,7 @@ func main() {
 
 	quitItem := gtk3.MenuItemNewWithLabel("退出")
 	quitItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] MenuItem.Activate → 退出")
 		gtk3.MainQuit()
 	})
 	fileMenu.Append(quitItem)
@@ -103,6 +113,7 @@ func main() {
 
 	aboutItem := gtk3.MenuItemNewWithLabel("关于")
 	aboutItem.SetOnActivate(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] MenuItem.Activate → 关于对话框")
 		about := gtk3.NewAboutDialog()
 		about.SetProgramName("Energy GTK3")
 		about.SetVersion("3.0.0")
@@ -112,6 +123,7 @@ func main() {
 		about.SetLicense("Apache 2.0")
 		about.SetAuthors([]string{"energye"})
 		about.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			fmt.Println("[event] AboutDialog.Response id:", responseId)
 			about.Destroy()
 		})
 		about.ShowAll()
@@ -170,6 +182,7 @@ func main() {
 	btnClick.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		count++
 		btnClick.SetLabel(fmt.Sprintf("点击了 %d 次", count))
+		fmt.Println("[event] Button.Click → count:", count)
 		statusbar.Push(statusCtx, fmt.Sprintf("按钮被点击 %d 次", count))
 	})
 	btnClick.SetTooltipText("点击我计数会递增")
@@ -190,8 +203,15 @@ func main() {
 	checkRow.PackStart(gtk3.NewLabel("开关:"), false, false, 0)
 	toggle := gtk3.NewCheckButton()
 	toggle.SetActive(true)
-	toggle.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		lblPlain.SetText(fmt.Sprintf("开关: %s", map[bool]string{true: "ON ✅", false: "OFF ❌"}[toggle.GetActive()]))
+	// 使用 SetOnToggled 替换 SetOnClick，更语义化
+	toggle.SetOnToggled(func(sender PGtkWidget, userData GPointer) {
+		if fmt.Println("[event] CheckButton.Toggled →", map[bool]string{false: "OFF", true: "ON"}[toggle.GetActive()]); toggle.GetActive() {
+			lblPlain.SetText("CheckButton: ON ✅ (toggled)")
+			statusbar.Push(statusCtx, "CheckButton toggled → ON")
+		} else {
+			lblPlain.SetText("CheckButton: OFF ❌ (toggled)")
+			statusbar.Push(statusCtx, "CheckButton toggled → OFF")
+		}
 	})
 	checkRow.PackStart(toggle, false, false, 0)
 	tab1.PackStart(checkRow, false, false, 0)
@@ -204,15 +224,13 @@ func main() {
 	swRow.PackStart(gtk3.NewLabel("GtkSwitch:"), false, false, 0)
 	swRow.PackStart(sw, false, false, 0)
 	swRow.PackStart(swInfo, false, false, 0)
-	readSwBtn := gtk3.NewButtonWithLabel("读取状态")
-	readSwBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		if sw.GetActive() {
+	sw.SetOnActiveNotify(func(sender PGtkWidget, pspec uintptr, userData GPointer) {
+		if fmt.Println("[event] Switch.NotifyActive →", map[bool]string{false: "OFF", true: "ON"}[sw.GetActive()]); sw.GetActive() {
 			swInfo.SetText("GtkSwitch 状态: ON ✅")
 		} else {
 			swInfo.SetText("GtkSwitch 状态: OFF ❌")
 		}
 	})
-	swRow.PackStart(readSwBtn, false, false, 0)
 	tab1.PackStart(swRow, false, false, 0)
 
 	// -- Image
@@ -273,7 +291,19 @@ func main() {
 	entry.SetMaxLength(50)
 	entry.SetWidthChars(30)
 	entry.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry.Changed →", entry.GetText())
 		entryEcho.SetText("输入: " + entry.GetText())
+	})
+	entry.SetOnCommit(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry.Commit →", entry.GetText())
+	})
+	entry.SetOnKeyPress(func(sender PGtkWidget, event PEventKey, userData GPointer) bool {
+		fmt.Println("[event] Entry.KeyPress")
+		return false
+	})
+	entry.SetOnKeyRelease(func(sender PGtkWidget, event PEventKey, userData GPointer) bool {
+		fmt.Println("[event] Entry.KeyRelease")
+		return false
 	})
 	tab2.PackStart(entry, false, false, 0)
 	tab2.PackStart(entryEcho, false, false, 0)
@@ -283,23 +313,30 @@ func main() {
 	entryFlat.SetPlaceholderText("无边框输入框")
 	entryFlat.SetHasFrame(false)
 	entryFlat.SetActivatesDefault(true)
+	entryFlat.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry(Flat).Changed →", entryFlat.GetText())
+	})
 	tab2.PackStart(entryFlat, false, false, 0)
 
 	// -- Entry 密码
 	entryPass := gtk3.NewEntry()
 	entryPass.SetPlaceholderText("密码输入框")
 	entryPass.SetVisibility(false)
+	entryPass.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry(Password).Changed → len:", len(entryPass.GetText()))
+	})
 	tab2.PackStart(entryPass, false, false, 0)
 
 	// -- Entry 进度脉冲
 	entryProg := gtk3.NewEntry()
 	entryProg.SetPlaceholderText("脉冲进度 (ProgressPulse)...")
-	go func() {
-		// 模拟脉冲效果 (仅演示 API 调用)
-	}()
+	entryProg.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry(Progress).Changed →", entryProg.GetText())
+	})
 
 	pulseBtn := gtk3.NewButtonWithLabel("脉冲")
 	pulseBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] PulseBtn.Click")
 		entryProg.ProgressPulse()
 	})
 	pulseRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
@@ -323,6 +360,9 @@ func main() {
 
 	completionEntry := gtk3.NewEntry()
 	completionEntry.SetPlaceholderText("北京/上海/广州/深圳...")
+	completionEntry.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Entry(Completion).Changed →", completionEntry.GetText())
+	})
 	tab2.PackStart(completionEntry, false, false, 0)
 
 	tab2.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
@@ -333,20 +373,24 @@ func main() {
 	spin := gtk3.NewSpinButton(adj, 0.5, 0)
 	spin.SetRange(0, 100)
 	spin.SetIncrements(1, 10)
-	// SpinButton 底层是 GtkRange，直接连接 value-changed 信号实现实时展示
-	callback.Connect(spin.Instance(), EsnValueChanged, callback.C_trampoline_2_void,
-		func(sender PGtkWidget, userData GPointer) {
-			spinLabel.SetText(fmt.Sprintf("SpinButton 值: %.0f", spin.GetValue()))
-		}, 0)
+	// SpinButton 自身的 SetOnValueChanged 事件
+	spin.SetOnValueChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] SpinButton.ValueChanged →", spin.GetValue())
+		spinLabel.SetText(fmt.Sprintf("SpinButton 值: %.0f", spin.GetValue()))
+	})
 	tab2.PackStart(spin, false, false, 0)
 	tab2.PackStart(spinLabel, false, false, 0)
 
-	// -- ComboBoxText
+	// -- ComboBoxText (带 changed 回调)
 	combo := gtk3.NewComboBoxText()
 	combo.Append("red", "红色")
 	combo.Append("green", "绿色")
 	combo.Append("blue", "蓝色")
 	combo.SetActive(0)
+	combo.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] ComboBox.Changed →", combo.GetActiveText())
+		statusbar.Push(statusCtx, fmt.Sprintf("ComboBox changed: %s (id=%s)", combo.GetActiveText(), map[int]string{0: "red", 1: "green", 2: "blue"}[combo.GetActive()]))
+	})
 	tab2.PackStart(combo, false, false, 0)
 
 	// -- 单选按钮组
@@ -354,6 +398,15 @@ func main() {
 	radio2 := gtk3.NewRadioButtonWithLabelFromWidget(radio1, "选项 B")
 	radio3 := gtk3.NewRadioButtonWithLabelFromWidget(radio1, "选项 C")
 	radio1.SetActive(true)
+	radio1.SetOnToggled(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Radio1.Toggled active:", radio1.GetActive())
+	})
+	radio2.SetOnToggled(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Radio2.Toggled active:", radio2.GetActive())
+	})
+	radio3.SetOnToggled(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Radio3.Toggled active:", radio3.GetActive())
+	})
 	rBox := gtk3.NewBox(ORIENTATION_HORIZONTAL, 10)
 	rBox.PackStart(radio1, false, false, 0)
 	rBox.PackStart(radio2, false, false, 0)
@@ -373,6 +426,7 @@ func main() {
 	// 实时回调: 拖动滑块立即更新标签
 	scaleValLabel := gtk3.NewLabel("Scale 当前值: 50")
 	hScale.SetOnValueChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Scale.ValueChanged →", hScale.GetValue())
 		scaleValLabel.SetText(fmt.Sprintf("Scale 当前值: %.0f", hScale.GetValue()))
 	})
 	tab2.PackStart(hScale, false, false, 0)
@@ -385,6 +439,7 @@ func main() {
 	searchEntry := gtk3.NewSearchEntry()
 	searchEntry.SetPlaceholderText("输入关键词搜索...")
 	searchEntry.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] SearchEntry.Changed →", searchEntry.GetText())
 		statusbar.Push(statusCtx, "搜索: "+searchEntry.GetText())
 	})
 	tab2.PackStart(searchEntry, false, false, 0)
@@ -553,6 +608,12 @@ func main() {
 	tv.SetIndent(20)
 	tv.SetPixelsAboveLines(4)
 	tv.SetPixelsBelowLines(4)
+	// TextBuffer 内容变化回调
+	tb.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] TextBuffer.Changed → chars:", tb.GetCharCount(), "lines:", tb.GetLineCount())
+		tvInfo.SetText(fmt.Sprintf("字符: %d  行: %d (changed)", tb.GetCharCount(), tb.GetLineCount()))
+		statusbar.Push(statusCtx, "TextBuffer changed")
+	})
 	tab4.PackStart(tvInfo, false, false, 0)
 
 	swTV := gtk3.NewScrolledWindow(nil, nil)
@@ -621,7 +682,6 @@ func main() {
 	tab5.PackStart(treeSelInfo, false, false, 0)
 
 	treeStore := gtk3.NewTreeStore(TYPE_STRING, TYPE_STRING)
-
 	// 部门数据: name → employees[]
 	type deptData struct {
 		name      string
@@ -656,6 +716,12 @@ func main() {
 	}
 	treeView2.SetHeadersVisible(true)
 	treeView2.ExpandAll()
+	treeView2.SetOnRowExpanded(func(sender PGtkWidget, iter uintptr, path uintptr, userData GPointer) {
+		fmt.Println("[event] TreeView(TreeStore).RowExpanded")
+	})
+	treeView2.SetOnRowCollapsed(func(sender PGtkWidget, iter uintptr, path uintptr, userData GPointer) {
+		fmt.Println("[event] TreeView(TreeStore).RowCollapsed")
+	})
 
 	swTree := gtk3.NewScrolledWindow(nil, nil)
 	swTree.SetMinContentHeight(180)
@@ -704,9 +770,19 @@ func main() {
 	}
 	sel := treeView.GetSelection()
 	sel.SetMode(SELECTION_SINGLE)
+	sel.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] TreeSelection.Changed")
+		selInfo.SetText("TreeSelection changed: 选中行已变化 (changed)")
+		statusbar.Push(statusCtx, "TreeSelection changed")
+	})
 	treeView.SetHeadersVisible(true)
 	treeView.ExpandAll()
-
+	treeView.SetOnCursorChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] TreeView(ListStore).CursorChanged")
+	})
+	treeView.SetOnRowActivated(func(sender PGtkWidget, path uintptr, column uintptr, userData GPointer) {
+		fmt.Println("[event] TreeView(ListStore).RowActivated")
+	})
 	tw := gtk3.NewScrolledWindow(nil, nil)
 	tw.Add(treeView)
 	tab5.PackStart(tw, true, true, 0)
@@ -756,13 +832,12 @@ func main() {
 	pbarCtl.PackStart(gtk3.NewLabel("进度:"), false, false, 0)
 	pAdj := gtk3.NewAdjustment(0, 0, 100, 5, 20, 0)
 	pSpin := gtk3.NewSpinButton(pAdj, 1, 0)
-	// SpinButton 底层是 GtkRange，直接挂载 value-changed 信号实现实时同步
-	callback.Connect(pSpin.Instance(), EsnValueChanged, callback.C_trampoline_2_void,
-		func(sender PGtkWidget, userData GPointer) {
-			f := pSpin.GetValue() / 100.0
-			pbar.SetFraction(f)
-			pbar.SetText(fmt.Sprintf("%.0f%%", pSpin.GetValue()))
-		}, 0)
+	pSpin.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("value:", pSpin.GetValue())
+		f := pSpin.GetValue() / 100.0
+		pbar.SetFraction(f)
+		pbar.SetText(fmt.Sprintf("%.0f%%", pSpin.GetValue()))
+	})
 	pbarCtl.PackStart(pSpin, false, false, 0)
 
 	resetPbar := gtk3.NewButtonWithLabel("重置")
@@ -807,10 +882,10 @@ func main() {
 	spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
 	spinRow.PackStart(spinner, false, false, 0)
 	startSpin := gtk3.NewButtonWithLabel("开始旋转")
-	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { spinner.Start() })
+	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { fmt.Println("[event] Spinner.Start"); spinner.Start() })
 	spinRow.PackStart(startSpin, false, false, 0)
 	stopSpin := gtk3.NewButtonWithLabel("停止")
-	stopSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { spinner.Stop() })
+	stopSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { fmt.Println("[event] Spinner.Stop"); spinner.Stop() })
 	spinRow.PackStart(stopSpin, false, false, 0)
 	tab6.PackStart(spinRow, false, false, 0)
 
@@ -822,6 +897,9 @@ func main() {
 	lvBar.SetMinValue(0)
 	lvBar.SetMaxValue(100)
 	lvBar.SetValue(50)
+	lvBar.SetOnOffsetChanged(func(sender PGtkWidget, name uintptr, userData GPointer) {
+		fmt.Println("lvBar:", lvBar.GetValue())
+	})
 	tab6.PackStart(lvBar, false, false, 0)
 	lvRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
 	lvDown := gtk3.NewButtonWithLabel("-10")
@@ -1066,6 +1144,7 @@ func main() {
 	evtLabel := gtk3.NewLabel("移动鼠标到此处或点击")
 	evtBox.Add(evtLabel)
 	evtBox.SetOnClick(func(sender PGtkWidget, event PEventButton, userData GPointer) bool {
+		fmt.Println("[event] EventBox.Click")
 		evtLabel.SetText("✅ EventBox 被点击了!")
 		return false
 	})
@@ -1118,6 +1197,10 @@ func main() {
 	popover.SetRelativeTo(popBtn)
 	popover.SetPosition(POS_BOTTOM)
 	popover.Add(gtk3.NewLabel("这是气泡内的内容\n点击外部关闭"))
+	popover.SetOnClosed(func(sender PGtkWidget, userData GPointer) {
+		fmt.Println("[event] Popover.Closed")
+		statusbar.Push(statusCtx, "Popover closed (closed)")
+	})
 	popBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
 		popover.Popup()
 	})
@@ -1170,6 +1253,11 @@ func main() {
 		dlg := gtk3.NewColorChooserDialog("选择颜色", win)
 		dlg.SetUseAlpha(true)
 		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			if responseId == int32(RESPONSE_OK) || responseId == int32(RESPONSE_ACCEPT) {
+				c := dlg.GetRGBA()
+				fmt.Printf("[event] ColorChooser → R:%.2f G:%.2f B:%.2f A:%.2f\n", c.Red, c.Green, c.Blue, c.Alpha)
+				statusbar.Push(statusCtx, fmt.Sprintf("颜色: R=%.0f G=%.0f B=%.0f", c.Red*255, c.Green*255, c.Blue*255))
+			}
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
@@ -1182,6 +1270,11 @@ func main() {
 		dlg.SetFont("Sans 12")
 		dlg.SetPreviewText("预览文本 ABCabc 123")
 		dlg.SetOnResponse(func(sender PGtkWidget, responseId int32, userData GPointer) {
+			if responseId == int32(RESPONSE_OK) || responseId == int32(RESPONSE_ACCEPT) {
+				font := dlg.GetFont()
+				fmt.Println("[event] FontChooser →", font)
+				statusbar.Push(statusCtx, "字体: "+font)
+			}
 			dlg.Destroy()
 		})
 		dlg.ShowAll()
