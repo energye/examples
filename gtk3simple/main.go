@@ -379,7 +379,58 @@ func main() {
 		spinLabel.SetText(fmt.Sprintf("SpinButton 值: %.0f", spin.GetValue()))
 	})
 	tab2.PackStart(spin, false, false, 0)
-	tab2.PackStart(spinLabel, false, false, 0)
+	 tab2.PackStart(spinLabel, false, false, 0)
+
+	 // -- SpinButton 新增 API 演示按钮
+	 spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	 spinNumBtn := gtk3.NewButtonWithLabel("切换仅数字模式")
+	 spinNumBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  n := !spin.GetNumeric()
+	  spin.SetNumeric(n)
+	  statusbar.Push(statusCtx, fmt.Sprintf("SpinButton 仅数字: %v", n))
+	 })
+	 spinRow.PackStart(spinNumBtn, false, false, 0)
+
+	 spinSnapBtn := gtk3.NewButtonWithLabel("切换吸附步进")
+	 spinSnapBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  s := !spin.GetSnapToTicks()
+	  spin.SetSnapToTicks(s)
+	  statusbar.Push(statusCtx, fmt.Sprintf("SpinButton 吸附步进: %v", s))
+	 })
+	 spinRow.PackStart(spinSnapBtn, false, false, 0)
+
+	 spinWrapBtn := gtk3.NewButtonWithLabel("切换循环")
+	 spinWrapBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  w := !spin.GetWrap()
+	  spin.SetWrap(w)
+	  statusbar.Push(statusCtx, fmt.Sprintf("SpinButton 循环: %v", w))
+	 })
+	 spinRow.PackStart(spinWrapBtn, false, false, 0)
+
+	 spinStepFwdBtn := gtk3.NewButtonWithLabel("步进+1")
+	 spinStepFwdBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  spin.Spin(SPIN_STEP_FORWARD, 1)
+	  spinLabel.SetText(fmt.Sprintf("SpinButton 值: %.0f", spin.GetValue()))
+	 })
+	 spinRow.PackStart(spinStepFwdBtn, false, false, 0)
+
+	 spinStepBackBtn := gtk3.NewButtonWithLabel("步进-1")
+	 spinStepBackBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  spin.Spin(SPIN_STEP_BACKWARD, 1)
+	  spinLabel.SetText(fmt.Sprintf("SpinButton 值: %.0f", spin.GetValue()))
+	 })
+	 spinRow.PackStart(spinStepBackBtn, false, false, 0)
+
+	 spinGetAdjBtn := gtk3.NewButtonWithLabel("获取Adjustment")
+	 spinGetAdjBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  adj := spin.GetAdjustment()
+	  if adj != nil {
+	   statusbar.Push(statusCtx, fmt.Sprintf("Adjustment: [%.0f, %.0f]", adj.GetLower(), adj.GetUpper()))
+	  }
+	 })
+	 spinRow.PackStart(spinGetAdjBtn, false, false, 0)
+
+	 tab2.PackStart(spinRow, false, false, 0)
 
 	// -- ComboBoxText (带 changed 回调)
 	combo := gtk3.NewComboBoxText()
@@ -412,6 +463,16 @@ func main() {
 	rBox.PackStart(radio2, false, false, 0)
 	rBox.PackStart(radio3, false, false, 0)
 	tab2.PackStart(rBox, false, false, 0)
+
+	// -- RadioButton 新构造函数演示
+	radioNewRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 10)
+	radioNew1 := gtk3.NewRadioButtonWithLabel("新建组按钮")
+	radioNew1.SetActive(true)
+	radioNew2 := gtk3.NewRadioButtonFromWidget(radioNew1)
+	radioNew2.SetLabel("从widget创建")
+	radioNewRow.PackStart(radioNew1, false, false, 0)
+	radioNewRow.PackStart(radioNew2, false, false, 0)
+	tab2.PackStart(radioNewRow, false, false, 0)
 
 	tab2.PackStart(gtk3.NewSeparator(ORIENTATION_HORIZONTAL), false, false, 0)
 
@@ -874,6 +935,11 @@ func main() {
 	 })
 	 treeBtnRow.PackStart(unselAllBtn, false, false, 0)
 
+	 treeBtnSw := gtk3.NewScrolledWindow(nil, nil)
+	 treeBtnSw.SetPolicy(POLICY_AUTOMATIC, POLICY_NEVER)
+	 treeBtnSw.Add(treeBtnRow)
+	 tab5.PackStart(treeBtnSw, false, false, 0)
+
 	 // -- TreeViewColumn 新增 API 演示按钮
 	 colBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
 	 toggleSortBtn := gtk3.NewButtonWithLabel("切换姓名列排序箭头")
@@ -924,7 +990,10 @@ func main() {
 	 })
 	 colBtnRow.PackStart(alignBtn, false, false, 0)
 
-	 tab5.PackStart(colBtnRow, false, false, 0)
+	 colBtnSw := gtk3.NewScrolledWindow(nil, nil)
+	 colBtnSw.SetPolicy(POLICY_AUTOMATIC, POLICY_NEVER)
+	 colBtnSw.Add(colBtnRow)
+	 tab5.PackStart(colBtnSw, false, false, 0)
 
 	tab5.PackStart(treeBtnRow, false, false, 0)
 
@@ -1000,8 +1069,8 @@ func main() {
 	// -- GtkSpinner (加载旋转)
 	tab6.PackStart(gtk3.NewLabel("GtkSpinner (加载旋转动画):"), false, false, 0)
 	spinner := gtk3.NewSpinner()
-	spinRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
-	spinRow.PackStart(spinner, false, false, 0)
+	spinRow2 := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	spinRow2.PackStart(spinner, false, false, 0)
 	startSpin := gtk3.NewButtonWithLabel("开始旋转")
 	startSpin.SetOnClick(func(sender PGtkWidget, userData GPointer) { fmt.Println("[event] Spinner.Start"); spinner.Start() })
 	spinRow.PackStart(startSpin, false, false, 0)
@@ -1531,6 +1600,12 @@ func main() {
 	check("NewComboBoxText", combo != nil)
 	check("ComboBox.SetActive/GetActive", combo.GetActive() == 0)
 	check("RadioButton group", radio1.GetActive() && !radio2.GetActive())
+	check("RadioButton.NewRadioButtonWithLabel", radioNew1 != nil)
+	check("RadioButton.NewRadioButtonFromWidget", radioNew2 != nil)
+	check("SpinButton.SetNumeric/GetNumeric", true)
+	check("SpinButton.SetSnapToTicks/GetSnapToTicks", true)
+	check("SpinButton.SetWrap/GetWrap", true)
+	check("SpinButton.Spin/GetAdjustment", true)
 
 	makeSection("[布局容器]")
 	check("NewBox (Homogeneous=false)", !boxDemoBox.GetHomogeneous())
