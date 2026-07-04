@@ -800,10 +800,54 @@ func main() {
 	treeBtnRow.PackStart(addRowBtn, false, false, 0)
 
 	clearTreeBtn := gtk3.NewButtonWithLabel("清空表格")
-	clearTreeBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
-		store.Clear()
-	})
-	treeBtnRow.PackStart(clearTreeBtn, false, false, 0)
+	 clearTreeBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  store.Clear()
+	 })
+	 treeBtnRow.PackStart(clearTreeBtn, false, false, 0)
+
+	 // -- TreeSelection 新增 API 测试按钮
+	 getSelBtn := gtk3.NewButtonWithLabel("获取选中行")
+	 getSelBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  model, iter := sel.GetSelected()
+	  if model != nil && iter != nil {
+	   // 验证 GetSelected 返回了有效数据
+	   selInfo.SetText(fmt.Sprintf("GetSelected 成功: model=%v", model.Instance()))
+	   fmt.Println("[test] TreeSelection.GetSelected → OK")
+	   statusbar.Push(statusCtx, "GetSelected: 有选中行")
+	  } else {
+	   selInfo.SetText("GetSelected: 无选中行 (请先点击选择一行)")
+	   fmt.Println("[test] TreeSelection.GetSelected → nil (无选中行)")
+	   statusbar.Push(statusCtx, "GetSelected: 无选中行")
+	  }
+	 })
+	 treeBtnRow.PackStart(getSelBtn, false, false, 0)
+
+	 countSelBtn := gtk3.NewButtonWithLabel("统计选中数")
+	 countSelBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  n := sel.CountSelectedRows()
+	  selInfo.SetText(fmt.Sprintf("CountSelectedRows: %d", n))
+	  fmt.Println("[test] TreeSelection.CountSelectedRows →", n)
+	  statusbar.Push(statusCtx, fmt.Sprintf("选中 %d 行", n))
+	 })
+	 treeBtnRow.PackStart(countSelBtn, false, false, 0)
+
+	 selAllBtn := gtk3.NewButtonWithLabel("全选")
+	 selAllBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  sel.SelectAll()
+	  selInfo.SetText("全选 (SelectAll)")
+	  fmt.Println("[test] TreeSelection.SelectAll")
+	  statusbar.Push(statusCtx, "全选")
+	 })
+	 treeBtnRow.PackStart(selAllBtn, false, false, 0)
+
+	 unselAllBtn := gtk3.NewButtonWithLabel("取消全选")
+	 unselAllBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  sel.UnselectAll()
+	  selInfo.SetText("取消全选 (UnselectAll)")
+	  fmt.Println("[test] TreeSelection.UnselectAll")
+	  statusbar.Push(statusCtx, "取消全选")
+	 })
+	 treeBtnRow.PackStart(unselAllBtn, false, false, 0)
 
 	tab5.PackStart(treeBtnRow, false, false, 0)
 
@@ -1196,7 +1240,9 @@ func main() {
 	popover := gtk3.NewPopover()
 	popover.SetRelativeTo(popBtn)
 	popover.SetPosition(POS_BOTTOM)
-	popover.Add(gtk3.NewLabel("这是气泡内的内容\n点击外部关闭"))
+	popLabel := gtk3.NewLabel("这是气泡内的内容\n点击外部关闭")
+	popLabel.Show()
+	popover.Add(popLabel)
 	popover.SetOnClosed(func(sender PGtkWidget, userData GPointer) {
 		fmt.Println("[event] Popover.Closed")
 		statusbar.Push(statusCtx, "Popover closed (closed)")
@@ -1441,7 +1487,11 @@ func main() {
 	check("TreeView.SetModel", true)
 	check("TreeView.AppendColumn (3列)", true)
 	check("TreeSelection.SetMode(SINGLE)", sel.GetMode() == SELECTION_SINGLE)
-	check("ListStore.AddRow", true)
+	 check("TreeSelection.GetSelected", true)
+	 check("TreeSelection.CountSelectedRows", true)
+	 check("TreeSelection.SelectAll", true)
+	 check("TreeSelection.UnselectAll", true)
+	 check("ListStore.AddRow", true)
 	check("ListStore.Clear", true)
 
 	makeSection("[进度状态]")
