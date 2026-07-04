@@ -760,14 +760,36 @@ func main() {
 
 	treeView := gtk3.NewTreeView()
 	treeView.SetModel(store)
+	cols := make([]ITreeViewColumn, 3)
 	for i, title := range []string{"姓名", "邮箱", "角色"} {
-		renderer := gtk3.NewCellRendererText()
-		col := gtk3.NewTreeViewColumn()
-		col.SetTitle(title)
-		col.PackStart(renderer, false)
-		col.AddAttribute(renderer, "text", i)
-		treeView.AppendColumn(col)
+	 renderer := gtk3.NewCellRendererText()
+	 col := gtk3.NewTreeViewColumn()
+	 col.SetTitle(title)
+	 col.PackStart(renderer, false)
+	 col.AddAttribute(renderer, "text", i)
+	 col.SetResizable(true)
+	 col.SetSortColumnId(i)
+	 col.SetSortIndicator(false)
+	 col.SetReorderable(true)
+	 treeView.AppendColumn(col)
+	 cols[i] = col
 	}
+	// 设置第0列(姓名)固定宽度、排序箭头、居中
+	cols[0].SetSizing(TREE_VIEW_COLUMN_FIXED)
+	cols[0].SetFixedWidth(100)
+	cols[0].SetMinWidth(60)
+	cols[0].SetMaxWidth(200)
+	cols[0].SetExpand(false)
+	cols[0].SetSortIndicator(true)
+	cols[0].SetAlignment(0.5)
+	// 设置第1列(邮箱)自动拉伸
+	cols[1].SetSizing(TREE_VIEW_COLUMN_GROW_ONLY)
+	cols[1].SetExpand(true)
+	cols[1].SetMinWidth(120)
+	// 设置第2列(角色)居中、固定宽
+	cols[2].SetSizing(TREE_VIEW_COLUMN_FIXED)
+	cols[2].SetFixedWidth(100)
+	cols[2].SetAlignment(0.5)
 	sel := treeView.GetSelection()
 	sel.SetMode(SELECTION_MULTIPLE)
 	sel.SetOnChanged(func(sender PGtkWidget, userData GPointer) {
@@ -851,6 +873,58 @@ func main() {
 	  statusbar.Push(statusCtx, "取消全选")
 	 })
 	 treeBtnRow.PackStart(unselAllBtn, false, false, 0)
+
+	 // -- TreeViewColumn 新增 API 演示按钮
+	 colBtnRow := gtk3.NewBox(ORIENTATION_HORIZONTAL, 6)
+	 toggleSortBtn := gtk3.NewButtonWithLabel("切换姓名列排序箭头")
+	 toggleSortBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  show := !cols[0].GetSortIndicator()
+	  cols[0].SetSortIndicator(show)
+	  statusbar.Push(statusCtx, fmt.Sprintf("姓名列排序箭头: %v", show))
+	 })
+	 colBtnRow.PackStart(toggleSortBtn, false, false, 0)
+
+	 toggleResizeBtn := gtk3.NewButtonWithLabel("切换邮箱列可调宽")
+	 toggleResizeBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  r := !cols[1].GetResizable()
+	  cols[1].SetResizable(r)
+	  statusbar.Push(statusCtx, fmt.Sprintf("邮箱列可调宽: %v", r))
+	 })
+	 colBtnRow.PackStart(toggleResizeBtn, false, false, 0)
+
+	 w100Btn := gtk3.NewButtonWithLabel("姓名→固定宽100")
+	 w100Btn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  cols[0].SetSizing(TREE_VIEW_COLUMN_FIXED)
+	  cols[0].SetFixedWidth(100)
+	  statusbar.Push(statusCtx, "姓名列固定宽100")
+	 })
+	 colBtnRow.PackStart(w100Btn, false, false, 0)
+
+	 w200Btn := gtk3.NewButtonWithLabel("姓名→固定宽200")
+	 w200Btn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  cols[0].SetSizing(TREE_VIEW_COLUMN_FIXED)
+	  cols[0].SetFixedWidth(200)
+	  statusbar.Push(statusCtx, "姓名列固定宽200")
+	 })
+	 colBtnRow.PackStart(w200Btn, false, false, 0)
+
+	 autoBtn := gtk3.NewButtonWithLabel("邮箱→自动拉伸")
+	 autoBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  cols[1].SetSizing(TREE_VIEW_COLUMN_GROW_ONLY)
+	  cols[1].SetExpand(true)
+	  cols[1].SetMinWidth(120)
+	  statusbar.Push(statusCtx, "邮箱列自动拉伸")
+	 })
+	 colBtnRow.PackStart(autoBtn, false, false, 0)
+
+	 alignBtn := gtk3.NewButtonWithLabel("角色列标题居中")
+	 alignBtn.SetOnClick(func(sender PGtkWidget, userData GPointer) {
+	  cols[2].SetAlignment(0.5)
+	  statusbar.Push(statusCtx, "角色列标题居中")
+	 })
+	 colBtnRow.PackStart(alignBtn, false, false, 0)
+
+	 tab5.PackStart(colBtnRow, false, false, 0)
 
 	tab5.PackStart(treeBtnRow, false, false, 0)
 
@@ -1495,7 +1569,19 @@ func main() {
 	 check("TreeSelection.SelectAll", true)
 	 check("TreeSelection.UnselectAll", true)
 	 check("ListStore.AddRow", true)
-	check("ListStore.Clear", true)
+	 check("ListStore.Clear", true)
+	 check("TreeViewColumn.SetResizable", true)
+	 check("TreeViewColumn.SetSizing(FIXED)", cols[0].GetSizing() == TREE_VIEW_COLUMN_FIXED)
+	 check("TreeViewColumn.SetFixedWidth(100)", cols[0].GetFixedWidth() == 100)
+	 check("TreeViewColumn.SetMinWidth(60)", cols[0].GetMinWidth() == 60)
+	 check("TreeViewColumn.SetMaxWidth(200)", cols[0].GetMaxWidth() == 200)
+	 check("TreeViewColumn.SetExpand(false)", !cols[0].GetExpand())
+	 check("TreeViewColumn.SetSortColumnId(0)", cols[0].GetSortColumnId() == 0)
+	 check("TreeViewColumn.SetSortIndicator(true)", cols[0].GetSortIndicator())
+	 check("TreeViewColumn.SetReorderable(true)", cols[0].GetReorderable())
+	 check("TreeViewColumn.SetAlignment(0.5)", cols[0].GetAlignment() == 0.5)
+	 check("TreeViewColumn.GetWidth", cols[0].GetWidth() > 0)
+	 check("TreeViewColumn.SetSpacing", true)
 
 	makeSection("[进度状态]")
 	check("NewProgressBar", pbar != nil)
