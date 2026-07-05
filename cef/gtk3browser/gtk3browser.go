@@ -1,0 +1,163 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/energye/cef/base"
+	"github.com/energye/cef/cef"
+	cefTypes "github.com/energye/cef/cef/types"
+	"github.com/energye/energy/v3/platform/linux/gtk3"
+	"github.com/energye/energy/v3/platform/linux/types"
+	"github.com/energye/lcl/api/libname"
+	"github.com/energye/lcl/lcl"
+	lclTypes "github.com/energye/lcl/types"
+)
+
+var (
+	globalApp cef.ICefApplication
+	chromium  cef.IChromium
+	mainWin   types.IWindow
+	canClose  bool
+	isClosing bool
+)
+
+func init() {
+	libname.UseWS = "gtk3"
+}
+
+func main() {
+	// ① CreateGlobalCEFApp — 创建并配置 CEF 应用程序
+	path := "/home/yanghy/.energy/chromium/linux_amd64_147.0.14"
+	libname.LibName = filepath.Join(path, "libenergy-amd64-gtk3.so")
+
+	// GTK 初始化：CGo 先初始化，LCL 再加载（内部的 gtk_init 成为无操作）
+	lcl.Init()
+	base.Init()
+	gtk3.SetX11ErrorHandlers(nil, nil)
+
+	globalApp = cef.NewApplication()
+	base.SetGlobalCEFApplication(globalApp.Instance())
+	globalApp.SetFrameworkDirPath(path)
+	globalApp.SetResourcesDirPath(path)
+	globalApp.SetLocalesDirPath(filepath.Join(path, "locales"))
+	globalApp.SetMultiThreadedMessageLoop(false)
+	globalApp.SetExternalMessagePump(false)
+
+	wd, _ := os.Getwd()
+	cacheRoot := filepath.Join(wd, "EnergyCache")
+	globalApp.SetLogFile("debug.log")
+	globalApp.SetLogSeverity(cefTypes.LOGSEVERITY_INFO)
+	globalApp.SetRootCache(cacheRoot)
+	globalApp.SetCache(filepath.Join(cacheRoot, "cache"))
+	globalApp.SetDisableZygote(true)
+
+	// ② StartMainProcess — 启动 CEF 主进程，等待上下文初始化
+	// OnContextInitialized 中只创建 Chromium 对象和事件，
+	// GTK 窗口和 CreateBrowser 在 StartMainProcess 之后进行。
+	globalApp.SetOnContextInitialized(func() {
+		fmt.Println("OnContextInitialized")
+		chromium = cef.NewChromium(nil)
+		chromium.SetDefaultUrl("https://www.baidu.com")
+		chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
+			_ = sender
+			fmt.Println("OnAfterCreated browserId:", browser.GetIdentifier())
+			// DoAfterCreated：显示 X11 窗口并初始化浏览器尺寸
+			if chromium.Initialized() {
+				chromium.UpdateXWindowVisibility(true)
+				w, h := mainWin.GetSize()
+				chromium.UpdateBrowserSize(100, 100, int32(w-100), int32(h-100))
+			}
+		})
+		chromium.SetOnBeforeClose(func(sender lcl.IObject, browser cef.ICefBrowser) {
+		 _ = sender
+		 _ = browser
+		 fmt.Println("OnBeforeClose")
+		 canClose = true
+		})
+	})
+
+	globalApp.SetOnGetDefaultClient(func(client *cef.IEngClient) {
+		if chromium != nil {
+			*client = chromium.CefClient()
+		}
+	})
+
+	fmt.Println("StartMainProcess...")
+	ok := globalApp.StartMainProcess()
+	fmt.Println("StartMainProcess:", ok)
+	if !ok {
+		log.Fatal("StartMainProcess failed")
+	}
+
+	// ③ AfterConstruction — GTK 初始化 + 创建窗口和 Chromium (CEF 已就绪)
+	//    注意：LCL 内部已在 lcl.Init() 时调用过 gtk_init，
+	//    这里 CGo 的 gtk3.Init 是第二次调用（无操作）。
+
+	// gdk_set_allowed_backends('x11') — 在 GTK 初始化后强制 X11
+	// XSetErrorHandler / XSetIOErrorHandler — 已通过 gtk3.SetX11ErrorHandlers 设置
+
+	// TChromium.Create + 设置事件 — 已在 OnContextInitialized 中完成
+
+	// CreateWidgets: gtk_window_new + 信号连接
+	mainWin, _ = gtk3.NewWindow(types.WINDOW_TOPLEVEL)
+	mainWin.SetTitle("GTKBrowser")
+	mainWin.SetDefaultSize(1024, 768)
+	// gtk_window_move(300, 200) — Move 方法可能未暴露，跳过或手动调用
+
+	// delete_event → DoCloseQuery → CloseBrowser
+	// destroy → 退出消息循环（不管浏览器是否已关闭）
+	mainWin.SetOnDestroy(func(sender types.PGtkWidget, userData types.GPointer) {
+		if !canClose && !isClosing {
+			isClosing = true
+			fmt.Println("closing browser...")
+			if chromium != nil {
+				chromium.CloseBrowser(true)
+			}
+		}
+		globalApp.QuitMessageLoop()
+	})
+	// configure-event → DoResize + NotifyMoveOrResizeStarted
+	mainWin.SetOnConfigure(func(sender types.PGtkWidget, event types.PEventConfigure, userData types.GPointer) bool {
+		_ = sender
+		_ = event
+		_ = userData
+		if chromium != nil && chromium.Initialized() {
+			w, h := mainWin.GetSize()
+			chromium.UpdateBrowserSize(0, 0, int32(w), int32(h))
+			chromium.NotifyMoveOrResizeStarted()
+		}
+		return false
+	})
+
+	// ④ Show — 显示窗口，UseDefaultX11VisualForGtk + gtk_widget_show_all + FlushDisplay
+	fmt.Println("Show")
+	gtk3.UseDefaultX11VisualForGtk(mainWin)
+	mainWin.ShowAll()
+
+	// ⑤ ShowEventHandler — show 信号：CreateBrowser
+	//    FChromium.CreateBrowser(TCefWindowHandle(FWindow), Rect(0,0,Width,Height))
+	//    TCefWindowHandle on Linux = Pointer = GtkWidget*
+	//    Lazarus CEF binding internally converts GtkWidget* → X11 XID
+	if chromium != nil && !chromium.Initialized() {
+		handle := cefTypes.TCefWindowHandle(mainWin.Instance())
+		xid := gtk3.WindowX11ID(mainWin)
+		fmt.Println("CreateBrowser handle:", fmt.Sprintf("0x%x  xid:0x%x", handle, xid))
+		if !chromium.CreateBrowserWithWHandleRectStrRContextDValueBool(
+			handle,
+			lclTypes.TRect{},
+			"",
+			nil, nil, false,
+		) {
+			fmt.Println("CreateBrowser failed")
+		}
+	}
+	gtk3.FlushDisplay(mainWin)
+
+	// ⑥ Run — CEF 消息循环
+	fmt.Println("Run")
+	globalApp.RunMessageLoop()
+	fmt.Println("Application exit")
+}
