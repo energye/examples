@@ -29,7 +29,6 @@ func init() {
 }
 
 func main() {
-	// ① CreateGlobalCEFApp — 创建并配置 CEF 应用程序
 	path := "/home/yanghy/.energy/chromium/linux_amd64_147.0.14"
 	libname.LibName = filepath.Join(path, "libenergy-amd64-gtk3.so")
 
@@ -54,7 +53,6 @@ func main() {
 	globalApp.SetCache(filepath.Join(cacheRoot, "cache"))
 	globalApp.SetDisableZygote(true)
 
-	// ② StartMainProcess — 启动 CEF 主进程，等待上下文初始化
 	// OnContextInitialized 中只创建 Chromium 对象和事件，
 	// GTK 窗口和 CreateBrowser 在 StartMainProcess 之后进行。
 	globalApp.SetOnContextInitialized(func() {
@@ -68,14 +66,14 @@ func main() {
 			if chromium.Initialized() {
 				chromium.UpdateXWindowVisibility(true)
 				w, h := mainWin.GetSize()
-				chromium.UpdateBrowserSize(100, 100, int32(w-100), int32(h-100))
+				chromium.UpdateBrowserSize(0, 0, int32(w), int32(h))
 			}
 		})
 		chromium.SetOnBeforeClose(func(sender lcl.IObject, browser cef.ICefBrowser) {
-		 _ = sender
-		 _ = browser
-		 fmt.Println("OnBeforeClose")
-		 canClose = true
+			_ = sender
+			_ = browser
+			fmt.Println("OnBeforeClose")
+			canClose = true
 		})
 	})
 
@@ -91,10 +89,6 @@ func main() {
 	if !ok {
 		log.Fatal("StartMainProcess failed")
 	}
-
-	// ③ AfterConstruction — GTK 初始化 + 创建窗口和 Chromium (CEF 已就绪)
-	//    注意：LCL 内部已在 lcl.Init() 时调用过 gtk_init，
-	//    这里 CGo 的 gtk3.Init 是第二次调用（无操作）。
 
 	// gdk_set_allowed_backends('x11') — 在 GTK 初始化后强制 X11
 	// XSetErrorHandler / XSetIOErrorHandler — 已通过 gtk3.SetX11ErrorHandlers 设置
@@ -132,12 +126,10 @@ func main() {
 		return false
 	})
 
-	// ④ Show — 显示窗口，UseDefaultX11VisualForGtk + gtk_widget_show_all + FlushDisplay
 	fmt.Println("Show")
 	gtk3.UseDefaultX11VisualForGtk(mainWin)
 	mainWin.ShowAll()
 
-	// ⑤ ShowEventHandler — show 信号：CreateBrowser
 	//    FChromium.CreateBrowser(TCefWindowHandle(FWindow), Rect(0,0,Width,Height))
 	//    TCefWindowHandle on Linux = Pointer = GtkWidget*
 	//    Lazarus CEF binding internally converts GtkWidget* → X11 XID
@@ -156,7 +148,6 @@ func main() {
 	}
 	gtk3.FlushDisplay(mainWin)
 
-	// ⑥ Run — CEF 消息循环
 	fmt.Println("Run")
 	globalApp.RunMessageLoop()
 	fmt.Println("Application exit")
