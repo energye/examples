@@ -32,7 +32,6 @@ func main() {
 	path := "/home/yanghy/.energy/chromium/linux_amd64_147.0.14"
 	libname.LibName = filepath.Join(path, "libenergy-amd64-gtk3.so")
 
-	// GTK 初始化：CGo 先初始化，LCL 再加载（内部的 gtk_init 成为无操作）
 	lcl.Init()
 	base.Init()
 	gtk3.SetX11ErrorHandlers(nil, nil)
@@ -53,8 +52,6 @@ func main() {
 	globalApp.SetCache(filepath.Join(cacheRoot, "cache"))
 	globalApp.SetDisableZygote(true)
 
-	// OnContextInitialized 中只创建 Chromium 对象和事件，
-	// GTK 窗口和 CreateBrowser 在 StartMainProcess 之后进行。
 	globalApp.SetOnContextInitialized(func() {
 		fmt.Println("OnContextInitialized")
 		chromium = cef.NewChromium(nil)
@@ -62,7 +59,6 @@ func main() {
 		chromium.SetOnAfterCreated(func(sender lcl.IObject, browser cef.ICefBrowser) {
 			_ = sender
 			fmt.Println("OnAfterCreated browserId:", browser.GetIdentifier())
-			// DoAfterCreated：显示 X11 窗口并初始化浏览器尺寸
 			if chromium.Initialized() {
 				chromium.UpdateXWindowVisibility(true)
 				w, h := mainWin.GetSize()
@@ -90,19 +86,10 @@ func main() {
 		log.Fatal("StartMainProcess failed")
 	}
 
-	// gdk_set_allowed_backends('x11') — 在 GTK 初始化后强制 X11
-	// XSetErrorHandler / XSetIOErrorHandler — 已通过 gtk3.SetX11ErrorHandlers 设置
-
-	// TChromium.Create + 设置事件 — 已在 OnContextInitialized 中完成
-
-	// CreateWidgets: gtk_window_new + 信号连接
 	mainWin, _ = gtk3.NewWindow(types.WINDOW_TOPLEVEL)
 	mainWin.SetTitle("GTKBrowser")
 	mainWin.SetDefaultSize(1024, 768)
-	// gtk_window_move(300, 200) — Move 方法可能未暴露，跳过或手动调用
 
-	// delete_event → DoCloseQuery → CloseBrowser
-	// destroy → 退出消息循环（不管浏览器是否已关闭）
 	mainWin.SetOnDestroy(func(sender types.PGtkWidget, userData types.GPointer) {
 		if !canClose && !isClosing {
 			isClosing = true
