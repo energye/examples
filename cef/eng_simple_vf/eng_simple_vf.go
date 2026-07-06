@@ -34,10 +34,7 @@ func init() {
 
 func main() {
 	logger.L().SetLevel(logger.DebugLevel)
-	//libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-127.so"
-	//libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-147.so"
 	cefApp := cef.Init()
-
 	//cefApp.SetLogSeverity(cefTypes.LOGSEVERITY_DEBUG)
 	cefApp.SetOptions(application.Options{
 		//Frameless: true,

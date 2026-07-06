@@ -35,7 +35,6 @@ func main() {
 		DefaultURL: "fs://energy/index-home.html",
 		//DefaultURL: "fs://energy/index-ipc.html",
 		//DefaultURL: "fs://energy/index-drag.html",
-		//DefaultURL: "https://www.bilibili.com/",
 		//DefaultURL: "https://www.baidu.com/",
 		//DefaultURL:         "https://2x.antdv.com/components/overview/",
 		WindowTransparent:  true,
@@ -101,7 +100,11 @@ func main() {
 		fmt.Println("maximize", context.BrowserId())
 		tempWindow := getWindow(context.BrowserId())
 		if tempWindow != nil {
-			tempWindow.Maximize()
+			if tempWindow.IsMaximize() {
+				tempWindow.Restore()
+			} else {
+				tempWindow.Maximize()
+			}
 		}
 	})
 
