@@ -55,6 +55,7 @@ func (w *Window) setupWindow(sender lcl.IObject) {
 
 	// Create OpenGL control
 	w.glControl = lcl.NewOpenGLControl(w.form)
+	configureOpenGLControl(w.glControl)
 	w.glControl.SetParent(w.form)
 	w.glControl.SetAlign(types.AlClient)
 
@@ -80,38 +81,7 @@ func (w *Window) onShow(sender lcl.IObject) {
 	// Load font first
 	w.loadFont()
 
-	// Initialize engine in main thread
-	lcl.RunOnMainThreadSync(func() {
-		w.glControl.MakeCurrent(true)
-		defer w.glControl.ReleaseContext()
-
-		if err := w.engine.Initialize(); err != nil {
-			fmt.Println("✗ Engine init error:", err)
-			return
-		}
-		fmt.Println("✓ Engine initialized")
-
-		// Set initial size
-		w.engine.SetSize(float32(w.form.Width()), float32(w.form.Height()))
-
-		// Load font
-		if DefaultFontData != nil {
-			f, err := LoadDefaultFont(14)
-			if err != nil {
-				fmt.Println("✗ Font load error:", err)
-			} else {
-				w.engine.SetFont(f)
-				fmt.Println("✓ Font loaded")
-			}
-		}
-
-		w.initialized = true
-
-		// Call user's show handler after initialization
-		if w.onShowHandler != nil {
-			w.onShowHandler()
-		}
-	})
+	w.glControl.Invalidate()
 }
 
 // loadFont loads a suitable font
@@ -143,11 +113,14 @@ func (w *Window) loadFont() {
 
 // onPaint handles paint events
 func (w *Window) onPaint(sender lcl.IObject) {
-	if !w.initialized || w.engine == nil {
+	if !w.ensureInitialized() {
 		return
 	}
 
-	w.glControl.MakeCurrent(true)
+	if !w.glControl.MakeCurrent(true) {
+		fmt.Println("✗ OpenGL MakeCurrent failed")
+		return
+	}
 	defer w.glControl.ReleaseContext()
 
 	// Update size
@@ -155,6 +128,48 @@ func (w *Window) onPaint(sender lcl.IObject) {
 
 	w.engine.Render()
 	w.glControl.SwapBuffers()
+}
+
+func (w *Window) ensureInitialized() bool {
+	if w.initialized {
+		return true
+	}
+	if w.engine == nil {
+		w.engine = NewEngine()
+	}
+	if w.glControl == nil || !w.glControl.HandleAllocated() {
+		return false
+	}
+
+	w.glControl.RealizeBounds()
+	if !w.glControl.MakeCurrent(true) {
+		return false
+	}
+	defer w.glControl.ReleaseContext()
+
+	if err := w.engine.Initialize(); err != nil {
+		fmt.Println("✗ Engine init error:", err)
+		return false
+	}
+	fmt.Println("✓ Engine initialized")
+
+	w.engine.SetSize(float32(w.form.Width()), float32(w.form.Height()))
+
+	if DefaultFontData != nil {
+		f, err := LoadDefaultFont(14)
+		if err != nil {
+			fmt.Println("✗ Font load error:", err)
+		} else {
+			w.engine.SetFont(f)
+			fmt.Println("✓ Font loaded")
+		}
+	}
+
+	w.initialized = true
+	if w.onShowHandler != nil {
+		w.onShowHandler()
+	}
+	return true
 }
 
 // onMouseDown handles mouse down events

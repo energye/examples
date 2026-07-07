@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/energye/lcl/api/libname"
 
 	"github.com/energye/examples/lcl/gpui/style/color"
 	"github.com/energye/examples/lcl/gpui/ui"
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	libname.UseWS = "gtk3"
 	// Create application (handles ALL framework initialization)
 	app := ui.NewApplication("Ant Design Style GPU UI", 800, 600)
 

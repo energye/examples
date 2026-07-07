@@ -12,19 +12,26 @@ import (
 
 // Application is a high-level application wrapper
 type Application struct {
-	form      lcl.IEngForm
-	glControl lcl.IOpenGLControl
-	engine    *Engine
-	ready     bool
-	onSetup   func(*Engine)
-	lastTime  time.Time
-	ticker    *time.Ticker
+	form        lcl.IEngForm
+	glControl   lcl.IOpenGLControl
+	engine      *Engine
+	ready       bool
+	initialized bool
+	onSetup     func(*Engine)
+	lastTime    time.Time
+	ticker      *time.Ticker
+	title       string
+	width       int32
+	height      int32
 }
 
 // NewApplication creates a new application
 func NewApplication(title string, width, height int32) *Application {
 	app := &Application{
 		lastTime: time.Now(),
+		title:    title,
+		width:    width,
+		height:   height,
 	}
 
 	// Store for use in FormCreate
@@ -60,12 +67,13 @@ func (f *appForm) FormCreate(sender lcl.IObject) {
 	}
 
 	app.form = sender.(lcl.IEngForm)
-	app.form.SetCaption("Application")
-	app.form.SetWidth(800)
-	app.form.SetHeight(600)
+	app.form.SetCaption(app.title)
+	app.form.SetWidth(app.width)
+	app.form.SetHeight(app.height)
 
 	// Create GL control
 	app.glControl = lcl.NewOpenGLControl(app.form)
+	configureOpenGLControl(app.glControl)
 	app.glControl.SetParent(app.form)
 	app.glControl.SetAlign(types.AlClient)
 
@@ -74,22 +82,23 @@ func (f *appForm) FormCreate(sender lcl.IObject) {
 
 	// Set show handler
 	app.form.SetOnShow(func(sender lcl.IObject) {
-		app.initialize()
-		if app.onSetup != nil {
-			app.onSetup(app.engine)
-		}
+		loadSystemFont()
 		app.ready = true
 		app.startRenderLoop()
+		app.glControl.Invalidate()
 	})
 }
 
 func (a *Application) setupEvents() {
 	// Paint
 	a.glControl.SetOnPaint(func(sender lcl.IObject) {
-		if !a.ready || a.engine == nil {
+		if !a.ready || !a.ensureInitialized() {
 			return
 		}
-		a.glControl.MakeCurrent(true)
+		if !a.glControl.MakeCurrent(true) {
+			fmt.Println("OpenGL MakeCurrent failed")
+			return
+		}
 		defer a.glControl.ReleaseContext()
 		a.engine.SetSize(float32(a.form.Width()), float32(a.form.Height()))
 		a.engine.Render()
@@ -161,18 +170,23 @@ func (a *Application) setupEvents() {
 	})
 }
 
-func (a *Application) initialize() {
-	// Load font
-	loadSystemFont()
-
-	// Initialize engine
-	a.glControl.MakeCurrent(true)
+func (a *Application) ensureInitialized() bool {
+	if a.initialized {
+		return true
+	}
+	if a.glControl == nil || !a.glControl.HandleAllocated() {
+		return false
+	}
+	a.glControl.RealizeBounds()
+	if !a.glControl.MakeCurrent(true) {
+		return false
+	}
 	defer a.glControl.ReleaseContext()
 
 	a.engine = NewEngine()
 	if err := a.engine.Initialize(); err != nil {
 		fmt.Println("Engine init error:", err)
-		return
+		return false
 	}
 
 	a.engine.SetSize(float32(a.form.Width()), float32(a.form.Height()))
@@ -187,9 +201,19 @@ func (a *Application) initialize() {
 			fmt.Println("✓ Font loaded")
 		}
 	}
+
+	if a.onSetup != nil {
+		a.onSetup(a.engine)
+	}
+	a.initialized = true
+	fmt.Println("✓ Engine initialized")
+	return true
 }
 
 func (a *Application) startRenderLoop() {
+	if a.ticker != nil {
+		return
+	}
 	a.ticker = time.NewTicker(time.Second / 60)
 	go func() {
 		for range a.ticker.C {
