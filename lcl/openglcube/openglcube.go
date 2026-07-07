@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/energye/lcl/api"
+	"github.com/energye/lcl/api/libname"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 	"github.com/go-gl/gl/v4.1-core/gl"
@@ -36,6 +37,7 @@ const (
 
 // set CGO_ENABLED=1
 func main() {
+	libname.UseWS = "gtk3"
 	api.SetDebug(true)
 	//if err := glfw.Init(); err != nil {
 	//	log.Fatalln("failed to initialize glfw:", err)
