@@ -121,6 +121,51 @@ func TestMinMaxPercent(t *testing.T) {
 	assertRect(t, result.Bounds, 0, 0, 120, 20)
 }
 
+func TestGridLayout(t *testing.T) {
+	root := &Node{
+		Style: Style{
+			Width:       Px(300),
+			Height:      Px(200),
+			Padding:     EdgeAll(10),
+			GridColumns: []Value{Px(80), AutoValue()},
+			GridRows:    []Value{Px(30), Px(40)},
+			ColumnGap:   5,
+			RowGap:      7,
+		},
+		Children: []*Node{
+			fixedNode(10, 10),
+			fixedNode(10, 10),
+			fixedNode(10, 10),
+		},
+	}
+
+	result := Compute(root, math.NewVec2(300, 200))
+	assertRect(t, result.Children[0].Bounds, 10, 10, 80, 30)
+	assertRect(t, result.Children[1].Bounds, 95, 10, 195, 30)
+	assertRect(t, result.Children[2].Bounds, 10, 47, 80, 40)
+}
+
+func TestOverflowViewportAndContentSize(t *testing.T) {
+	root := &Node{
+		Style: Style{
+			Width:     Px(100),
+			Height:    Px(50),
+			Direction: Row,
+			OverflowX: OverflowScroll,
+			OverflowY: OverflowHidden,
+		},
+		Children: []*Node{
+			fixedNode(160, 20),
+		},
+	}
+
+	result := Compute(root, math.NewVec2(100, 50))
+	assertRect(t, result.Viewport, 0, 0, 100, 50)
+	if result.ContentSize.X != 160 || result.ContentSize.Y != 50 {
+		t.Fatalf("content size = (%v,%v), want (160,50)", result.ContentSize.X, result.ContentSize.Y)
+	}
+}
+
 func fixedNode(w, h float32) *Node {
 	return &Node{Style: Style{Width: Px(w), Height: Px(h)}}
 }

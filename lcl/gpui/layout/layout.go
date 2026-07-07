@@ -75,6 +75,15 @@ const (
 	JustifySpaceBetween
 )
 
+// Overflow controls how content outside the container is treated by consumers.
+type Overflow int
+
+const (
+	OverflowVisible Overflow = iota
+	OverflowHidden
+	OverflowScroll
+)
+
 // Style describes layout behavior.
 type Style struct {
 	Width     Value
@@ -93,6 +102,14 @@ type Style struct {
 	Align     Align
 	Justify   Justify
 	FlexGrow  float32
+
+	GridColumns []Value
+	GridRows    []Value
+	ColumnGap   float32
+	RowGap      float32
+
+	OverflowX Overflow
+	OverflowY Overflow
 }
 
 // MeasureFunc returns a leaf node's desired size.
@@ -117,8 +134,10 @@ func NewSpace(direction Direction, gap float32, children ...*Node) *Node {
 
 // Result stores computed layout.
 type Result struct {
-	Bounds   math.Rect
-	Children []Result
+	Bounds      math.Rect
+	ContentSize math.Vec2
+	Viewport    math.Rect
+	Children    []Result
 }
 
 // Compute lays out a node within the available size.
@@ -127,17 +146,47 @@ func Compute(node *Node, available math.Vec2) Result {
 		return Result{}
 	}
 	size := resolveNodeSize(node, available)
-	result := Result{Bounds: math.NewRect(0, 0, size.X, size.Y)}
+	result := Result{
+		Bounds:      math.NewRect(0, 0, size.X, size.Y),
+		ContentSize: size,
+		Viewport:    viewportFor(node.Style, size),
+	}
 	if len(node.Children) == 0 {
 		return result
 	}
 
-	if node.Style.Wrap && node.Style.Direction == Row {
+	if len(node.Style.GridColumns) > 0 {
+		result.Children, result.ContentSize = layoutGrid(node, size)
+	} else if node.Style.Wrap && node.Style.Direction == Row {
 		result.Children = layoutRowWrap(node, size)
+		result.ContentSize = contentSizeFromChildren(result.Children, size)
 	} else {
 		result.Children = layoutLinear(node, size)
+		result.ContentSize = contentSizeFromChildren(result.Children, size)
 	}
 	return result
+}
+
+func viewportFor(style Style, size math.Vec2) math.Rect {
+	if style.OverflowX == OverflowVisible && style.OverflowY == OverflowVisible {
+		return math.Rect{}
+	}
+	return math.NewRect(0, 0, size.X, size.Y)
+}
+
+func contentSizeFromChildren(children []Result, fallback math.Vec2) math.Vec2 {
+	content := fallback
+	for _, child := range children {
+		right := child.Bounds.X + child.Bounds.W
+		bottom := child.Bounds.Y + child.Bounds.H
+		if right > content.X {
+			content.X = right
+		}
+		if bottom > content.Y {
+			content.Y = bottom
+		}
+	}
+	return content
 }
 
 func resolveNodeSize(node *Node, available math.Vec2) math.Vec2 {
