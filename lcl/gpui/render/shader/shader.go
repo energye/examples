@@ -280,6 +280,46 @@ void main() {
 }
 ` + "\x00",
 	},
+	"rounded_rect_stroke": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for transparent rounded-rect stroke.
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+uniform vec2 uSize;
+uniform float uRadius;
+uniform float uWidth;
+
+void main() {
+    vec2 pos = vUV * uSize;
+    vec2 center = uSize * 0.5;
+    vec2 q = abs(pos - center) - (center - vec2(uRadius));
+    float d = length(max(q, 0.0)) - uRadius;
+
+    float pixelLength = length(vec2(dFdx(d), dFdy(d)));
+    float aa = max(pixelLength * 1.5, 0.001);
+    float outerAlpha = 1.0 - smoothstep(0.0, aa, d);
+    float innerAlpha = smoothstep(-uWidth - aa, -uWidth + aa, d);
+    float alpha = outerAlpha * innerAlpha;
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+}
+` + "\x00",
+	},
 	"gradient": {
 		// Vertex shader for gradients
 		`#version 120

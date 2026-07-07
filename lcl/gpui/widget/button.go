@@ -95,6 +95,11 @@ func (b *Button) Focusable() bool {
 	return true
 }
 
+// HandleEvent handles a generic UI event.
+func (b *Button) HandleEvent(event UIEvent) bool {
+	return dispatchLegacyEvent(b, event)
+}
+
 // Render renders the button
 func (b *Button) Render(renderer *pipeline.Renderer) {
 	if !b.visible {
@@ -125,7 +130,7 @@ func (b *Button) Render(renderer *pipeline.Renderer) {
 	renderer.StrokeRoundRect(b.bounds, th.Button.Radius, borderW, border)
 
 	// Draw focus ring
-	if b.focused {
+	if b.HasState(StateFocus) {
 		focusRect := b.bounds.Expand(2)
 		renderer.StrokeRoundRect(focusRect, th.Button.Radius+2, 2, color.Primary)
 	}
@@ -169,7 +174,7 @@ func (b *Button) calculateColors(hoverT, pressT float32) (bg, txt, border math.C
 	}
 
 	// Apply disabled state
-	if !b.enabled {
+	if b.HasState(StateDisabled) {
 		baseBg = baseBg.WithAlpha(0.5)
 		baseTxt = baseTxt.WithAlpha(0.5)
 		baseBorder = baseBorder.WithAlpha(0.5)

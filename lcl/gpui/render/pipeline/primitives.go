@@ -61,27 +61,19 @@ func (r *Renderer) StrokeRect(rect math.Rect, width float32, color math.Color) {
 
 // StrokeRoundRect draws a rounded rectangle outline using SDF
 func (r *Renderer) StrokeRoundRect(rect math.Rect, radius, width float32, color math.Color) {
-	// For now, use a simple rectangle outline approximation
-	// TODO: Implement proper SDF-based outline
-
-	// Draw outer rounded rect
-	r.FillRoundRect(rect, radius, color)
-
-	// Draw inner rounded rect to create outline effect
-	innerRect := math.NewRect(
-		rect.X+width,
-		rect.Y+width,
-		rect.W-2*width,
-		rect.H-2*width,
-	)
-	innerRadius := radius - width
-	if innerRadius < 0 {
-		innerRadius = 0
+	if rect.W <= 0 || rect.H <= 0 || width <= 0 {
+		return
+	}
+	shaderProg := r.shaderMgr.GetShader("rounded_rect_stroke")
+	uniforms := UniformSet{
+		"uRadius": FloatUniform(radius),
+		"uSize":   Vec2Uniform(rect.W, rect.H),
+		"uWidth":  FloatUniform(width),
 	}
 
-	// Use background color for inner rect (assumes white background)
-	bgColor := math.NewColor(1, 1, 1, 1)
-	r.FillRoundRect(innerRect, innerRadius, bgColor)
+	uv := math.NewRect(0, 0, 1, 1)
+	verts := QuadVertices(rect, uv, color)
+	r.addQuad(shaderProg, 0, uniforms, verts)
 }
 
 // FillRectWithBorder draws a filled rectangle with border
@@ -134,14 +126,8 @@ func (r *Renderer) FillCircle(center math.Vec2, radius float32, color math.Color
 
 // StrokeCircle draws a circle outline
 func (r *Renderer) StrokeCircle(center math.Vec2, radius, width float32, color math.Color) {
-	// Outer circle
-	r.FillCircle(center, radius, color)
-
-	// Inner circle (cutout)
-	innerRadius := radius - width
-	if innerRadius > 0 {
-		r.FillCircle(center, innerRadius, math.NewColor(1, 1, 1, 1)) // Background color
-	}
+	rect := math.NewRect(center.X-radius, center.Y-radius, radius*2, radius*2)
+	r.StrokeRoundRect(rect, radius, width, color)
 }
 
 // DrawLine draws a line between two points
@@ -194,23 +180,32 @@ func (r *Renderer) DrawCheckmark(rect math.Rect, size float32, color math.Color)
 
 // DrawShadow draws a shadow effect (simplified)
 func (r *Renderer) DrawShadow(rect math.Rect, offset math.Vec2, blur float32, color math.Color) {
-	// Simplified shadow: draw multiple offset rectangles with decreasing alpha
-	steps := 3
+	steps := int(blur / 2)
+	if steps < 3 {
+		steps = 3
+	}
+	if steps > 16 {
+		steps = 16
+	}
+
 	for i := 0; i < steps; i++ {
-		alpha := color.A * (1 - float32(i)/float32(steps))
+		t := float32(i+1) / float32(steps)
+		falloff := (1 - t) * (1 - t)
+		alpha := color.A * falloff / float32(steps) * 2
 		shadowColor := math.NewColor(color.R, color.G, color.B, alpha)
 
-		offsetX := offset.X * float32(i+1) / float32(steps)
-		offsetY := offset.Y * float32(i+1) / float32(steps)
+		expand := blur * t
+		offsetX := offset.X * t
+		offsetY := offset.Y * t
 
 		shadowRect := math.NewRect(
-			rect.X+offsetX,
-			rect.Y+offsetY,
-			rect.W,
-			rect.H,
+			rect.X+offsetX-expand,
+			rect.Y+offsetY-expand,
+			rect.W+expand*2,
+			rect.H+expand*2,
 		)
 
-		r.FillRoundRect(shadowRect, 4, shadowColor)
+		r.FillRoundRect(shadowRect, 4+expand, shadowColor)
 	}
 }
 
@@ -238,13 +233,7 @@ func (r *Renderer) FillCircleFilled(center math.Vec2, radius float32, color math
 
 // StrokeCircleOutline draws a circle outline using SDF
 func (r *Renderer) StrokeCircleOutline(center math.Vec2, radius, width float32, color math.Color) {
-	// Draw outer circle
-	r.FillCircle(center, radius, color)
-	// Cut out inner circle
-	innerRadius := radius - width
-	if innerRadius > 0 {
-		r.FillCircle(center, innerRadius, math.NewColor(1, 1, 1, 1))
-	}
+	r.StrokeCircle(center, radius, width, color)
 }
 
 // DrawArc draws an arc (portion of a circle)

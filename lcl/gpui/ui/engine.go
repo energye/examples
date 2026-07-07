@@ -145,17 +145,17 @@ func (e *Engine) SetFocus(w widget.Widget) {
 
 // HandleMouseDown handles mouse down event
 func (e *Engine) HandleMouseDown(x, y float32, button int) {
-	e.root.MouseDown(x, y, button)
+	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseDown, X: x, Y: y, Button: button})
 }
 
 // HandleMouseUp handles mouse up event
 func (e *Engine) HandleMouseUp(x, y float32, button int) {
-	e.root.MouseUp(x, y, button)
+	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseUp, X: x, Y: y, Button: button})
 }
 
 // HandleMouseMove handles mouse move event
 func (e *Engine) HandleMouseMove(x, y float32) {
-	e.root.MouseMove(x, y)
+	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseMove, X: x, Y: y})
 }
 
 // HandleKeyDown handles key down event
@@ -174,7 +174,10 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 
 	// Pass to focused widget
 	if focused := focusMgr.Current(); focused != nil {
-		focused.KeyDown(key, mods)
+		event := widget.UIEvent{Type: widget.EventKeyDown, Key: key, Mods: mods}
+		if !focused.HandleEvent(event) {
+			focused.KeyDown(key, mods)
+		}
 	}
 }
 
@@ -182,7 +185,10 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 func (e *Engine) HandleCharInput(char rune) {
 	focusMgr := e.root.FocusManager()
 	if focused := focusMgr.Current(); focused != nil {
-		focused.CharInput(char)
+		event := widget.UIEvent{Type: widget.EventCharInput, Char: char}
+		if !focused.HandleEvent(event) {
+			focused.CharInput(char)
+		}
 	}
 }
 

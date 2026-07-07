@@ -265,6 +265,23 @@ func (w *BaseWidget) HandleEvent(event UIEvent) bool {
 	return false
 }
 
+func dispatchLegacyEvent(widget Widget, event UIEvent) bool {
+	switch event.Type {
+	case EventMouseDown:
+		return widget.MouseDown(event.X, event.Y, event.Button)
+	case EventMouseUp:
+		return widget.MouseUp(event.X, event.Y, event.Button)
+	case EventMouseMove:
+		return widget.MouseMove(event.X, event.Y)
+	case EventKeyDown:
+		return widget.KeyDown(event.Key, event.Mods)
+	case EventCharInput:
+		return widget.CharInput(event.Char)
+	default:
+		return false
+	}
+}
+
 // State returns the current widget state flags.
 func (w *BaseWidget) State() WidgetState {
 	return w.state
@@ -288,6 +305,12 @@ func (w *BaseWidget) SetStateFlag(state WidgetState, enabled bool) {
 		w.state |= state
 	} else {
 		w.state &^= state
+	}
+	if state&StateDisabled != 0 {
+		w.enabled = !enabled
+	}
+	if state&StateFocus != 0 {
+		w.focused = enabled
 	}
 }
 

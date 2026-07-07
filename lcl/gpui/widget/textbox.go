@@ -94,6 +94,11 @@ func (tb *TextBox) Focusable() bool {
 	return true
 }
 
+// HandleEvent handles a generic UI event.
+func (tb *TextBox) HandleEvent(event UIEvent) bool {
+	return dispatchLegacyEvent(tb, event)
+}
+
 // Render renders the text box
 func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 	if !tb.visible {
@@ -114,7 +119,7 @@ func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 
 	// Draw border
 	borderW := th.Input.BorderW
-	if tb.focused {
+	if tb.HasState(StateFocus) {
 		borderW = 2
 	}
 	renderer.StrokeRoundRect(tb.bounds, th.Input.Radius, borderW, border)
@@ -133,7 +138,7 @@ func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 	}
 
 	// Draw text or placeholder
-	if len(tb.text) == 0 && !tb.focused {
+	if len(tb.text) == 0 && !tb.HasState(StateFocus) {
 		// Draw placeholder
 		if tb.placeholder != "" && tb.font != nil {
 			renderer.DrawText(tb.placeholder, textRect.X, textRect.Y, tb.font, placeCol)
@@ -148,7 +153,7 @@ func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 	}
 
 	// Draw cursor (blinking)
-	if tb.focused {
+	if tb.HasState(StateFocus) {
 		// Blink: show for 0.5s, hide for 0.5s
 		if cursorT > 0.5 {
 			cursorX := tb.calculateCursorX(textRect)
@@ -169,7 +174,7 @@ func (tb *TextBox) calculateColors(focusT float32) (bg, border, text, placeholde
 	placeholder = th.Input.Placeholder
 
 	// Apply disabled state
-	if !tb.enabled {
+	if tb.HasState(StateDisabled) {
 		bg = color.BgDisabled
 		border = color.BorderDisabled
 		text = color.TextDisabled
@@ -181,7 +186,7 @@ func (tb *TextBox) calculateColors(focusT float32) (bg, border, text, placeholde
 	}
 
 	// Apply hover effect
-	if tb.hovered && !tb.focused {
+	if tb.HasState(StateHover) && !tb.HasState(StateFocus) {
 		border = color.BorderHover
 	}
 
@@ -291,7 +296,7 @@ func (tb *TextBox) MouseMove(x, y float32) bool {
 	tb.SetStateFlag(StateHover, tb.hovered)
 
 	// Update selection if dragging
-	if tb.selStart >= 0 && tb.focused {
+	if tb.selStart >= 0 && tb.HasState(StateFocus) {
 		theme := tb.GetTheme()
 		textRect := tb.bounds.Shrink(theme.Input.PaddingH, theme.Input.PaddingV)
 		tb.cursorPos = tb.hitTestCursor(x, textRect)

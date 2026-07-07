@@ -70,100 +70,99 @@ func (c *Container) Render(renderer *pipeline.Renderer) {
 	}
 }
 
-// MouseDown handles mouse down
-func (c *Container) MouseDown(x, y float32, button int) bool {
-	localX := x - c.bounds.X
-	localY := y - c.bounds.Y
+// HandleEvent routes events to children using container-local coordinates.
+func (c *Container) HandleEvent(event UIEvent) bool {
+	switch event.Type {
+	case EventMouseDown:
+		localEvent := event
+		localEvent.X -= c.bounds.X
+		localEvent.Y -= c.bounds.Y
 
-	// Check children in reverse order (top-most first)
-	for i := len(c.children) - 1; i >= 0; i-- {
-		child := c.children[i]
-		if !child.Visible() || !child.Enabled() {
-			continue
-		}
-
-		bounds := child.Bounds()
-		// Check if point is within child bounds (using parent coordinates)
-		if bounds.Contains(localX, localY) {
-			// Set focus if child is focusable
+		for i := len(c.children) - 1; i >= 0; i-- {
+			child := c.children[i]
+			if !child.Visible() || !child.Enabled() {
+				continue
+			}
+			if !child.Bounds().Contains(localEvent.X, localEvent.Y) {
+				continue
+			}
 			if child.Focusable() && c.focusMgr != nil {
 				c.focusMgr.SetFocus(child)
 			}
-
-			// Pass the original coordinates to child
-			if child.MouseDown(localX, localY, button) {
+			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
 				return true
+			}
+		}
+		return false
+
+	case EventMouseUp:
+		localEvent := event
+		localEvent.X -= c.bounds.X
+		localEvent.Y -= c.bounds.Y
+
+		handled := false
+		for i := len(c.children) - 1; i >= 0; i-- {
+			child := c.children[i]
+			if !child.Visible() || !child.Enabled() {
+				continue
+			}
+			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
+				handled = true
+			}
+		}
+		return handled
+
+	case EventMouseMove:
+		localEvent := event
+		localEvent.X -= c.bounds.X
+		localEvent.Y -= c.bounds.Y
+
+		handled := false
+		for i := len(c.children) - 1; i >= 0; i-- {
+			child := c.children[i]
+			if !child.Visible() || !child.Enabled() {
+				continue
+			}
+			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
+				handled = true
+			}
+		}
+		return handled
+
+	case EventKeyDown, EventCharInput:
+		for _, child := range c.children {
+			if child.Focused() {
+				return child.HandleEvent(event) || dispatchLegacyEvent(child, event)
 			}
 		}
 	}
 
 	return false
+}
+
+// MouseDown handles mouse down
+func (c *Container) MouseDown(x, y float32, button int) bool {
+	return c.HandleEvent(UIEvent{Type: EventMouseDown, X: x, Y: y, Button: button})
 }
 
 // MouseUp handles mouse up
 func (c *Container) MouseUp(x, y float32, button int) bool {
-	handled := false
-	localX := x - c.bounds.X
-	localY := y - c.bounds.Y
-
-	// Check children in reverse order
-	for i := len(c.children) - 1; i >= 0; i-- {
-		child := c.children[i]
-		if !child.Visible() || !child.Enabled() {
-			continue
-		}
-
-		// Pass original coordinates
-		if child.MouseUp(localX, localY, button) {
-			handled = true
-		}
-	}
-
-	return handled
+	return c.HandleEvent(UIEvent{Type: EventMouseUp, X: x, Y: y, Button: button})
 }
 
 // MouseMove handles mouse move
 func (c *Container) MouseMove(x, y float32) bool {
-	handled := false
-	localX := x - c.bounds.X
-	localY := y - c.bounds.Y
-
-	// Update all children
-	for i := len(c.children) - 1; i >= 0; i-- {
-		child := c.children[i]
-		if !child.Visible() || !child.Enabled() {
-			continue
-		}
-
-		// Pass original coordinates
-		if child.MouseMove(localX, localY) {
-			handled = true
-		}
-	}
-
-	return handled
+	return c.HandleEvent(UIEvent{Type: EventMouseMove, X: x, Y: y})
 }
 
 // KeyDown handles key down
 func (c *Container) KeyDown(key int, mods int) bool {
-	// Find focused child and pass event
-	for _, child := range c.children {
-		if child.Focused() {
-			return child.KeyDown(key, mods)
-		}
-	}
-	return false
+	return c.HandleEvent(UIEvent{Type: EventKeyDown, Key: key, Mods: mods})
 }
 
 // CharInput handles character input
 func (c *Container) CharInput(char rune) bool {
-	// Find focused child and pass event
-	for _, child := range c.children {
-		if child.Focused() {
-			return child.CharInput(char)
-		}
-	}
-	return false
+	return c.HandleEvent(UIEvent{Type: EventCharInput, Char: char})
 }
 
 // Focusable returns false (container itself is not focusable)

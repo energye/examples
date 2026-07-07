@@ -59,6 +59,11 @@ func (cb *Checkbox) Focusable() bool {
 	return true
 }
 
+// HandleEvent handles a generic UI event.
+func (cb *Checkbox) HandleEvent(event UIEvent) bool {
+	return dispatchLegacyEvent(cb, event)
+}
+
 // Render renders the checkbox
 func (cb *Checkbox) Render(renderer *pipeline.Renderer) {
 	if !cb.visible {
@@ -79,7 +84,7 @@ func (cb *Checkbox) Render(renderer *pipeline.Renderer) {
 	borderColor := color.BorderBase
 	checkColor := color.Primary
 
-	if cb.focused {
+	if cb.HasState(StateFocus) {
 		borderColor = color.Primary
 	}
 
@@ -246,6 +251,11 @@ func (s *Switch) Focusable() bool {
 	return true
 }
 
+// HandleEvent handles a generic UI event.
+func (s *Switch) HandleEvent(event UIEvent) bool {
+	return dispatchLegacyEvent(s, event)
+}
+
 // Render renders the switch
 func (s *Switch) Render(renderer *pipeline.Renderer) {
 	if !s.visible {
@@ -288,7 +298,7 @@ func (s *Switch) Render(renderer *pipeline.Renderer) {
 	renderer.FillCircle(sliderCenter, sliderRadius, math.NewColor(1, 1, 1, 1))
 
 	// Slider shadow
-	if s.focused {
+	if s.HasState(StateFocus) {
 		shadowColor := color.Primary.WithAlpha(0.3)
 		renderer.DrawShadow(
 			math.NewRect(sliderX-sliderRadius, sliderY-sliderRadius, sliderRadius*2, sliderRadius*2),

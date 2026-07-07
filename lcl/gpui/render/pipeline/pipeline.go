@@ -204,6 +204,24 @@ func (bm *BatchManager) AddQuadWithUniforms(shaderProg *shader.ShaderProgram, te
 
 // AddQuadWithState adds a quad to a batch with per-batch render state.
 func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [4]Vertex) {
+	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip)
+
+	// Add vertices
+	offset := uint32(len(batch.Verts))
+	batch.Verts = append(batch.Verts, verts[0], verts[1], verts[2], verts[3])
+	batch.Indices = append(batch.Indices, offset, offset+1, offset+2, offset, offset+2, offset+3)
+}
+
+// AddTriangleWithState adds a triangle to a batch with per-batch render state.
+func (bm *BatchManager) AddTriangleWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [3]Vertex) {
+	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip)
+
+	offset := uint32(len(batch.Verts))
+	batch.Verts = append(batch.Verts, verts[0], verts[1], verts[2])
+	batch.Indices = append(batch.Indices, offset, offset+1, offset+2)
+}
+
+func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect) *Batch {
 	uniformKey := uniforms.key()
 	clipKey := rectKey(clip)
 
@@ -229,11 +247,7 @@ func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, textu
 			clipKey:    clipKey,
 		}
 	}
-
-	// Add vertices
-	offset := uint32(len(bm.current.Verts))
-	bm.current.Verts = append(bm.current.Verts, verts[0], verts[1], verts[2], verts[3])
-	bm.current.Indices = append(bm.current.Indices, offset, offset+1, offset+2, offset, offset+2, offset+3)
+	return bm.current
 }
 
 // Flush flushes all batches
@@ -406,7 +420,30 @@ func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uni
 	r.batch.AddQuadWithState(shaderProg, texture, uniforms, clip, verts)
 }
 
+func (r *Renderer) addTriangle(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [3]Vertex) {
+	verts = r.transformTriangle(verts)
+
+	var clip *math.Rect
+	if len(r.clipStack) > 0 {
+		top := r.clipStack[len(r.clipStack)-1]
+		clip = &top
+	}
+	r.batch.AddTriangleWithState(shaderProg, texture, uniforms, clip, verts)
+}
+
 func (r *Renderer) transformQuad(verts [4]Vertex) [4]Vertex {
+	if len(r.transformStack) == 0 {
+		return verts
+	}
+
+	mat := r.transformStack[len(r.transformStack)-1]
+	for i := range verts {
+		verts[i].X, verts[i].Y = transformPoint(mat, verts[i].X, verts[i].Y)
+	}
+	return verts
+}
+
+func (r *Renderer) transformTriangle(verts [3]Vertex) [3]Vertex {
 	if len(r.transformStack) == 0 {
 		return verts
 	}
