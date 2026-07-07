@@ -33,6 +33,9 @@ func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgr
 	if sm == nil {
 		return nil, fmt.Errorf("shader manager is nil")
 	}
+	if sm.shaders == nil {
+		sm.shaders = make(map[string]*ShaderProgram)
+	}
 
 	// Compile vertex shader
 	vs := compileShader(vertSrc, gl.GL_VERTEX_SHADER)
@@ -78,6 +81,12 @@ func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgr
 		uniformLocs: make(map[string]int32),
 	}
 
+	if existing := sm.shaders[name]; existing != nil && existing.ID != 0 {
+		gl.DeleteProgram(existing.ID)
+		if sm.current == existing {
+			sm.current = nil
+		}
+	}
 	sm.shaders[name] = shader
 	return shader, nil
 }

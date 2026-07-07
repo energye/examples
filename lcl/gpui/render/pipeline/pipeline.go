@@ -144,8 +144,13 @@ func applyClip(rect *math.Rect, viewportHeight float32) {
 	gl.Scissor(x, y, w, h)
 }
 
-// VertexSize is the size of a vertex in bytes
-const VertexSize = 8 * 4 // 8 floats * 4 bytes
+const (
+	// VertexSize is the size of a vertex in bytes.
+	VertexSize = 8 * 4 // 8 floats * 4 bytes
+
+	defaultMaxVertices = 65536
+	defaultMaxIndices  = 65536
+)
 
 // QuadVertices creates 4 vertices for a textured/solid rectangle
 func QuadVertices(rect math.Rect, uv math.Rect, color math.Color) [4]Vertex {
@@ -188,6 +193,9 @@ func NewBatchManager(maxVerts, maxIndices int) *BatchManager {
 
 // Reset resets the batch manager
 func (bm *BatchManager) Reset() {
+	if bm == nil {
+		return
+	}
 	bm.batches = bm.batches[:0]
 	bm.current = nil
 }
@@ -204,10 +212,13 @@ func (bm *BatchManager) AddQuadWithUniforms(shaderProg *shader.ShaderProgram, te
 
 // AddQuadWithState adds a quad to a batch with per-batch render state.
 func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [4]Vertex) {
-	if shaderProg == nil {
+	if bm == nil || shaderProg == nil {
 		return
 	}
 	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip, 4, 6)
+	if batch == nil {
+		return
+	}
 
 	// Add vertices
 	offset := uint32(len(batch.Verts))
@@ -217,10 +228,13 @@ func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, textu
 
 // AddTriangleWithState adds a triangle to a batch with per-batch render state.
 func (bm *BatchManager) AddTriangleWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [3]Vertex) {
-	if shaderProg == nil {
+	if bm == nil || shaderProg == nil {
 		return
 	}
 	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip, 3, 3)
+	if batch == nil {
+		return
+	}
 
 	offset := uint32(len(batch.Verts))
 	batch.Verts = append(batch.Verts, verts[0], verts[1], verts[2])
@@ -228,6 +242,9 @@ func (bm *BatchManager) AddTriangleWithState(shaderProg *shader.ShaderProgram, t
 }
 
 func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, addVerts, addIndices int) *Batch {
+	if bm == nil || shaderProg == nil {
+		return nil
+	}
 	uniformKey := uniforms.key()
 	clipKey := rectKey(clip)
 
@@ -254,7 +271,9 @@ func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture ui
 		}
 	}
 	if bm.current != nil && bm.current.wouldOverflow(addVerts, addIndices, bm.maxVertices, bm.maxIndices) {
-		bm.batches = append(bm.batches, bm.current)
+		if len(bm.current.Verts) > 0 {
+			bm.batches = append(bm.batches, bm.current)
+		}
 		bm.current = &Batch{
 			Shader:     shaderProg,
 			Texture:    texture,
@@ -282,6 +301,9 @@ func (b *Batch) wouldOverflow(addVerts, addIndices, maxVerts, maxIndices int) bo
 
 // Flush flushes all batches
 func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32, viewportHeight float32) {
+	if bm == nil || shaderMgr == nil || projMatrix == nil || vao == 0 || vbo == 0 || ebo == 0 {
+		return
+	}
 	// Add current batch
 	if bm.current != nil && len(bm.current.Verts) > 0 {
 		bm.batches = append(bm.batches, bm.current)
@@ -349,18 +371,38 @@ type Renderer struct {
 	height         float32
 	clipStack      []math.Rect
 	transformStack []math.Mat4
+	initialized    bool
 }
 
 // NewRenderer creates a new renderer
 func NewRenderer() *Renderer {
 	return &Renderer{
 		shaderMgr: shader.NewShaderManager(),
-		batch:     NewBatchManager(65536, 65536),
+		batch:     NewBatchManager(defaultMaxVertices, defaultMaxIndices),
 	}
 }
 
 // Init initializes the renderer
 func (r *Renderer) Init() error {
+	if r == nil {
+		return fmt.Errorf("renderer is nil")
+	}
+	if r.initialized {
+		return nil
+	}
+	if r.shaderMgr == nil {
+		r.shaderMgr = shader.NewShaderManager()
+	}
+	if r.batch == nil {
+		r.batch = NewBatchManager(defaultMaxVertices, defaultMaxIndices)
+	}
+	cleanupOnError := true
+	defer func() {
+		if cleanupOnError {
+			r.Delete()
+		}
+	}()
+
 	// Load GL functions
 	if err := gl.Init(); err != nil {
 		return err
@@ -373,12 +415,12 @@ func (r *Renderer) Init() error {
 	// Create VBO
 	gl.GenBuffers(1, &r.vbo)
 	gl.BindBuffer(gl.GL_ARRAY_BUFFER, r.vbo)
-	gl.BufferData(gl.GL_ARRAY_BUFFER, 65536*VertexSize, 0, gl.GL_DYNAMIC_DRAW)
+	gl.BufferData(gl.GL_ARRAY_BUFFER, defaultMaxVertices*VertexSize, 0, gl.GL_DYNAMIC_DRAW)
 
 	// Create EBO
 	gl.GenBuffers(1, &r.ebo)
 	gl.BindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, r.ebo)
-	gl.BufferData(gl.GL_ELEMENT_ARRAY_BUFFER, 65536*4, 0, gl.GL_DYNAMIC_DRAW)
+	gl.BufferData(gl.GL_ELEMENT_ARRAY_BUFFER, defaultMaxIndices*4, 0, gl.GL_DYNAMIC_DRAW)
 
 	// Setup vertex attributes
 	stride := int32(VertexSize)
@@ -405,11 +447,16 @@ func (r *Renderer) Init() error {
 	gl.BlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
 	gl.Disable(gl.GL_DEPTH_TEST)
 
+	r.initialized = true
+	cleanupOnError = false
 	return nil
 }
 
 // BeginFrame begins a new frame
 func (r *Renderer) BeginFrame(width, height float32) {
+	if r == nil || r.batch == nil {
+		return
+	}
 	r.width = width
 	r.height = height
 
@@ -431,15 +478,24 @@ func (r *Renderer) BeginFrame(width, height float32) {
 
 // EndFrame ends the frame
 func (r *Renderer) EndFrame() {
+	if r == nil {
+		return
+	}
 	r.Flush()
 }
 
 // Flush flushes all pending draw calls
 func (r *Renderer) Flush() {
+	if r == nil || r.batch == nil {
+		return
+	}
 	r.batch.Flush(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix, r.height)
 }
 
 func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [4]Vertex) {
+	if r == nil || r.batch == nil {
+		return
+	}
 	verts = r.transformQuad(verts)
 
 	var clip *math.Rect
@@ -451,6 +507,9 @@ func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uni
 }
 
 func (r *Renderer) addTriangle(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [3]Vertex) {
+	if r == nil || r.batch == nil {
+		return
+	}
 	verts = r.transformTriangle(verts)
 
 	var clip *math.Rect
@@ -462,6 +521,9 @@ func (r *Renderer) addTriangle(shaderProg *shader.ShaderProgram, texture uint32,
 }
 
 func (r *Renderer) transformQuad(verts [4]Vertex) [4]Vertex {
+	if r == nil {
+		return verts
+	}
 	if len(r.transformStack) == 0 {
 		return verts
 	}
@@ -474,6 +536,9 @@ func (r *Renderer) transformQuad(verts [4]Vertex) [4]Vertex {
 }
 
 func (r *Renderer) transformTriangle(verts [3]Vertex) [3]Vertex {
+	if r == nil {
+		return verts
+	}
 	if len(r.transformStack) == 0 {
 		return verts
 	}
@@ -534,6 +599,9 @@ func max4(a, b, c, d float32) float32 {
 
 // PushTransform appends a transform to the current transform stack.
 func (r *Renderer) PushTransform(mat math.Mat4) {
+	if r == nil {
+		return
+	}
 	r.Flush()
 	if len(r.transformStack) > 0 {
 		mat = r.transformStack[len(r.transformStack)-1].Multiply(mat)
@@ -543,6 +611,9 @@ func (r *Renderer) PushTransform(mat math.Mat4) {
 
 // PopTransform restores the previous transform.
 func (r *Renderer) PopTransform() {
+	if r == nil {
+		return
+	}
 	if len(r.transformStack) == 0 {
 		return
 	}
@@ -552,6 +623,9 @@ func (r *Renderer) PopTransform() {
 
 // CurrentTransform returns the active transform matrix.
 func (r *Renderer) CurrentTransform() (math.Mat4, bool) {
+	if r == nil {
+		return math.Mat4{}, false
+	}
 	if len(r.transformStack) == 0 {
 		return math.Mat4{}, false
 	}
@@ -560,6 +634,9 @@ func (r *Renderer) CurrentTransform() (math.Mat4, bool) {
 
 // PushClip intersects the provided clip rectangle with the current clip state.
 func (r *Renderer) PushClip(rect math.Rect) {
+	if r == nil {
+		return
+	}
 	if len(r.transformStack) > 0 {
 		rect = transformRect(r.transformStack[len(r.transformStack)-1], rect)
 	}
@@ -572,6 +649,9 @@ func (r *Renderer) PushClip(rect math.Rect) {
 
 // PopClip restores the previous clip rectangle.
 func (r *Renderer) PopClip() {
+	if r == nil {
+		return
+	}
 	if len(r.clipStack) == 0 {
 		return
 	}
@@ -581,6 +661,9 @@ func (r *Renderer) PopClip() {
 
 // CurrentClip returns the active clip rectangle.
 func (r *Renderer) CurrentClip() (math.Rect, bool) {
+	if r == nil {
+		return math.Rect{}, false
+	}
 	if len(r.clipStack) == 0 {
 		return math.Rect{}, false
 	}
@@ -589,6 +672,9 @@ func (r *Renderer) CurrentClip() (math.Rect, bool) {
 
 // FillRect draws a filled rectangle
 func (r *Renderer) FillRect(rect math.Rect, color math.Color) {
+	if r == nil || r.shaderMgr == nil {
+		return
+	}
 	shaderProg := r.shaderMgr.GetShader("color")
 	uv := math.NewRect(0, 0, 1, 1)
 	verts := QuadVertices(rect, uv, color)
@@ -597,6 +683,9 @@ func (r *Renderer) FillRect(rect math.Rect, color math.Color) {
 
 // FillRoundRect draws a filled rounded rectangle
 func (r *Renderer) FillRoundRect(rect math.Rect, radius float32, color math.Color) {
+	if r == nil || r.shaderMgr == nil {
+		return
+	}
 	shaderProg := r.shaderMgr.GetShader("rounded_rect")
 	uniforms := UniformSet{
 		"uRadius": FloatUniform(radius),
@@ -610,6 +699,9 @@ func (r *Renderer) FillRoundRect(rect math.Rect, radius float32, color math.Colo
 
 // DrawTexture draws a textured rectangle
 func (r *Renderer) DrawTexture(texture uint32, src, dst math.Rect, color math.Color) {
+	if r == nil || r.shaderMgr == nil {
+		return
+	}
 	shaderProg := r.shaderMgr.GetShader("texture")
 	verts := QuadVertices(dst, src, color)
 	r.addQuad(shaderProg, texture, nil, verts)
@@ -617,7 +709,12 @@ func (r *Renderer) DrawTexture(texture uint32, src, dst math.Rect, color math.Co
 
 // Delete deletes all resources
 func (r *Renderer) Delete() {
-	r.shaderMgr.Delete()
+	if r == nil {
+		return
+	}
+	if r.shaderMgr != nil {
+		r.shaderMgr.Delete()
+	}
 
 	if r.vao != 0 {
 		gl.DeleteVertexArrays(1, &r.vao)
@@ -631,14 +728,26 @@ func (r *Renderer) Delete() {
 		gl.DeleteBuffers(1, &r.ebo)
 		r.ebo = 0
 	}
+	if r.batch != nil {
+		r.batch.Reset()
+	}
+	r.clipStack = r.clipStack[:0]
+	r.transformStack = r.transformStack[:0]
+	r.initialized = false
 }
 
 // ShaderManager returns the shader manager
 func (r *Renderer) ShaderManager() *shader.ShaderManager {
+	if r == nil {
+		return nil
+	}
 	return r.shaderMgr
 }
 
 // ProjectionMatrix returns the projection matrix
 func (r *Renderer) ProjectionMatrix() *[16]float32 {
+	if r == nil {
+		return nil
+	}
 	return &r.projMatrix
 }

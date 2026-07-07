@@ -4,6 +4,7 @@ package gl
 import (
 	"fmt"
 	"runtime"
+	"sync"
 
 	"github.com/ebitengine/purego"
 )
@@ -140,8 +141,17 @@ var (
 	ActiveTexture  func(texture uint32)
 )
 
+var initMu sync.Mutex
+var initialized bool
+
 // Init loads OpenGL functions using purego
 func Init() error {
+	initMu.Lock()
+	defer initMu.Unlock()
+	if initialized {
+		return nil
+	}
+
 	lib, err := openGLLibrary()
 	if err != nil {
 		return fmt.Errorf("gl: %v", err)
@@ -231,6 +241,7 @@ func Init() error {
 	bind(&TexParameteri, "glTexParameteri")
 	bind(&ActiveTexture, "glActiveTexture")
 
+	initialized = true
 	return nil
 }
 

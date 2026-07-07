@@ -286,16 +286,25 @@ func (f *Font) uploadToGPU() error {
 
 // Texture returns the font texture
 func (f *Font) Texture() uint32 {
+	if f == nil {
+		return 0
+	}
 	return f.texture
 }
 
 // LineHeight returns the line height
 func (f *Font) LineHeight() float32 {
+	if f == nil {
+		return 0
+	}
 	return f.lineHeight
 }
 
 // Ascent returns the ascent
 func (f *Font) Ascent() float32 {
+	if f == nil {
+		return 0
+	}
 	return f.ascent
 }
 
@@ -421,6 +430,9 @@ func rgbaPatch(img *image.RGBA, rect image.Rectangle) []byte {
 
 // TextWidth calculates the width of a string
 func (f *Font) TextWidth(text string) float32 {
+	if f == nil {
+		return 0
+	}
 	var w float32
 	for _, r := range text {
 		if g, ok := f.GetGlyph(r); ok {
@@ -432,11 +444,17 @@ func (f *Font) TextWidth(text string) float32 {
 
 // MeasureText returns width and height of text
 func (f *Font) MeasureText(text string) (float32, float32) {
+	if f == nil {
+		return 0, 0
+	}
 	return f.TextWidth(text), f.lineHeight
 }
 
 // Delete deletes the font texture
 func (f *Font) Delete() {
+	if f == nil {
+		return
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -452,6 +470,9 @@ func (f *Font) Delete() {
 
 // Glyphs returns the glyph map (for debugging)
 func (f *Font) Glyphs() map[rune]*GlyphInfo {
+	if f == nil {
+		return nil
+	}
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	return f.glyphs
