@@ -47,7 +47,14 @@ func NewWindow(config WindowConfig) *Window {
 
 // setupWindow sets up the window (called by Run)
 func (w *Window) setupWindow(sender lcl.IObject) {
-	w.form = sender.(lcl.IEngForm)
+	if w == nil {
+		return
+	}
+	form, ok := sender.(lcl.IEngForm)
+	if !ok || form == nil {
+		return
+	}
+	w.form = form
 	w.form.SetCaption(w.config.Title)
 	w.form.SetWidth(w.config.Width)
 	w.form.SetHeight(w.config.Height)
@@ -78,6 +85,9 @@ func (w *Window) setupWindow(sender lcl.IObject) {
 
 // onShow is called when the form is shown
 func (w *Window) onShow(sender lcl.IObject) {
+	if w == nil || w.glControl == nil {
+		return
+	}
 	// Load font first
 	w.loadFont()
 
@@ -86,6 +96,9 @@ func (w *Window) onShow(sender lcl.IObject) {
 
 // loadFont loads a suitable font
 func (w *Window) loadFont() {
+	if w == nil {
+		return
+	}
 	paths := []string{
 		// High quality CJK fonts
 		"/usr/share/fonts/opentype/noto/NotoSansCJK-Light.ttc",
@@ -113,6 +126,9 @@ func (w *Window) loadFont() {
 
 // onPaint handles paint events
 func (w *Window) onPaint(sender lcl.IObject) {
+	if w == nil || w.glControl == nil || w.form == nil {
+		return
+	}
 	if !w.ensureInitialized() {
 		return
 	}
@@ -131,6 +147,9 @@ func (w *Window) onPaint(sender lcl.IObject) {
 }
 
 func (w *Window) ensureInitialized() bool {
+	if w == nil {
+		return false
+	}
 	if w.initialized {
 		return true
 	}
@@ -174,7 +193,7 @@ func (w *Window) ensureInitialized() bool {
 
 // onMouseDown handles mouse down events
 func (w *Window) onMouseDown(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
-	if w.engine == nil {
+	if w == nil || w.engine == nil {
 		return
 	}
 	btn := 0
@@ -187,7 +206,7 @@ func (w *Window) onMouseDown(sender lcl.IObject, button types.TMouseButton, shif
 
 // onMouseUp handles mouse up events
 func (w *Window) onMouseUp(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
-	if w.engine == nil {
+	if w == nil || w.engine == nil {
 		return
 	}
 	btn := 0
@@ -200,7 +219,7 @@ func (w *Window) onMouseUp(sender lcl.IObject, button types.TMouseButton, shift 
 
 // onMouseMove handles mouse move events
 func (w *Window) onMouseMove(sender lcl.IObject, shift types.TShiftState, x, y int32) {
-	if w.engine == nil {
+	if w == nil || w.engine == nil {
 		return
 	}
 	w.engine.HandleMouseMove(float32(x), float32(y))
@@ -208,7 +227,7 @@ func (w *Window) onMouseMove(sender lcl.IObject, shift types.TShiftState, x, y i
 
 // onKeyDown handles key down events
 func (w *Window) onKeyDown(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-	if w.engine == nil {
+	if w == nil || w.engine == nil || key == nil {
 		return
 	}
 	mods := 0
@@ -223,7 +242,7 @@ func (w *Window) onKeyDown(sender lcl.IObject, key *uint16, shift types.TShiftSt
 
 // onKeyPress handles key press events
 func (w *Window) onKeyPress(sender lcl.IObject, key *uint16) {
-	if w.engine == nil {
+	if w == nil || w.engine == nil || key == nil {
 		return
 	}
 	w.engine.HandleCharInput(rune(*key))
@@ -231,44 +250,63 @@ func (w *Window) onKeyPress(sender lcl.IObject, key *uint16) {
 
 // onResize handles resize events
 func (w *Window) onResize(sender lcl.IObject) {
-	if w.engine != nil && w.initialized {
+	if w != nil && w.engine != nil && w.initialized && w.form != nil {
 		w.engine.SetSize(float32(w.form.Width()), float32(w.form.Height()))
 	}
 }
 
 // onClose handles close events
 func (w *Window) onClose(sender lcl.IObject, action *types.TCloseAction) {
-	if w.engine != nil {
-		w.glControl.MakeCurrent(true)
+	if w != nil && w.engine != nil && w.glControl != nil && w.glControl.MakeCurrent(true) {
 		w.engine.Delete()
 		w.glControl.ReleaseContext()
-		w.engine = nil
 	}
-	*action = types.CaFree
+	if w != nil {
+		w.engine = nil
+		w.initialized = false
+	}
+	if action != nil {
+		*action = types.CaFree
+	}
 }
 
 // Engine returns the UI engine
 func (w *Window) Engine() *Engine {
+	if w == nil {
+		return nil
+	}
 	return w.engine
 }
 
 // Form returns the form
 func (w *Window) Form() lcl.IEngForm {
+	if w == nil {
+		return nil
+	}
 	return w.form
 }
 
 // GLControl returns the OpenGL control
 func (w *Window) GLControl() lcl.IOpenGLControl {
+	if w == nil {
+		return nil
+	}
 	return w.glControl
 }
 
 // OnShow sets the show handler
 func (w *Window) OnShow(handler func()) {
+	if w == nil {
+		return
+	}
 	w.onShowHandler = handler
 }
 
 // Run runs the application
 func (w *Window) Run() {
+	if w == nil {
+		return
+	}
 	// Create a form wrapper
 	formWrapper := &windowForm{window: w}
 	lcl.Init()

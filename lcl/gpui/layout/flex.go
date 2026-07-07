@@ -132,6 +132,9 @@ func layoutRowWrap(node *Node, size math.Vec2) []Result {
 func measureChildren(node *Node, available math.Vec2) []childLayoutInput {
 	children := make([]childLayoutInput, len(node.Children))
 	for i, child := range node.Children {
+		if child == nil {
+			continue
+		}
 		childSize := resolveNodeSize(child, available)
 		children[i] = childLayoutInput{
 			node:      child,

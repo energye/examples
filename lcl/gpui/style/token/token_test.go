@@ -1,6 +1,9 @@
 package token
 
-import "testing"
+import (
+	"sync"
+	"testing"
+)
 
 func TestDeriveLightTokens(t *testing.T) {
 	tokens := DefaultLight()
@@ -44,4 +47,26 @@ func TestCurrentTokens(t *testing.T) {
 	if Current().Mode != ModeLight {
 		t.Fatal("current mode should be light")
 	}
+}
+
+func TestCurrentTokensConcurrentAccess(t *testing.T) {
+	Reset()
+	var wg sync.WaitGroup
+	for i := 0; i < 32; i++ {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			_ = Current()
+		}()
+		go func(i int) {
+			defer wg.Done()
+			if i%2 == 0 {
+				SetCurrent(DefaultLight())
+			} else {
+				SetCurrent(DefaultDark())
+			}
+		}(i)
+	}
+	wg.Wait()
+	Reset()
 }

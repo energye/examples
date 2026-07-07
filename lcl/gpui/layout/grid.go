@@ -22,6 +22,9 @@ func layoutGrid(node *Node, size math.Vec2) ([]Result, math.Vec2) {
 
 	results := make([]Result, len(node.Children))
 	for i, child := range node.Children {
+		if child == nil {
+			continue
+		}
 		col := i % len(cols)
 		row := i / len(cols)
 		x := node.Style.Padding.Left + trackOffset(cols, colGap, col)
@@ -50,6 +53,9 @@ func resolveGridRows(node *Node, content math.Vec2, rowCount int, rowGap float32
 	rows := make([]float32, rowCount)
 	cols := len(node.Style.GridColumns)
 	for i, child := range node.Children {
+		if child == nil {
+			continue
+		}
 		row := i / cols
 		measured := resolveNodeSize(child, content)
 		if measured.Y > rows[row] {

@@ -60,6 +60,9 @@ func NewManager() *Manager {
 
 // Add inserts or replaces a layer.
 func (m *Manager) Add(layer Layer) {
+	if m == nil {
+		return
+	}
 	m.Remove(layer.ID)
 	m.layers = append(m.layers, layer)
 	m.sort()
@@ -67,6 +70,9 @@ func (m *Manager) Add(layer Layer) {
 
 // Remove removes a layer by ID.
 func (m *Manager) Remove(id string) {
+	if m == nil {
+		return
+	}
 	for i, layer := range m.layers {
 		if layer.ID == id {
 			m.layers = append(m.layers[:i], m.layers[i+1:]...)
@@ -77,6 +83,9 @@ func (m *Manager) Remove(id string) {
 
 // Layers returns layers sorted by z-index ascending.
 func (m *Manager) Layers() []Layer {
+	if m == nil {
+		return nil
+	}
 	out := make([]Layer, len(m.layers))
 	copy(out, m.layers)
 	return out
@@ -84,6 +93,9 @@ func (m *Manager) Layers() []Layer {
 
 // TopmostAt returns the highest layer containing a point.
 func (m *Manager) TopmostAt(x, y float32) (Layer, bool) {
+	if m == nil {
+		return Layer{}, false
+	}
 	for i := len(m.layers) - 1; i >= 0; i-- {
 		if m.layers[i].Bounds.Contains(x, y) {
 			return m.layers[i], true
@@ -94,6 +106,9 @@ func (m *Manager) TopmostAt(x, y float32) (Layer, bool) {
 
 // DismissTargets returns close-on-outside layers above the clicked point.
 func (m *Manager) DismissTargets(x, y float32) []Layer {
+	if m == nil {
+		return nil
+	}
 	targets := make([]Layer, 0)
 	for i := len(m.layers) - 1; i >= 0; i-- {
 		layer := m.layers[i]
@@ -108,6 +123,9 @@ func (m *Manager) DismissTargets(x, y float32) []Layer {
 }
 
 func (m *Manager) sort() {
+	if m == nil {
+		return
+	}
 	sort.SliceStable(m.layers, func(i, j int) bool {
 		if m.layers[i].ZIndex == m.layers[j].ZIndex {
 			return m.layers[i].ID < m.layers[j].ID

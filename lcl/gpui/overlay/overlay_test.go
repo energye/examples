@@ -65,3 +65,18 @@ func TestPlacementCenter(t *testing.T) {
 		t.Fatalf("center rect = (%v,%v), want (80,90)", rect.X, rect.Y)
 	}
 }
+
+func TestNilManagerIsSafe(t *testing.T) {
+	var manager *Manager
+	manager.Add(Layer{ID: "ignored"})
+	manager.Remove("ignored")
+	if layers := manager.Layers(); layers != nil {
+		t.Fatalf("nil manager layers = %#v, want nil", layers)
+	}
+	if _, ok := manager.TopmostAt(0, 0); ok {
+		t.Fatal("nil manager should not hit a layer")
+	}
+	if targets := manager.DismissTargets(0, 0); targets != nil {
+		t.Fatalf("nil manager dismiss targets = %#v, want nil", targets)
+	}
+}

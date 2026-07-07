@@ -48,8 +48,17 @@ func NewEngine() *Engine {
 
 // Initialize initializes the engine (must be called with GL context current)
 func (e *Engine) Initialize() error {
+	if e == nil {
+		return fmt.Errorf("engine is nil")
+	}
 	if e.initialized {
 		return nil
+	}
+	if e.renderer == nil {
+		e.renderer = pipeline.NewRenderer()
+	}
+	if e.root == nil {
+		e.root = widget.NewContainer()
 	}
 
 	if err := e.renderer.Init(); err != nil {
@@ -62,6 +71,9 @@ func (e *Engine) Initialize() error {
 
 // Render renders a single frame (must be called with GL context current)
 func (e *Engine) Render() {
+	if e == nil {
+		return
+	}
 	if !e.initialized {
 		return
 	}
@@ -76,7 +88,9 @@ func (e *Engine) Render() {
 	e.renderer.BeginFrame(e.width, e.height)
 
 	// Render root container
-	e.root.Render(e.renderer)
+	if e.root != nil {
+		e.root.Render(e.renderer)
+	}
 
 	// Call custom render handler
 	if e.onRender != nil {
@@ -89,77 +103,122 @@ func (e *Engine) Render() {
 
 // SetSize sets the window size
 func (e *Engine) SetSize(width, height float32) {
+	if e == nil {
+		return
+	}
 	e.width = width
 	e.height = height
 }
 
 // Size returns the window size
 func (e *Engine) Size() (float32, float32) {
+	if e == nil {
+		return 0, 0
+	}
 	return e.width, e.height
 }
 
 // SetFont sets the default font
 func (e *Engine) SetFont(f *font.Font) {
+	if e == nil {
+		return
+	}
 	e.font = f
 }
 
 // Font returns the default font
 func (e *Engine) Font() *font.Font {
+	if e == nil {
+		return nil
+	}
 	return e.font
 }
 
 // Root returns the root container
 func (e *Engine) Root() *widget.Container {
+	if e == nil {
+		return nil
+	}
 	return e.root
 }
 
 // Renderer returns the renderer
 func (e *Engine) Renderer() *pipeline.Renderer {
+	if e == nil {
+		return nil
+	}
 	return e.renderer
 }
 
 // CursorTime returns the cursor animation time
 func (e *Engine) CursorTime() float64 {
+	if e == nil {
+		return 0
+	}
 	return e.cursorTime
 }
 
 // SetRenderHandler sets a custom render handler
 func (e *Engine) SetRenderHandler(handler RenderHandler) {
+	if e == nil {
+		return
+	}
 	e.onRender = handler
 }
 
 // AddWidget adds a widget to the root container
 func (e *Engine) AddWidget(w widget.Widget) {
+	if e == nil || e.root == nil || w == nil {
+		return
+	}
 	e.root.Add(w)
 }
 
 // FocusManager returns the focus manager
 func (e *Engine) FocusManager() *widget.FocusManager {
+	if e == nil || e.root == nil {
+		return nil
+	}
 	return e.root.FocusManager()
 }
 
 // SetFocus sets focus to a widget
 func (e *Engine) SetFocus(w widget.Widget) {
+	if e == nil || e.root == nil {
+		return
+	}
 	e.root.FocusManager().SetFocus(w)
 }
 
 // HandleMouseDown handles mouse down event
 func (e *Engine) HandleMouseDown(x, y float32, button int) {
+	if e == nil || e.root == nil {
+		return
+	}
 	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseDown, X: x, Y: y, Button: button})
 }
 
 // HandleMouseUp handles mouse up event
 func (e *Engine) HandleMouseUp(x, y float32, button int) {
+	if e == nil || e.root == nil {
+		return
+	}
 	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseUp, X: x, Y: y, Button: button})
 }
 
 // HandleMouseMove handles mouse move event
 func (e *Engine) HandleMouseMove(x, y float32) {
+	if e == nil || e.root == nil {
+		return
+	}
 	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseMove, X: x, Y: y})
 }
 
 // HandleKeyDown handles key down event
 func (e *Engine) HandleKeyDown(key int, mods int) {
+	if e == nil || e.root == nil {
+		return
+	}
 	focusMgr := e.root.FocusManager()
 
 	// Handle Tab for focus cycling
@@ -183,6 +242,9 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 
 // HandleCharInput handles character input event
 func (e *Engine) HandleCharInput(char rune) {
+	if e == nil || e.root == nil {
+		return
+	}
 	focusMgr := e.root.FocusManager()
 	if focused := focusMgr.Current(); focused != nil {
 		event := widget.UIEvent{Type: widget.EventCharInput, Char: char}
@@ -194,6 +256,9 @@ func (e *Engine) HandleCharInput(char rune) {
 
 // Delete deletes all resources
 func (e *Engine) Delete() {
+	if e == nil {
+		return
+	}
 	if e.renderer != nil {
 		e.renderer.Delete()
 	}
@@ -204,6 +269,9 @@ func (e *Engine) Delete() {
 
 // IsInitialized returns whether the engine is initialized
 func (e *Engine) IsInitialized() bool {
+	if e == nil {
+		return false
+	}
 	return e.initialized
 }
 

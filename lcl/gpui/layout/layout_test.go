@@ -166,6 +166,28 @@ func TestOverflowViewportAndContentSize(t *testing.T) {
 	}
 }
 
+func TestLayoutSkipsNilChildren(t *testing.T) {
+	root := &Node{
+		Style: Style{
+			Width:       Px(100),
+			Height:      Px(50),
+			Direction:   Row,
+			GridColumns: []Value{Px(50), Px(50)},
+		},
+		Children: []*Node{
+			nil,
+			fixedNode(20, 20),
+		},
+	}
+
+	result := Compute(root, math.NewVec2(100, 50))
+	if len(result.Children) != 2 {
+		t.Fatalf("children = %d, want 2", len(result.Children))
+	}
+	assertRect(t, result.Children[0].Bounds, 0, 0, 0, 0)
+	assertRect(t, result.Children[1].Bounds, 50, 0, 50, 20)
+}
+
 func fixedNode(w, h float32) *Node {
 	return &Node{Style: Style{Width: Px(w), Height: Px(h)}}
 }

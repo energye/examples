@@ -46,11 +46,17 @@ var currentApp *Application
 
 // OnSetup sets the UI setup function
 func (a *Application) OnSetup(fn func(*Engine)) {
+	if a == nil {
+		return
+	}
 	a.onSetup = fn
 }
 
 // Run runs the application
 func (a *Application) Run() {
+	if a == nil {
+		return
+	}
 	lcl.Init()
 	lcl.RunApp(&appForm{})
 }
@@ -67,7 +73,11 @@ func (f *appForm) FormCreate(sender lcl.IObject) {
 		return
 	}
 
-	app.form = sender.(lcl.IEngForm)
+	form, ok := sender.(lcl.IEngForm)
+	if !ok || form == nil {
+		return
+	}
+	app.form = form
 	app.form.SetCaption(app.title)
 	app.form.SetWidth(app.width)
 	app.form.SetHeight(app.height)
@@ -140,7 +150,7 @@ func (a *Application) setupEvents() {
 
 	// Keyboard
 	a.form.SetOnKeyDown(func(sender lcl.IObject, key *uint16, shift types.TShiftState) {
-		if a.engine != nil {
+		if a.engine != nil && key != nil {
 			mods := 0
 			if shift.In(types.SsShift) {
 				mods |= 1
@@ -153,7 +163,7 @@ func (a *Application) setupEvents() {
 	})
 
 	a.form.SetOnKeyPress(func(sender lcl.IObject, key *uint16) {
-		if a.engine != nil {
+		if a.engine != nil && key != nil {
 			a.engine.HandleCharInput(rune(*key))
 		}
 	})
@@ -173,6 +183,9 @@ func (a *Application) setupEvents() {
 }
 
 func (a *Application) ensureInitialized() bool {
+	if a == nil {
+		return false
+	}
 	if a.initialized {
 		return true
 	}
@@ -213,6 +226,9 @@ func (a *Application) ensureInitialized() bool {
 }
 
 func (a *Application) startRenderLoop() {
+	if a == nil {
+		return
+	}
 	if a.ticker != nil {
 		return
 	}
@@ -229,19 +245,24 @@ func (a *Application) startRenderLoop() {
 }
 
 func (a *Application) stop() {
+	if a == nil {
+		return
+	}
 	if a.ticker != nil {
 		a.ticker.Stop()
+		a.ticker = nil
 	}
-	if a.engine != nil {
-		a.glControl.MakeCurrent(true)
+	if a.engine != nil && a.glControl != nil && a.glControl.MakeCurrent(true) {
 		a.engine.Delete()
 		a.glControl.ReleaseContext()
-		a.engine = nil
 	}
+	a.engine = nil
+	a.initialized = false
+	a.ready = false
 }
 
 func (a *Application) saveSnapshotIfRequested() {
-	if a.snapshotSaved || a.engine == nil {
+	if a == nil || a.snapshotSaved || a.engine == nil || a.engine.Renderer() == nil {
 		return
 	}
 	path := os.Getenv("GPUI_GPU_SNAPSHOT")
