@@ -204,7 +204,10 @@ func (bm *BatchManager) AddQuadWithUniforms(shaderProg *shader.ShaderProgram, te
 
 // AddQuadWithState adds a quad to a batch with per-batch render state.
 func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [4]Vertex) {
-	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip)
+	if shaderProg == nil {
+		return
+	}
+	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip, 4, 6)
 
 	// Add vertices
 	offset := uint32(len(batch.Verts))
@@ -214,14 +217,17 @@ func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, textu
 
 // AddTriangleWithState adds a triangle to a batch with per-batch render state.
 func (bm *BatchManager) AddTriangleWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [3]Vertex) {
-	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip)
+	if shaderProg == nil {
+		return
+	}
+	batch := bm.ensureBatch(shaderProg, texture, uniforms, clip, 3, 3)
 
 	offset := uint32(len(batch.Verts))
 	batch.Verts = append(batch.Verts, verts[0], verts[1], verts[2])
 	batch.Indices = append(batch.Indices, offset, offset+1, offset+2)
 }
 
-func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect) *Batch {
+func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, addVerts, addIndices int) *Batch {
 	uniformKey := uniforms.key()
 	clipKey := rectKey(clip)
 
@@ -247,7 +253,31 @@ func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture ui
 			clipKey:    clipKey,
 		}
 	}
+	if bm.current != nil && bm.current.wouldOverflow(addVerts, addIndices, bm.maxVertices, bm.maxIndices) {
+		bm.batches = append(bm.batches, bm.current)
+		bm.current = &Batch{
+			Shader:     shaderProg,
+			Texture:    texture,
+			Uniforms:   uniforms.clone(),
+			uniformKey: uniformKey,
+			Clip:       cloneRect(clip),
+			clipKey:    clipKey,
+		}
+	}
 	return bm.current
+}
+
+func (b *Batch) wouldOverflow(addVerts, addIndices, maxVerts, maxIndices int) bool {
+	if b == nil {
+		return false
+	}
+	if maxVerts > 0 && len(b.Verts)+addVerts > maxVerts {
+		return true
+	}
+	if maxIndices > 0 && len(b.Indices)+addIndices > maxIndices {
+		return true
+	}
+	return false
 }
 
 // Flush flushes all batches
@@ -266,7 +296,7 @@ func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderMana
 	gl.BindVertexArray(vao)
 
 	for _, batch := range bm.batches {
-		if len(batch.Verts) == 0 {
+		if batch.Shader == nil || len(batch.Verts) == 0 || len(batch.Indices) == 0 {
 			continue
 		}
 

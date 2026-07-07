@@ -78,6 +78,12 @@ func TestParseSVGPathArc(t *testing.T) {
 	}
 }
 
+func TestParseSVGPathRejectsIncompleteCommand(t *testing.T) {
+	if _, err := ParseSVGPath("M 10"); err == nil {
+		t.Fatal("expected incomplete move command to return an error")
+	}
+}
+
 func TestNewSVGIconCompoundPath(t *testing.T) {
 	icon, err := NewSVGIcon("M0 0 H100 V100 H0 Z M25 25 H75 V75 H25 Z", coremath.NewRect(0, 0, 100, 100), FillRuleEvenOdd)
 	if err != nil {

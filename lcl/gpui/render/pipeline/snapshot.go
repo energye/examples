@@ -12,6 +12,9 @@ import (
 
 // CaptureRGBA reads the current framebuffer into a top-left-origin RGBA image.
 func (r *Renderer) CaptureRGBA() *image.RGBA {
+	if r == nil {
+		return image.NewRGBA(image.Rect(0, 0, 1, 1))
+	}
 	width := int(r.width)
 	height := int(r.height)
 	if width <= 0 || height <= 0 {
@@ -34,8 +37,11 @@ func (r *Renderer) CaptureRGBA() *image.RGBA {
 // SavePNG writes the current framebuffer to a PNG file.
 func (r *Renderer) SavePNG(path string) error {
 	img := r.CaptureRGBA()
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
+	dir := filepath.Dir(path)
+	if dir != "." {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
 	}
 	f, err := os.Create(path)
 	if err != nil {

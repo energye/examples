@@ -301,26 +301,35 @@ func (f *Font) Ascent() float32 {
 
 // GetGlyph returns glyph info for a rune
 func (f *Font) GetGlyph(r rune) (*GlyphInfo, bool) {
-	f.mu.RLock()
-	defer f.mu.RUnlock()
+	if f == nil {
+		return nil, false
+	}
 
+	f.mu.RLock()
 	g, ok := f.glyphs[r]
+	f.mu.RUnlock()
 	if !ok {
 		// Try to add glyph on demand
-		f.mu.RUnlock()
 		f.addGlyph(r)
 		f.mu.RLock()
 		g, ok = f.glyphs[r]
+		f.mu.RUnlock()
 	}
 
 	if !ok {
+		f.mu.RLock()
 		g, ok = f.glyphs[' ']
+		f.mu.RUnlock()
 	}
 	return g, ok
 }
 
 // addGlyph adds a glyph on demand
 func (f *Font) addGlyph(r rune) {
+	if f == nil {
+		return
+	}
+
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -329,7 +338,7 @@ func (f *Font) addGlyph(r rune) {
 		return
 	}
 
-	if f.nextSlot >= f.maxSlots() {
+	if f.face == nil || f.nextSlot >= f.maxSlots() {
 		return
 	}
 
@@ -390,6 +399,9 @@ func (f *Font) uploadRect(rect image.Rectangle) {
 }
 
 func rgbaPatch(img *image.RGBA, rect image.Rectangle) []byte {
+	if img == nil {
+		return nil
+	}
 	rect = rect.Intersect(img.Bounds())
 	if rect.Empty() {
 		return nil

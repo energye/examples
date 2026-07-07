@@ -30,6 +30,10 @@ func NewShaderManager() *ShaderManager {
 
 // LoadShader loads and compiles a shader program
 func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgram, error) {
+	if sm == nil {
+		return nil, fmt.Errorf("shader manager is nil")
+	}
+
 	// Compile vertex shader
 	vs := compileShader(vertSrc, gl.GL_VERTEX_SHADER)
 	if vs == 0 {
@@ -80,11 +84,17 @@ func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgr
 
 // GetShader returns a shader by name
 func (sm *ShaderManager) GetShader(name string) *ShaderProgram {
+	if sm == nil {
+		return nil
+	}
 	return sm.shaders[name]
 }
 
 // UseShader activates a shader program
 func (sm *ShaderManager) UseShader(shader *ShaderProgram) {
+	if sm == nil || shader == nil || shader.ID == 0 {
+		return
+	}
 	if sm.current != shader {
 		gl.UseProgram(shader.ID)
 		sm.current = shader
@@ -93,12 +103,15 @@ func (sm *ShaderManager) UseShader(shader *ShaderProgram) {
 
 // CurrentShader returns the currently active shader
 func (sm *ShaderManager) CurrentShader() *ShaderProgram {
+	if sm == nil {
+		return nil
+	}
 	return sm.current
 }
 
 // GetUniformLocation returns the cached uniform location
 func (sm *ShaderManager) GetUniformLocation(name string) int32 {
-	if sm.current == nil {
+	if sm == nil || sm.current == nil {
 		return -1
 	}
 
@@ -145,6 +158,9 @@ func (sm *ShaderManager) SetInt(name string, value int32) {
 
 // SetMat4 sets a mat4 uniform
 func (sm *ShaderManager) SetMat4(name string, mat *[16]float32) {
+	if mat == nil {
+		return
+	}
 	loc := sm.GetUniformLocation(name)
 	if loc >= 0 {
 		gl.UniformMatrix4fv(loc, 1, false, &mat[0])
@@ -153,8 +169,13 @@ func (sm *ShaderManager) SetMat4(name string, mat *[16]float32) {
 
 // Delete deletes all shaders
 func (sm *ShaderManager) Delete() {
+	if sm == nil {
+		return
+	}
 	for _, shader := range sm.shaders {
-		gl.DeleteProgram(shader.ID)
+		if shader != nil && shader.ID != 0 {
+			gl.DeleteProgram(shader.ID)
+		}
 	}
 	sm.shaders = make(map[string]*ShaderProgram)
 	sm.current = nil
@@ -162,6 +183,9 @@ func (sm *ShaderManager) Delete() {
 
 // compileShader compiles a shader
 func compileShader(source string, shaderType uint32) uint32 {
+	if source == "" {
+		return 0
+	}
 	shader := gl.CreateShader(shaderType)
 	cs := cStringPtr(source)
 	gl.ShaderSource(shader, 1, &cs, nil)
@@ -183,10 +207,16 @@ func compileShader(source string, shaderType uint32) uint32 {
 }
 
 func strPtr(s string) *byte {
+	if s == "" {
+		return nil
+	}
 	return &([]byte(s))[0]
 }
 
 func cStringPtr(s string) uintptr {
+	if s == "" {
+		return 0
+	}
 	return uintptr(unsafe.Pointer(&([]byte(s))[0]))
 }
 

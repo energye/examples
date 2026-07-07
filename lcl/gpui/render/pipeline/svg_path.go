@@ -29,6 +29,7 @@ func ParseSVGPath(data string) (*Path, error) {
 	i := 0
 
 	for i < len(tokens) {
+		loopStart := i
 		if isCommandToken(tokens[i]) {
 			cmd = tokens[i][0]
 			i++
@@ -200,6 +201,10 @@ func ParseSVGPath(data string) (*Path, error) {
 
 		default:
 			return nil, fmt.Errorf("svg path: unsupported command %q", cmd)
+		}
+
+		if i == loopStart {
+			return nil, fmt.Errorf("svg path: expected values for command %q", cmd)
 		}
 	}
 

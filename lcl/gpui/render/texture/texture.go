@@ -22,6 +22,9 @@ func NewFromImage(img image.Image) *Texture {
 	}
 
 	rgba := toRGBA(img)
+	if rgba == nil {
+		return nil
+	}
 	bounds := rgba.Bounds()
 
 	var id uint32
@@ -53,6 +56,9 @@ func (t *Texture) Update(img image.Image) {
 	}
 
 	rgba := toRGBA(img)
+	if rgba == nil {
+		return
+	}
 	bounds := rgba.Bounds()
 
 	gl.BindTexture(gl.GL_TEXTURE_2D, t.ID)
@@ -83,11 +89,20 @@ func (t *Texture) Delete() {
 }
 
 func toRGBA(img image.Image) *image.RGBA {
+	if img == nil {
+		return nil
+	}
 	if rgba, ok := img.(*image.RGBA); ok {
+		if rgba.Bounds().Empty() {
+			return nil
+		}
 		return rgba
 	}
 
 	bounds := img.Bounds()
+	if bounds.Empty() {
+		return nil
+	}
 	rgba := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
 	draw.Draw(rgba, rgba.Bounds(), img, bounds.Min, draw.Src)
 	return rgba

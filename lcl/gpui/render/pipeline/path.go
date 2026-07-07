@@ -120,6 +120,10 @@ func (r *Renderer) FillPathEvenOdd(path *Path, color math.Color) {
 
 	r.Flush()
 	gl.Enable(gl.GL_STENCIL_TEST)
+	defer func() {
+		gl.ColorMask(true, true, true, true)
+		gl.Disable(gl.GL_STENCIL_TEST)
+	}()
 	gl.ClearStencil(0)
 	gl.Clear(gl.GL_STENCIL_BUFFER_BIT)
 	gl.ColorMask(false, false, false, false)
@@ -136,8 +140,6 @@ func (r *Renderer) FillPathEvenOdd(path *Path, color math.Color) {
 	gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_KEEP)
 	r.FillRect(bounds, color)
 	r.Flush()
-
-	gl.Disable(gl.GL_STENCIL_TEST)
 }
 
 // FillPathNonZero fills compound paths using the non-zero winding rule via the stencil buffer.
@@ -149,6 +151,10 @@ func (r *Renderer) FillPathNonZero(path *Path, color math.Color) {
 
 	r.Flush()
 	gl.Enable(gl.GL_STENCIL_TEST)
+	defer func() {
+		gl.ColorMask(true, true, true, true)
+		gl.Disable(gl.GL_STENCIL_TEST)
+	}()
 	gl.ClearStencil(0)
 	gl.Clear(gl.GL_STENCIL_BUFFER_BIT)
 	gl.ColorMask(false, false, false, false)
@@ -169,8 +175,6 @@ func (r *Renderer) FillPathNonZero(path *Path, color math.Color) {
 	gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_KEEP)
 	r.FillRect(bounds, color)
 	r.Flush()
-
-	gl.Disable(gl.GL_STENCIL_TEST)
 }
 
 func (r *Renderer) fillTriangleFan(points []math.Vec2, color math.Color) {
