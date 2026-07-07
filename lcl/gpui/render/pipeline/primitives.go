@@ -211,12 +211,28 @@ func (r *Renderer) DrawShadow(rect math.Rect, offset math.Vec2, blur float32, co
 
 // FillLinearGradient fills a rectangle with a linear gradient
 func (r *Renderer) FillLinearGradient(rect math.Rect, start, end math.Vec2, startColor, endColor math.Color) {
+	r.fillLinearGradient(rect, 0, false, start, end, startColor, endColor)
+}
+
+// FillRoundLinearGradient fills a rounded rectangle with a linear gradient.
+func (r *Renderer) FillRoundLinearGradient(rect math.Rect, radius float32, start, end math.Vec2, startColor, endColor math.Color) {
+	r.fillLinearGradient(rect, radius, true, start, end, startColor, endColor)
+}
+
+func (r *Renderer) fillLinearGradient(rect math.Rect, radius float32, useRadius bool, start, end math.Vec2, startColor, endColor math.Color) {
 	shaderProg := r.shaderMgr.GetShader("gradient")
+	useRadiusValue := float32(0)
+	if useRadius {
+		useRadiusValue = 1
+	}
 	uniforms := UniformSet{
 		"uColorStart": Vec4Uniform(startColor.R, startColor.G, startColor.B, startColor.A),
 		"uColorEnd":   Vec4Uniform(endColor.R, endColor.G, endColor.B, endColor.A),
 		"uStart":      Vec2Uniform(start.X, start.Y),
 		"uEnd":        Vec2Uniform(end.X, end.Y),
+		"uSize":       Vec2Uniform(rect.W, rect.H),
+		"uRadius":     FloatUniform(radius),
+		"uUseRadius":  FloatUniform(useRadiusValue),
 	}
 
 	// Draw quad

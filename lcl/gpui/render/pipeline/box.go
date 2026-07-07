@@ -44,7 +44,11 @@ func (r *Renderer) DrawBox(rect math.Rect, style BoxStyle) {
 
 	if !style.SkipBackground {
 		if style.UseGradient {
-			r.FillLinearGradient(rect, style.Gradient.Start, style.Gradient.End, style.Gradient.StartColor, style.Gradient.EndColor)
+			if style.Radius > 0 {
+				r.FillRoundLinearGradient(rect, style.Radius, style.Gradient.Start, style.Gradient.End, style.Gradient.StartColor, style.Gradient.EndColor)
+			} else {
+				r.FillLinearGradient(rect, style.Gradient.Start, style.Gradient.End, style.Gradient.StartColor, style.Gradient.EndColor)
+			}
 		} else if style.Radius > 0 {
 			r.FillRoundRect(rect, style.Radius, style.Background)
 		} else {

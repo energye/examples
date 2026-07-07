@@ -347,17 +347,30 @@ uniform vec4 uColorStart;
 uniform vec4 uColorEnd;
 uniform vec2 uStart;
 uniform vec2 uEnd;
+uniform vec2 uSize;
+uniform float uRadius;
+uniform float uUseRadius;
 
 void main() {
     // Calculate projection of current position onto gradient line
     vec2 gradDir = uEnd - uStart;
-    float gradLen = length(gradDir);
+    float gradLen = max(length(gradDir), 0.001);
     vec2 gradNorm = gradDir / gradLen;
     float t = dot(vPos - uStart, gradNorm) / gradLen;
     t = clamp(t, 0.0, 1.0);
 
     // Interpolate colors
     vec4 color = mix(uColorStart, uColorEnd, t);
+    if (uUseRadius > 0.5) {
+        vec2 pos = vUV * uSize;
+        vec2 center = uSize * 0.5;
+        vec2 q = abs(pos - center) - (center - vec2(uRadius));
+        float d = length(max(q, 0.0)) - uRadius;
+        float pixelLength = length(vec2(dFdx(d), dFdy(d)));
+        float aa = max(pixelLength * 1.5, 0.001);
+        float alpha = 1.0 - smoothstep(-aa, aa, d);
+        color.a *= alpha;
+    }
     gl_FragColor = color;
 }
 ` + "\x00",
