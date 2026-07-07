@@ -1,0 +1,372 @@
+// Package shader provides shader management with caching
+package shader
+
+import (
+	"fmt"
+	"unsafe"
+
+	"github.com/energye/examples/lcl/gpui/core/gl"
+)
+
+// ShaderProgram represents a compiled shader program
+type ShaderProgram struct {
+	ID          uint32
+	Name        string
+	uniformLocs map[string]int32
+}
+
+// ShaderManager manages shader programs with uniform caching
+type ShaderManager struct {
+	shaders map[string]*ShaderProgram
+	current *ShaderProgram
+}
+
+// NewShaderManager creates a new shader manager
+func NewShaderManager() *ShaderManager {
+	return &ShaderManager{
+		shaders: make(map[string]*ShaderProgram),
+	}
+}
+
+// LoadShader loads and compiles a shader program
+func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgram, error) {
+	// Compile vertex shader
+	vs := compileShader(vertSrc, gl.GL_VERTEX_SHADER)
+	if vs == 0 {
+		return nil, fmt.Errorf("failed to compile vertex shader: %s", name)
+	}
+	defer gl.DeleteShader(vs)
+
+	// Compile fragment shader
+	fs := compileShader(fragSrc, gl.GL_FRAGMENT_SHADER)
+	if fs == 0 {
+		return nil, fmt.Errorf("failed to compile fragment shader: %s", name)
+	}
+	defer gl.DeleteShader(fs)
+
+	// Link program
+	prog := gl.CreateProgram()
+	gl.AttachShader(prog, vs)
+	gl.AttachShader(prog, fs)
+
+	// Bind attribute locations
+	gl.BindAttribLocation(prog, 0, strPtr("aPos\x00"))
+	gl.BindAttribLocation(prog, 1, strPtr("aUV\x00"))
+	gl.BindAttribLocation(prog, 2, strPtr("aColor\x00"))
+
+	gl.LinkProgram(prog)
+
+	// Check link status
+	var status int32
+	gl.GetProgramiv(prog, gl.GL_LINK_STATUS, &status)
+	if status == gl.GL_FALSE {
+		var logLen int32
+		gl.GetProgramiv(prog, gl.GL_INFO_LOG_LENGTH, &logLen)
+		log := make([]byte, logLen+1)
+		gl.GetProgramInfoLog(prog, logLen, nil, &log[0])
+		gl.DeleteProgram(prog)
+		return nil, fmt.Errorf("failed to link shader %s: %s", name, string(log))
+	}
+
+	shader := &ShaderProgram{
+		ID:          prog,
+		Name:        name,
+		uniformLocs: make(map[string]int32),
+	}
+
+	sm.shaders[name] = shader
+	return shader, nil
+}
+
+// GetShader returns a shader by name
+func (sm *ShaderManager) GetShader(name string) *ShaderProgram {
+	return sm.shaders[name]
+}
+
+// UseShader activates a shader program
+func (sm *ShaderManager) UseShader(shader *ShaderProgram) {
+	if sm.current != shader {
+		gl.UseProgram(shader.ID)
+		sm.current = shader
+	}
+}
+
+// CurrentShader returns the currently active shader
+func (sm *ShaderManager) CurrentShader() *ShaderProgram {
+	return sm.current
+}
+
+// GetUniformLocation returns the cached uniform location
+func (sm *ShaderManager) GetUniformLocation(name string) int32 {
+	if sm.current == nil {
+		return -1
+	}
+
+	if loc, ok := sm.current.uniformLocs[name]; ok {
+		return loc
+	}
+
+	loc := gl.GetUniformLocation(sm.current.ID, strPtr(name+"\x00"))
+	sm.current.uniformLocs[name] = loc
+	return loc
+}
+
+// SetFloat sets a float uniform
+func (sm *ShaderManager) SetFloat(name string, value float32) {
+	loc := sm.GetUniformLocation(name)
+	if loc >= 0 {
+		gl.Uniform1f(loc, value)
+	}
+}
+
+// SetVec2 sets a vec2 uniform
+func (sm *ShaderManager) SetVec2(name string, x, y float32) {
+	loc := sm.GetUniformLocation(name)
+	if loc >= 0 {
+		gl.Uniform2f(loc, x, y)
+	}
+}
+
+// SetVec4 sets a vec4 uniform
+func (sm *ShaderManager) SetVec4(name string, x, y, z, w float32) {
+	loc := sm.GetUniformLocation(name)
+	if loc >= 0 {
+		gl.Uniform4f(loc, x, y, z, w)
+	}
+}
+
+// SetInt sets an int uniform
+func (sm *ShaderManager) SetInt(name string, value int32) {
+	loc := sm.GetUniformLocation(name)
+	if loc >= 0 {
+		gl.Uniform1i(loc, value)
+	}
+}
+
+// SetMat4 sets a mat4 uniform
+func (sm *ShaderManager) SetMat4(name string, mat *[16]float32) {
+	loc := sm.GetUniformLocation(name)
+	if loc >= 0 {
+		gl.UniformMatrix4fv(loc, 1, false, &mat[0])
+	}
+}
+
+// Delete deletes all shaders
+func (sm *ShaderManager) Delete() {
+	for _, shader := range sm.shaders {
+		gl.DeleteProgram(shader.ID)
+	}
+	sm.shaders = make(map[string]*ShaderProgram)
+	sm.current = nil
+}
+
+// compileShader compiles a shader
+func compileShader(source string, shaderType uint32) uint32 {
+	shader := gl.CreateShader(shaderType)
+	cs := cStringPtr(source)
+	gl.ShaderSource(shader, 1, &cs, nil)
+	gl.CompileShader(shader)
+
+	var status int32
+	gl.GetShaderiv(shader, gl.GL_COMPILE_STATUS, &status)
+	if status == gl.GL_FALSE {
+		var logLen int32
+		gl.GetShaderiv(shader, gl.GL_INFO_LOG_LENGTH, &logLen)
+		log := make([]byte, logLen+1)
+		gl.GetShaderInfoLog(shader, logLen, nil, &log[0])
+		fmt.Printf("shader compile error: %s\n", string(log))
+		gl.DeleteShader(shader)
+		return 0
+	}
+
+	return shader
+}
+
+func strPtr(s string) *byte {
+	return &([]byte(s))[0]
+}
+
+func cStringPtr(s string) uintptr {
+	return uintptr(unsafe.Pointer(&([]byte(s))[0]))
+}
+
+// BuiltinShaderSources contains the source code for built-in shaders
+var BuiltinShaderSources = map[string][2]string{
+	"color": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader
+		`#version 120
+varying vec4 vColor;
+
+void main() {
+    gl_FragColor = vColor;
+}
+` + "\x00",
+	},
+	"texture": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+uniform sampler2D uTex;
+
+void main() {
+    gl_FragColor = texture2D(uTex, vUV) * vColor;
+}
+` + "\x00",
+	},
+	"rounded_rect": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader (anti-aliased)
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+uniform vec2 uSize;
+uniform float uRadius;
+
+void main() {
+    vec2 pos = vUV * uSize;
+    vec2 center = uSize * 0.5;
+    vec2 q = abs(pos - center) - (center - vec2(uRadius));
+    float d = length(max(q, 0.0)) - uRadius;
+
+    // Anti-aliased edge
+    float pixelLength = length(vec2(dFdx(d), dFdy(d)));
+    float aa = 1.5;
+    float alpha = 1.0 - smoothstep(-aa * pixelLength, aa * pixelLength, d);
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+}
+` + "\x00",
+	},
+	"gradient": {
+		// Vertex shader for gradients
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    vPos = aPos;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for linear gradient
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform vec4 uColorStart;
+uniform vec4 uColorEnd;
+uniform vec2 uStart;
+uniform vec2 uEnd;
+
+void main() {
+    // Calculate projection of current position onto gradient line
+    vec2 gradDir = uEnd - uStart;
+    float gradLen = length(gradDir);
+    vec2 gradNorm = gradDir / gradLen;
+    float t = dot(vPos - uStart, gradNorm) / gradLen;
+    t = clamp(t, 0.0, 1.0);
+
+    // Interpolate colors
+    vec4 color = mix(uColorStart, uColorEnd, t);
+    gl_FragColor = color;
+}
+` + "\x00",
+	},
+	"circle": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    vPos = aPos;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for circle with anti-aliasing
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform vec2 uCenter;
+uniform float uRadius;
+uniform float uWidth; // 0 = filled, >0 = stroke
+
+void main() {
+    float dist = length(vPos - uCenter);
+
+    if (uWidth <= 0.0) {
+        // Filled circle
+        float aa = 1.5;
+        float alpha = 1.0 - smoothstep(uRadius - aa, uRadius, dist);
+        gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+    } else {
+        // Stroke circle
+        float innerRadius = uRadius - uWidth;
+        float aa = 1.5;
+        float alphaOuter = 1.0 - smoothstep(uRadius - aa, uRadius, dist);
+        float alphaInner = smoothstep(innerRadius - aa, innerRadius, dist);
+        float alpha = alphaOuter * alphaInner;
+        gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+    }
+}
+` + "\x00",
+	},
+}
