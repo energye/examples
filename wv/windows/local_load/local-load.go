@@ -37,6 +37,7 @@ func main() {
 		//DefaultURL: "fs://energy/index-drag.html",
 		//DefaultURL: "https://www.baidu.com/",
 		//DefaultURL:         "https://2x.antdv.com/components/overview/",
+		//DefaultURL:         "https://tv.cctv.com/lm/qqzwyybsb/zb/index.shtml",
 		WindowTransparent:  true,
 		WebviewTransparent: true,
 		//BackgroundColor:    colors.NewARGB(0, 0, 0, 0),

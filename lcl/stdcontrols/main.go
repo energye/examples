@@ -288,8 +288,8 @@ func (mainForm *TMainForm) FormCreate(sender lcl.IObject) {
 	})
 
 	top += mdtp.Height() + 10
-	dtp.SetDateTime(api.UnixToDateTime(time.Now().Add(time.Hour * 48).Unix()))
-	dtp.SetDate(api.UnixToDateTime(time.Now().AddDate(1, 0, 0).Unix()))
+	dtp.SetDateTime(types.TDateTime(api.UnixToDateTime(time.Now().Add(time.Hour * 48).Unix())))
+	dtp.SetDate(types.TDateTime(api.UnixToDateTime(time.Now().AddDate(1, 0, 0).Unix())))
 
 	fmt.Println("time: ", mdtp.Date(), dtp.DateTime())
 
