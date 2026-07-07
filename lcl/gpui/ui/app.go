@@ -12,17 +12,18 @@ import (
 
 // Application is a high-level application wrapper
 type Application struct {
-	form        lcl.IEngForm
-	glControl   lcl.IOpenGLControl
-	engine      *Engine
-	ready       bool
-	initialized bool
-	onSetup     func(*Engine)
-	lastTime    time.Time
-	ticker      *time.Ticker
-	title       string
-	width       int32
-	height      int32
+	form          lcl.IEngForm
+	glControl     lcl.IOpenGLControl
+	engine        *Engine
+	ready         bool
+	initialized   bool
+	onSetup       func(*Engine)
+	lastTime      time.Time
+	ticker        *time.Ticker
+	title         string
+	width         int32
+	height        int32
+	snapshotSaved bool
 }
 
 // NewApplication creates a new application
@@ -102,6 +103,7 @@ func (a *Application) setupEvents() {
 		defer a.glControl.ReleaseContext()
 		a.engine.SetSize(float32(a.form.Width()), float32(a.form.Height()))
 		a.engine.Render()
+		a.saveSnapshotIfRequested()
 		a.glControl.SwapBuffers()
 	})
 
@@ -236,6 +238,23 @@ func (a *Application) stop() {
 		a.glControl.ReleaseContext()
 		a.engine = nil
 	}
+}
+
+func (a *Application) saveSnapshotIfRequested() {
+	if a.snapshotSaved || a.engine == nil {
+		return
+	}
+	path := os.Getenv("GPUI_GPU_SNAPSHOT")
+	if path == "" {
+		return
+	}
+	if err := a.engine.Renderer().SavePNG(path); err != nil {
+		fmt.Println("GPU snapshot error:", err)
+		return
+	}
+	a.snapshotSaved = true
+	fmt.Println("✓ GPU snapshot:", path)
+	a.form.Close()
 }
 
 // loadSystemFont loads a system font

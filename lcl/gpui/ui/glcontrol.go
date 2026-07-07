@@ -21,7 +21,7 @@ func configureOpenGLControl(ctrl lcl.IOpenGLControl) {
 	}
 	ctrl.SetAlphaBits(8)
 	ctrl.SetDepthBits(0)
-	ctrl.SetStencilBits(0)
+	ctrl.SetStencilBits(8)
 	ctrl.SetMultiSampling(0)
 	ctrl.SetAutoResizeViewport(false)
 }

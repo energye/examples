@@ -4,6 +4,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/energye/lcl/api/libname"
 
 	"github.com/energye/examples/lcl/gpui/style/color"
@@ -13,6 +15,9 @@ import (
 
 func main() {
 	libname.UseWS = "gtk3"
+	if ws := os.Getenv("GPUI_WS"); ws != "" {
+		libname.UseWS = ws
+	}
 	// Create application (handles ALL framework initialization)
 	app := ui.NewApplication("Ant Design Style GPU UI", 800, 600)
 

@@ -1,6 +1,10 @@
 package pipeline
 
-import "testing"
+import (
+	"testing"
+
+	coremath "github.com/energye/examples/lcl/gpui/core/math"
+)
 
 func TestParseSVGPathLinesAndRelativeCommands(t *testing.T) {
 	path, err := ParseSVGPath("M10 10 h20 v10 l-20 0 z")
@@ -38,6 +42,76 @@ func TestParseSVGPathFlattensCubic(t *testing.T) {
 	last := points[len(points)-1]
 	if last.X != 20 || last.Y != 10 {
 		t.Fatalf("last point = (%v,%v), want (20,10)", last.X, last.Y)
+	}
+}
+
+func TestParseSVGPathSmoothCubicAndQuadratic(t *testing.T) {
+	path, err := ParseSVGPath("M0 0 C10 0 10 10 20 10 S30 20 40 10 Q50 0 60 10 T80 10")
+	if err != nil {
+		t.Fatalf("ParseSVGPath returned error: %v", err)
+	}
+
+	points := pathPoints(path)
+	wantMin := 1 + curveSegments*4
+	if len(points) < wantMin {
+		t.Fatalf("expected at least %d points, got %d", wantMin, len(points))
+	}
+	last := points[len(points)-1]
+	if last.X != 80 || last.Y != 10 {
+		t.Fatalf("last point = (%v,%v), want (80,10)", last.X, last.Y)
+	}
+}
+
+func TestParseSVGPathArc(t *testing.T) {
+	path, err := ParseSVGPath("M10 10 A20 20 0 0 1 50 10")
+	if err != nil {
+		t.Fatalf("ParseSVGPath returned error: %v", err)
+	}
+
+	points := pathPoints(path)
+	if len(points) <= 2 {
+		t.Fatalf("expected arc to flatten into more than 2 points, got %d", len(points))
+	}
+	last := points[len(points)-1]
+	if last.X < 49.99 || last.X > 50.01 || last.Y < 9.99 || last.Y > 10.01 {
+		t.Fatalf("last point = (%v,%v), want approximately (50,10)", last.X, last.Y)
+	}
+}
+
+func TestNewSVGIconCompoundPath(t *testing.T) {
+	icon, err := NewSVGIcon("M0 0 H100 V100 H0 Z M25 25 H75 V75 H25 Z", coremath.NewRect(0, 0, 100, 100), FillRuleEvenOdd)
+	if err != nil {
+		t.Fatalf("NewSVGIcon returned error: %v", err)
+	}
+	if icon.FillRule != FillRuleEvenOdd {
+		t.Fatalf("fill rule = %v, want even-odd", icon.FillRule)
+	}
+	subpaths := pathSubpaths(icon.Path)
+	if len(subpaths) != 2 {
+		t.Fatalf("expected 2 subpaths, got %d", len(subpaths))
+	}
+}
+
+func TestPathWindingDirection(t *testing.T) {
+	ccw := NewPath()
+	ccw.MoveTo(0, 0)
+	ccw.LineTo(10, 0)
+	ccw.LineTo(10, 10)
+	ccw.LineTo(0, 10)
+	ccw.Close()
+
+	cw := NewPath()
+	cw.MoveTo(0, 0)
+	cw.LineTo(0, 10)
+	cw.LineTo(10, 10)
+	cw.LineTo(10, 0)
+	cw.Close()
+
+	if area := polygonArea(pathSubpaths(ccw)[0]); area <= 0 {
+		t.Fatalf("ccw area = %v, want positive", area)
+	}
+	if area := polygonArea(pathSubpaths(cw)[0]); area >= 0 {
+		t.Fatalf("cw area = %v, want negative", area)
 	}
 }
 

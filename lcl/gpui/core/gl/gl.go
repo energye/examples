@@ -24,6 +24,14 @@ const (
 	GL_CULL_FACE    = 0x0B44
 	GL_STENCIL_TEST = 0x0B90
 
+	GL_ALWAYS    = 0x0207
+	GL_EQUAL     = 0x0202
+	GL_NOTEQUAL  = 0x0205
+	GL_KEEP      = 0x1E00
+	GL_INVERT    = 0x150A
+	GL_INCR_WRAP = 0x8507
+	GL_DECR_WRAP = 0x8508
+
 	GL_TEXTURE_2D           = 0x0DE1
 	GL_RGBA                 = 0x1908
 	GL_UNSIGNED_BYTE        = 0x1401
@@ -64,39 +72,43 @@ const (
 // GL function pointers
 var (
 	// State management
-	Viewport   func(x, y, width, height int32)
-	ClearColor func(r, g, b, a float32)
-	Clear      func(mask uint32)
-	Enable     func(cap uint32)
-	Disable    func(cap uint32)
-	BlendFunc  func(sfactor, dfactor uint32)
-	Scissor    func(x, y, width, height int32)
-	GetError   func() uint32
+	Viewport     func(x, y, width, height int32)
+	ClearColor   func(r, g, b, a float32)
+	Clear        func(mask uint32)
+	Enable       func(cap uint32)
+	Disable      func(cap uint32)
+	BlendFunc    func(sfactor, dfactor uint32)
+	Scissor      func(x, y, width, height int32)
+	ColorMask    func(red, green, blue, alpha bool)
+	ClearStencil func(s int32)
+	StencilFunc  func(fn uint32, ref int32, mask uint32)
+	StencilOp    func(sfail, dpfail, dppass uint32)
+	GetError     func() uint32
 
 	// Shader functions
-	CreateShader             func(shaderType uint32) uint32
-	ShaderSource             func(shader, count uint32, str *uintptr, length *int32)
-	CompileShader            func(shader uint32)
-	GetShaderiv              func(shader, pname uint32, params *int32)
-	GetShaderInfoLog         func(shader uint32, bufSize int32, length *int32, infoLog *byte)
-	CreateProgram            func() uint32
-	AttachShader             func(program, shader uint32)
-	LinkProgram              func(program uint32)
-	GetProgramiv             func(program uint32, pname uint32, params *int32)
-	GetProgramInfoLog        func(program uint32, bufSize int32, length *int32, infoLog *byte)
-	UseProgram               func(program uint32)
-	DeleteShader             func(shader uint32)
-	DeleteProgram            func(program uint32)
+	CreateShader      func(shaderType uint32) uint32
+	ShaderSource      func(shader, count uint32, str *uintptr, length *int32)
+	CompileShader     func(shader uint32)
+	GetShaderiv       func(shader, pname uint32, params *int32)
+	GetShaderInfoLog  func(shader uint32, bufSize int32, length *int32, infoLog *byte)
+	CreateProgram     func() uint32
+	AttachShader      func(program, shader uint32)
+	LinkProgram       func(program uint32)
+	GetProgramiv      func(program uint32, pname uint32, params *int32)
+	GetProgramInfoLog func(program uint32, bufSize int32, length *int32, infoLog *byte)
+	UseProgram        func(program uint32)
+	DeleteShader      func(shader uint32)
+	DeleteProgram     func(program uint32)
 
 	// Uniform functions
-	GetUniformLocation  func(program uint32, name *byte) int32
-	Uniform1i           func(location int32, v0 int32)
-	Uniform1f           func(location int32, v0 float32)
-	Uniform2f           func(location int32, v0, v1 float32)
-	Uniform4f           func(location int32, v0, v1, v2, v3 float32)
-	UniformMatrix4fv    func(location int32, count int32, transpose bool, value *float32)
-	GetAttribLocation   func(program uint32, name *byte) int32
-	BindAttribLocation  func(program uint32, index uint32, name *byte)
+	GetUniformLocation       func(program uint32, name *byte) int32
+	Uniform1i                func(location int32, v0 int32)
+	Uniform1f                func(location int32, v0 float32)
+	Uniform2f                func(location int32, v0, v1 float32)
+	Uniform4f                func(location int32, v0, v1, v2, v3 float32)
+	UniformMatrix4fv         func(location int32, count int32, transpose bool, value *float32)
+	GetAttribLocation        func(program uint32, name *byte) int32
+	BindAttribLocation       func(program uint32, index uint32, name *byte)
 	EnableVertexAttribArray  func(index uint32)
 	DisableVertexAttribArray func(index uint32)
 	VertexAttribPointer      func(index uint32, size int32, xtype uint32, normalized bool, stride int32, pointer uintptr)
@@ -116,6 +128,7 @@ var (
 	// Draw functions
 	DrawArrays   func(mode uint32, first int32, count int32)
 	DrawElements func(mode uint32, count int32, xtype uint32, indices uintptr)
+	ReadPixels   func(x, y, width, height int32, format uint32, xtype uint32, pixels uintptr)
 
 	// Texture functions
 	GenTextures    func(n int32, textures *uint32)
@@ -146,6 +159,10 @@ func Init() error {
 	bind(&Disable, "glDisable")
 	bind(&BlendFunc, "glBlendFunc")
 	bind(&Scissor, "glScissor")
+	bind(&ColorMask, "glColorMask")
+	bind(&ClearStencil, "glClearStencil")
+	bind(&StencilFunc, "glStencilFunc")
+	bind(&StencilOp, "glStencilOp")
 	bind(&GetError, "glGetError")
 
 	// Shader functions (GL 2.0+)
@@ -203,6 +220,7 @@ func Init() error {
 	// Draw functions
 	bind(&DrawArrays, "glDrawArrays")
 	bind(&DrawElements, "glDrawElements")
+	bind(&ReadPixels, "glReadPixels")
 
 	// Texture functions
 	bind(&GenTextures, "glGenTextures")

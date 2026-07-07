@@ -1,6 +1,9 @@
 package pipeline
 
-import "github.com/energye/examples/lcl/gpui/core/math"
+import (
+	"github.com/energye/examples/lcl/gpui/core/gl"
+	"github.com/energye/examples/lcl/gpui/core/math"
+)
 
 // PathCommandKind identifies a vector path command.
 type PathCommandKind int
@@ -108,6 +111,68 @@ func (r *Renderer) FillPath(path *Path, color math.Color) {
 	}
 }
 
+// FillPathEvenOdd fills compound paths using the even-odd rule via the stencil buffer.
+func (r *Renderer) FillPathEvenOdd(path *Path, color math.Color) {
+	bounds, ok := pathBounds(path)
+	if !ok {
+		return
+	}
+
+	r.Flush()
+	gl.Enable(gl.GL_STENCIL_TEST)
+	gl.ClearStencil(0)
+	gl.Clear(gl.GL_STENCIL_BUFFER_BIT)
+	gl.ColorMask(false, false, false, false)
+	gl.StencilFunc(gl.GL_ALWAYS, 1, 0xFF)
+	gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_INVERT)
+
+	for _, points := range pathSubpaths(path) {
+		r.fillSubpathTriangles(points, color)
+	}
+	r.Flush()
+
+	gl.ColorMask(true, true, true, true)
+	gl.StencilFunc(gl.GL_EQUAL, 1, 0xFF)
+	gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_KEEP)
+	r.FillRect(bounds, color)
+	r.Flush()
+
+	gl.Disable(gl.GL_STENCIL_TEST)
+}
+
+// FillPathNonZero fills compound paths using the non-zero winding rule via the stencil buffer.
+func (r *Renderer) FillPathNonZero(path *Path, color math.Color) {
+	bounds, ok := pathBounds(path)
+	if !ok {
+		return
+	}
+
+	r.Flush()
+	gl.Enable(gl.GL_STENCIL_TEST)
+	gl.ClearStencil(0)
+	gl.Clear(gl.GL_STENCIL_BUFFER_BIT)
+	gl.ColorMask(false, false, false, false)
+	gl.StencilFunc(gl.GL_ALWAYS, 1, 0xFF)
+
+	for _, points := range pathSubpaths(path) {
+		if polygonArea(points) >= 0 {
+			gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_INCR_WRAP)
+		} else {
+			gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_DECR_WRAP)
+		}
+		r.fillSubpathTriangles(points, color)
+		r.Flush()
+	}
+
+	gl.ColorMask(true, true, true, true)
+	gl.StencilFunc(gl.GL_NOTEQUAL, 0, 0xFF)
+	gl.StencilOp(gl.GL_KEEP, gl.GL_KEEP, gl.GL_KEEP)
+	r.FillRect(bounds, color)
+	r.Flush()
+
+	gl.Disable(gl.GL_STENCIL_TEST)
+}
+
 func (r *Renderer) fillTriangleFan(points []math.Vec2, color math.Color) {
 	if len(points) < 3 {
 		return
@@ -120,6 +185,27 @@ func (r *Renderer) fillTriangleFan(points []math.Vec2, color math.Color) {
 			colorVertex(center, color),
 			colorVertex(points[i], color),
 			colorVertex(points[next], color),
+		}
+		r.addTriangle(shaderProg, 0, nil, verts)
+	}
+}
+
+func (r *Renderer) fillSubpathTriangles(points []math.Vec2, color math.Color) {
+	if len(points) < 3 {
+		return
+	}
+	triangles := triangulateSimplePolygon(points)
+	if len(triangles) == 0 {
+		r.fillTriangleFan(points, color)
+		return
+	}
+
+	shaderProg := r.shaderMgr.GetShader("color")
+	for _, tri := range triangles {
+		verts := [3]Vertex{
+			colorVertex(points[tri[0]], color),
+			colorVertex(points[tri[1]], color),
+			colorVertex(points[tri[2]], color),
 		}
 		r.addTriangle(shaderProg, 0, nil, verts)
 	}
@@ -152,6 +238,31 @@ func pathSubpaths(path *Path) [][]math.Vec2 {
 		subpaths = append(subpaths, current)
 	}
 	return subpaths
+}
+
+func pathBounds(path *Path) (math.Rect, bool) {
+	points := pathPoints(path)
+	if len(points) == 0 {
+		return math.Rect{}, false
+	}
+
+	minX, maxX := points[0].X, points[0].X
+	minY, maxY := points[0].Y, points[0].Y
+	for _, point := range points[1:] {
+		if point.X < minX {
+			minX = point.X
+		}
+		if point.X > maxX {
+			maxX = point.X
+		}
+		if point.Y < minY {
+			minY = point.Y
+		}
+		if point.Y > maxY {
+			maxY = point.Y
+		}
+	}
+	return math.NewRect(minX, minY, maxX-minX, maxY-minY), true
 }
 
 func triangulateSimplePolygon(points []math.Vec2) [][3]int {
