@@ -113,6 +113,9 @@ func (r *Renderer) FillPath(path *Path, color math.Color) {
 
 // FillPathEvenOdd fills compound paths using the even-odd rule via the stencil buffer.
 func (r *Renderer) FillPathEvenOdd(path *Path, color math.Color) {
+	if r == nil || !stencilGLReady() {
+		return
+	}
 	bounds, ok := pathBounds(path)
 	if !ok {
 		return
@@ -144,6 +147,9 @@ func (r *Renderer) FillPathEvenOdd(path *Path, color math.Color) {
 
 // FillPathNonZero fills compound paths using the non-zero winding rule via the stencil buffer.
 func (r *Renderer) FillPathNonZero(path *Path, color math.Color) {
+	if r == nil || !stencilGLReady() {
+		return
+	}
 	bounds, ok := pathBounds(path)
 	if !ok {
 		return
@@ -392,4 +398,14 @@ func colorVertex(pos math.Vec2, color math.Color) Vertex {
 		U: 0, V: 0,
 		R: color.R, G: color.G, B: color.B, A: color.A,
 	}
+}
+
+func stencilGLReady() bool {
+	return gl.Enable != nil &&
+		gl.Disable != nil &&
+		gl.ClearStencil != nil &&
+		gl.Clear != nil &&
+		gl.ColorMask != nil &&
+		gl.StencilFunc != nil &&
+		gl.StencilOp != nil
 }

@@ -20,6 +20,9 @@ func (r *Renderer) CaptureRGBA() *image.RGBA {
 	if width <= 0 || height <= 0 {
 		return image.NewRGBA(image.Rect(0, 0, 1, 1))
 	}
+	if gl.ReadPixels == nil {
+		return image.NewRGBA(image.Rect(0, 0, 1, 1))
+	}
 
 	raw := make([]byte, width*height*4)
 	gl.ReadPixels(0, 0, int32(width), int32(height), gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, uintptr(unsafe.Pointer(&raw[0])))

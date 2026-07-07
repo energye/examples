@@ -17,7 +17,7 @@ type Texture struct {
 
 // NewFromImage uploads an image as an RGBA texture.
 func NewFromImage(img image.Image) *Texture {
-	if img == nil {
+	if img == nil || !textureGLReady() {
 		return nil
 	}
 
@@ -29,6 +29,9 @@ func NewFromImage(img image.Image) *Texture {
 
 	var id uint32
 	gl.GenTextures(1, &id)
+	if id == 0 {
+		return nil
+	}
 	gl.BindTexture(gl.GL_TEXTURE_2D, id)
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
@@ -51,7 +54,7 @@ func NewFromImage(img image.Image) *Texture {
 
 // Update replaces the texture contents.
 func (t *Texture) Update(img image.Image) {
-	if t == nil || t.ID == 0 || img == nil {
+	if t == nil || t.ID == 0 || img == nil || !textureGLReady() {
 		return
 	}
 
@@ -79,7 +82,7 @@ func (t *Texture) Update(img image.Image) {
 
 // Delete releases the OpenGL texture.
 func (t *Texture) Delete() {
-	if t == nil || t.ID == 0 {
+	if t == nil || t.ID == 0 || gl.DeleteTextures == nil {
 		return
 	}
 	gl.DeleteTextures(1, &t.ID)
@@ -113,4 +116,11 @@ func unsafePtr(p []byte) uintptr {
 		return 0
 	}
 	return uintptr(unsafe.Pointer(&p[0]))
+}
+
+func textureGLReady() bool {
+	return gl.GenTextures != nil &&
+		gl.BindTexture != nil &&
+		gl.TexParameteri != nil &&
+		gl.TexImage2D != nil
 }

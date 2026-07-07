@@ -263,6 +263,12 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 
 // uploadToGPU uploads the atlas to GPU
 func (f *Font) uploadToGPU() error {
+	if f == nil || f.atlas == nil {
+		return fmt.Errorf("font atlas is not available")
+	}
+	if !fontTextureGLReady() {
+		return fmt.Errorf("font texture upload requires initialized OpenGL texture functions")
+	}
 	if f.texture != 0 {
 		gl.DeleteTextures(1, &f.texture)
 		f.texture = 0
@@ -270,6 +276,9 @@ func (f *Font) uploadToGPU() error {
 
 	var tex uint32
 	gl.GenTextures(1, &tex)
+	if tex == 0 {
+		return fmt.Errorf("font texture creation failed")
+	}
 	gl.BindTexture(gl.GL_TEXTURE_2D, tex)
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
@@ -379,7 +388,7 @@ func (f *Font) maxSlots() int {
 }
 
 func (f *Font) uploadRect(rect image.Rectangle) {
-	if f.texture == 0 || rect.Empty() {
+	if f == nil || f.texture == 0 || rect.Empty() || !fontTextureUpdateGLReady() {
 		return
 	}
 
@@ -458,10 +467,10 @@ func (f *Font) Delete() {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	if f.texture != 0 {
+	if f.texture != 0 && gl.DeleteTextures != nil {
 		gl.DeleteTextures(1, &f.texture)
-		f.texture = 0
 	}
+	f.texture = 0
 	if f.face != nil {
 		f.face.Close()
 		f.face = nil
@@ -487,6 +496,18 @@ func unsafePtr(p []byte) uintptr {
 		return 0
 	}
 	return uintptr(unsafe.Pointer(&p[0]))
+}
+
+func fontTextureGLReady() bool {
+	return gl.GenTextures != nil &&
+		gl.DeleteTextures != nil &&
+		gl.BindTexture != nil &&
+		gl.TexParameteri != nil &&
+		gl.TexImage2D != nil
+}
+
+func fontTextureUpdateGLReady() bool {
+	return gl.BindTexture != nil && gl.TexSubImage2D != nil
 }
 
 // ColorToRGBA converts Color to color.RGBA

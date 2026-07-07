@@ -82,6 +82,9 @@ func (u UniformSet) key() string {
 }
 
 func applyUniforms(shaderMgr *shader.ShaderManager, uniforms UniformSet) {
+	if shaderMgr == nil {
+		return
+	}
 	for name, value := range uniforms {
 		switch value.Kind {
 		case UniformFloat:
@@ -110,6 +113,9 @@ func rectKey(rect *math.Rect) string {
 }
 
 func applyClip(rect *math.Rect, viewportHeight float32) {
+	if gl.Disable == nil || gl.Enable == nil || gl.Scissor == nil {
+		return
+	}
 	if rect == nil {
 		gl.Disable(gl.GL_SCISSOR_TEST)
 		return
@@ -299,9 +305,17 @@ func (b *Batch) wouldOverflow(addVerts, addIndices, maxVerts, maxIndices int) bo
 	return false
 }
 
+func batchGLReady() bool {
+	return gl.BindVertexArray != nil &&
+		gl.BindBuffer != nil &&
+		gl.BufferSubData != nil &&
+		gl.DrawElements != nil &&
+		gl.Disable != nil
+}
+
 // Flush flushes all batches
 func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32, viewportHeight float32) {
-	if bm == nil || shaderMgr == nil || projMatrix == nil || vao == 0 || vbo == 0 || ebo == 0 {
+	if bm == nil || shaderMgr == nil || projMatrix == nil || vao == 0 || vbo == 0 || ebo == 0 || !batchGLReady() {
 		return
 	}
 	// Add current batch
@@ -459,9 +473,16 @@ func (r *Renderer) BeginFrame(width, height float32) {
 	}
 	r.width = width
 	r.height = height
+	r.batch.Reset()
+	r.clipStack = r.clipStack[:0]
+	r.transformStack = r.transformStack[:0]
+	if !r.initialized {
+		return
+	}
 
 	// Set viewport
 	gl.Viewport(0, 0, int32(width), int32(height))
+	r.resetFrameState()
 
 	// Set projection matrix
 	r.projMatrix = math.OrthoMatrix(0, width, height, 0, -1, 1)
@@ -470,10 +491,6 @@ func (r *Renderer) BeginFrame(width, height float32) {
 	gl.ClearColor(0.15, 0.15, 0.17, 1.0)
 	gl.Clear(gl.GL_COLOR_BUFFER_BIT)
 
-	// Reset batch
-	r.batch.Reset()
-	r.clipStack = r.clipStack[:0]
-	r.transformStack = r.transformStack[:0]
 }
 
 // EndFrame ends the frame
@@ -486,10 +503,27 @@ func (r *Renderer) EndFrame() {
 
 // Flush flushes all pending draw calls
 func (r *Renderer) Flush() {
-	if r == nil || r.batch == nil {
+	if r == nil || r.batch == nil || !r.initialized {
 		return
 	}
 	r.batch.Flush(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix, r.height)
+}
+
+func (r *Renderer) resetFrameState() {
+	if gl.ColorMask != nil {
+		gl.ColorMask(true, true, true, true)
+	}
+	if gl.Disable != nil {
+		gl.Disable(gl.GL_SCISSOR_TEST)
+		gl.Disable(gl.GL_STENCIL_TEST)
+		gl.Disable(gl.GL_DEPTH_TEST)
+	}
+	if gl.Enable != nil {
+		gl.Enable(gl.GL_BLEND)
+	}
+	if gl.BlendFunc != nil {
+		gl.BlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+	}
 }
 
 func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [4]Vertex) {

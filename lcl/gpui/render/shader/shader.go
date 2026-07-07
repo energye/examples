@@ -36,6 +36,9 @@ func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgr
 	if sm.shaders == nil {
 		sm.shaders = make(map[string]*ShaderProgram)
 	}
+	if !shaderGLReady() {
+		return nil, fmt.Errorf("shader load requires initialized OpenGL shader functions")
+	}
 
 	// Compile vertex shader
 	vs := compileShader(vertSrc, gl.GL_VERTEX_SHADER)
@@ -81,7 +84,7 @@ func (sm *ShaderManager) LoadShader(name, vertSrc, fragSrc string) (*ShaderProgr
 		uniformLocs: make(map[string]int32),
 	}
 
-	if existing := sm.shaders[name]; existing != nil && existing.ID != 0 {
+	if existing := sm.shaders[name]; existing != nil && existing.ID != 0 && gl.DeleteProgram != nil {
 		gl.DeleteProgram(existing.ID)
 		if sm.current == existing {
 			sm.current = nil
@@ -101,7 +104,7 @@ func (sm *ShaderManager) GetShader(name string) *ShaderProgram {
 
 // UseShader activates a shader program
 func (sm *ShaderManager) UseShader(shader *ShaderProgram) {
-	if sm == nil || shader == nil || shader.ID == 0 {
+	if sm == nil || shader == nil || shader.ID == 0 || gl.UseProgram == nil {
 		return
 	}
 	if sm.current != shader {
@@ -120,7 +123,7 @@ func (sm *ShaderManager) CurrentShader() *ShaderProgram {
 
 // GetUniformLocation returns the cached uniform location
 func (sm *ShaderManager) GetUniformLocation(name string) int32 {
-	if sm == nil || sm.current == nil {
+	if sm == nil || sm.current == nil || gl.GetUniformLocation == nil {
 		return -1
 	}
 
@@ -136,7 +139,7 @@ func (sm *ShaderManager) GetUniformLocation(name string) int32 {
 // SetFloat sets a float uniform
 func (sm *ShaderManager) SetFloat(name string, value float32) {
 	loc := sm.GetUniformLocation(name)
-	if loc >= 0 {
+	if loc >= 0 && gl.Uniform1f != nil {
 		gl.Uniform1f(loc, value)
 	}
 }
@@ -144,7 +147,7 @@ func (sm *ShaderManager) SetFloat(name string, value float32) {
 // SetVec2 sets a vec2 uniform
 func (sm *ShaderManager) SetVec2(name string, x, y float32) {
 	loc := sm.GetUniformLocation(name)
-	if loc >= 0 {
+	if loc >= 0 && gl.Uniform2f != nil {
 		gl.Uniform2f(loc, x, y)
 	}
 }
@@ -152,7 +155,7 @@ func (sm *ShaderManager) SetVec2(name string, x, y float32) {
 // SetVec4 sets a vec4 uniform
 func (sm *ShaderManager) SetVec4(name string, x, y, z, w float32) {
 	loc := sm.GetUniformLocation(name)
-	if loc >= 0 {
+	if loc >= 0 && gl.Uniform4f != nil {
 		gl.Uniform4f(loc, x, y, z, w)
 	}
 }
@@ -160,7 +163,7 @@ func (sm *ShaderManager) SetVec4(name string, x, y, z, w float32) {
 // SetInt sets an int uniform
 func (sm *ShaderManager) SetInt(name string, value int32) {
 	loc := sm.GetUniformLocation(name)
-	if loc >= 0 {
+	if loc >= 0 && gl.Uniform1i != nil {
 		gl.Uniform1i(loc, value)
 	}
 }
@@ -171,7 +174,7 @@ func (sm *ShaderManager) SetMat4(name string, mat *[16]float32) {
 		return
 	}
 	loc := sm.GetUniformLocation(name)
-	if loc >= 0 {
+	if loc >= 0 && gl.UniformMatrix4fv != nil {
 		gl.UniformMatrix4fv(loc, 1, false, &mat[0])
 	}
 }
@@ -182,7 +185,7 @@ func (sm *ShaderManager) Delete() {
 		return
 	}
 	for _, shader := range sm.shaders {
-		if shader != nil && shader.ID != 0 {
+		if shader != nil && shader.ID != 0 && gl.DeleteProgram != nil {
 			gl.DeleteProgram(shader.ID)
 		}
 	}
@@ -192,7 +195,7 @@ func (sm *ShaderManager) Delete() {
 
 // compileShader compiles a shader
 func compileShader(source string, shaderType uint32) uint32 {
-	if source == "" {
+	if source == "" || !compileShaderGLReady() {
 		return 0
 	}
 	shader := gl.CreateShader(shaderType)
@@ -227,6 +230,26 @@ func cStringPtr(s string) uintptr {
 		return 0
 	}
 	return uintptr(unsafe.Pointer(&([]byte(s))[0]))
+}
+
+func shaderGLReady() bool {
+	return compileShaderGLReady() &&
+		gl.CreateProgram != nil &&
+		gl.AttachShader != nil &&
+		gl.BindAttribLocation != nil &&
+		gl.LinkProgram != nil &&
+		gl.GetProgramiv != nil &&
+		gl.GetProgramInfoLog != nil &&
+		gl.DeleteProgram != nil
+}
+
+func compileShaderGLReady() bool {
+	return gl.CreateShader != nil &&
+		gl.ShaderSource != nil &&
+		gl.CompileShader != nil &&
+		gl.GetShaderiv != nil &&
+		gl.GetShaderInfoLog != nil &&
+		gl.DeleteShader != nil
 }
 
 // BuiltinShaderSources contains the source code for built-in shaders
