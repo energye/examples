@@ -7,6 +7,44 @@ import (
 	"github.com/energye/examples/lcl/gpui/style/theme"
 )
 
+// WidgetState stores common widget state flags.
+type WidgetState uint32
+
+const (
+	StateNormal WidgetState = 0
+	StateHover  WidgetState = 1 << iota
+	StateActive
+	StateFocus
+	StateDisabled
+	StateSelected
+	StateChecked
+	StateLoading
+	StateError
+	StateWarning
+	StateSuccess
+)
+
+// EventType identifies a high-level UI event.
+type EventType int
+
+const (
+	EventMouseDown EventType = iota
+	EventMouseUp
+	EventMouseMove
+	EventKeyDown
+	EventCharInput
+)
+
+// UIEvent is the common event payload used by the widget lifecycle.
+type UIEvent struct {
+	Type   EventType
+	X, Y   float32
+	Button int
+	Key    int
+	Mods   int
+	Char   rune
+}
+
 // Widget is the base interface for all widgets
 type Widget interface {
 	// Bounds returns the widget bounds
@@ -36,7 +74,11 @@ type Widget interface {
 	SetParent(parent Widget)
 
 	// Rendering
+	Measure(available math.Vec2) math.Vec2
+	Layout(rect math.Rect)
+	HitTest(x, y float32) bool
 	Render(renderer *pipeline.Renderer)
+	HandleEvent(event UIEvent) bool
 
 	// Invalidation
 	Invalidate()
@@ -57,27 +99,34 @@ type Widget interface {
 	Focus()
 	Blur()
 
+	// State
+	State() WidgetState
+	SetState(state WidgetState)
+	HasState(state WidgetState) bool
+	SetStateFlag(state WidgetState, enabled bool)
+
 	// Theme
 	GetTheme() *theme.Theme
 }
 
 // BaseWidget provides default implementations for Widget
 type BaseWidget struct {
-	bounds    math.Rect
-	visible   bool
-	enabled   bool
-	parent    Widget
-	focused   bool
+	bounds      math.Rect
+	visible     bool
+	enabled     bool
+	parent      Widget
+	focused     bool
 	invalidated bool
-	theme     *theme.Theme
+	state       WidgetState
+	theme       *theme.Theme
 }
 
 // NewBaseWidget creates a new base widget
 func NewBaseWidget() BaseWidget {
 	return BaseWidget{
-		visible:   true,
-		enabled:   true,
-		theme:     theme.GetTheme(),
+		visible: true,
+		enabled: true,
+		theme:   theme.GetTheme(),
 	}
 }
 
@@ -141,6 +190,7 @@ func (w *BaseWidget) Enabled() bool {
 // SetEnabled sets enabled state
 func (w *BaseWidget) SetEnabled(enabled bool) {
 	w.enabled = enabled
+	w.SetStateFlag(StateDisabled, !enabled)
 }
 
 // Parent returns the parent widget
@@ -176,11 +226,13 @@ func (w *BaseWidget) Focused() bool {
 // Focus gives focus to the widget
 func (w *BaseWidget) Focus() {
 	w.focused = true
+	w.SetStateFlag(StateFocus, true)
 }
 
 // Blur removes focus from the widget
 func (w *BaseWidget) Blur() {
 	w.focused = false
+	w.SetStateFlag(StateFocus, false)
 }
 
 // GetTheme returns the current theme
@@ -188,9 +240,55 @@ func (w *BaseWidget) GetTheme() *theme.Theme {
 	return w.theme
 }
 
+// Measure returns the widget's desired size.
+func (w *BaseWidget) Measure(available math.Vec2) math.Vec2 {
+	return math.NewVec2(w.bounds.W, w.bounds.H)
+}
+
+// Layout assigns final bounds to the widget.
+func (w *BaseWidget) Layout(rect math.Rect) {
+	w.SetBounds(rect)
+}
+
+// HitTest checks whether a point is inside this widget.
+func (w *BaseWidget) HitTest(x, y float32) bool {
+	return w.visible && w.enabled && w.bounds.Contains(x, y)
+}
+
 // Render renders the widget (default implementation does nothing)
 func (w *BaseWidget) Render(renderer *pipeline.Renderer) {
 	// Override in subclasses
+}
+
+// HandleEvent handles a generic UI event.
+func (w *BaseWidget) HandleEvent(event UIEvent) bool {
+	return false
+}
+
+// State returns the current widget state flags.
+func (w *BaseWidget) State() WidgetState {
+	return w.state
+}
+
+// SetState replaces the current widget state flags.
+func (w *BaseWidget) SetState(state WidgetState) {
+	w.state = state
+	w.focused = state&StateFocus != 0
+	w.enabled = state&StateDisabled == 0
+}
+
+// HasState reports whether all requested state flags are set.
+func (w *BaseWidget) HasState(state WidgetState) bool {
+	return w.state&state == state
+}
+
+// SetStateFlag toggles a state flag.
+func (w *BaseWidget) SetStateFlag(state WidgetState, enabled bool) {
+	if enabled {
+		w.state |= state
+	} else {
+		w.state &^= state
+	}
 }
 
 // MouseDown handles mouse down (default returns false)

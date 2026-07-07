@@ -36,14 +36,14 @@ type Button struct {
 	BaseWidget
 
 	// Properties
-	text     string
-	btnType  ButtonType
-	btnSize  ButtonSize
-	font     *font.Font
+	text    string
+	btnType ButtonType
+	btnSize ButtonSize
+	font    *font.Font
 
 	// State
-	hovered  bool
-	pressed  bool
+	hovered bool
+	pressed bool
 
 	// Animation
 	hoverAnim *animation.Animation
@@ -197,6 +197,7 @@ func (b *Button) MouseDown(x, y float32, button int) bool {
 	}
 
 	b.pressed = true
+	b.SetStateFlag(StateActive, true)
 	b.pressAnim.PlayForward()
 	return true
 }
@@ -210,6 +211,7 @@ func (b *Button) MouseUp(x, y float32, button int) bool {
 	}
 
 	b.pressed = false
+	b.SetStateFlag(StateActive, false)
 	b.pressAnim.PlayReverse()
 	return true
 }
@@ -218,6 +220,7 @@ func (b *Button) MouseUp(x, y float32, button int) bool {
 func (b *Button) MouseMove(x, y float32) bool {
 	wasHovered := b.hovered
 	b.hovered = b.bounds.Contains(x, y) && b.enabled
+	b.SetStateFlag(StateHover, b.hovered)
 
 	if b.hovered != wasHovered {
 		if b.hovered {

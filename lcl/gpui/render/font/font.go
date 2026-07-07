@@ -36,16 +36,18 @@ type Font struct {
 	texture    uint32
 	texWidth   int
 	texHeight  int
+	atlas      *image.RGBA
 	glyphs     map[rune]*GlyphInfo
 	fontSize   float64
 	lineHeight float32
 	ascent     float32
 	descent    float32
+	cellSize   int
+	cols       int
+	nextSlot   int
 
 	// Font face for on-demand rasterization
-	face      font.Face
-	dirty     bool
-	dirtyRect image.Rectangle
+	face font.Face
 }
 
 const (
@@ -76,17 +78,27 @@ func NewFont(ttfData []byte, fontSize float64) (*Font, error) {
 	m := face.Metrics()
 	ascent := fixed26_6ToFloat32(m.Ascent)
 	descent := fixed26_6ToFloat32(m.Descent)
+	cellSize := int(fontSize*1.5) + 4
+	if cellSize < 8 {
+		cellSize = 8
+	}
+	cols := atlasSize / cellSize
+	if cols < 1 {
+		cols = 1
+	}
 
 	fontObj := &Font{
 		texWidth:   atlasSize,
 		texHeight:  atlasSize,
+		atlas:      image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize)),
 		glyphs:     make(map[rune]*GlyphInfo),
 		fontSize:   fontSize,
 		lineHeight: ascent + descent,
 		ascent:     ascent,
 		descent:    descent,
+		cellSize:   cellSize,
+		cols:       cols,
 		face:       face,
-		dirty:      true,
 	}
 
 	// Pre-rasterize common characters
@@ -129,14 +141,7 @@ func parseFont(ttfData []byte) (*opentype.Font, error) {
 
 // preRasterize pre-rasterizes common characters
 func (f *Font) preRasterize() {
-	cellSize := int(f.fontSize*1.5) + 4
-	cols := atlasSize / cellSize
-	rows := atlasSize / cellSize
-	maxGlyphs := cols * rows
-
-	// Create atlas image
-	atlasImg := image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize))
-	draw.Draw(atlasImg, atlasImg.Bounds(), image.Transparent, image.Point{}, draw.Src)
+	maxGlyphs := f.maxSlots()
 
 	// Characters to rasterize
 	chars := make([]rune, 0, 512)
@@ -161,32 +166,33 @@ func (f *Font) preRasterize() {
 	}
 	chars = append(chars, cjkCommon...)
 
-	idx := 0
 	for _, r := range chars {
-		if idx >= maxGlyphs {
+		if f.nextSlot >= maxGlyphs {
 			break
 		}
+		if _, exists := f.glyphs[r]; exists {
+			continue
+		}
 
-		gInfo, ok := f.rasterizeGlyph(atlasImg, r, idx, cols, cellSize)
+		gInfo, _, ok := f.rasterizeGlyph(f.atlas, r, f.nextSlot)
 		if !ok {
 			continue
 		}
 
 		f.glyphs[r] = gInfo
-		idx++
+		f.nextSlot++
 	}
-
-	// Store atlas image for upload
-	f.dirty = true
 }
 
 // rasterizeGlyph rasterizes a single glyph
-func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, idx, cols, cellSize int) (*GlyphInfo, bool) {
-	col := idx % cols
-	row := idx / cols
+func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, image.Rectangle, bool) {
+	col := slot % f.cols
+	row := slot / f.cols
 
-	cellX := col * cellSize
-	cellY := row * cellSize
+	cellX := col * f.cellSize
+	cellY := row * f.cellSize
+	cellRect := image.Rect(cellX, cellY, cellX+f.cellSize, cellY+f.cellSize).Intersect(atlas.Bounds())
+	draw.Draw(atlas, cellRect, image.Transparent, image.Point{}, draw.Src)
 
 	// Get glyph advance
 	adv, ok := f.face.GlyphAdvance(r)
@@ -194,10 +200,10 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, idx, cols, cellSize int
 		if r != ' ' {
 			adv, ok = f.face.GlyphAdvance(' ')
 			if !ok {
-				return nil, false
+				return nil, image.Rectangle{}, false
 			}
 		} else {
-			return nil, false
+			return nil, image.Rectangle{}, false
 		}
 	}
 
@@ -211,9 +217,9 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, idx, cols, cellSize int
 				U1:      float32(cellX) / float32(atlasSize),
 				V1:      float32(cellY) / float32(atlasSize),
 				Advance: fixed26_6ToFloat32(adv),
-			}, true
+			}, cellRect, true
 		}
-		return nil, false
+		return nil, image.Rectangle{}, false
 	}
 
 	glyphW := dr.Dx()
@@ -226,15 +232,15 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, idx, cols, cellSize int
 			U1:      float32(cellX) / float32(atlasSize),
 			V1:      float32(cellY) / float32(atlasSize),
 			Advance: fixed26_6ToFloat32(adv),
-		}, true
+		}, cellRect, true
 	}
 
 	// Clamp to cell size
-	if glyphW > cellSize-glyphPadding*2 {
-		glyphW = cellSize - glyphPadding*2
+	if glyphW > f.cellSize-glyphPadding*2 {
+		glyphW = f.cellSize - glyphPadding*2
 	}
-	if glyphH > cellSize-glyphPadding*2 {
-		glyphH = cellSize - glyphPadding*2
+	if glyphH > f.cellSize-glyphPadding*2 {
+		glyphH = f.cellSize - glyphPadding*2
 	}
 
 	destX := cellX + glyphPadding
@@ -252,26 +258,16 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, idx, cols, cellSize int
 		Advance: fixed26_6ToFloat32(adv),
 		Width:   float32(glyphW),
 		Height:  float32(glyphH),
-	}, true
+	}, image.Rect(destX, destY, destX+glyphW, destY+glyphH), true
 }
 
 // uploadToGPU uploads the atlas to GPU
 func (f *Font) uploadToGPU() error {
-	// Create atlas image
-	atlasImg := image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize))
-	draw.Draw(atlasImg, atlasImg.Bounds(), image.Transparent, image.Point{}, draw.Src)
-
-	// Re-rasterize all glyphs
-	cellSize := int(f.fontSize*1.5) + 4
-	cols := atlasSize / cellSize
-
-	idx := 0
-	for r := range f.glyphs {
-		f.rasterizeGlyph(atlasImg, r, idx, cols, cellSize)
-		idx++
+	if f.texture != 0 {
+		gl.DeleteTextures(1, &f.texture)
+		f.texture = 0
 	}
 
-	// Upload to GPU
 	var tex uint32
 	gl.GenTextures(1, &tex)
 	gl.BindTexture(gl.GL_TEXTURE_2D, tex)
@@ -281,10 +277,9 @@ func (f *Font) uploadToGPU() error {
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
 
 	gl.TexImage2D(gl.GL_TEXTURE_2D, 0, int32(gl.GL_RGBA), int32(atlasSize), int32(atlasSize), 0,
-		gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, unsafePtr(atlasImg.Pix))
+		gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, unsafePtr(f.atlas.Pix))
 
 	f.texture = tex
-	f.dirty = false
 
 	return nil
 }
@@ -334,25 +329,82 @@ func (f *Font) addGlyph(r rune) {
 		return
 	}
 
-	// Find empty slot
-	idx := len(f.glyphs)
-	cellSize := int(f.fontSize*1.5) + 4
-	cols := atlasSize / cellSize
+	if f.nextSlot >= f.maxSlots() {
+		return
+	}
 
-	// Create temporary image for this glyph
-	glyphImg := image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize))
-	draw.Draw(glyphImg, glyphImg.Bounds(), image.Transparent, image.Point{}, draw.Src)
-
-	gInfo, ok := f.rasterizeGlyph(glyphImg, r, idx, cols, cellSize)
+	gInfo, dirtyRect, ok := f.rasterizeGlyph(f.atlas, r, f.nextSlot)
 	if !ok {
 		return
 	}
 
 	f.glyphs[r] = gInfo
+	f.nextSlot++
 
-	// Upload updated atlas
-	// Note: In production, you'd want to use glTexSubImage2D for efficiency
-	f.uploadToGPU()
+	if f.texture == 0 {
+		_ = f.uploadToGPU()
+		return
+	}
+	f.uploadRect(dirtyRect)
+}
+
+func (f *Font) maxSlots() int {
+	if f.cellSize <= 0 || f.cols <= 0 {
+		return 0
+	}
+	rows := atlasSize / f.cellSize
+	slots := f.cols * rows
+	if slots > maxGlyphs {
+		return maxGlyphs
+	}
+	return slots
+}
+
+func (f *Font) uploadRect(rect image.Rectangle) {
+	if f.texture == 0 || rect.Empty() {
+		return
+	}
+
+	rect = rect.Intersect(f.atlas.Bounds())
+	if rect.Empty() {
+		return
+	}
+
+	pixels := rgbaPatch(f.atlas, rect)
+	if len(pixels) == 0 {
+		return
+	}
+
+	gl.BindTexture(gl.GL_TEXTURE_2D, f.texture)
+	gl.TexSubImage2D(
+		gl.GL_TEXTURE_2D,
+		0,
+		int32(rect.Min.X),
+		int32(rect.Min.Y),
+		int32(rect.Dx()),
+		int32(rect.Dy()),
+		gl.GL_RGBA,
+		gl.GL_UNSIGNED_BYTE,
+		unsafePtr(pixels),
+	)
+}
+
+func rgbaPatch(img *image.RGBA, rect image.Rectangle) []byte {
+	rect = rect.Intersect(img.Bounds())
+	if rect.Empty() {
+		return nil
+	}
+
+	width := rect.Dx()
+	height := rect.Dy()
+	out := make([]byte, width*height*4)
+	for y := 0; y < height; y++ {
+		srcStart := img.PixOffset(rect.Min.X, rect.Min.Y+y)
+		srcEnd := srcStart + width*4
+		dstStart := y * width * 4
+		copy(out[dstStart:dstStart+width*4], img.Pix[srcStart:srcEnd])
+	}
+	return out
 }
 
 // TextWidth calculates the width of a string

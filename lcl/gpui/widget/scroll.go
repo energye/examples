@@ -160,8 +160,7 @@ func (sc *ScrollContainer) Render(renderer *pipeline.Renderer) {
 	// Draw background
 	renderer.FillRoundRect(sc.bounds, 0, color.BgBase)
 
-	// Set clipping (simplified - just skip children outside bounds)
-	// TODO: Implement proper clipping
+	renderer.PushClip(sc.bounds)
 
 	// Render children with scroll offset
 	for _, child := range sc.children {
@@ -175,9 +174,17 @@ func (sc *ScrollContainer) Render(renderer *pipeline.Renderer) {
 			continue // Skip invisible children
 		}
 
-		// TODO: Apply scroll offset to rendering
+		screenBounds := math.NewRect(
+			sc.bounds.X+childBounds.X-sc.scrollX,
+			sc.bounds.Y+childBounds.Y-sc.scrollY,
+			childBounds.W,
+			childBounds.H,
+		)
+		child.SetBounds(screenBounds)
 		child.Render(renderer)
+		child.SetBounds(childBounds)
 	}
+	renderer.PopClip()
 
 	// Draw scrollbars
 	sc.drawScrollbars(renderer)
@@ -288,8 +295,8 @@ func (sc *ScrollContainer) MouseDown(x, y float32, button int) bool {
 		childBounds := child.Bounds()
 
 		// Adjust coordinates for scroll offset
-		childX := x + sc.scrollX
-		childY := y + sc.scrollY
+		childX := x - sc.bounds.X + sc.scrollX
+		childY := y - sc.bounds.Y + sc.scrollY
 
 		if childBounds.Contains(childX, childY) {
 			return child.MouseDown(childX, childY, button)
@@ -302,7 +309,16 @@ func (sc *ScrollContainer) MouseDown(x, y float32, button int) bool {
 // MouseUp handles mouse up
 func (sc *ScrollContainer) MouseUp(x, y float32, button int) bool {
 	sc.dragging = false
-	return false
+
+	childX := x - sc.bounds.X + sc.scrollX
+	childY := y - sc.bounds.Y + sc.scrollY
+	for i := len(sc.children) - 1; i >= 0; i-- {
+		child := sc.children[i]
+		if child.Bounds().Contains(childX, childY) {
+			return child.MouseUp(childX, childY, button)
+		}
+	}
+	return true
 }
 
 // MouseMove handles mouse move
@@ -320,8 +336,8 @@ func (sc *ScrollContainer) MouseMove(x, y float32) bool {
 	// Pass to children
 	for _, child := range sc.children {
 		childBounds := child.Bounds()
-		childX := x + sc.scrollX
-		childY := y + sc.scrollY
+		childX := x - sc.bounds.X + sc.scrollX
+		childY := y - sc.bounds.Y + sc.scrollY
 
 		if childBounds.Contains(childX, childY) {
 			child.MouseMove(childX, childY)

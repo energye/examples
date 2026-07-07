@@ -2,6 +2,9 @@
 package pipeline
 
 import (
+	"fmt"
+	"sort"
+	"strings"
 	"unsafe"
 
 	"github.com/energye/examples/lcl/gpui/core/gl"
@@ -14,6 +17,131 @@ type Vertex struct {
 	X, Y       float32 // Position
 	U, V       float32 // Texture coordinates
 	R, G, B, A float32 // Color
+}
+
+// UniformKind describes a supported shader uniform value type.
+type UniformKind int
+
+const (
+	UniformFloat UniformKind = iota
+	UniformVec2
+	UniformVec4
+)
+
+// UniformValue stores a typed uniform value for a draw batch.
+type UniformValue struct {
+	Kind   UniformKind
+	Values [4]float32
+}
+
+// UniformSet stores per-batch uniforms.
+type UniformSet map[string]UniformValue
+
+// FloatUniform creates a float uniform value.
+func FloatUniform(v float32) UniformValue {
+	return UniformValue{Kind: UniformFloat, Values: [4]float32{v}}
+}
+
+// Vec2Uniform creates a vec2 uniform value.
+func Vec2Uniform(x, y float32) UniformValue {
+	return UniformValue{Kind: UniformVec2, Values: [4]float32{x, y}}
+}
+
+// Vec4Uniform creates a vec4 uniform value.
+func Vec4Uniform(x, y, z, w float32) UniformValue {
+	return UniformValue{Kind: UniformVec4, Values: [4]float32{x, y, z, w}}
+}
+
+func (u UniformSet) clone() UniformSet {
+	if len(u) == 0 {
+		return nil
+	}
+	out := make(UniformSet, len(u))
+	for name, value := range u {
+		out[name] = value
+	}
+	return out
+}
+
+func (u UniformSet) key() string {
+	if len(u) == 0 {
+		return ""
+	}
+	names := make([]string, 0, len(u))
+	for name := range u {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var b strings.Builder
+	for _, name := range names {
+		value := u[name]
+		fmt.Fprintf(&b, "%s:%d:%g,%g,%g,%g;", name, value.Kind, value.Values[0], value.Values[1], value.Values[2], value.Values[3])
+	}
+	return b.String()
+}
+
+func applyUniforms(shaderMgr *shader.ShaderManager, uniforms UniformSet) {
+	for name, value := range uniforms {
+		switch value.Kind {
+		case UniformFloat:
+			shaderMgr.SetFloat(name, value.Values[0])
+		case UniformVec2:
+			shaderMgr.SetVec2(name, value.Values[0], value.Values[1])
+		case UniformVec4:
+			shaderMgr.SetVec4(name, value.Values[0], value.Values[1], value.Values[2], value.Values[3])
+		}
+	}
+}
+
+func cloneRect(rect *math.Rect) *math.Rect {
+	if rect == nil {
+		return nil
+	}
+	copied := *rect
+	return &copied
+}
+
+func rectKey(rect *math.Rect) string {
+	if rect == nil {
+		return ""
+	}
+	return fmt.Sprintf("%g,%g,%g,%g", rect.X, rect.Y, rect.W, rect.H)
+}
+
+func applyClip(rect *math.Rect, viewportHeight float32) {
+	if rect == nil {
+		gl.Disable(gl.GL_SCISSOR_TEST)
+		return
+	}
+
+	if rect.W <= 0 || rect.H <= 0 {
+		gl.Enable(gl.GL_SCISSOR_TEST)
+		gl.Scissor(0, 0, 0, 0)
+		return
+	}
+
+	x := int32(rect.X)
+	y := int32(viewportHeight - rect.Y - rect.H)
+	w := int32(rect.W)
+	h := int32(rect.H)
+	if y < 0 {
+		h += y
+		y = 0
+	}
+	if x < 0 {
+		w += x
+		x = 0
+	}
+	if w < 0 {
+		w = 0
+	}
+	if h < 0 {
+		h = 0
+	}
+
+	gl.Enable(gl.GL_SCISSOR_TEST)
+	gl.Scissor(x, y, w, h)
 }
 
 // VertexSize is the size of a vertex in bytes
@@ -31,10 +159,14 @@ func QuadVertices(rect math.Rect, uv math.Rect, color math.Color) [4]Vertex {
 
 // Batch represents a draw batch
 type Batch struct {
-	Shader  *shader.ShaderProgram
-	Texture uint32
-	Verts   []Vertex
-	Indices []uint32
+	Shader     *shader.ShaderProgram
+	Texture    uint32
+	Uniforms   UniformSet
+	uniformKey string
+	Clip       *math.Rect
+	clipKey    string
+	Verts      []Vertex
+	Indices    []uint32
 }
 
 // BatchManager manages draw batches
@@ -62,10 +194,25 @@ func (bm *BatchManager) Reset() {
 
 // AddQuad adds a quad to the batch
 func (bm *BatchManager) AddQuad(shaderProg *shader.ShaderProgram, texture uint32, verts [4]Vertex) {
+	bm.AddQuadWithState(shaderProg, texture, nil, nil, verts)
+}
+
+// AddQuadWithUniforms adds a quad to a batch with per-batch uniforms.
+func (bm *BatchManager) AddQuadWithUniforms(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [4]Vertex) {
+	bm.AddQuadWithState(shaderProg, texture, uniforms, nil, verts)
+}
+
+// AddQuadWithState adds a quad to a batch with per-batch render state.
+func (bm *BatchManager) AddQuadWithState(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, clip *math.Rect, verts [4]Vertex) {
+	uniformKey := uniforms.key()
+	clipKey := rectKey(clip)
+
 	// Check if we need a new batch
 	if bm.current == nil ||
 		bm.current.Shader != shaderProg ||
-		bm.current.Texture != texture {
+		bm.current.Texture != texture ||
+		bm.current.uniformKey != uniformKey ||
+		bm.current.clipKey != clipKey {
 
 		// Save current batch
 		if bm.current != nil && len(bm.current.Verts) > 0 {
@@ -74,8 +221,12 @@ func (bm *BatchManager) AddQuad(shaderProg *shader.ShaderProgram, texture uint32
 
 		// Create new batch
 		bm.current = &Batch{
-			Shader:  shaderProg,
-			Texture: texture,
+			Shader:     shaderProg,
+			Texture:    texture,
+			Uniforms:   uniforms.clone(),
+			uniformKey: uniformKey,
+			Clip:       cloneRect(clip),
+			clipKey:    clipKey,
 		}
 	}
 
@@ -86,7 +237,7 @@ func (bm *BatchManager) AddQuad(shaderProg *shader.ShaderProgram, texture uint32
 }
 
 // Flush flushes all batches
-func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32) {
+func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32, viewportHeight float32) {
 	// Add current batch
 	if bm.current != nil && len(bm.current.Verts) > 0 {
 		bm.batches = append(bm.batches, bm.current)
@@ -108,6 +259,8 @@ func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderMana
 		// Use shader
 		shaderMgr.UseShader(batch.Shader)
 		shaderMgr.SetMat4("uProj", projMatrix)
+		applyUniforms(shaderMgr, batch.Uniforms)
+		applyClip(batch.Clip, viewportHeight)
 
 		// Bind texture if needed
 		if batch.Texture > 0 {
@@ -134,6 +287,7 @@ func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderMana
 
 	// Unbind
 	gl.BindVertexArray(0)
+	gl.Disable(gl.GL_SCISSOR_TEST)
 
 	// Reset
 	bm.Reset()
@@ -141,14 +295,16 @@ func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderMana
 
 // Renderer is the main renderer
 type Renderer struct {
-	vao        uint32
-	vbo        uint32
-	ebo        uint32
-	shaderMgr  *shader.ShaderManager
-	batch      *BatchManager
-	projMatrix [16]float32
-	width      float32
-	height     float32
+	vao            uint32
+	vbo            uint32
+	ebo            uint32
+	shaderMgr      *shader.ShaderManager
+	batch          *BatchManager
+	projMatrix     [16]float32
+	width          float32
+	height         float32
+	clipStack      []math.Rect
+	transformStack []math.Mat4
 }
 
 // NewRenderer creates a new renderer
@@ -225,6 +381,8 @@ func (r *Renderer) BeginFrame(width, height float32) {
 
 	// Reset batch
 	r.batch.Reset()
+	r.clipStack = r.clipStack[:0]
+	r.transformStack = r.transformStack[:0]
 }
 
 // EndFrame ends the frame
@@ -234,7 +392,132 @@ func (r *Renderer) EndFrame() {
 
 // Flush flushes all pending draw calls
 func (r *Renderer) Flush() {
-	r.batch.Flush(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix)
+	r.batch.Flush(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix, r.height)
+}
+
+func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uniforms UniformSet, verts [4]Vertex) {
+	verts = r.transformQuad(verts)
+
+	var clip *math.Rect
+	if len(r.clipStack) > 0 {
+		top := r.clipStack[len(r.clipStack)-1]
+		clip = &top
+	}
+	r.batch.AddQuadWithState(shaderProg, texture, uniforms, clip, verts)
+}
+
+func (r *Renderer) transformQuad(verts [4]Vertex) [4]Vertex {
+	if len(r.transformStack) == 0 {
+		return verts
+	}
+
+	mat := r.transformStack[len(r.transformStack)-1]
+	for i := range verts {
+		verts[i].X, verts[i].Y = transformPoint(mat, verts[i].X, verts[i].Y)
+	}
+	return verts
+}
+
+func transformPoint(mat math.Mat4, x, y float32) (float32, float32) {
+	tx := x*mat[0] + y*mat[4] + mat[12]
+	ty := x*mat[1] + y*mat[5] + mat[13]
+	return tx, ty
+}
+
+func transformRect(mat math.Mat4, rect math.Rect) math.Rect {
+	x1, y1 := transformPoint(mat, rect.X, rect.Y)
+	x2, y2 := transformPoint(mat, rect.X+rect.W, rect.Y)
+	x3, y3 := transformPoint(mat, rect.X+rect.W, rect.Y+rect.H)
+	x4, y4 := transformPoint(mat, rect.X, rect.Y+rect.H)
+
+	minX := min4(x1, x2, x3, x4)
+	maxX := max4(x1, x2, x3, x4)
+	minY := min4(y1, y2, y3, y4)
+	maxY := max4(y1, y2, y3, y4)
+	return math.NewRect(minX, minY, maxX-minX, maxY-minY)
+}
+
+func min4(a, b, c, d float32) float32 {
+	min := a
+	if b < min {
+		min = b
+	}
+	if c < min {
+		min = c
+	}
+	if d < min {
+		min = d
+	}
+	return min
+}
+
+func max4(a, b, c, d float32) float32 {
+	max := a
+	if b > max {
+		max = b
+	}
+	if c > max {
+		max = c
+	}
+	if d > max {
+		max = d
+	}
+	return max
+}
+
+// PushTransform appends a transform to the current transform stack.
+func (r *Renderer) PushTransform(mat math.Mat4) {
+	r.Flush()
+	if len(r.transformStack) > 0 {
+		mat = r.transformStack[len(r.transformStack)-1].Multiply(mat)
+	}
+	r.transformStack = append(r.transformStack, mat)
+}
+
+// PopTransform restores the previous transform.
+func (r *Renderer) PopTransform() {
+	if len(r.transformStack) == 0 {
+		return
+	}
+	r.Flush()
+	r.transformStack = r.transformStack[:len(r.transformStack)-1]
+}
+
+// CurrentTransform returns the active transform matrix.
+func (r *Renderer) CurrentTransform() (math.Mat4, bool) {
+	if len(r.transformStack) == 0 {
+		return math.Mat4{}, false
+	}
+	return r.transformStack[len(r.transformStack)-1], true
+}
+
+// PushClip intersects the provided clip rectangle with the current clip state.
+func (r *Renderer) PushClip(rect math.Rect) {
+	if len(r.transformStack) > 0 {
+		rect = transformRect(r.transformStack[len(r.transformStack)-1], rect)
+	}
+	if len(r.clipStack) > 0 {
+		rect = rect.Intersect(r.clipStack[len(r.clipStack)-1])
+	}
+	r.Flush()
+	r.clipStack = append(r.clipStack, rect)
+}
+
+// PopClip restores the previous clip rectangle.
+func (r *Renderer) PopClip() {
+	if len(r.clipStack) == 0 {
+		return
+	}
+	r.Flush()
+	r.clipStack = r.clipStack[:len(r.clipStack)-1]
+}
+
+// CurrentClip returns the active clip rectangle.
+func (r *Renderer) CurrentClip() (math.Rect, bool) {
+	if len(r.clipStack) == 0 {
+		return math.Rect{}, false
+	}
+	return r.clipStack[len(r.clipStack)-1], true
 }
 
 // FillRect draws a filled rectangle
@@ -242,31 +525,27 @@ func (r *Renderer) FillRect(rect math.Rect, color math.Color) {
 	shaderProg := r.shaderMgr.GetShader("color")
 	uv := math.NewRect(0, 0, 1, 1)
 	verts := QuadVertices(rect, uv, color)
-	r.batch.AddQuad(shaderProg, 0, verts)
+	r.addQuad(shaderProg, 0, nil, verts)
 }
 
 // FillRoundRect draws a filled rounded rectangle
 func (r *Renderer) FillRoundRect(rect math.Rect, radius float32, color math.Color) {
-	// This shader uses uniforms that vary per primitive. Flush around it so
-	// queued rounded rects with different sizes/radii cannot share stale state.
-	r.Flush()
-
 	shaderProg := r.shaderMgr.GetShader("rounded_rect")
-	r.shaderMgr.UseShader(shaderProg)
-	r.shaderMgr.SetFloat("uRadius", radius)
-	r.shaderMgr.SetVec2("uSize", rect.W, rect.H)
+	uniforms := UniformSet{
+		"uRadius": FloatUniform(radius),
+		"uSize":   Vec2Uniform(rect.W, rect.H),
+	}
 
 	uv := math.NewRect(0, 0, 1, 1)
 	verts := QuadVertices(rect, uv, color)
-	r.batch.AddQuad(shaderProg, 0, verts)
-	r.Flush()
+	r.addQuad(shaderProg, 0, uniforms, verts)
 }
 
 // DrawTexture draws a textured rectangle
 func (r *Renderer) DrawTexture(texture uint32, src, dst math.Rect, color math.Color) {
 	shaderProg := r.shaderMgr.GetShader("texture")
 	verts := QuadVertices(dst, src, color)
-	r.batch.AddQuad(shaderProg, texture, verts)
+	r.addQuad(shaderProg, texture, nil, verts)
 }
 
 // Delete deletes all resources

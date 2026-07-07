@@ -96,7 +96,9 @@ func (p *Popup) Render(renderer *pipeline.Renderer) {
 	renderer.StrokeRoundRect(p.bounds, th.RadiusMD, 1, p.borderColor)
 
 	if p.content != nil {
+		renderer.PushTransform(math.TranslationMatrix(p.bounds.X, p.bounds.Y, 0))
 		p.content.Render(renderer)
+		renderer.PopTransform()
 	}
 }
 

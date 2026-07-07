@@ -2,6 +2,7 @@
 package widget
 
 import (
+	"github.com/energye/examples/lcl/gpui/core/math"
 	"github.com/energye/examples/lcl/gpui/render/pipeline"
 )
 
@@ -60,6 +61,9 @@ func (c *Container) Render(renderer *pipeline.Renderer) {
 		return
 	}
 
+	renderer.PushTransform(math.TranslationMatrix(c.bounds.X, c.bounds.Y, 0))
+	defer renderer.PopTransform()
+
 	// Render children
 	for _, child := range c.children {
 		child.Render(renderer)
@@ -68,6 +72,9 @@ func (c *Container) Render(renderer *pipeline.Renderer) {
 
 // MouseDown handles mouse down
 func (c *Container) MouseDown(x, y float32, button int) bool {
+	localX := x - c.bounds.X
+	localY := y - c.bounds.Y
+
 	// Check children in reverse order (top-most first)
 	for i := len(c.children) - 1; i >= 0; i-- {
 		child := c.children[i]
@@ -77,14 +84,14 @@ func (c *Container) MouseDown(x, y float32, button int) bool {
 
 		bounds := child.Bounds()
 		// Check if point is within child bounds (using parent coordinates)
-		if bounds.Contains(x, y) {
+		if bounds.Contains(localX, localY) {
 			// Set focus if child is focusable
 			if child.Focusable() && c.focusMgr != nil {
 				c.focusMgr.SetFocus(child)
 			}
 
 			// Pass the original coordinates to child
-			if child.MouseDown(x, y, button) {
+			if child.MouseDown(localX, localY, button) {
 				return true
 			}
 		}
@@ -96,6 +103,8 @@ func (c *Container) MouseDown(x, y float32, button int) bool {
 // MouseUp handles mouse up
 func (c *Container) MouseUp(x, y float32, button int) bool {
 	handled := false
+	localX := x - c.bounds.X
+	localY := y - c.bounds.Y
 
 	// Check children in reverse order
 	for i := len(c.children) - 1; i >= 0; i-- {
@@ -105,7 +114,7 @@ func (c *Container) MouseUp(x, y float32, button int) bool {
 		}
 
 		// Pass original coordinates
-		if child.MouseUp(x, y, button) {
+		if child.MouseUp(localX, localY, button) {
 			handled = true
 		}
 	}
@@ -116,6 +125,8 @@ func (c *Container) MouseUp(x, y float32, button int) bool {
 // MouseMove handles mouse move
 func (c *Container) MouseMove(x, y float32) bool {
 	handled := false
+	localX := x - c.bounds.X
+	localY := y - c.bounds.Y
 
 	// Update all children
 	for i := len(c.children) - 1; i >= 0; i-- {
@@ -125,7 +136,7 @@ func (c *Container) MouseMove(x, y float32) bool {
 		}
 
 		// Pass original coordinates
-		if child.MouseMove(x, y) {
+		if child.MouseMove(localX, localY) {
 			handled = true
 		}
 	}

@@ -123,6 +123,8 @@ func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 	paddingH := float32(8) // Reduced from 12
 	paddingV := float32(4)
 	textRect := tb.bounds.Shrink(paddingH, paddingV)
+	tb.ensureCursorVisible(textRect)
+	renderer.PushClip(textRect)
 
 	// Draw selection
 	if tb.selStart >= 0 && tb.selEnd != tb.selStart {
@@ -154,6 +156,7 @@ func (tb *TextBox) Render(renderer *pipeline.Renderer) {
 			renderer.FillRect(cursorRect, textCol)
 		}
 	}
+	renderer.PopClip()
 }
 
 // calculateColors calculates the current colors
@@ -197,8 +200,8 @@ func (tb *TextBox) calculateSelectionRect(textRect math.Rect) math.Rect {
 		start, end = end, start
 	}
 
-	startX := textRect.X + tb.font.TextWidth(string(tb.text[:start]))
-	endX := textRect.X + tb.font.TextWidth(string(tb.text[:end]))
+	startX := textRect.X - tb.scrollX + tb.font.TextWidth(string(tb.text[:start]))
+	endX := textRect.X - tb.scrollX + tb.font.TextWidth(string(tb.text[:end]))
 
 	return math.NewRect(startX, textRect.Y, endX-startX, textRect.H)
 }
@@ -208,7 +211,24 @@ func (tb *TextBox) calculateCursorX(textRect math.Rect) float32 {
 	if tb.font == nil {
 		return textRect.X
 	}
-	return textRect.X + tb.font.TextWidth(string(tb.text[:tb.cursorPos]))
+	return textRect.X - tb.scrollX + tb.font.TextWidth(string(tb.text[:tb.cursorPos]))
+}
+
+func (tb *TextBox) ensureCursorVisible(textRect math.Rect) {
+	if tb.font == nil || tb.cursorPos < 0 || tb.cursorPos > len(tb.text) {
+		return
+	}
+
+	cursorLocalX := tb.font.TextWidth(string(tb.text[:tb.cursorPos]))
+	if cursorLocalX-tb.scrollX > textRect.W {
+		tb.scrollX = cursorLocalX - textRect.W + 2
+	}
+	if cursorLocalX-tb.scrollX < 0 {
+		tb.scrollX = cursorLocalX
+	}
+	if tb.scrollX < 0 {
+		tb.scrollX = 0
+	}
 }
 
 // hitTestCursor calculates cursor position from mouse X
@@ -217,7 +237,7 @@ func (tb *TextBox) hitTestCursor(mouseX float32, textRect math.Rect) int {
 		return 0
 	}
 
-	relX := mouseX - textRect.X
+	relX := mouseX - textRect.X + tb.scrollX
 	var width float32
 	for i, ch := range tb.text {
 		g, ok := tb.font.GetGlyph(ch)
@@ -268,6 +288,7 @@ func (tb *TextBox) MouseUp(x, y float32, button int) bool {
 func (tb *TextBox) MouseMove(x, y float32) bool {
 	wasHovered := tb.hovered
 	tb.hovered = tb.bounds.Contains(x, y) && tb.enabled
+	tb.SetStateFlag(StateHover, tb.hovered)
 
 	// Update selection if dragging
 	if tb.selStart >= 0 && tb.focused {

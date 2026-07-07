@@ -41,6 +41,7 @@ func (cb *Checkbox) Checked() bool {
 // SetChecked sets the checked state
 func (cb *Checkbox) SetChecked(checked bool) {
 	cb.checked = checked
+	cb.SetStateFlag(StateChecked, checked)
 	if checked {
 		cb.checkAnim.PlayForward()
 	} else {
@@ -114,6 +115,7 @@ func (cb *Checkbox) MouseDown(x, y float32, button int) bool {
 	}
 
 	cb.checked = !cb.checked
+	cb.SetStateFlag(StateChecked, cb.checked)
 	if cb.checked {
 		cb.checkAnim.PlayForward()
 	} else {
@@ -226,6 +228,7 @@ func (s *Switch) Checked() bool {
 // SetChecked sets the checked state
 func (s *Switch) SetChecked(checked bool) {
 	s.checked = checked
+	s.SetStateFlag(StateChecked, checked)
 	if checked {
 		s.trackAnim.PlayForward()
 	} else {
@@ -303,6 +306,7 @@ func (s *Switch) MouseDown(x, y float32, button int) bool {
 	}
 
 	s.checked = !s.checked
+	s.SetStateFlag(StateChecked, s.checked)
 	if s.checked {
 		s.trackAnim.PlayForward()
 	} else {

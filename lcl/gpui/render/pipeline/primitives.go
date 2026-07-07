@@ -38,7 +38,7 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 			dst := math.NewRect(gx, gy, g.Width, g.Height)
 
 			verts := QuadVertices(dst, src, color)
-			r.batch.AddQuad(shaderProg, fontTex, verts)
+			r.addQuad(shaderProg, fontTex, nil, verts)
 		}
 
 		cx += g.Advance
@@ -172,7 +172,7 @@ func (r *Renderer) DrawLine(x1, y1, x2, y2, width float32, color math.Color) {
 	}
 
 	shaderProg := r.shaderMgr.GetShader("color")
-	r.batch.AddQuad(shaderProg, 0, verts)
+	r.addQuad(shaderProg, 0, nil, verts)
 }
 
 // DrawCheckmark draws a checkmark icon
@@ -216,23 +216,18 @@ func (r *Renderer) DrawShadow(rect math.Rect, offset math.Vec2, blur float32, co
 
 // FillLinearGradient fills a rectangle with a linear gradient
 func (r *Renderer) FillLinearGradient(rect math.Rect, start, end math.Vec2, startColor, endColor math.Color) {
-	// Gradient uniforms vary per primitive, so draw this immediately for now.
-	r.Flush()
-
 	shaderProg := r.shaderMgr.GetShader("gradient")
-	r.shaderMgr.UseShader(shaderProg)
-
-	// Set gradient uniforms
-	r.shaderMgr.SetVec4("uColorStart", startColor.R, startColor.G, startColor.B, startColor.A)
-	r.shaderMgr.SetVec4("uColorEnd", endColor.R, endColor.G, endColor.B, endColor.A)
-	r.shaderMgr.SetVec2("uStart", start.X, start.Y)
-	r.shaderMgr.SetVec2("uEnd", end.X, end.Y)
+	uniforms := UniformSet{
+		"uColorStart": Vec4Uniform(startColor.R, startColor.G, startColor.B, startColor.A),
+		"uColorEnd":   Vec4Uniform(endColor.R, endColor.G, endColor.B, endColor.A),
+		"uStart":      Vec2Uniform(start.X, start.Y),
+		"uEnd":        Vec2Uniform(end.X, end.Y),
+	}
 
 	// Draw quad
 	uv := math.NewRect(0, 0, 1, 1)
 	verts := QuadVertices(rect, uv, math.NewColor(1, 1, 1, 1))
-	r.batch.AddQuad(shaderProg, 0, verts)
-	r.Flush()
+	r.addQuad(shaderProg, 0, uniforms, verts)
 }
 
 // FillCircleFilled draws a filled circle using SDF
