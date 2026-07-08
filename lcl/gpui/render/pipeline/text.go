@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
 	"github.com/energye/examples/lcl/gpui/render/font"
@@ -123,12 +124,12 @@ func takeLine(text string, f *font.Font, maxWidth float32) (line, rest string) {
 			}
 			if i == 0 {
 				// Return at least one character
-				size := len(string(r))
+				size := utf8.RuneLen(r)
 				return text[:size], text[size:]
 			}
 			return text[:i], text[i:]
 		}
-		i += len(string(r))
+		i += utf8.RuneLen(r)
 	}
 
 	return text, ""

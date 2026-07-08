@@ -94,7 +94,7 @@
 | F-004 | 组件 Token 仅覆盖 4 个（Button/Input/Card/Modal），Ant Design 有 60+ | style/token | ✅ |
 | F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ✅ |
 | F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ✅ |
-| F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ✅ |
+| F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ⚠️ |
 | F-008 | 无 FBO 离屏渲染（模糊/阴影/backdrop-filter 需要） | render/pipeline | ✅ |
 | F-009 | 无纹理管理 API（image.Image → GPU 纹理） | render/texture | ✅ |
 | F-010 | 布局缺少 flex-shrink / flex-basis / align-self | layout | ✅ |
@@ -238,7 +238,7 @@ Phase 2 主要修复事件和控件逻辑，渲染测试以现有测试的回归
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
 | 贝塞尔曲线路径（Quadratic/Cubic Bezier） | F-006 | `render/pipeline/path.go` | ⬜ |
-| 圆角裁剪（PushClip 支持 rounded rect） | F-007 | `render/pipeline/pipeline.go` | ⬜ |
+| 圆角裁剪（PushClip 支持 rounded rect） | F-007 | `render/pipeline/pipeline.go` | ⚠️ |
 | FBO 离屏渲染支持 | F-008 | `render/pipeline/` + `core/gl/` | ✅ |
 | 纹理管理 API（从 image.Image 创建/删除纹理） | F-009 | `render/texture/texture.go` | ⬜ |
 | Mat4 添加 Inverse/Transpose/Shear | F-005 | `core/math/math.go` | ⬜ |
