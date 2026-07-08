@@ -291,36 +291,48 @@ func (r *Renderer) DrawArc(center math.Vec2, radius, width, startAngle, endAngle
 	}
 }
 
-// DrawCircleArc draws a filled arc (pie shape)
+// DrawCircleArc draws a filled arc (pie shape) using a triangle fan.
 func (r *Renderer) DrawCircleArc(center math.Vec2, radius, startAngle, endAngle float32, color math.Color) {
-	// Convert angles to radians
+	if r == nil || radius <= 0 {
+		return
+	}
 	startRad := startAngle * stdmath.Pi / 180
 	endRad := endAngle * stdmath.Pi / 180
-
-	// Number of segments
-	segments := 32
-	angleStep := (endRad - startRad) / float32(segments)
-
-	// Create vertices for triangle fan
-	vertices := make([]math.Vec2, segments+2)
-	vertices[0] = center // Center vertex
-
-	for i := 0; i <= segments; i++ {
-		angle := startRad + float32(i)*angleStep
-		x := center.X + radius*float32(stdmath.Cos(float64(angle)))
-		y := center.Y + radius*float32(stdmath.Sin(float64(angle)))
-		vertices[i+1] = math.NewVec2(x, y)
+	if startRad == endRad {
+		return
 	}
 
-	// Draw triangles
-	for i := 1; i <= segments; i++ {
-		v0 := vertices[0]
-		v1 := vertices[i]
-		v2 := vertices[i+1]
+	// Adaptive segment count: more segments for larger arcs.
+	arcLen := stdmath.Abs(float64(endRad - startRad))
+	segments := int(arcLen * float64(radius) / 4)
+	if segments < 8 {
+		segments = 8
+	}
+	if segments > 128 {
+		segments = 128
+	}
 
-		// Create triangle using three lines
-		r.DrawLine(v0.X, v0.Y, v1.X, v1.Y, 1, color)
-		r.DrawLine(v1.X, v1.Y, v2.X, v2.Y, 1, color)
-		r.DrawLine(v2.X, v2.Y, v0.X, v0.Y, 1, color)
+	angleStep := (endRad - startRad) / float32(segments)
+	shaderProg := r.shaderMgr.GetShader("color")
+
+	c := colorVertex(center, color)
+	prevAngle := startRad
+	prevX := center.X + radius*float32(stdmath.Cos(float64(prevAngle)))
+	prevY := center.Y + radius*float32(stdmath.Sin(float64(prevAngle)))
+
+	for i := 1; i <= segments; i++ {
+		angle := startRad + float32(i)*angleStep
+		px := center.X + radius*float32(stdmath.Cos(float64(angle)))
+		py := center.Y + radius*float32(stdmath.Sin(float64(angle)))
+
+		verts := [3]Vertex{
+			c,
+			{X: prevX, Y: prevY, R: color.R, G: color.G, B: color.B, A: color.A},
+			{X: px, Y: py, R: color.R, G: color.G, B: color.B, A: color.A},
+		}
+		r.addTriangle(shaderProg, 0, nil, verts)
+
+		prevX = px
+		prevY = py
 	}
 }
