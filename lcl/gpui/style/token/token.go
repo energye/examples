@@ -103,10 +103,31 @@ type AliasToken struct {
 
 // ComponentTokens stores per-component defaults.
 type ComponentTokens struct {
-	Button ButtonToken
-	Input  InputToken
-	Card   CardToken
-	Modal  ModalToken
+	Button     ButtonToken
+	Input      InputToken
+	Card       CardToken
+	Modal      ModalToken
+	Checkbox   CheckboxToken
+	Radio      RadioToken
+	Switch     SwitchToken
+	Select     SelectToken
+	Tag        TagToken
+	Tooltip    TooltipToken
+	Table      TableToken
+	Menu       MenuToken
+	Tabs       TabsToken
+	Badge      BadgeToken
+	Avatar     AvatarToken
+	Alert      AlertToken
+	Progress   ProgressToken
+	Pagination PaginationToken
+	Breadcrumb BreadcrumbToken
+	Steps      StepsToken
+	Divider    DividerToken
+	Collapse   CollapseToken
+	Timeline   TimelineToken
+	Message    MessageToken
+	Notification NotificationToken
 }
 
 type ButtonToken struct {
@@ -140,6 +161,189 @@ type ModalToken struct {
 	Radius    float32
 	MaskColor math.Color
 	Shadow    ShadowToken
+}
+
+type CheckboxToken struct {
+	Size       float32
+	BorderWidth float32
+	Radius     float32
+	Gap        float32 // Gap between checkbox and label
+}
+
+type RadioToken struct {
+	Size       float32
+	BorderWidth float32
+	Gap        float32
+}
+
+type SwitchToken struct {
+	Height     float32
+	MinWidth   float32
+	InnerSize  float32
+	InnerMargin float32
+	Radius     float32
+}
+
+type SelectToken struct {
+	Height      float32
+	HeightSM    float32
+	HeightLG    float32
+	PaddingH    float32
+	BorderWidth float32
+	Radius      float32
+	DropdownMaxH float32
+}
+
+type TagToken struct {
+	HeightSM    float32
+	Height      float32
+	HeightLG    float32
+	PaddingH    float32
+	BorderWidth float32
+	Radius      float32
+	FontSizeSM  float32
+}
+
+type TooltipToken struct {
+	MaxWidth   float32
+	PaddingH   float32
+	PaddingV   float32
+	Radius     float32
+	ArrowSize  float32
+}
+
+type TableToken struct {
+	HeaderBg      math.Color
+	HeaderColor   math.Color
+	RowHoverBg    math.Color
+	BorderColor   math.Color
+	CellPaddingH  float32
+	CellPaddingV  float32
+	FontSize      float32
+	HeaderFontWeight float32
+}
+
+type MenuToken struct {
+	Height      float32
+	ItemPaddingH float32
+	ItemMarginB  float32
+	IconSize     float32
+	SubIconSize  float32
+	Radius       float32
+	FontSize     float32
+}
+
+type TabsToken struct {
+	Height       float32
+	CardHeight   float32
+	FontSize     float32
+	BarThickness float32
+	Gap          float32
+	PaddingH     float32
+}
+
+type BadgeToken struct {
+	Height     float32
+	HeightSM   float32
+	MinWidth   float32
+	Radius     float32
+	FontSize   float32
+	DotSize    float32
+}
+
+type AvatarToken struct {
+	SizeSM     float32
+	Size       float32
+	SizeLG     float32
+	FontSizeSM float32
+	FontSize   float32
+	FontSizeLG float32
+	Radius     float32
+	GroupSpace float32
+}
+
+type AlertToken struct {
+	PaddingH   float32
+	PaddingV   float32
+	Radius     float32
+	FontSize   float32
+	IconSize   float32
+}
+
+type ProgressToken struct {
+	SizeSM     float32
+	Size       float32
+	FontSize   float32
+	RailHeight float32
+	CircleTextFontSize float32
+}
+
+type PaginationToken struct {
+	Height     float32
+	HeightSM   float32
+	MinWidth   float32
+	FontSize   float32
+	Radius     float32
+	Gap        float32
+}
+
+type BreadcrumbToken struct {
+	FontSize       float32
+	FontSizeIcon   float32
+	SeparatorMargin float32
+	LinkColor      math.Color
+	SeparatorColor math.Color
+}
+
+type StepsToken struct {
+	Height        float32
+	DotSize       float32
+	IconSize      float32
+	TitleFontSize float32
+	DescFontSize  float32
+	Gap           float32
+}
+
+type DividerToken struct {
+	Thickness  float32
+	MarginH    float32
+	MarginV    float32
+	TextPadding float32
+}
+
+type CollapseToken struct {
+	HeaderPaddingH float32
+	HeaderPaddingV float32
+	ContentPaddingH float32
+	ContentPaddingV float32
+	Radius         float32
+	BorderWidth    float32
+}
+
+type TimelineToken struct {
+	DotSize      float32
+	LineWidth    float32
+	Gap          float32
+	PaddingB     float32
+}
+
+type MessageToken struct {
+	PaddingH    float32
+	PaddingV    float32
+	Radius      float32
+	FontSize    float32
+	IconSize    float32
+	ContentMaxW float32
+}
+
+type NotificationToken struct {
+	Width       float32
+	PaddingH    float32
+	PaddingV    float32
+	Radius      float32
+	FontSize    float32
+	IconSize    float32
+	MarginB     float32
 }
 
 type ShadowToken struct {
@@ -304,6 +508,168 @@ func deriveComponents(global GlobalToken, alias AliasToken) ComponentTokens {
 			Radius:    global.RadiusLG,
 			MaskColor: global.ColorBgMask,
 			Shadow:    global.ShadowLG,
+		},
+		Checkbox: CheckboxToken{
+			Size:        16,
+			BorderWidth: 1,
+			Radius:      global.RadiusSM,
+			Gap:         global.SpaceXS,
+		},
+		Radio: RadioToken{
+			Size:        16,
+			BorderWidth: 1,
+			Gap:         global.SpaceXS,
+		},
+		Switch: SwitchToken{
+			Height:       22,
+			MinWidth:     44,
+			InnerSize:    16,
+			InnerMargin:  3,
+			Radius:       9999,
+		},
+		Select: SelectToken{
+			Height:       alias.ControlHeight,
+			HeightSM:     alias.ControlHeightSM,
+			HeightLG:     alias.ControlHeightLG,
+			PaddingH:     global.SpaceSM,
+			BorderWidth:  1,
+			Radius:       global.RadiusMD,
+			DropdownMaxH: 256,
+		},
+		Tag: TagToken{
+			HeightSM:     20,
+			Height:       24,
+			HeightLG:     28,
+			PaddingH:     global.SpaceXXS,
+			BorderWidth:  1,
+			Radius:       global.RadiusSM,
+			FontSizeSM:   global.FontSizeSM,
+		},
+		Tooltip: TooltipToken{
+			MaxWidth:  250,
+			PaddingH:  global.SpaceSM,
+			PaddingV:  global.SpaceXXS,
+			Radius:    global.RadiusSM,
+			ArrowSize: 8,
+		},
+		Table: TableToken{
+			HeaderBg:       global.ColorBgElevated,
+			HeaderColor:    global.ColorText,
+			RowHoverBg:     global.ColorBgContainer,
+			BorderColor:    global.ColorBorder,
+			CellPaddingH:   global.SpaceSM,
+			CellPaddingV:   global.SpaceSM,
+			FontSize:       global.FontSize,
+			HeaderFontWeight: 600,
+		},
+		Menu: MenuToken{
+			Height:       40,
+			ItemPaddingH: global.SpaceMD,
+			ItemMarginB:  global.SpaceXXS,
+			IconSize:     14,
+			SubIconSize:  10,
+			Radius:       global.RadiusMD,
+			FontSize:     global.FontSize,
+		},
+		Tabs: TabsToken{
+			Height:       40,
+			CardHeight:   40,
+			FontSize:     global.FontSize,
+			BarThickness: 2,
+			Gap:          global.SpaceXL,
+			PaddingH:     global.SpaceSM,
+		},
+		Badge: BadgeToken{
+			Height:    20,
+			HeightSM:  16,
+			MinWidth:  20,
+			Radius:    9999,
+			FontSize:  12,
+			DotSize:   6,
+		},
+		Avatar: AvatarToken{
+			SizeSM:     24,
+			Size:       32,
+			SizeLG:     40,
+			FontSizeSM: 12,
+			FontSize:   14,
+			FontSizeLG: 16,
+			Radius:     global.RadiusMD,
+			GroupSpace: -8,
+		},
+		Alert: AlertToken{
+			PaddingH:  global.SpaceMD,
+			PaddingV:  global.SpaceSM,
+			Radius:    global.RadiusMD,
+			FontSize:  global.FontSize,
+			IconSize:  16,
+		},
+		Progress: ProgressToken{
+			SizeSM:           32,
+			Size:             40,
+			FontSize:         global.FontSize,
+			RailHeight:       8,
+			CircleTextFontSize: 24,
+		},
+		Pagination: PaginationToken{
+			Height:    alias.ControlHeight,
+			HeightSM:  alias.ControlHeightSM,
+			MinWidth:  alias.ControlHeight,
+			FontSize:  global.FontSize,
+			Radius:    global.RadiusMD,
+			Gap:       global.SpaceXXS,
+		},
+		Breadcrumb: BreadcrumbToken{
+			FontSize:        global.FontSize,
+			FontSizeIcon:    global.FontSizeSM,
+			SeparatorMargin: global.SpaceXXS,
+			LinkColor:       global.ColorTextSecondary,
+			SeparatorColor:  global.ColorTextDisabled,
+		},
+		Steps: StepsToken{
+			Height:        32,
+			DotSize:       8,
+			IconSize:      16,
+			TitleFontSize: global.FontSize,
+			DescFontSize:  global.FontSizeSM,
+			Gap:           global.SpaceSM,
+		},
+		Divider: DividerToken{
+			Thickness:   1,
+			MarginH:     0,
+			MarginV:     global.SpaceLG,
+			TextPadding: global.SpaceSM,
+		},
+		Collapse: CollapseToken{
+			HeaderPaddingH:   global.SpaceMD,
+			HeaderPaddingV:   global.SpaceSM,
+			ContentPaddingH:  global.SpaceMD,
+			ContentPaddingV:  global.SpaceMD,
+			Radius:           global.RadiusMD,
+			BorderWidth:      1,
+		},
+		Timeline: TimelineToken{
+			DotSize:   8,
+			LineWidth: 2,
+			Gap:       global.SpaceSM,
+			PaddingB:  global.SpaceXXS,
+		},
+		Message: MessageToken{
+			PaddingH:    global.SpaceMD,
+			PaddingV:    global.SpaceSM,
+			Radius:      global.RadiusMD,
+			FontSize:    global.FontSize,
+			IconSize:    16,
+			ContentMaxW: 480,
+		},
+		Notification: NotificationToken{
+			Width:     384,
+			PaddingH:  global.SpaceMD,
+			PaddingV:  global.SpaceMD,
+			Radius:    global.RadiusLG,
+			FontSize:  global.FontSize,
+			IconSize:  24,
+			MarginB:   global.SpaceSM,
 		},
 	}
 }

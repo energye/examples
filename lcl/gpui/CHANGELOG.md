@@ -399,3 +399,30 @@ A-003 焦点跨容器协调：
 - 设计层：组件 Token 需逐个实现
 - 渲染层：FBO 支持需 GL 函数扩展
 - 控件层：基础控件需逐个实现
+
+---
+
+### 2026-07-08 | F-004 | 组件 Token 扩展完成
+
+**完成内容**：
+- `style/token/token.go` 新增 22 个组件 Token 类型：
+  - CheckboxToken, RadioToken, SwitchToken, SelectToken
+  - TagToken, TooltipToken, TableToken, MenuToken, TabsToken
+  - BadgeToken, AvatarToken, AlertToken, ProgressToken
+  - PaginationToken, BreadcrumbToken, StepsToken, DividerToken
+  - CollapseToken, TimelineToken, MessageToken, NotificationToken
+- `deriveComponents()` 函数扩展为所有组件填充默认值
+- 所有 Token 值基于 Ant Design v5 设计规范
+- 测试结果：11/11 包全部通过
+
+**当前剩余**（均为大范围任务）：
+- F-008：FBO 离屏渲染
+- F-016：基础控件实现
+- P-002：阴影 shader 优化
+- P-004：VBO ring buffer
+
+**下一步**：继续 Phase 3 功能补全
+
+**不足所在环节**：
+- 渲染层：FBO 支持需 GL 函数扩展
+- 控件层：基础控件需逐个实现

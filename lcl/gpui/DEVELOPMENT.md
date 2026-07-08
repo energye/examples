@@ -91,7 +91,7 @@
 | F-001 | 颜色缺少 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate） | core/math | ✅ |
 | F-002 | 无 10 级色板生成（Ant Design color-1 到 color-10） | style/token | ✅ |
 | F-003 | Token 派生与 Ant Design 不一致（圆角/间距/字号/暗色模式） | style/token | ✅ |
-| F-004 | 组件 Token 仅覆盖 4 个（Button/Input/Card/Modal），Ant Design 有 60+ | style/token | ⬜ |
+| F-004 | 组件 Token 仅覆盖 4 个（Button/Input/Card/Modal），Ant Design 有 60+ | style/token | ✅ |
 | F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ✅ |
 | F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ✅ |
 | F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ✅ |
