@@ -158,9 +158,9 @@ func TestBoxClickRequiresPress(t *testing.T) {
 	box := NewBox(pipeline.BoxStyle{})
 	box.SetBounds(math.NewRect(0, 0, 40, 20))
 	clicks := 0
-	box.OnClick = func() {
+	box.SetOnClick(func() {
 		clicks++
-	}
+	})
 
 	if box.HandleEvent(nil, Event{Type: EventMouseUp, Button: 1}) && clicks != 0 {
 		t.Fatal("box should not click from mouse up without prior press")

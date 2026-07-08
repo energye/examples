@@ -22,7 +22,7 @@ func TestButtonDefaultMeasureUsesTokenHeight(t *testing.T) {
 
 func TestButtonBlockMeasureUsesAvailableWidth(t *testing.T) {
 	button := NewButton("Submit")
-	button.Block = true
+	button.SetBlock(true)
 
 	size := button.Measure(nil, Constraints{Max: math.NewVec2(240, 0)})
 	if size.X != 240 {
@@ -33,7 +33,7 @@ func TestButtonBlockMeasureUsesAvailableWidth(t *testing.T) {
 func TestButtonPrimaryStyle(t *testing.T) {
 	tokens := token.DefaultLight()
 	button := NewButton("Primary")
-	button.Kind = ButtonPrimary
+	button.SetKind(ButtonPrimary)
 	style := button.buttonStyle(&Context{Tokens: tokens})
 
 	if style.Palette.Background != tokens.Global.ColorPrimary {
@@ -47,7 +47,7 @@ func TestButtonPrimaryStyle(t *testing.T) {
 func TestButtonDangerStyle(t *testing.T) {
 	tokens := token.DefaultLight()
 	button := NewButton("Delete")
-	button.Danger = true
+	button.SetDanger(true)
 	style := button.buttonStyle(&Context{Tokens: tokens})
 
 	if style.Palette.Border != tokens.Global.ColorError {
@@ -61,7 +61,7 @@ func TestButtonDangerStyle(t *testing.T) {
 func TestButtonLinkStyle(t *testing.T) {
 	tokens := token.DefaultLight()
 	button := NewButton("Link")
-	button.Kind = ButtonLink
+	button.SetKind(ButtonLink)
 	style := button.buttonStyle(&Context{Tokens: tokens})
 
 	if style.Palette.Border.A != 0 || style.Palette.Background.A != 0 {

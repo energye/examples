@@ -34,9 +34,9 @@ func TestControlSurfacePreferredSizeAndConstraints(t *testing.T) {
 func TestControlSurfacePointerClick(t *testing.T) {
 	control := NewControlSurface()
 	clicks := 0
-	control.OnClick = func(Event) {
+	control.SetOnClick(func(Event) {
 		clicks++
-	}
+	})
 
 	if !control.HandleEvent(nil, Event{Type: EventMouseDown, Button: 1}) {
 		t.Fatal("mouse down should be handled")
@@ -60,9 +60,9 @@ func TestControlSurfaceKeyboardClick(t *testing.T) {
 	control.SetFocusable(true)
 	control.Focus()
 	clicks := 0
-	control.OnClick = func(Event) {
+	control.SetOnClick(func(Event) {
 		clicks++
-	}
+	})
 
 	if !control.HandleEvent(nil, Event{Type: EventKeyDown, Key: keyEnter}) {
 		t.Fatal("focused enter should activate control")
@@ -76,9 +76,9 @@ func TestControlSurfaceDisabledDoesNotActivate(t *testing.T) {
 	control := NewControlSurface()
 	control.SetEnabled(false)
 	clicks := 0
-	control.OnClick = func(Event) {
+	control.SetOnClick(func(Event) {
 		clicks++
-	}
+	})
 
 	if control.HandleEvent(nil, Event{Type: EventMouseDown, Button: 1}) {
 		t.Fatal("disabled control should not handle mouse down")

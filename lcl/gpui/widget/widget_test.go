@@ -138,9 +138,9 @@ func TestBoxClickUsesConcreteHandler(t *testing.T) {
 	box := NewBox(pipeline.BoxStyle{})
 	box.SetBounds(math.NewRect(10, 10, 40, 24))
 	clicked := false
-	box.OnClick = func() {
+	box.SetOnClick(func() {
 		clicked = true
-	}
+	})
 	root.Add(box)
 
 	root.HandleEvent(nil, Event{Type: EventMouseDown, X: 12, Y: 12, Button: 1})
@@ -215,6 +215,25 @@ func TestContainerDragEvents(t *testing.T) {
 	dragMove := child.events[3]
 	if dragMove.DeltaX != 20 || dragMove.DeltaY != 15 {
 		t.Fatalf("drag delta = (%v,%v), want (20,15)", dragMove.DeltaX, dragMove.DeltaY)
+	}
+}
+
+func TestTextSetTextInvalidates(t *testing.T) {
+	text := NewText("old")
+	text.ClearInvalidated()
+
+	text.SetText("new")
+	if text.Text() != "new" {
+		t.Fatalf("text = %q, want new", text.Text())
+	}
+	if !text.Invalidated() {
+		t.Fatal("SetText should invalidate text")
+	}
+
+	text.ClearInvalidated()
+	text.SetText("new")
+	if text.Invalidated() {
+		t.Fatal("SetText with same value should not invalidate")
 	}
 }
 

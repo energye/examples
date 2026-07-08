@@ -5,16 +5,24 @@ import "github.com/energye/examples/lcl/gpui/core/math"
 // ControlSurface is a reusable interactive visual shell for future components.
 type ControlSurface struct {
 	ComponentBase
-	Interaction *InteractionController
-	OnClick     func(Event)
+	interaction *InteractionController
+	onClick     func(Event)
 }
 
 // NewControlSurface creates an interactive component shell.
 func NewControlSurface() *ControlSurface {
 	c := &ControlSurface{ComponentBase: NewComponentBase()}
 	c.SetOwner(c)
-	c.Interaction = NewInteractionController(c)
+	c.interaction = NewInteractionController(c)
 	return c
+}
+
+// SetOnClick sets the activation callback.
+func (c *ControlSurface) SetOnClick(handler func(Event)) {
+	if c == nil {
+		return
+	}
+	c.onClick = handler
 }
 
 // Measure returns the standard token-derived control size.
@@ -52,9 +60,9 @@ func (c *ControlSurface) HandleEvent(ctx *Context, event Event) bool {
 	if c == nil || !c.Enabled() {
 		return false
 	}
-	if c.Interaction == nil {
-		c.Interaction = NewInteractionController(c)
+	if c.interaction == nil {
+		c.interaction = NewInteractionController(c)
 	}
-	c.Interaction.SetOnClick(c.OnClick)
-	return c.Interaction.HandleEvent(ctx, event)
+	c.interaction.SetOnClick(c.onClick)
+	return c.interaction.HandleEvent(ctx, event)
 }

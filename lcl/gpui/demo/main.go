@@ -53,28 +53,27 @@ func setupUI(engine *ui.Engine) {
 	title := widget.NewText("Ant Design Framework Core")
 	title.SetPos(48, 48)
 	title.SetSize(360, 28)
-	title.Font = engine.Font()
-	title.Color = tokens.Global.ColorText
+	title.SetFont(engine.Font())
+	title.SetColor(tokens.Global.ColorText)
 	title.SetEnabled(false)
 	engine.AddWidget(title)
 
 	status := widget.NewText("Box/Text primitives running on the new widget lifecycle")
 	status.SetPos(48, 86)
 	status.SetSize(360, 24)
-	status.Font = engine.Font()
-	status.Color = tokens.Global.ColorTextSecondary
-	status.Ellipsis = true
+	status.SetFont(engine.Font())
+	status.SetColor(tokens.Global.ColorTextSecondary)
+	status.SetEllipsis(true)
 	status.SetEnabled(false)
 	engine.AddWidget(status)
 
 	action := widget.NewButton("Click")
-	action.Kind = widget.ButtonPrimary
+	action.SetKind(widget.ButtonPrimary)
 	action.SetPos(48, 126)
 	action.SetSize(128, 36)
-	action.Font = engine.Font()
+	action.SetFont(engine.Font())
 	action.SetOnClick(func() {
-		status.Text = "Clicked: event dispatch, focus, and state are active"
-		status.Invalidate()
+		status.SetText("Clicked: event dispatch, focus, and state are active")
 		fmt.Println("framework button clicked")
 	})
 	engine.AddWidget(action)
