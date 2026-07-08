@@ -9,14 +9,16 @@ import (
 // Box is a basic visual primitive used to validate lifecycle and state.
 type Box struct {
 	BaseWidget
-	Style   pipeline.BoxStyle
-	OnClick func()
+	Style       pipeline.BoxStyle
+	Interaction *InteractionController
+	OnClick     func()
 }
 
 // NewBox creates a box primitive.
 func NewBox(style pipeline.BoxStyle) *Box {
 	b := &Box{BaseWidget: NewBaseWidget(), Style: style}
 	b.SetOwner(b)
+	b.Interaction = NewInteractionController(b)
 	return b
 }
 
@@ -37,8 +39,15 @@ func (b *Box) HandleEvent(ctx *Context, event Event) bool {
 	if b == nil || !b.Enabled() {
 		return false
 	}
-	if event.Type == EventMouseUp && b.OnClick != nil {
-		b.OnClick()
+	if b.Interaction == nil {
+		b.Interaction = NewInteractionController(b)
+	}
+	b.Interaction.SetOnClick(func(Event) {
+		if b.OnClick != nil {
+			b.OnClick()
+		}
+	})
+	if b.Interaction.HandleEvent(ctx, event) {
 		return true
 	}
 	return event.Type == EventMouseDown || event.Type == EventMouseUp
