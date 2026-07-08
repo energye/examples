@@ -10,9 +10,11 @@ type focusRegistrar interface {
 // Container is a generic widget node that owns children.
 type Container struct {
 	BaseWidget
-	children []Widget
-	focus    *FocusManager
-	clip     bool
+	children          []Widget
+	focus             *FocusManager
+	clip              bool
+	pointerCapture    Widget
+	pointerCaptureHit Widget
 }
 
 // NewContainer creates an empty container.
@@ -222,6 +224,9 @@ func (c *Container) HandleEvent(ctx *Context, event Event) bool {
 }
 
 func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, focusOnHit bool) bool {
+	if c.pointerCapture != nil && (event.Type == EventMouseMove || event.Type == EventMouseUp) {
+		return c.dispatchCapturedPointer(ctx, event, point)
+	}
 	for i := len(c.children) - 1; i >= 0; i-- {
 		child := c.children[i]
 		if child == nil || !child.Visible() || !child.Enabled() {
@@ -243,6 +248,8 @@ func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, 
 		childEvent.LocalY = point.Y - childBounds.Y
 		if event.Type == EventMouseDown {
 			hit.SetStateFlag(StateActive, true)
+			c.pointerCapture = child
+			c.pointerCaptureHit = hit
 		}
 		if event.Type == EventMouseUp {
 			hit.SetStateFlag(StateActive, false)
@@ -250,6 +257,29 @@ func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, 
 		return child.HandleEvent(ctx, childEvent)
 	}
 	return false
+}
+
+func (c *Container) dispatchCapturedPointer(ctx *Context, event Event, point math.Vec2) bool {
+	child := c.pointerCapture
+	if child == nil {
+		return false
+	}
+	childBounds := child.Bounds()
+	childEvent := event
+	childEvent.X = point.X
+	childEvent.Y = point.Y
+	childEvent.LocalX = point.X - childBounds.X
+	childEvent.LocalY = point.Y - childBounds.Y
+	handled := child.HandleEvent(ctx, childEvent)
+	if event.Type == EventMouseUp {
+		if c.pointerCaptureHit != nil {
+			c.pointerCaptureHit.SetStateFlag(StateActive, false)
+		}
+		c.pointerCapture = nil
+		c.pointerCaptureHit = nil
+		return true
+	}
+	return handled
 }
 
 func (c *Container) registerFocusable(widget Widget) {

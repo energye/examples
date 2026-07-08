@@ -37,9 +37,12 @@ type Portal struct {
 
 // PortalHost owns top-level widget portals that escape parent clipping.
 type PortalHost struct {
-	manager *overlay.Manager
-	portals map[string]*Portal
-	focus   *FocusManager
+	manager           *overlay.Manager
+	portals           map[string]*Portal
+	focus             *FocusManager
+	pointerCaptureID  string
+	pointerCapture    Widget
+	pointerCaptureHit Widget
 }
 
 // NewPortalHost creates a portal host backed by an overlay manager.
@@ -275,6 +278,9 @@ func (h *PortalHost) DismissOutside(x, y float32) []string {
 }
 
 func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
+	if h.pointerCaptureID != "" && (event.Type == EventMouseMove || event.Type == EventMouseUp) {
+		return h.dispatchCapturedPointer(ctx, event)
+	}
 	if event.Type == EventMouseDown {
 		if dismissed := h.DismissOutside(event.X, event.Y); len(dismissed) > 0 {
 			return true
@@ -303,6 +309,9 @@ func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
 	portalEvent.LocalY = local.Y
 	if event.Type == EventMouseDown {
 		hit.SetStateFlag(StateActive, true)
+		h.pointerCaptureID = layer.ID
+		h.pointerCapture = portal.Content
+		h.pointerCaptureHit = hit
 	}
 	if event.Type == EventMouseUp {
 		hit.SetStateFlag(StateActive, false)
@@ -311,6 +320,38 @@ func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
 		return true
 	}
 	return portal.Layer.Options.HasMask
+}
+
+func (h *PortalHost) dispatchCapturedPointer(ctx *Context, event Event) bool {
+	portal := h.portals[h.pointerCaptureID]
+	if portal == nil || portal.Content == nil {
+		h.clearPointerCapture()
+		return false
+	}
+	bounds := portal.Layer.Bounds
+	portalEvent := event
+	portalEvent.X = event.X - bounds.X
+	portalEvent.Y = event.Y - bounds.Y
+	portalEvent.LocalX = portalEvent.X
+	portalEvent.LocalY = portalEvent.Y
+	handled := portal.Content.HandleEvent(ctx, portalEvent)
+	if event.Type == EventMouseUp {
+		if h.pointerCaptureHit != nil {
+			h.pointerCaptureHit.SetStateFlag(StateActive, false)
+		}
+		h.clearPointerCapture()
+		return true
+	}
+	return handled
+}
+
+func (h *PortalHost) clearPointerCapture() {
+	if h == nil {
+		return
+	}
+	h.pointerCaptureID = ""
+	h.pointerCapture = nil
+	h.pointerCaptureHit = nil
 }
 
 func (h *PortalHost) consumeTopMask(x, y float32) bool {

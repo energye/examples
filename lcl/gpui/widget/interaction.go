@@ -133,7 +133,11 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 		if !c.options.Pointer {
 			return false
 		}
-		c.SetHover(true)
+		inside := c.eventInsideTarget(event)
+		c.SetHover(inside)
+		if c.pressed {
+			c.target.SetStateFlag(StateActive, true)
+		}
 		return false
 	case EventMouseDown:
 		if !c.options.Pointer {
@@ -147,9 +151,10 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 			return false
 		}
 		wasPressed := c.pressed || c.target.HasState(StateActive)
+		inside := c.eventInsideTarget(event)
 		c.pressed = false
 		c.target.SetStateFlag(StateActive, false)
-		if wasPressed && c.options.ClickOnMouseUp {
+		if wasPressed && inside && c.options.ClickOnMouseUp {
 			c.activate(event)
 		}
 		return wasPressed
@@ -189,6 +194,17 @@ func (c *InteractionController) canInteract() bool {
 
 func (c *InteractionController) isLoading() bool {
 	return c != nil && c.target != nil && c.target.HasState(StateLoading)
+}
+
+func (c *InteractionController) eventInsideTarget(event Event) bool {
+	if c == nil || c.target == nil {
+		return false
+	}
+	bounds := c.target.Bounds()
+	if bounds.W < 0 || bounds.H < 0 {
+		return false
+	}
+	return event.LocalX >= 0 && event.LocalY >= 0 && event.LocalX <= bounds.W && event.LocalY <= bounds.H
 }
 
 func isActivationEvent(event Event) bool {

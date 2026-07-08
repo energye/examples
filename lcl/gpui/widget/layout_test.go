@@ -121,6 +121,29 @@ func TestRemoveNestedContainerClearsFocusRegistration(t *testing.T) {
 	}
 }
 
+func TestLayoutContainerCapturedMouseUpOutsideClearsActive(t *testing.T) {
+	root := NewFlex(layout.Row, 0)
+	button := NewButton("Save")
+	clicks := 0
+	button.SetOnClick(func() {
+		clicks++
+	})
+	root.AddLayout(button, layout.Style{Width: layout.Px(80), Height: layout.Px(32)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	root.HandleEvent(nil, Event{Type: EventMouseDown, X: 10, Y: 10, Button: 1})
+	if !button.HasState(StateActive) {
+		t.Fatal("button should become active after mouse down")
+	}
+	root.HandleEvent(nil, Event{Type: EventMouseUp, X: 150, Y: 80, Button: 1})
+	if button.HasState(StateActive) {
+		t.Fatal("button should clear active after outside mouse up")
+	}
+	if clicks != 0 {
+		t.Fatalf("clicks = %d, want 0", clicks)
+	}
+}
+
 func assertWidgetRect(t *testing.T, got math.Rect, x, y, w, h float32) {
 	t.Helper()
 	if got.X != x || got.Y != y || got.W != w || got.H != h {

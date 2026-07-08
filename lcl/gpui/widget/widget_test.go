@@ -149,3 +149,23 @@ func TestBoxClickUsesConcreteHandler(t *testing.T) {
 		t.Fatal("box click handler was not called")
 	}
 }
+
+func TestContainerCapturedMouseUpReturnsToPressedChild(t *testing.T) {
+	root := NewContainer()
+	root.Layout(nil, math.NewRect(0, 0, 200, 120))
+	child := newRecordingWidget(math.NewRect(10, 10, 40, 20))
+	root.Add(child)
+
+	root.HandleEvent(nil, Event{Type: EventMouseDown, X: 20, Y: 20, Button: 1})
+	root.HandleEvent(nil, Event{Type: EventMouseUp, X: 160, Y: 90, Button: 1})
+
+	if len(child.events) != 2 {
+		t.Fatalf("child events = %d, want mouse down and captured mouse up", len(child.events))
+	}
+	if child.events[1].Type != EventMouseUp {
+		t.Fatalf("second event = %v, want mouse up", child.events[1].Type)
+	}
+	if child.events[1].LocalX != 150 || child.events[1].LocalY != 80 {
+		t.Fatalf("captured mouse up local = (%v,%v), want (150,80)", child.events[1].LocalX, child.events[1].LocalY)
+	}
+}

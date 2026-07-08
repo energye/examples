@@ -117,3 +117,26 @@ func TestPortalHostFocusRoutesKeyboard(t *testing.T) {
 		t.Fatal("focused portal content should receive key events")
 	}
 }
+
+func TestPortalHostCapturedMouseUpOutsideClearsActive(t *testing.T) {
+	host := NewPortalHost(nil)
+	button := NewButton("Save")
+	clicks := 0
+	button.SetOnClick(func() {
+		clicks++
+	})
+	host.Add(button, PortalOptions{ID: "popup", ZIndex: 10, Bounds: math.NewRect(20, 20, 80, 32)})
+	host.Layout(nil, math.NewRect(0, 0, 200, 200))
+
+	host.HandleEvent(nil, Event{Type: EventMouseDown, X: 30, Y: 30, Button: 1})
+	if !button.HasState(StateActive) {
+		t.Fatal("button should become active after portal mouse down")
+	}
+	host.HandleEvent(nil, Event{Type: EventMouseUp, X: 160, Y: 160, Button: 1})
+	if button.HasState(StateActive) {
+		t.Fatal("button should clear active after portal outside mouse up")
+	}
+	if clicks != 0 {
+		t.Fatalf("clicks = %d, want 0", clicks)
+	}
+}

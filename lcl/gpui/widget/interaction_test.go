@@ -56,6 +56,31 @@ func TestInteractionControllerMouseUpWithoutPressDoesNotActivate(t *testing.T) {
 	}
 }
 
+func TestInteractionControllerMouseUpOutsideDoesNotActivate(t *testing.T) {
+	target := newRecordingWidget(math.NewRect(0, 0, 40, 20))
+	controller := NewInteractionController(target)
+	clicks := 0
+	controller.SetOnClick(func(Event) {
+		clicks++
+	})
+
+	controller.HandleEvent(nil, Event{Type: EventMouseDown, LocalX: 10, LocalY: 10, Button: 1})
+	if !target.HasState(StateActive) {
+		t.Fatal("target should become active after mouse down")
+	}
+	controller.HandleEvent(nil, Event{Type: EventMouseMove, LocalX: 80, LocalY: 10})
+	if !target.HasState(StateActive) {
+		t.Fatal("target should stay active while pointer capture is pressed")
+	}
+	controller.HandleEvent(nil, Event{Type: EventMouseUp, LocalX: 80, LocalY: 10, Button: 1})
+	if target.HasState(StateActive) {
+		t.Fatal("target should clear active when captured mouse up is released")
+	}
+	if clicks != 0 {
+		t.Fatalf("clicks = %d, want 0", clicks)
+	}
+}
+
 func TestInteractionControllerKeyboardActivationRequiresFocus(t *testing.T) {
 	target := newRecordingWidget(math.NewRect(0, 0, 40, 20))
 	target.SetFocusable(true)

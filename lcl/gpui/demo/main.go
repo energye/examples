@@ -67,29 +67,17 @@ func setupUI(engine *ui.Engine) {
 	status.SetEnabled(false)
 	engine.AddWidget(status)
 
-	action := widget.NewBox(pipeline.BoxStyle{
-		Background:  tokens.Global.ColorPrimary,
-		BorderColor: tokens.Global.ColorPrimary,
-		BorderWidth: 1,
-		Radius:      tokens.Global.RadiusMD,
-	})
+	action := widget.NewButton("Click")
+	action.Kind = widget.ButtonPrimary
 	action.SetPos(48, 126)
 	action.SetSize(128, 36)
-	action.SetFocusable(true)
-	action.OnClick = func() {
+	action.Font = engine.Font()
+	action.SetOnClick(func() {
 		status.Text = "Clicked: event dispatch, focus, and state are active"
 		status.Invalidate()
-		fmt.Println("framework box clicked")
-	}
+		fmt.Println("framework button clicked")
+	})
 	engine.AddWidget(action)
-
-	label := widget.NewText("Click")
-	label.SetPos(87, 134)
-	label.SetSize(80, 20)
-	label.Font = engine.Font()
-	label.Color = tokens.Global.ColorTextLight
-	label.SetEnabled(false)
-	engine.AddWidget(label)
 
 	fmt.Println("✓ UI ready")
 }

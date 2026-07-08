@@ -290,6 +290,9 @@ func (c *LayoutContainer) layoutNode(ctx *Context) *layout.Node {
 }
 
 func (c *LayoutContainer) dispatchLayoutPointer(ctx *Context, event Event, point coremath.Vec2, focusOnHit bool) bool {
+	if c.pointerCapture != nil && (event.Type == EventMouseMove || event.Type == EventMouseUp) {
+		return c.dispatchCapturedPointer(ctx, event, point)
+	}
 	for i := len(c.children) - 1; i >= 0; i-- {
 		child := c.children[i]
 		if child == nil || !child.Visible() || !child.Enabled() {
@@ -311,6 +314,8 @@ func (c *LayoutContainer) dispatchLayoutPointer(ctx *Context, event Event, point
 		childEvent.LocalY = point.Y - childBounds.Y
 		if event.Type == EventMouseDown {
 			hit.SetStateFlag(StateActive, true)
+			c.pointerCapture = child
+			c.pointerCaptureHit = hit
 		}
 		if event.Type == EventMouseUp {
 			hit.SetStateFlag(StateActive, false)
