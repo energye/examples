@@ -477,7 +477,21 @@ func (f *Font) Delete() {
 	}
 }
 
-// Glyphs returns the glyph map (for debugging)
+// ForEachGlyph calls fn for each cached glyph while holding the read lock.
+// Prefer this over Glyphs() for non-debug iteration (no map copy).
+func (f *Font) ForEachGlyph(fn func(r rune, g *GlyphInfo)) {
+	if f == nil || fn == nil {
+		return
+	}
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	for r, g := range f.glyphs {
+		fn(r, g)
+	}
+}
+
+// Glyphs returns a copy of the glyph map (for debugging only).
+// For production iteration use ForEachGlyph instead.
 func (f *Font) Glyphs() map[rune]*GlyphInfo {
 	if f == nil {
 		return nil

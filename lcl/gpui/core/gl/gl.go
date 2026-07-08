@@ -157,6 +157,14 @@ func Init() error {
 		return fmt.Errorf("gl: %v", err)
 	}
 
+	// If Init fails partway, clear all partially-bound function pointers.
+	initOK := false
+	defer func() {
+		if !initOK {
+			resetGLFuncs()
+		}
+	}()
+
 	bind := func(fn any, name string) {
 		purego.RegisterLibFunc(fn, lib, name)
 	}
@@ -241,8 +249,74 @@ func Init() error {
 	bind(&TexParameteri, "glTexParameteri")
 	bind(&ActiveTexture, "glActiveTexture")
 
+	initOK = true
 	initialized = true
 	return nil
+}
+
+// resetGLFuncs clears all partially-bound function pointers so that
+// callers cannot use a half-initialized GL state after Init fails.
+func resetGLFuncs() {
+	Viewport = nil
+	ClearColor = nil
+	Clear = nil
+	Enable = nil
+	Disable = nil
+	BlendFunc = nil
+	Scissor = nil
+	ColorMask = nil
+	ClearStencil = nil
+	StencilFunc = nil
+	StencilOp = nil
+	GetError = nil
+
+	CreateShader = nil
+	ShaderSource = nil
+	CompileShader = nil
+	GetShaderiv = nil
+	GetShaderInfoLog = nil
+	CreateProgram = nil
+	AttachShader = nil
+	LinkProgram = nil
+	GetProgramiv = nil
+	GetProgramInfoLog = nil
+	UseProgram = nil
+	DeleteShader = nil
+	DeleteProgram = nil
+
+	GetUniformLocation = nil
+	Uniform1i = nil
+	Uniform1f = nil
+	Uniform2f = nil
+	Uniform4f = nil
+	UniformMatrix4fv = nil
+	GetAttribLocation = nil
+	BindAttribLocation = nil
+	EnableVertexAttribArray = nil
+	DisableVertexAttribArray = nil
+	VertexAttribPointer = nil
+
+	GenBuffers = nil
+	BindBuffer = nil
+	BufferData = nil
+	BufferSubData = nil
+	DeleteBuffers = nil
+
+	GenVertexArrays = nil
+	BindVertexArray = nil
+	DeleteVertexArrays = nil
+
+	DrawArrays = nil
+	DrawElements = nil
+	ReadPixels = nil
+
+	GenTextures = nil
+	DeleteTextures = nil
+	BindTexture = nil
+	TexImage2D = nil
+	TexSubImage2D = nil
+	TexParameteri = nil
+	ActiveTexture = nil
 }
 
 func openGLLibrary() (uintptr, error) {

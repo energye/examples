@@ -22,5 +22,8 @@ func TestNilFontMethodsAreSafe(t *testing.T) {
 	if glyphs := f.Glyphs(); glyphs != nil {
 		t.Fatalf("nil font glyphs = %#v, want nil", glyphs)
 	}
+	f.ForEachGlyph(func(r rune, g *GlyphInfo) {
+		t.Fatal("nil font ForEachGlyph should not call fn")
+	})
 	f.Delete()
 }

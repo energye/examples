@@ -2,6 +2,7 @@
 package theme
 
 import (
+	"sync"
 	"time"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
@@ -170,14 +171,21 @@ func AntDesignTheme() *Theme {
 }
 
 // CurrentTheme is the current active theme
-var CurrentTheme = AntDesignTheme()
+var (
+	currentThemeMu sync.RWMutex
+	currentTheme   = AntDesignTheme()
+)
 
-// GetTheme returns the current theme
+// GetTheme returns the current theme (safe for concurrent use).
 func GetTheme() *Theme {
-	return CurrentTheme
+	currentThemeMu.RLock()
+	defer currentThemeMu.RUnlock()
+	return currentTheme
 }
 
-// SetTheme sets the current theme
-func SetTheme(theme *Theme) {
-	CurrentTheme = theme
+// SetTheme sets the current theme (safe for concurrent use).
+func SetTheme(t *Theme) {
+	currentThemeMu.Lock()
+	defer currentThemeMu.Unlock()
+	currentTheme = t
 }

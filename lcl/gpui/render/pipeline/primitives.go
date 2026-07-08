@@ -10,7 +10,7 @@ import (
 
 // DrawText draws text at the given position
 func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.Color) {
-	if f == nil || text == "" {
+	if r == nil || f == nil || text == "" {
 		return
 	}
 
@@ -47,6 +47,9 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 
 // StrokeRect draws a rectangle outline
 func (r *Renderer) StrokeRect(rect math.Rect, width float32, color math.Color) {
+	if r == nil {
+		return
+	}
 	x, y, w, h := rect.X, rect.Y, rect.W, rect.H
 
 	// Top
@@ -61,7 +64,7 @@ func (r *Renderer) StrokeRect(rect math.Rect, width float32, color math.Color) {
 
 // StrokeRoundRect draws a rounded rectangle outline using SDF
 func (r *Renderer) StrokeRoundRect(rect math.Rect, radius, width float32, color math.Color) {
-	if rect.W <= 0 || rect.H <= 0 || width <= 0 {
+	if r == nil || rect.W <= 0 || rect.H <= 0 || width <= 0 {
 		return
 	}
 	shaderProg := r.shaderMgr.GetShader("rounded_rect_stroke")
@@ -78,6 +81,9 @@ func (r *Renderer) StrokeRoundRect(rect math.Rect, radius, width float32, color 
 
 // FillRectWithBorder draws a filled rectangle with border
 func (r *Renderer) FillRectWithBorder(rect math.Rect, borderWidth float32, bgColor, borderColor math.Color) {
+	if r == nil {
+		return
+	}
 	// Draw border (larger rect)
 	r.FillRect(rect, borderColor)
 
@@ -93,6 +99,9 @@ func (r *Renderer) FillRectWithBorder(rect math.Rect, borderWidth float32, bgCol
 
 // FillRoundRectWithBorder draws a filled rounded rectangle with border
 func (r *Renderer) FillRoundRectWithBorder(rect math.Rect, radius, borderWidth float32, bgColor, borderColor math.Color) {
+	if r == nil {
+		return
+	}
 	// Draw border (larger rounded rect)
 	r.FillRoundRect(rect, radius, borderColor)
 
@@ -132,6 +141,9 @@ func (r *Renderer) StrokeCircle(center math.Vec2, radius, width float32, color m
 
 // DrawLine draws a line between two points
 func (r *Renderer) DrawLine(x1, y1, x2, y2, width float32, color math.Color) {
+	if r == nil {
+		return
+	}
 	// Calculate direction
 	dx := x2 - x1
 	dy := y2 - y1
@@ -220,6 +232,9 @@ func (r *Renderer) FillRoundLinearGradient(rect math.Rect, radius float32, start
 }
 
 func (r *Renderer) fillLinearGradient(rect math.Rect, radius float32, useRadius bool, start, end math.Vec2, startColor, endColor math.Color) {
+	if r == nil {
+		return
+	}
 	shaderProg := r.shaderMgr.GetShader("gradient")
 	useRadiusValue := float32(0)
 	if useRadius {
