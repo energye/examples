@@ -260,19 +260,30 @@ var BuiltinShaderSources = map[string][2]string{
 attribute vec2 aPos;
 attribute vec2 aUV;
 attribute vec4 aColor;
+varying vec2 vPos;
 varying vec4 vColor;
 uniform mat4 uProj;
 
 void main() {
+    vPos = aPos;
     vColor = aColor;
     gl_Position = uProj * vec4(aPos, 0.0, 1.0);
 }
 ` + "\x00",
-		// Fragment shader
+		// Fragment shader with rounded clip support
 		`#version 120
+varying vec2 vPos;
 varying vec4 vColor;
+uniform vec4 uClipRect;
+uniform float uClipRadius;
 
 void main() {
+    if (uClipRadius > 0.0) {
+        vec2 center = uClipRect.xy + uClipRect.zw * 0.5;
+        vec2 q = abs(vPos - center) - (uClipRect.zw * 0.5 - vec2(uClipRadius));
+        float d = length(max(q, 0.0)) - uClipRadius;
+        if (d > 0.5) discard;
+    }
     gl_FragColor = vColor;
 }
 ` + "\x00",
@@ -283,23 +294,34 @@ void main() {
 attribute vec2 aPos;
 attribute vec2 aUV;
 attribute vec4 aColor;
+varying vec2 vPos;
 varying vec2 vUV;
 varying vec4 vColor;
 uniform mat4 uProj;
 
 void main() {
+    vPos = aPos;
     vUV = aUV;
     vColor = aColor;
     gl_Position = uProj * vec4(aPos, 0.0, 1.0);
 }
 ` + "\x00",
-		// Fragment shader
+		// Fragment shader with rounded clip support
 		`#version 120
+varying vec2 vPos;
 varying vec2 vUV;
 varying vec4 vColor;
 uniform sampler2D uTex;
+uniform vec4 uClipRect;
+uniform float uClipRadius;
 
 void main() {
+    if (uClipRadius > 0.0) {
+        vec2 center = uClipRect.xy + uClipRect.zw * 0.5;
+        vec2 q = abs(vPos - center) - (uClipRect.zw * 0.5 - vec2(uClipRadius));
+        float d = length(max(q, 0.0)) - uClipRadius;
+        if (d > 0.5) discard;
+    }
     gl_FragColor = texture2D(uTex, vUV) * vColor;
 }
 ` + "\x00",
@@ -485,6 +507,52 @@ void main() {
         float alpha = alphaOuter * alphaInner;
         gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
     }
+}
+` + "\x00",
+	},
+	"shadow": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for shadow with SDF-based blur
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+uniform vec2 uSize;
+uniform float uRadius;
+uniform float uBlur;
+
+float roundRectSDF(vec2 pos, vec2 size, float radius) {
+    vec2 center = size * 0.5;
+    vec2 q = abs(pos - center) - (center - vec2(radius));
+    return length(max(q, 0.0)) - radius;
+}
+
+void main() {
+    vec2 pos = vUV * uSize;
+    float d = roundRectSDF(pos, uSize, uRadius);
+
+    // Smooth falloff based on blur radius
+    float blur = max(uBlur, 1.0);
+    float alpha = 1.0 - smoothstep(-blur, blur * 0.5, d);
+
+    // Additional soft edge falloff
+    float softEdge = 1.0 - smoothstep(0.0, blur * 2.0, d);
+    alpha *= softEdge;
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }
 ` + "\x00",
 	},

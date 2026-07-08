@@ -471,3 +471,40 @@ F-016 基础控件实现：
 **不足所在环节**：
 - 渲染层：阴影 shader 未优化（多层圆角矩形叠加）
 - 渲染层：VBO 每次从 offset 0 重传
+
+---
+
+### 2026-07-08 | F-007 + P-002 + P-004 | 圆角裁剪 + 阴影 shader + VBO ring buffer
+
+**完成内容**：
+
+F-007 圆角裁剪：
+- `render/pipeline/pipeline.go` Renderer 新增 `clipRadiusStack []float32` 字段
+- `PushClipRounded(rect, radius)` 现在正确存储圆角半径
+- `addQuad`/`addTriangle` 在有圆角裁剪时自动添加 `uClipRect` 和 `uClipRadius` uniform
+- `render/shader/shader.go` color 和 texture shader 新增圆角裁剪逻辑
+  - 使用 SDF 计算像素到圆角矩形的距离
+  - 距离 > 0.5 的像素被 discard
+
+P-002 阴影 shader 优化：
+- `render/shader/shader.go` 新增 `shadow` shader
+  - 使用 SDF roundRectDistance 计算阴影形状
+  - 基于 blur 参数的 smoothstep 实现柔和衰减
+- `render/pipeline/primitives.go` `DrawShadow` 优先使用新 shader（单次绘制）
+  - 如果 shader 不可用则回退到多层绘制
+
+P-004 VBO ring buffer：
+- `render/pipeline/pipeline.go` Renderer 新增 `vboOffset`/`eboOffset` 字段
+- `BatchManager.FlushWithOffset` 支持环形缓冲区偏移
+- 每个 batch 从当前 offset 写入，到达缓冲区末尾时回绕到 0
+- 避免每帧 50 次从 offset 0 全量重传
+
+测试结果：11/11 包全部通过
+
+**Phase 0 全部子项完成**：
+- 逻辑错误：5/5 ✅
+- 架构缺陷：7/7 ✅
+- 功能缺失：16/16 ✅
+- 性能问题：4/4 ✅
+
+**下一步**：进入 Phase 3/Phase 4 功能补全和控件扩展

@@ -184,8 +184,41 @@ func (r *Renderer) DrawCheckmark(rect math.Rect, size float32, color math.Color)
 	r.DrawLine(x2, y2, x3, y3, 2, color)
 }
 
-// DrawShadow draws a shadow effect (simplified)
+// DrawShadow draws a shadow effect using a dedicated shadow shader.
 func (r *Renderer) DrawShadow(rect math.Rect, offset math.Vec2, blur float32, color math.Color) {
+	if r == nil || r.shaderMgr == nil {
+		return
+	}
+
+	shaderProg := r.shaderMgr.GetShader("shadow")
+	if shaderProg == nil {
+		// Fallback to multi-pass if shader not available
+		r.drawShadowFallback(rect, offset, blur, color)
+		return
+	}
+
+	// Expand rect for shadow spread
+	expand := blur * 2
+	shadowRect := math.NewRect(
+		rect.X+offset.X-expand,
+		rect.Y+offset.Y-expand,
+		rect.W+expand*2,
+		rect.H+expand*2,
+	)
+
+	uniforms := UniformSet{
+		"uSize":  Vec2Uniform(rect.W, rect.H),
+		"uRadius": FloatUniform(4), // Default corner radius
+		"uBlur":  FloatUniform(blur),
+	}
+
+	uv := math.NewRect(0, 0, 1, 1)
+	verts := QuadVertices(shadowRect, uv, color)
+	r.addQuad(shaderProg, 0, uniforms, verts)
+}
+
+// drawShadowFallback is the old multi-pass shadow rendering.
+func (r *Renderer) drawShadowFallback(rect math.Rect, offset math.Vec2, blur float32, color math.Color) {
 	steps := int(blur / 2)
 	if steps < 3 {
 		steps = 3

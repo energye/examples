@@ -340,6 +340,11 @@ func batchGLReady() bool {
 
 // Flush flushes all batches
 func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32, viewportHeight float32) {
+	bm.FlushWithOffset(vao, vbo, ebo, shaderMgr, projMatrix, viewportHeight, nil, nil)
+}
+
+// FlushWithOffset flushes all batches with ring buffer offset support
+func (bm *BatchManager) FlushWithOffset(vao, vbo, ebo uint32, shaderMgr *shader.ShaderManager, projMatrix *[16]float32, viewportHeight float32, vboOffset *int32, eboOffset *int32) {
 	if bm == nil || shaderMgr == nil || projMatrix == nil || vao == 0 || vbo == 0 || ebo == 0 || !batchGLReady() {
 		return
 	}
@@ -376,18 +381,44 @@ func (bm *BatchManager) Flush(vao, vbo, ebo uint32, shaderMgr *shader.ShaderMana
 
 		// Upload vertex data
 		gl.BindBuffer(gl.GL_ARRAY_BUFFER, vbo)
-		vertSize := len(batch.Verts) * VertexSize
+		vertSize := int32(len(batch.Verts) * VertexSize)
 		vertPtr := uintptr(unsafe.Pointer(&batch.Verts[0]))
-		gl.BufferSubData(gl.GL_ARRAY_BUFFER, 0, int32(vertSize), vertPtr)
+
+		// Ring buffer: use offset if available
+		curVboOff := int32(0)
+		if vboOffset != nil {
+			curVboOff = *vboOffset
+			if curVboOff+vertSize > int32(defaultMaxVertices*VertexSize) {
+				curVboOff = 0
+			}
+		}
+		gl.BufferSubData(gl.GL_ARRAY_BUFFER, curVboOff, vertSize, vertPtr)
 
 		// Upload index data
 		gl.BindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, ebo)
-		idxSize := len(batch.Indices) * 4
+		idxSize := int32(len(batch.Indices) * 4)
 		idxPtr := uintptr(unsafe.Pointer(&batch.Indices[0]))
-		gl.BufferSubData(gl.GL_ELEMENT_ARRAY_BUFFER, 0, int32(idxSize), idxPtr)
 
-		// Draw
-		gl.DrawElements(gl.GL_TRIANGLES, int32(len(batch.Indices)), gl.GL_UNSIGNED_INT, 0)
+		// Ring buffer: use offset if available
+		curEboOff := int32(0)
+		if eboOffset != nil {
+			curEboOff = *eboOffset
+			if curEboOff+idxSize > int32(defaultMaxIndices*4) {
+				curEboOff = 0
+			}
+		}
+		gl.BufferSubData(gl.GL_ELEMENT_ARRAY_BUFFER, curEboOff, idxSize, idxPtr)
+
+		// Draw with offset
+		gl.DrawElements(gl.GL_TRIANGLES, int32(len(batch.Indices)), gl.GL_UNSIGNED_INT, uintptr(curEboOff))
+
+		// Update offsets
+		if vboOffset != nil {
+			*vboOffset = curVboOff + vertSize
+		}
+		if eboOffset != nil {
+			*eboOffset = curEboOff + idxSize
+		}
 	}
 
 	// Unbind
@@ -409,7 +440,10 @@ type Renderer struct {
 	width          float32
 	height         float32
 	clipStack      []math.Rect
+	clipRadiusStack []float32
 	transformStack []math.Mat4
+	vboOffset      int32 // Current offset in VBO ring buffer
+	eboOffset      int32 // Current offset in EBO ring buffer
 	initialized    bool
 }
 
@@ -531,7 +565,7 @@ func (r *Renderer) Flush() {
 	if r == nil || r.batch == nil || !r.initialized {
 		return
 	}
-	r.batch.Flush(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix, r.height)
+	r.batch.FlushWithOffset(r.vao, r.vbo, r.ebo, r.shaderMgr, &r.projMatrix, r.height, &r.vboOffset, &r.eboOffset)
 }
 
 func (r *Renderer) resetFrameState() {
@@ -562,6 +596,16 @@ func (r *Renderer) addQuad(shaderProg *shader.ShaderProgram, texture uint32, uni
 		top := r.clipStack[len(r.clipStack)-1]
 		clip = &top
 	}
+
+	// Add rounded clip uniforms if needed
+	if len(r.clipRadiusStack) > 0 && r.clipRadiusStack[len(r.clipRadiusStack)-1] > 0 && clip != nil {
+		if uniforms == nil {
+			uniforms = make(UniformSet)
+		}
+		uniforms["uClipRect"] = Vec4Uniform(clip.X, clip.Y, clip.W, clip.H)
+		uniforms["uClipRadius"] = FloatUniform(r.clipRadiusStack[len(r.clipRadiusStack)-1])
+	}
+
 	r.batch.AddQuadWithState(shaderProg, texture, uniforms, clip, verts)
 }
 
@@ -575,6 +619,15 @@ func (r *Renderer) addTriangle(shaderProg *shader.ShaderProgram, texture uint32,
 	if len(r.clipStack) > 0 {
 		top := r.clipStack[len(r.clipStack)-1]
 		clip = &top
+	}
+
+	// Add rounded clip uniforms if needed
+	if len(r.clipRadiusStack) > 0 && r.clipRadiusStack[len(r.clipRadiusStack)-1] > 0 && clip != nil {
+		if uniforms == nil {
+			uniforms = make(UniformSet)
+		}
+		uniforms["uClipRect"] = Vec4Uniform(clip.X, clip.Y, clip.W, clip.H)
+		uniforms["uClipRadius"] = FloatUniform(r.clipRadiusStack[len(r.clipRadiusStack)-1])
 	}
 	r.batch.AddTriangleWithState(shaderProg, texture, uniforms, clip, verts)
 }
@@ -704,14 +757,23 @@ func (r *Renderer) PushClip(rect math.Rect) {
 	}
 	r.Flush()
 	r.clipStack = append(r.clipStack, rect)
+	r.clipRadiusStack = append(r.clipRadiusStack, 0)
 }
 
 // PushClipRounded pushes a rounded clip region.
-// For now, this clips to the bounding rect. Full rounded clipping requires shader support.
 func (r *Renderer) PushClipRounded(rect math.Rect, radius float32) {
-	// TODO: Implement proper rounded clipping with SDF in shader
-	// For now, use rectangular clip as approximation
-	r.PushClip(rect)
+	if r == nil {
+		return
+	}
+	if len(r.transformStack) > 0 {
+		rect = transformRect(r.transformStack[len(r.transformStack)-1], rect)
+	}
+	if len(r.clipStack) > 0 {
+		rect = rect.Intersect(r.clipStack[len(r.clipStack)-1])
+	}
+	r.Flush()
+	r.clipStack = append(r.clipStack, rect)
+	r.clipRadiusStack = append(r.clipRadiusStack, radius)
 }
 
 // PopClip restores the previous clip rectangle.
@@ -724,6 +786,7 @@ func (r *Renderer) PopClip() {
 	}
 	r.Flush()
 	r.clipStack = r.clipStack[:len(r.clipStack)-1]
+	r.clipRadiusStack = r.clipRadiusStack[:len(r.clipRadiusStack)-1]
 }
 
 // CurrentClip returns the active clip rectangle.
