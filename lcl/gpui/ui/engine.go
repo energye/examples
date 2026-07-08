@@ -315,10 +315,18 @@ func (e *Engine) HandleCharInput(char rune) {
 		return
 	}
 	focusMgr := e.root.FocusManager()
-	if e.portal != nil && (e.portal.FocusManager().Current() != nil || e.portal.FocusTrapActive()) &&
-		e.portal.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char}) {
+	portalFocusActive := e.portal != nil && e.portal.FocusManager() != nil &&
+		(e.portal.FocusManager().Current() != nil || e.portal.FocusTrapActive())
+	if portalFocusActive {
+		focusMgr = e.portal.FocusManager()
+	}
+
+	// Pass to portal first
+	if e.portal != nil && portalFocusActive && e.portal.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char}) {
 		return
 	}
+
+	// Pass to focused widget (portal's focus manager if portal trap active, otherwise root's)
 	if focused := focusMgr.Current(); focused != nil {
 		focused.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char})
 	}
