@@ -8,10 +8,12 @@ import (
 // LayoutContainer applies the shared layout engine to real widget children.
 type LayoutContainer struct {
 	Container
-	Style       layout.Style
-	childStyles map[Widget]layout.Style
-	scroll      coremath.Vec2
-	contentSize coremath.Vec2
+	Style        layout.Style
+	childStyles  map[Widget]layout.Style
+	scroll       coremath.Vec2
+	contentSize  coremath.Vec2
+	cachedResult *layout.Result
+	cacheValid   bool
 }
 
 // NewLayoutContainer creates a generic layout-backed container.
@@ -170,6 +172,15 @@ func (c *LayoutContainer) ScrollTo(rect coremath.Rect) {
 	c.Invalidate()
 }
 
+// Invalidate clears the layout cache.
+func (c *LayoutContainer) Invalidate() {
+	if c == nil {
+		return
+	}
+	c.cacheValid = false
+	c.Container.Invalidate()
+}
+
 // Measure computes the container size using the shared layout engine.
 func (c *LayoutContainer) Measure(ctx *Context, constraints Constraints) coremath.Vec2 {
 	if c == nil {
@@ -182,7 +193,10 @@ func (c *LayoutContainer) Measure(ctx *Context, constraints Constraints) coremat
 	if available.Y <= 0 {
 		available.Y = c.Bounds().H
 	}
-	result := layout.Compute(c.layoutNode(ctx), available)
+	node := c.layoutNode(ctx)
+	result := layout.Compute(node, available)
+	c.cachedResult = &result
+	c.cacheValid = true
 	return ClampSize(coremath.NewVec2(result.Bounds.W, result.Bounds.H), constraints)
 }
 
@@ -192,10 +206,16 @@ func (c *LayoutContainer) Layout(ctx *Context, rect coremath.Rect) {
 		return
 	}
 	c.BaseWidget.Layout(ctx, rect)
-	node := c.layoutNode(ctx)
-	node.Style.Width = layout.Px(rect.W)
-	node.Style.Height = layout.Px(rect.H)
-	result := layout.Compute(node, coremath.NewVec2(rect.W, rect.H))
+
+	var result layout.Result
+	if c.cacheValid && c.cachedResult != nil {
+		result = *c.cachedResult
+	} else {
+		node := c.layoutNode(ctx)
+		node.Style.Width = layout.Px(rect.W)
+		node.Style.Height = layout.Px(rect.H)
+		result = layout.Compute(node, coremath.NewVec2(rect.W, rect.H))
+	}
 	c.contentSize = result.ContentSize
 	c.clampScroll()
 

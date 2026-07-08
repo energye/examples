@@ -11,13 +11,17 @@ type PathCommandKind int
 const (
 	PathMoveTo PathCommandKind = iota
 	PathLineTo
+	PathQuadTo  // Quadratic Bezier: control point + end point
+	PathCubicTo // Cubic Bezier: two control points + end point
 	PathClose
 )
 
 // PathCommand stores one vector path command.
 type PathCommand struct {
-	Kind PathCommandKind
-	Pos  math.Vec2
+	Kind   PathCommandKind
+	Pos    math.Vec2
+	Ctrl1  math.Vec2 // Control point 1 (for QuadTo/CubicTo)
+	Ctrl2  math.Vec2 // Control point 2 (for CubicTo)
 }
 
 // Path stores a simple vector path.
@@ -43,6 +47,25 @@ func (p *Path) LineTo(x, y float32) {
 // Close closes the current subpath.
 func (p *Path) Close() {
 	p.commands = append(p.commands, PathCommand{Kind: PathClose})
+}
+
+// QuadTo adds a quadratic Bezier curve segment.
+func (p *Path) QuadTo(cx, cy, x, y float32) {
+	p.commands = append(p.commands, PathCommand{
+		Kind: PathQuadTo,
+		Pos:  math.NewVec2(x, y),
+		Ctrl1: math.NewVec2(cx, cy),
+	})
+}
+
+// CubicTo adds a cubic Bezier curve segment.
+func (p *Path) CubicTo(cx1, cy1, cx2, cy2, x, y float32) {
+	p.commands = append(p.commands, PathCommand{
+		Kind:  PathCubicTo,
+		Pos:   math.NewVec2(x, y),
+		Ctrl1: math.NewVec2(cx1, cy1),
+		Ctrl2: math.NewVec2(cx2, cy2),
+	})
 }
 
 // Commands returns the raw path command list.
@@ -228,6 +251,8 @@ func pathSubpaths(path *Path) [][]math.Vec2 {
 
 	var subpaths [][]math.Vec2
 	var current []math.Vec2
+	var currentPos math.Vec2
+
 	for _, cmd := range path.commands {
 		switch cmd.Kind {
 		case PathMoveTo:
@@ -235,8 +260,18 @@ func pathSubpaths(path *Path) [][]math.Vec2 {
 				subpaths = append(subpaths, current)
 			}
 			current = []math.Vec2{cmd.Pos}
+			currentPos = cmd.Pos
 		case PathLineTo:
 			current = append(current, cmd.Pos)
+			currentPos = cmd.Pos
+		case PathQuadTo:
+			flattened := flattenQuadBezier(currentPos, cmd.Ctrl1, cmd.Pos, 16)
+			current = append(current, flattened...)
+			currentPos = cmd.Pos
+		case PathCubicTo:
+			flattened := flattenCubicBezier(currentPos, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, 16)
+			current = append(current, flattened...)
+			currentPos = cmd.Pos
 		case PathClose:
 			if len(current) > 0 {
 				subpaths = append(subpaths, current)
@@ -373,11 +408,54 @@ func pathPoints(path *Path) []math.Vec2 {
 	}
 
 	points := make([]math.Vec2, 0, len(path.commands))
+	var current math.Vec2
 	for _, cmd := range path.commands {
 		switch cmd.Kind {
-		case PathMoveTo, PathLineTo:
+		case PathMoveTo:
+			current = cmd.Pos
 			points = append(points, cmd.Pos)
+		case PathLineTo:
+			current = cmd.Pos
+			points = append(points, cmd.Pos)
+		case PathQuadTo:
+			// Flatten quadratic Bezier to line segments
+			flattened := flattenQuadBezier(current, cmd.Ctrl1, cmd.Pos, 16)
+			points = append(points, flattened...)
+			current = cmd.Pos
+		case PathCubicTo:
+			// Flatten cubic Bezier to line segments
+			flattened := flattenCubicBezier(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, 16)
+			points = append(points, flattened...)
+			current = cmd.Pos
 		}
+	}
+	return points
+}
+
+// flattenQuadBezier flattens a quadratic Bezier curve into line segments
+func flattenQuadBezier(p0, p1, p2 math.Vec2, segments int) []math.Vec2 {
+	points := make([]math.Vec2, segments)
+	for i := 1; i <= segments; i++ {
+		t := float32(i) / float32(segments)
+		mt := 1 - t
+		// Quadratic Bezier formula: B(t) = (1-t)^2*P0 + 2*(1-t)*t*P1 + t^2*P2
+		x := mt*mt*p0.X + 2*mt*t*p1.X + t*t*p2.X
+		y := mt*mt*p0.Y + 2*mt*t*p1.Y + t*t*p2.Y
+		points[i-1] = math.NewVec2(x, y)
+	}
+	return points
+}
+
+// flattenCubicBezier flattens a cubic Bezier curve into line segments
+func flattenCubicBezier(p0, p1, p2, p3 math.Vec2, segments int) []math.Vec2 {
+	points := make([]math.Vec2, segments)
+	for i := 1; i <= segments; i++ {
+		t := float32(i) / float32(segments)
+		mt := 1 - t
+		// Cubic Bezier formula: B(t) = (1-t)^3*P0 + 3*(1-t)^2*t*P1 + 3*(1-t)*t^2*P2 + t^3*P3
+		x := mt*mt*mt*p0.X + 3*mt*mt*t*p1.X + 3*mt*t*t*p2.X + t*t*t*p3.X
+		y := mt*mt*mt*p0.Y + 3*mt*mt*t*p1.Y + 3*mt*t*t*p2.Y + t*t*t*p3.Y
+		points[i-1] = math.NewVec2(x, y)
 	}
 	return points
 }

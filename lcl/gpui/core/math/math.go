@@ -364,6 +364,87 @@ func (m Mat4) Multiply(other Mat4) Mat4 {
 	return result
 }
 
+// Transpose returns the transpose of the matrix
+func (m Mat4) Transpose() Mat4 {
+	return Mat4{
+		m[0], m[4], m[8], m[12],
+		m[1], m[5], m[9], m[13],
+		m[2], m[6], m[10], m[14],
+		m[3], m[7], m[11], m[15],
+	}
+}
+
+// Inverse returns the inverse of the matrix using cofactor expansion
+// Returns identity matrix if the matrix is not invertible
+func (m Mat4) Inverse() Mat4 {
+	// Element access helper: m[col*4+row]
+	get := func(row, col int) float32 {
+		return m[col*4+row]
+	}
+
+	// Calculate 3x3 determinant from a minor matrix
+	det3 := func(a, b, c, d, e, f, g, h, i float32) float32 {
+		return a*(e*i-f*h) - b*(d*i-f*g) + c*(d*h-e*g)
+	}
+
+	// Get minor 3x3 determinant excluding given row and col
+	minorDet := func(skipRow, skipCol int) float32 {
+		var vals [9]float32
+		idx := 0
+		for r := 0; r < 4; r++ {
+			if r == skipRow {
+				continue
+			}
+			for c := 0; c < 4; c++ {
+				if c == skipCol {
+					continue
+				}
+				vals[idx] = get(r, c)
+				idx++
+			}
+		}
+		return det3(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7], vals[8])
+	}
+
+	// Calculate cofactor with sign
+	cofactor := func(row, col int) float32 {
+		sign := float32(1)
+		if (row+col)%2 == 1 {
+			sign = -1
+		}
+		return sign * minorDet(row, col)
+	}
+
+	// Calculate determinant using first row
+	det := get(0, 0)*cofactor(0, 0) + get(0, 1)*cofactor(0, 1) + get(0, 2)*cofactor(0, 2) + get(0, 3)*cofactor(0, 3)
+
+	if det == 0 {
+		return IdentityMatrix()
+	}
+
+	invDet := float32(1.0) / det
+
+	// Build adjugate matrix (transpose of cofactor matrix)
+	var result Mat4
+	for r := 0; r < 4; r++ {
+		for c := 0; c < 4; c++ {
+			result[c*4+r] = cofactor(c, r) * invDet
+		}
+	}
+
+	return result
+}
+
+// ShearMatrix creates a shear matrix
+func ShearMatrix(shXY, shXZ, shYX, shYZ, shZX, shZY float32) Mat4 {
+	return Mat4{
+		1, shYX, shZX, 0,
+		shXY, 1, shZY, 0,
+		shXZ, shYZ, 1, 0,
+		0, 0, 0, 1,
+	}
+}
+
 // Helper functions
 func min(a, b float32) float32 {
 	if a < b {

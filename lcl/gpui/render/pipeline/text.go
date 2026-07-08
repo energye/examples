@@ -105,13 +105,13 @@ func wrapText(text string, f *font.Font, maxWidth float32, maxLines int, ellipsi
 func takeLine(text string, f *font.Font, maxWidth float32) (line, rest string) {
 	var width float32
 	lastSpace := -1
-	lastSpaceWidth := float32(0)
-	runes := []rune(text)
+	lastSpaceByte := -1
+	i := 0
 
-	for i, r := range runes {
+	for _, r := range text {
 		if r == ' ' || r == '\t' {
 			lastSpace = i
-			lastSpaceWidth = width
+			lastSpaceByte = i
 		}
 		g, ok := f.GetGlyph(r)
 		if ok {
@@ -119,14 +119,16 @@ func takeLine(text string, f *font.Font, maxWidth float32) (line, rest string) {
 		}
 		if width > maxWidth {
 			if lastSpace >= 0 {
-				return string(runes[:lastSpace]), strings.TrimLeft(string(runes[lastSpace+1:]), " \t")
+				return text[:lastSpaceByte], strings.TrimLeft(text[lastSpaceByte+len(" "):], " \t")
 			}
 			if i == 0 {
-				return string(runes[:1]), string(runes[1:])
+				// Return at least one character
+				size := len(string(r))
+				return text[:size], text[size:]
 			}
-			_ = lastSpaceWidth
-			return string(runes[:i]), string(runes[i:])
+			return text[:i], text[i:]
 		}
+		i += len(string(r))
 	}
 
 	return text, ""
@@ -138,13 +140,16 @@ func ellipsize(text string, f *font.Font, maxWidth float32) string {
 		return text
 	}
 
-	runes := []rune(text)
-	for len(runes) > 0 {
-		candidate := string(runes) + suffix
+	// Find the longest prefix that fits with suffix
+	for i := len(text); i > 0; i-- {
+		// Find a valid UTF-8 boundary
+		if i < len(text) && (text[i]&0xC0) == 0x80 {
+			continue // Skip continuation bytes
+		}
+		candidate := text[:i] + suffix
 		if f.TextWidth(candidate) <= maxWidth {
 			return candidate
 		}
-		runes = runes[:len(runes)-1]
 	}
 	return suffix
 }

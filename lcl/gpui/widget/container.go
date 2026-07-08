@@ -52,6 +52,11 @@ func (c *Container) Add(child Widget) {
 	c.children = append(c.children, child)
 	c.registerFocusable(child)
 	c.Invalidate()
+
+	// Call OnMount lifecycle hook
+	if mountable, ok := child.(LifecycleMount); ok {
+		mountable.OnMount()
+	}
 }
 
 // Remove detaches a child widget.
@@ -59,6 +64,12 @@ func (c *Container) Remove(child Widget) {
 	if c == nil || child == nil {
 		return
 	}
+
+	// Call OnUnmount lifecycle hook before removal
+	if unmountable, ok := child.(LifecycleUnmount); ok {
+		unmountable.OnUnmount()
+	}
+
 	for i, item := range c.children {
 		if item != child {
 			continue

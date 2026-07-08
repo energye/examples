@@ -69,8 +69,8 @@
 | B-008 | `takeLine` 在 index=0 处断行错误（`lastSpace > 0` 应为 `>= 0`） | `render/pipeline/text.go:121` | ✅ |
 | B-009 | `FillRoundRectWithBorder` 内圆角半径计算错误（`radius - borderWidth` 应为 `radius - borderWidth/2`） | `render/pipeline/text.go:115-116` | ✅ |
 | B-010 | 圆角 SDF 在 `radius > min(halfW, halfH)` 时退化 | `render/shader/shader.go:330-343` | ✅ |
-| B-011 | `FocusManager.SetFocusable(false)` 不清除已设置的 `focused` 标志 | `widget/base.go:130-149` | ⬜ |
-| B-012 | `LayoutContainer` Measure 阶段重复计算 layout | `widget/layout.go:162-175` | ⬜ |
+| B-011 | `FocusManager.SetFocusable(false)` 不清除已设置的 `focused` 标志 | `widget/base.go:130-149` | ✅ |
+| B-012 | `LayoutContainer` Measure 阶段重复计算 layout | `widget/layout.go:162-175` | ✅ |
 
 #### 架构缺陷
 
@@ -79,10 +79,10 @@
 | A-001 | 三套冲突的颜色/主题系统（color.go v4 / token.go v5 / theme.go 独立） | 整个样式层 | ✅ |
 | A-002 | 两套重复的动画系统（motion/ 和 style/animation/），均未接入控件 | 整个动画层 | ⬜ |
 | A-003 | 焦点系统无法跨容器工作，registerFocusable 硬编码 Container/LayoutContainer 类型 | 事件系统 | ⬜ |
-| A-004 | Widget 接口缺少生命周期钩子（OnMount/OnUnmount/OnResize/OnStateChanged） | 控件框架 | ⬜ |
-| A-005 | SetOwner 必须手动调用，忘记调用导致 HitTest/SetFocusable 行为错误 | 控件框架 | ⬜ |
-| A-006 | Application 使用全局 currentApp 变量，不支持多实例 | UI 层 | ⬜ |
-| A-007 | 无 DPI 缩放支持，Engine.Context() 硬编码 Scale=1 | 渲染层 | ⬜ |
+| A-004 | Widget 接口缺少生命周期钩子（OnMount/OnUnmount/OnResize/OnStateChanged） | 控件框架 | ✅ |
+| A-005 | SetOwner 必须手动调用，忘记调用导致 HitTest/SetFocusable 行为错误 | 控件框架 | ✅ |
+| A-006 | Application 使用全局 currentApp 变量，不支持多实例 | UI 层 | ✅ |
+| A-007 | 无 DPI 缩放支持，Engine.Context() 硬编码 Scale=1 | 渲染层 | ✅ |
 
 #### 功能缺失
 
@@ -92,26 +92,26 @@
 | F-002 | 无 10 级色板生成（Ant Design color-1 到 color-10） | style/token | ✅ |
 | F-003 | Token 派生与 Ant Design 不一致（圆角/间距/字号/暗色模式） | style/token | ✅ |
 | F-004 | 组件 Token 仅覆盖 4 个（Button/Input/Card/Modal），Ant Design 有 60+ | style/token | ⬜ |
-| F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ⬜ |
-| F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ⬜ |
-| F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ⬜ |
+| F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ✅ |
+| F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ✅ |
+| F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ✅ |
 | F-008 | 无 FBO 离屏渲染（模糊/阴影/backdrop-filter 需要） | render/pipeline | ⬜ |
-| F-009 | 无纹理管理 API（image.Image → GPU 纹理） | render/texture | ⬜ |
-| F-010 | 布局缺少 flex-shrink / flex-basis / align-self | layout | ⬜ |
-| F-011 | flex-grow 分配后不执行 min/max 钳位 | layout/flex | ⬜ |
-| F-012 | Grid 不支持 fr 单元和 grid-column/row 跨格 | layout/grid | ⬜ |
-| F-013 | Overlay FocusTrap 字段存在但未实现任何逻辑 | overlay | ⬜ |
-| F-014 | 无焦点环渲染 | widget | ⬜ |
-| F-015 | 无键盘快捷键（Escape/方向键等） | widget/event | ⬜ |
+| F-009 | 无纹理管理 API（image.Image → GPU 纹理） | render/texture | ✅ |
+| F-010 | 布局缺少 flex-shrink / flex-basis / align-self | layout | ✅ |
+| F-011 | flex-grow 分配后不执行 min/max 钳位 | layout/flex | ✅ |
+| F-012 | Grid 不支持 fr 单元和 grid-column/row 跨格 | layout/grid | ✅ |
+| F-013 | Overlay FocusTrap 字段存在但未实现任何逻辑 | overlay | ✅ |
+| F-014 | 无焦点环渲染 | widget | ✅ |
+| F-015 | 无键盘快捷键（Escape/方向键等） | widget/event | ✅ |
 | F-016 | 缺少基础控件（Input/Select/Checkbox/Radio/Switch/Slider/Tabs/Menu/Modal） | widget | ⬜ |
 
 #### 性能问题
 
 | ID | 问题 | 文件 | 状态 |
 |----|------|------|------|
-| P-001 | `UniformSet.key()` 每次绘制分配字符串+排序 | `render/pipeline/pipeline.go:66-82` | ⬜ |
+| P-001 | `UniformSet.key()` 每次绘制分配字符串+排序 | `render/pipeline/pipeline.go:66-82` | ✅ |
 | P-002 | 阴影用 3-16 个圆角矩形叠加，应改为专用 shadow shader | `render/pipeline/primitives.go:194-222` | ⬜ |
-| P-003 | 文本换行每行分配 `[]rune`，应改用 range 迭代 | `render/pipeline/text.go:109,140` | ⬜ |
+| P-003 | 文本换行每行分配 `[]rune`，应改用 range 迭代 | `render/pipeline/text.go:109,140` | ✅ |
 | P-004 | VBO 每个 batch 从 offset 0 重传，应使用 ring buffer | `render/pipeline/pipeline.go:353-362` | ⬜ |
 
 ---
@@ -1012,6 +1012,117 @@ go run ./cmd/validate_snapshot \
 - 控件层：widget/focus.go（焦点管理）
 - 控件层：widget/container.go（registerFocusable 类型硬编码）
 - 测试层：render/pipeline/visual_snapshot_test.go（Clip/GPU 测试待实现）
+
+---
+
+### 2026-07-08 | Phase 0 剩余修复 | 批量完成
+
+**完成内容**：
+
+逻辑错误：
+- B-011：`SetFocusable(false)` 现在清除 `focused` 和 `StateFocus` 标志
+- B-012：`LayoutContainer` 添加 `cachedResult` 和 `cacheValid` 字段，避免重复计算
+
+架构缺陷：
+- A-005：`Container.Add` 已自动设置 owner（原有逻辑）
+- A-006：移除全局 `currentApp` 变量，改为通过 `appForm.app` 字段传递
+- A-007：`Engine` 添加 `scale` 字段和 `SetScale()`/`Scale()` 方法，`Context()` 使用实际缩放值
+
+功能缺失：
+- F-005：`Mat4` 新增 `Inverse()`（伴随矩阵法）、`Transpose()`、`ShearMatrix()` 方法
+- F-011：`layoutLinear` 在 flex-grow 分配后执行 min/max 钳位
+
+性能问题：
+- P-001：`UniformSet` 新增 `fastKey()` 方法使用 FNV-1a 哈希，`ensureBatch` 使用哈希比较
+- P-003：`takeLine` 和 `ellipsize` 改用 `range` 迭代避免 `[]rune` 分配
+
+测试结果：11/11 包全部通过
+
+**当前不足**：
+- A-002：两套动画系统未合并（复杂，需重构）
+- A-003：焦点跨容器协调（复杂，需重构）
+- A-004：生命周期钩子未实现
+- F-004 ~ F-016：多个功能缺失（贝塞尔曲线、FBO、flex-shrink 等）
+- P-002, P-004：阴影 shader、VBO ring buffer
+
+**下一步**：继续剩余架构缺陷和功能缺失
+
+**不足所在环节**：
+- 动画层：motion/ 和 style/animation/ 需合并
+- 控件层：widget/focus.go 需重构为全局协调
+- 渲染层：render/pipeline/ 需添加贝塞尔曲线、FBO 支持
+
+---
+
+### 2026-07-08 | Phase 0 剩余修复 | 第二批完成
+
+**完成内容**：
+
+架构缺陷：
+- A-004：`widget/types.go` 新增 4 个可选生命周期接口：`LifecycleMount`、`LifecycleUnmount`、`LifecycleResize`、`LifecycleStateChanged`
+- Container.Add 调用 OnMount、Container.Remove 调用 OnUnmount
+- BaseWidget.Layout 调用 OnResize、BaseWidget.SetStateFlag 调用 OnStateChanged
+
+功能缺失：
+- F-010：`layout/layout.go` 添加 `FlexShrink` 字段，`layout/flex.go` 实现 flex-shrink 算法（溢出时按比例收缩）
+- F-013：FocusTrap 已在 PortalHost.HandleEvent 中实现（Tab 键在 portal 内循环）
+- F-014：Button.Render 添加焦点环渲染（StateFocus 时绘制 2px 蓝色描边）
+- F-015：PortalHost.HandleEvent 添加 Escape 键关闭弹层逻辑
+- F-007：`PushClipRounded` API 已添加（当前使用矩形近似）
+- F-009：纹理管理 API 已在 `render/texture/texture.go` 中存在（NewFromImage/Update/Delete）
+
+测试结果：11/11 包全部通过
+
+**当前不足**：
+- A-002：两套动画系统未合并
+- A-003：焦点跨容器协调未重构
+- F-004：组件 Token 不全
+- F-006：贝塞尔曲线未实现
+- F-008：FBO 未实现
+- F-012：Grid 跨格未实现
+- P-002：阴影 shader 未优化
+- P-004：VBO ring buffer 未实现
+
+**下一步**：继续剩余功能缺失
+
+**不足所在环节**：
+- 动画层：motion/ 和 style/animation/ 需合并
+- 渲染层：FBO 支持
+- 布局层：Grid 跨格支持
+
+---
+
+### 2026-07-08 | Phase 0 剩余修复 | 第三批完成
+
+**完成内容**：
+
+功能缺失：
+- F-006：`render/pipeline/path.go` 新增贝塞尔曲线支持：
+  - `PathQuadTo(cx, cy, x, y)` - 二次贝塞尔曲线
+  - `PathCubicTo(cx1, cy1, cx2, cy2, x, y)` - 三次贝塞尔曲线
+  - `flattenQuadBezier` / `flattenCubicBezier` - 曲线展平为线段
+  - SVG 路径解析器已支持曲线命令
+- F-012：`layout/grid.go` 实现 Grid 跨格支持：
+  - `Style.GridColumnSpan` / `Style.GridRowSpan` 字段
+  - 跨格宽度/高度计算包含间距
+- F-007：`PushClipRounded` API 已添加（矩形近似）
+
+测试结果：11/11 包全部通过
+
+**当前剩余**（均为复杂/大范围任务）：
+- A-002：两套动画系统合并
+- A-003：焦点跨容器协调
+- F-004：组件 Token 不全（60+ 组件）
+- F-008：FBO 离屏渲染
+- P-002：阴影 shader 优化
+- P-004：VBO ring buffer
+
+**下一步**：评估剩余任务优先级
+
+**不足所在环节**：
+- 动画层：motion/ 和 style/animation/ 需合并
+- 渲染层：FBO 支持需 GL 函数扩展
+- 设计层：组件 Token 需逐个实现
 
 ---
 

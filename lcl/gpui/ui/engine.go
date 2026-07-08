@@ -30,6 +30,7 @@ type Engine struct {
 	// Window properties
 	width  float32
 	height float32
+	scale  float32
 
 	// State
 	initialized bool
@@ -56,6 +57,7 @@ func NewEngine() *Engine {
 		root:     widget.NewContainer(),
 		overlay:  overlayMgr,
 		portal:   widget.NewPortalHost(overlayMgr),
+		scale:    1, // Default scale
 		lastTime: time.Now(),
 	}
 }
@@ -144,6 +146,22 @@ func (e *Engine) Size() (float32, float32) {
 	return e.width, e.height
 }
 
+// SetScale sets the display scale factor (DPI scaling)
+func (e *Engine) SetScale(scale float32) {
+	if e == nil || scale <= 0 {
+		return
+	}
+	e.scale = scale
+}
+
+// Scale returns the display scale factor
+func (e *Engine) Scale() float32 {
+	if e == nil {
+		return 1
+	}
+	return e.scale
+}
+
 // SetFont sets the default font
 func (e *Engine) SetFont(f *font.Font) {
 	if e == nil {
@@ -197,14 +215,13 @@ func (e *Engine) Context() *widget.Context {
 	if e == nil {
 		return nil
 	}
-	scale := float32(1)
 	return &widget.Context{
 		Renderer: e.renderer,
 		Tokens:   token.Current(),
 		Font:     e.font,
 		Overlay:  e.overlay,
 		Viewport: widgetRootRect(e.width, e.height),
-		Scale:    scale,
+		Scale:    e.scale,
 	}
 }
 

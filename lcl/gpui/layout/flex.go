@@ -7,6 +7,7 @@ type childLayoutInput struct {
 	baseSize    math.Vec2
 	margin      Edges
 	flexGrow    float32
+	flexShrink  float32
 	finalSize   math.Vec2
 	mainOffset  float32
 	crossOffset float32
@@ -22,10 +23,9 @@ func layoutLinear(node *Node, size math.Vec2) []Result {
 	totalMain := totalChildrenMain(node.Style.Direction, children, effectiveGap)
 	totalGrow := totalFlexGrow(children)
 	remaining := mainSize - totalMain
-	if remaining < 0 {
-		remaining = 0
-	}
-	if totalGrow > 0 {
+
+	// Flex-grow: distribute extra space
+	if remaining > 0 && totalGrow > 0 {
 		for i := range children {
 			if children[i].flexGrow <= 0 {
 				continue
@@ -33,8 +33,30 @@ func layoutLinear(node *Node, size math.Vec2) []Result {
 			extra := remaining * children[i].flexGrow / totalGrow
 			if node.Style.Direction == Row {
 				children[i].finalSize.X += extra
+				children[i].finalSize.X = clampToConstraints(children[i].finalSize.X, children[i].node.Style.MinWidth, children[i].node.Style.MaxWidth, mainSize)
 			} else {
 				children[i].finalSize.Y += extra
+				children[i].finalSize.Y = clampToConstraints(children[i].finalSize.Y, children[i].node.Style.MinHeight, children[i].node.Style.MaxHeight, mainSize)
+			}
+		}
+		totalMain = totalChildrenMain(node.Style.Direction, children, effectiveGap)
+	}
+
+	// Flex-shrink: reduce space when overflow
+	totalShrink := totalFlexShrink(children)
+	if remaining < 0 && totalShrink > 0 {
+		deficit := -remaining
+		for i := range children {
+			if children[i].flexShrink <= 0 {
+				continue
+			}
+			reduction := deficit * children[i].flexShrink / totalShrink
+			if node.Style.Direction == Row {
+				children[i].finalSize.X -= reduction
+				children[i].finalSize.X = clampToConstraints(children[i].finalSize.X, children[i].node.Style.MinWidth, children[i].node.Style.MaxWidth, mainSize)
+			} else {
+				children[i].finalSize.Y -= reduction
+				children[i].finalSize.Y = clampToConstraints(children[i].finalSize.Y, children[i].node.Style.MinHeight, children[i].node.Style.MaxHeight, mainSize)
 			}
 		}
 		totalMain = totalChildrenMain(node.Style.Direction, children, effectiveGap)
@@ -137,11 +159,12 @@ func measureChildren(node *Node, available math.Vec2) []childLayoutInput {
 		}
 		childSize := resolveNodeSize(child, available)
 		children[i] = childLayoutInput{
-			node:      child,
-			baseSize:  childSize,
-			margin:    child.Style.Margin,
-			flexGrow:  child.Style.FlexGrow,
-			finalSize: childSize,
+			node:       child,
+			baseSize:   childSize,
+			margin:     child.Style.Margin,
+			flexGrow:   child.Style.FlexGrow,
+			flexShrink: child.Style.FlexShrink,
+			finalSize:  childSize,
 		}
 	}
 	return children
@@ -215,6 +238,14 @@ func totalFlexGrow(children []childLayoutInput) float32 {
 	var total float32
 	for _, child := range children {
 		total += child.flexGrow
+	}
+	return total
+}
+
+func totalFlexShrink(children []childLayoutInput) float32 {
+	var total float32
+	for _, child := range children {
+		total += child.flexShrink
 	}
 	return total
 }

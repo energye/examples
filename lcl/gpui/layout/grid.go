@@ -25,12 +25,41 @@ func layoutGrid(node *Node, size math.Vec2) ([]Result, math.Vec2) {
 		if child == nil {
 			continue
 		}
+
+		// Get span values (default to 1)
+		colSpan := child.Style.GridColumnSpan
+		if colSpan <= 0 {
+			colSpan = 1
+		}
+		rowSpan := child.Style.GridRowSpan
+		if rowSpan <= 0 {
+			rowSpan = 1
+		}
+
+		// Calculate position
 		col := i % len(cols)
 		row := i / len(cols)
+
+		// Calculate width spanning multiple columns
+		w := float32(0)
+		for s := 0; s < colSpan && col+s < len(cols); s++ {
+			w += cols[col+s]
+			if s > 0 {
+				w += colGap
+			}
+		}
+
+		// Calculate height spanning multiple rows
+		h := float32(0)
+		for s := 0; s < rowSpan && row+s < len(rows); s++ {
+			h += rows[row+s]
+			if s > 0 {
+				h += rowGap
+			}
+		}
+
 		x := node.Style.Padding.Left + trackOffset(cols, colGap, col)
 		y := node.Style.Padding.Top + trackOffset(rows, rowGap, row)
-		w := cols[col]
-		h := rows[row]
 		childResult := Compute(child, math.NewVec2(w, h))
 		childResult.Bounds = math.NewRect(x, y, w, h)
 		results[i] = childResult

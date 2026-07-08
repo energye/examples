@@ -102,11 +102,17 @@ type Style struct {
 	Align     Align
 	Justify   Justify
 	FlexGrow  float32
+	FlexShrink float32
 
 	GridColumns []Value
 	GridRows    []Value
 	ColumnGap   float32
 	RowGap      float32
+
+	GridColumnStart int // 0-based column start (default 0)
+	GridColumnSpan  int // Number of columns to span (default 1)
+	GridRowStart    int // 0-based row start (default 0)
+	GridRowSpan     int // Number of rows to span (default 1)
 
 	OverflowX Overflow
 	OverflowY Overflow
@@ -239,4 +245,9 @@ func clampValue(value float32, minValue, maxValue Value, parent float32) float32
 		value = max
 	}
 	return value
+}
+
+// clampToConstraints clamps a value to min/max constraints
+func clampToConstraints(value float32, minVal, maxVal Value, parent float32) float32 {
+	return clampValue(value, minVal, maxVal, parent)
 }

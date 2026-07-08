@@ -181,6 +181,77 @@ func TestHueRotate(t *testing.T) {
 	}
 }
 
+func TestMat4Transpose(t *testing.T) {
+	m := Mat4{
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9, 10, 11, 12,
+		13, 14, 15, 16,
+	}
+	tr := m.Transpose()
+
+	// Column-major: m[col*4+row]
+	// Original: row 0 = [1, 5, 9, 13], row 1 = [2, 6, 10, 14], ...
+	// Transposed: row 0 = [1, 2, 3, 4], row 1 = [5, 6, 7, 8], ...
+	if tr[0] != 1 || tr[1] != 5 || tr[4] != 2 || tr[5] != 6 {
+		t.Fatalf("Transpose incorrect: got %v", tr)
+	}
+}
+
+func TestMat4Inverse(t *testing.T) {
+	// Test inverse of translation matrix
+	T := TranslationMatrix(10, 20, 30)
+	TInv := T.Inverse()
+	I := T.Multiply(TInv)
+
+	// Should be identity (approximately)
+	for i := 0; i < 16; i++ {
+		expected := float32(0)
+		if i%5 == 0 { // diagonal
+			expected = 1
+		}
+		if abs(I[i]-expected) > 0.001 {
+			t.Fatalf("T * T^-1 should be identity, got diff at index %d: %f vs %f", i, I[i], expected)
+		}
+	}
+}
+
+func TestMat4InverseScale(t *testing.T) {
+	// Test inverse of scale matrix
+	S := ScaleMatrix(2, 4, 8)
+	SInv := S.Inverse()
+	I := S.Multiply(SInv)
+
+	for i := 0; i < 16; i++ {
+		expected := float32(0)
+		if i%5 == 0 {
+			expected = 1
+		}
+		if abs(I[i]-expected) > 0.001 {
+			t.Fatalf("S * S^-1 should be identity at index %d", i)
+		}
+	}
+}
+
+func TestMat4InverseIdentity(t *testing.T) {
+	I := IdentityMatrix()
+	IInv := I.Inverse()
+
+	for i := 0; i < 16; i++ {
+		if abs(I[i]-IInv[i]) > 0.001 {
+			t.Fatalf("Identity inverse should be identity at index %d", i)
+		}
+	}
+}
+
+func TestShearMatrix(t *testing.T) {
+	// Shear matrix should preserve the homogeneous coordinate
+	sh := ShearMatrix(0.5, 0, 0, 0, 0, 0)
+	if sh[15] != 1 {
+		t.Fatalf("Shear matrix w component should be 1, got %f", sh[15])
+	}
+}
+
 func abs(x float32) float32 {
 	if x < 0 {
 		return -x

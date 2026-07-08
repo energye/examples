@@ -244,7 +244,34 @@ func (h *PortalHost) HandleEvent(ctx *Context, event Event) bool {
 	switch event.Type {
 	case EventMouseDown, EventMouseUp, EventMouseMove, EventMouseWheel, EventDoubleClick:
 		return h.handlePointer(ctx, event)
-	case EventKeyDown, EventCharInput:
+	case EventKeyDown:
+		// Handle Escape key to close topmost portal
+		if event.Key == 27 { // Escape
+			layers := h.layers()
+			if len(layers) > 0 {
+				topmost := layers[len(layers)-1]
+				if topmost.Options.CloseOnOutside {
+					portal := h.portals[topmost.ID]
+					if portal != nil {
+						onDismiss := portal.OnDismiss
+						h.Remove(topmost.ID)
+						if onDismiss != nil {
+							onDismiss(topmost.ID)
+						}
+						return true
+					}
+				}
+			}
+		}
+		if h.focus == nil {
+			return false
+		}
+		focused := h.focus.Current()
+		if focused != nil {
+			return focused.HandleEvent(ctx, event)
+		}
+		return h.FocusTrapActive()
+	case EventCharInput:
 		if h.focus == nil {
 			return false
 		}

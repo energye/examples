@@ -108,6 +108,26 @@ type Widget interface {
 	SetStateFlag(state State, enabled bool)
 }
 
+// LifecycleMount is called when a widget is added to the tree.
+type LifecycleMount interface {
+	OnMount()
+}
+
+// LifecycleUnmount is called when a widget is removed from the tree.
+type LifecycleUnmount interface {
+	OnUnmount()
+}
+
+// LifecycleResize is called when a widget's bounds change.
+type LifecycleResize interface {
+	OnResize(oldBounds, newBounds math.Rect)
+}
+
+// LifecycleStateChanged is called when widget state flags change.
+type LifecycleStateChanged interface {
+	OnStateChanged(oldState, newState State)
+}
+
 // ClampSize clamps a measured size to constraints.
 func ClampSize(size math.Vec2, constraints Constraints) math.Vec2 {
 	if constraints.Min.X > 0 && size.X < constraints.Min.X {

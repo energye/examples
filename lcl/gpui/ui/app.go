@@ -28,21 +28,13 @@ type Application struct {
 
 // NewApplication creates a new application
 func NewApplication(title string, width, height int32) *Application {
-	app := &Application{
+	return &Application{
 		lastTime: time.Now(),
 		title:    title,
 		width:    width,
 		height:   height,
 	}
-
-	// Store for use in FormCreate
-	currentApp = app
-
-	return app
 }
-
-// currentApp is the current application instance
-var currentApp *Application
 
 // OnSetup sets the UI setup function
 func (a *Application) OnSetup(fn func(*Engine)) {
@@ -58,17 +50,18 @@ func (a *Application) Run() {
 		return
 	}
 	lcl.Init()
-	lcl.RunApp(&appForm{})
+	lcl.RunApp(&appForm{app: a})
 }
 
 // appForm implements lcl.IEngForm
 type appForm struct {
 	lcl.TEngForm
+	app *Application
 }
 
 // FormCreate is called when the form is created
 func (f *appForm) FormCreate(sender lcl.IObject) {
-	app := currentApp
+	app := f.app
 	if app == nil {
 		return
 	}

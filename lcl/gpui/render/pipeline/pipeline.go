@@ -81,6 +81,28 @@ func (u UniformSet) key() string {
 	return b.String()
 }
 
+// fastKey returns a hash-based key without string allocation
+func (u UniformSet) fastKey() uint64 {
+	if len(u) == 0 {
+		return 0
+	}
+	h := uint64(14695981039346656037) // FNV offset basis
+	for name, value := range u {
+		for i := 0; i < len(name); i++ {
+			h ^= uint64(name[i])
+			h *= 1099511628211
+		}
+		h ^= uint64(value.Kind)
+		h *= 1099511628211
+		for _, v := range value.Values {
+			bits := uint32(v)
+			h ^= uint64(bits)
+			h *= 1099511628211
+		}
+	}
+	return h
+}
+
 func applyUniforms(shaderMgr *shader.ShaderManager, uniforms UniformSet) {
 	if shaderMgr == nil {
 		return
@@ -170,11 +192,12 @@ func QuadVertices(rect math.Rect, uv math.Rect, color math.Color) [4]Vertex {
 
 // Batch represents a draw batch
 type Batch struct {
-	Shader     *shader.ShaderProgram
-	Texture    uint32
-	Uniforms   UniformSet
-	uniformKey string
-	Clip       *math.Rect
+	Shader      *shader.ShaderProgram
+	Texture     uint32
+	Uniforms    UniformSet
+	uniformKey  string
+	uniformHash uint64
+	Clip        *math.Rect
 	clipKey    string
 	Verts      []Vertex
 	Indices    []uint32
@@ -251,14 +274,14 @@ func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture ui
 	if bm == nil || shaderProg == nil {
 		return nil
 	}
-	uniformKey := uniforms.key()
+	uniformHash := uniforms.fastKey()
 	clipKey := rectKey(clip)
 
 	// Check if we need a new batch
 	if bm.current == nil ||
 		bm.current.Shader != shaderProg ||
 		bm.current.Texture != texture ||
-		bm.current.uniformKey != uniformKey ||
+		bm.current.uniformHash != uniformHash ||
 		bm.current.clipKey != clipKey {
 
 		// Save current batch
@@ -268,12 +291,13 @@ func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture ui
 
 		// Create new batch
 		bm.current = &Batch{
-			Shader:     shaderProg,
-			Texture:    texture,
-			Uniforms:   uniforms.clone(),
-			uniformKey: uniformKey,
-			Clip:       cloneRect(clip),
-			clipKey:    clipKey,
+			Shader:      shaderProg,
+			Texture:     texture,
+			Uniforms:    uniforms.clone(),
+			uniformKey:  uniforms.key(),
+			uniformHash: uniformHash,
+			Clip:        cloneRect(clip),
+			clipKey:     clipKey,
 		}
 	}
 	if bm.current != nil && bm.current.wouldOverflow(addVerts, addIndices, bm.maxVertices, bm.maxIndices) {
@@ -281,12 +305,13 @@ func (bm *BatchManager) ensureBatch(shaderProg *shader.ShaderProgram, texture ui
 			bm.batches = append(bm.batches, bm.current)
 		}
 		bm.current = &Batch{
-			Shader:     shaderProg,
-			Texture:    texture,
-			Uniforms:   uniforms.clone(),
-			uniformKey: uniformKey,
-			Clip:       cloneRect(clip),
-			clipKey:    clipKey,
+			Shader:      shaderProg,
+			Texture:     texture,
+			Uniforms:    uniforms.clone(),
+			uniformKey:  uniforms.key(),
+			uniformHash: uniformHash,
+			Clip:        cloneRect(clip),
+			clipKey:     clipKey,
 		}
 	}
 	return bm.current
@@ -679,6 +704,14 @@ func (r *Renderer) PushClip(rect math.Rect) {
 	}
 	r.Flush()
 	r.clipStack = append(r.clipStack, rect)
+}
+
+// PushClipRounded pushes a rounded clip region.
+// For now, this clips to the bounding rect. Full rounded clipping requires shader support.
+func (r *Renderer) PushClipRounded(rect math.Rect, radius float32) {
+	// TODO: Implement proper rounded clipping with SDF in shader
+	// For now, use rectangular clip as approximation
+	r.PushClip(rect)
 }
 
 // PopClip restores the previous clip rectangle.

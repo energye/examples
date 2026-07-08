@@ -233,6 +233,12 @@ func (b *Button) Render(ctx *Context) {
 	bounds := b.Bounds()
 	ctx.Renderer.DrawBox(bounds, style.BoxStyle())
 
+	// Draw focus ring when focused
+	if b.HasState(StateFocus) {
+		focusRing := bounds.Expand(2)
+		ctx.Renderer.StrokeRoundRect(focusRing, style.Metrics.Radius+2, 2, ctx.Tokens.Global.ColorPrimary)
+	}
+
 	f := b.effectiveFont(ctx)
 	if f == nil || b.text == "" {
 		return

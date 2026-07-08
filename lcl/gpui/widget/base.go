@@ -137,6 +137,11 @@ func (w *BaseWidget) SetFocusable(focusable bool) {
 	if owner == nil {
 		return
 	}
+	// When making non-focusable, clear focus state
+	if !focusable && w.focused {
+		w.focused = false
+		w.SetStateFlag(StateFocus, false)
+	}
 	parent, ok := w.parent.(focusRegistrar)
 	if !ok {
 		return
@@ -200,6 +205,7 @@ func (w *BaseWidget) SetStateFlag(state State, enabled bool) {
 	if w == nil {
 		return
 	}
+	oldState := w.state
 	if enabled {
 		w.state |= state
 	} else {
@@ -212,6 +218,13 @@ func (w *BaseWidget) SetStateFlag(state State, enabled bool) {
 		w.focused = enabled
 	}
 	w.Invalidate()
+
+	// Call OnStateChanged lifecycle hook
+	if w.owner != nil && oldState != w.state {
+		if stateChangeable, ok := w.owner.(LifecycleStateChanged); ok {
+			stateChangeable.OnStateChanged(oldState, w.state)
+		}
+	}
 }
 
 // Invalidate marks the widget dirty.
@@ -252,7 +265,15 @@ func (w *BaseWidget) Measure(ctx *Context, constraints Constraints) math.Vec2 {
 
 // Layout assigns final bounds.
 func (w *BaseWidget) Layout(ctx *Context, rect math.Rect) {
+	oldBounds := w.bounds
 	w.SetBounds(rect)
+
+	// Call OnResize lifecycle hook if bounds changed
+	if w.owner != nil && oldBounds != rect {
+		if resizable, ok := w.owner.(LifecycleResize); ok {
+			resizable.OnResize(oldBounds, rect)
+		}
+	}
 }
 
 // Render renders nothing by default.
