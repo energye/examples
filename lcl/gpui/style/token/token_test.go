@@ -3,6 +3,8 @@ package token
 import (
 	"sync"
 	"testing"
+
+	"github.com/energye/examples/lcl/gpui/core/math"
 )
 
 func TestDeriveLightTokens(t *testing.T) {
@@ -32,6 +34,24 @@ func TestDeriveDarkTokens(t *testing.T) {
 	}
 	if dark.Global.ColorText.A <= 0 {
 		t.Fatal("dark text should be visible")
+	}
+}
+
+func TestDeriveNormalizesPartialSeed(t *testing.T) {
+	primary := math.NewColor(0.1, 0.2, 0.3, 1)
+	tokens := Derive(SeedToken{ColorPrimary: primary}, ModeLight)
+
+	if tokens.Seed.ColorPrimary != primary {
+		t.Fatal("explicit primary color should be preserved")
+	}
+	if tokens.Seed.FontSize != DefaultSeed().FontSize || tokens.Global.FontSize <= 0 {
+		t.Fatalf("font size = %v, want default positive size", tokens.Global.FontSize)
+	}
+	if tokens.Global.RadiusSM < 0 {
+		t.Fatalf("small radius = %v, want non-negative default-derived radius", tokens.Global.RadiusSM)
+	}
+	if tokens.Components.Button.Height <= 0 {
+		t.Fatalf("button height = %v, want positive control height", tokens.Components.Button.Height)
 	}
 }
 

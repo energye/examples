@@ -145,6 +145,40 @@ func TestGridLayout(t *testing.T) {
 	assertRect(t, result.Children[2].Bounds, 10, 47, 80, 40)
 }
 
+func TestGridHonorsExplicitStartAndSpan(t *testing.T) {
+	root := &Node{
+		Style: Style{
+			Width:       Px(220),
+			Height:      Px(160),
+			GridColumns: []Value{Px(50), Px(60), Px(70)},
+			GridRows:    []Value{Px(20), Px(30), Px(40)},
+			ColumnGap:   5,
+			RowGap:      7,
+		},
+		Children: []*Node{
+			fixedNode(10, 10),
+			&Node{
+				Style: Style{
+					GridColumnStart: 1,
+					GridColumnSpan:  2,
+					GridRowStart:    1,
+					GridRowSpan:     2,
+				},
+			},
+			&Node{
+				Style: Style{
+					GridRowStart: 2,
+				},
+			},
+		},
+	}
+
+	result := Compute(root, math.NewVec2(220, 160))
+	assertRect(t, result.Children[0].Bounds, 0, 0, 50, 20)
+	assertRect(t, result.Children[1].Bounds, 55, 27, 135, 77)
+	assertRect(t, result.Children[2].Bounds, 0, 64, 50, 40)
+}
+
 func TestOverflowViewportAndContentSize(t *testing.T) {
 	root := &Node{
 		Style: Style{

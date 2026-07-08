@@ -189,10 +189,16 @@ func (w *BaseWidget) SetState(state State) {
 	if w == nil {
 		return
 	}
+	oldState := w.state
 	w.state = state
 	w.focused = state&StateFocus != 0
 	w.enabled = state&StateDisabled == 0
 	w.Invalidate()
+	if w.owner != nil && oldState != w.state {
+		if stateChangeable, ok := w.owner.(LifecycleStateChanged); ok {
+			stateChangeable.OnStateChanged(oldState, w.state)
+		}
+	}
 }
 
 // HasState reports whether all requested state flags are set.

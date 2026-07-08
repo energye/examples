@@ -26,6 +26,14 @@ func Place(anchor math.Rect, popupSize math.Vec2, viewport math.Rect, placement 
 
 func placeRaw(anchor math.Rect, popupSize math.Vec2, placement Placement, offset math.Vec2) math.Rect {
 	switch placement {
+	case Top:
+		return math.NewRect(anchor.X+(anchor.W-popupSize.X)/2+offset.X, anchor.Y-popupSize.Y-offset.Y, popupSize.X, popupSize.Y)
+	case Bottom:
+		return math.NewRect(anchor.X+(anchor.W-popupSize.X)/2+offset.X, anchor.Y+anchor.H+offset.Y, popupSize.X, popupSize.Y)
+	case Left:
+		return math.NewRect(anchor.X-popupSize.X-offset.X, anchor.Y+(anchor.H-popupSize.Y)/2+offset.Y, popupSize.X, popupSize.Y)
+	case Right:
+		return math.NewRect(anchor.X+anchor.W+offset.X, anchor.Y+(anchor.H-popupSize.Y)/2+offset.Y, popupSize.X, popupSize.Y)
 	case BottomRight:
 		return math.NewRect(anchor.X+anchor.W-popupSize.X+offset.X, anchor.Y+anchor.H+offset.Y, popupSize.X, popupSize.Y)
 	case TopLeft:
@@ -34,8 +42,12 @@ func placeRaw(anchor math.Rect, popupSize math.Vec2, placement Placement, offset
 		return math.NewRect(anchor.X+anchor.W-popupSize.X+offset.X, anchor.Y-popupSize.Y-offset.Y, popupSize.X, popupSize.Y)
 	case LeftTop:
 		return math.NewRect(anchor.X-popupSize.X-offset.X, anchor.Y+offset.Y, popupSize.X, popupSize.Y)
+	case LeftBottom:
+		return math.NewRect(anchor.X-popupSize.X-offset.X, anchor.Y+anchor.H-popupSize.Y+offset.Y, popupSize.X, popupSize.Y)
 	case RightTop:
 		return math.NewRect(anchor.X+anchor.W+offset.X, anchor.Y+offset.Y, popupSize.X, popupSize.Y)
+	case RightBottom:
+		return math.NewRect(anchor.X+anchor.W+offset.X, anchor.Y+anchor.H-popupSize.Y+offset.Y, popupSize.X, popupSize.Y)
 	case Center:
 		return math.NewRect(anchor.X+(anchor.W-popupSize.X)/2+offset.X, anchor.Y+(anchor.H-popupSize.Y)/2+offset.Y, popupSize.X, popupSize.Y)
 	default:
@@ -45,6 +57,10 @@ func placeRaw(anchor math.Rect, popupSize math.Vec2, placement Placement, offset
 
 func flipPlacement(placement Placement) Placement {
 	switch placement {
+	case Top:
+		return Bottom
+	case Bottom:
+		return Top
 	case BottomLeft:
 		return TopLeft
 	case BottomRight:
@@ -57,6 +73,14 @@ func flipPlacement(placement Placement) Placement {
 		return RightTop
 	case RightTop:
 		return LeftTop
+	case Left:
+		return Right
+	case Right:
+		return Left
+	case LeftBottom:
+		return RightBottom
+	case RightBottom:
+		return LeftBottom
 	default:
 		return placement
 	}

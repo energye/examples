@@ -17,7 +17,7 @@ func layoutGrid(node *Node, size math.Vec2) ([]Result, math.Vec2) {
 	if len(cols) == 0 {
 		return nil, content
 	}
-	rowCount := (len(node.Children) + len(cols) - 1) / len(cols)
+	rowCount := gridRowCount(node, len(cols))
 	rows := resolveGridRows(node, content, rowCount, rowGap)
 
 	results := make([]Result, len(node.Children))
@@ -36,9 +36,7 @@ func layoutGrid(node *Node, size math.Vec2) ([]Result, math.Vec2) {
 			rowSpan = 1
 		}
 
-		// Calculate position
-		col := i % len(cols)
-		row := i / len(cols)
+		col, row := gridChildPosition(child, i, len(cols))
 
 		// Calculate width spanning multiple columns
 		w := float32(0)
@@ -70,9 +68,58 @@ func layoutGrid(node *Node, size math.Vec2) ([]Result, math.Vec2) {
 	return results, math.NewVec2(contentW, contentH)
 }
 
+func gridRowCount(node *Node, cols int) int {
+	if node == nil || cols <= 0 || len(node.Children) == 0 {
+		return 0
+	}
+	rowCount := (len(node.Children) + cols - 1) / cols
+	for i, child := range node.Children {
+		if child == nil {
+			continue
+		}
+		_, row := gridChildPosition(child, i, cols)
+		rowSpan := child.Style.GridRowSpan
+		if rowSpan <= 0 {
+			rowSpan = 1
+		}
+		if needed := row + rowSpan; needed > rowCount {
+			rowCount = needed
+		}
+	}
+	return rowCount
+}
+
+func gridChildPosition(child *Node, index, cols int) (col, row int) {
+	if cols <= 0 {
+		return 0, 0
+	}
+	col = index % cols
+	row = index / cols
+	if child == nil {
+		return col, row
+	}
+	if child.Style.GridColumnStart > 0 || child.Style.GridRowStart > 0 {
+		col = child.Style.GridColumnStart
+		row = child.Style.GridRowStart
+	}
+	if col < 0 {
+		col = 0
+	}
+	if col >= cols {
+		col = cols - 1
+	}
+	if row < 0 {
+		row = 0
+	}
+	return col, row
+}
+
 func resolveGridRows(node *Node, content math.Vec2, rowCount int, rowGap float32) []float32 {
 	if len(node.Style.GridRows) > 0 {
 		rows := resolveTracks(node.Style.GridRows, content.Y, rowGap)
+		if len(rows) == 0 {
+			return nil
+		}
 		for len(rows) < rowCount {
 			rows = append(rows, rows[len(rows)-1])
 		}
@@ -85,7 +132,7 @@ func resolveGridRows(node *Node, content math.Vec2, rowCount int, rowGap float32
 		if child == nil {
 			continue
 		}
-		row := i / cols
+		_, row := gridChildPosition(child, i, cols)
 		measured := resolveNodeSize(child, content)
 		if measured.Y > rows[row] {
 			rows[row] = measured.Y

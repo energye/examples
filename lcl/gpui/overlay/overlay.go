@@ -17,6 +17,12 @@ const (
 	LeftTop
 	RightTop
 	Center
+	Top
+	Bottom
+	Left
+	Right
+	LeftBottom
+	RightBottom
 )
 
 // LayerKind identifies a portal layer role.

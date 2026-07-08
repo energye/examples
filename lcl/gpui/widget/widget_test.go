@@ -12,6 +12,13 @@ type recordingWidget struct {
 	events []Event
 }
 
+type stateRecordingWidget struct {
+	BaseWidget
+	oldState State
+	newState State
+	changes  int
+}
+
 func newRecordingWidget(rect math.Rect) *recordingWidget {
 	w := &recordingWidget{BaseWidget: NewBaseWidget()}
 	w.SetOwner(w)
@@ -19,9 +26,21 @@ func newRecordingWidget(rect math.Rect) *recordingWidget {
 	return w
 }
 
+func newStateRecordingWidget() *stateRecordingWidget {
+	w := &stateRecordingWidget{BaseWidget: NewBaseWidget()}
+	w.SetOwner(w)
+	return w
+}
+
 func (w *recordingWidget) HandleEvent(ctx *Context, event Event) bool {
 	w.events = append(w.events, event)
 	return true
+}
+
+func (w *stateRecordingWidget) OnStateChanged(oldState, newState State) {
+	w.oldState = oldState
+	w.newState = newState
+	w.changes++
 }
 
 func TestClampSize(t *testing.T) {
@@ -50,6 +69,26 @@ func TestStateFlagsKeepEnabledAndFocusInSync(t *testing.T) {
 	w.Focus()
 	if !w.Enabled() || !w.Focused() || !w.HasState(StateFocus) {
 		t.Fatal("focus and enabled state were not synchronized")
+	}
+}
+
+func TestSetStateTriggersStateChangedLifecycle(t *testing.T) {
+	w := newStateRecordingWidget()
+
+	w.SetState(StateDisabled | StateError)
+	if w.changes != 1 {
+		t.Fatalf("state changes = %d, want 1", w.changes)
+	}
+	if w.oldState != StateNormal || w.newState != StateDisabled|StateError {
+		t.Fatalf("state transition = %v -> %v, want normal -> disabled|error", w.oldState, w.newState)
+	}
+	if w.Enabled() {
+		t.Fatal("SetState disabled flag should disable widget")
+	}
+
+	w.SetState(StateDisabled | StateError)
+	if w.changes != 1 {
+		t.Fatalf("same state should not trigger lifecycle again, changes = %d", w.changes)
 	}
 }
 

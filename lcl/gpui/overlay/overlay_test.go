@@ -66,6 +66,45 @@ func TestPlacementCenter(t *testing.T) {
 	}
 }
 
+func TestAntDesignPlacements(t *testing.T) {
+	viewport := math.NewRect(0, 0, 400, 400)
+	anchor := math.NewRect(100, 100, 80, 40)
+	size := math.NewVec2(60, 30)
+
+	cases := []struct {
+		name  string
+		place Placement
+		x, y  float32
+	}{
+		{"top", Top, 110, 70},
+		{"bottom", Bottom, 110, 140},
+		{"left", Left, 40, 105},
+		{"right", Right, 180, 105},
+		{"leftBottom", LeftBottom, 40, 110},
+		{"rightBottom", RightBottom, 180, 110},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			rect := Place(anchor, size, viewport, tc.place, PlacementOptions{})
+			if rect.X != tc.x || rect.Y != tc.y {
+				t.Fatalf("rect = (%v,%v), want (%v,%v)", rect.X, rect.Y, tc.x, tc.y)
+			}
+		})
+	}
+}
+
+func TestPlacementFlipForCenteredDirections(t *testing.T) {
+	viewport := math.NewRect(0, 0, 200, 200)
+	anchor := math.NewRect(80, 4, 40, 20)
+	size := math.NewVec2(60, 30)
+
+	rect := Place(anchor, size, viewport, Top, PlacementOptions{Flip: true})
+	if rect.Y <= anchor.Y {
+		t.Fatalf("expected top placement to flip below anchor, got y=%v anchorY=%v", rect.Y, anchor.Y)
+	}
+}
+
 func TestNilManagerIsSafe(t *testing.T) {
 	var manager *Manager
 	manager.Add(Layer{ID: "ignored"})
