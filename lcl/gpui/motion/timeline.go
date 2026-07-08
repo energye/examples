@@ -2,6 +2,12 @@ package motion
 
 import "time"
 
+// Animatable is implemented by widgets that have active animations.
+type Animatable interface {
+	// Timeline returns the widget's animation timeline.
+	Timeline() *Timeline
+}
+
 // Timeline owns a set of named transitions.
 type Timeline struct {
 	transitions map[string]*Transition

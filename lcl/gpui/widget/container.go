@@ -407,6 +407,12 @@ func (c *Container) dispatchHoverEvent(ctx *Context, child Widget, event Event, 
 	child.HandleEvent(ctx, childEvent)
 }
 
+// ParentWidget is implemented by widgets that contain children.
+type ParentWidget interface {
+	Widget
+	Children() []Widget
+}
+
 func (c *Container) registerFocusable(widget Widget) {
 	if c == nil || widget == nil || c.focus == nil {
 		return
@@ -414,13 +420,9 @@ func (c *Container) registerFocusable(widget Widget) {
 	if widget.Focusable() {
 		c.addFocusable(widget)
 	}
-	switch nested := widget.(type) {
-	case *Container:
-		for _, child := range nested.children {
-			c.registerFocusable(child)
-		}
-	case *LayoutContainer:
-		for _, child := range nested.children {
+	// Use ParentWidget interface instead of type switch
+	if parent, ok := widget.(ParentWidget); ok {
+		for _, child := range parent.Children() {
 			c.registerFocusable(child)
 		}
 	}
@@ -431,13 +433,8 @@ func (c *Container) unregisterFocusable(widget Widget) {
 		return
 	}
 	c.removeFocusable(widget)
-	switch nested := widget.(type) {
-	case *Container:
-		for _, child := range nested.children {
-			c.unregisterFocusable(child)
-		}
-	case *LayoutContainer:
-		for _, child := range nested.children {
+	if parent, ok := widget.(ParentWidget); ok {
+		for _, child := range parent.Children() {
 			c.unregisterFocusable(child)
 		}
 	}

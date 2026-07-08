@@ -1,4 +1,7 @@
 // Package animation provides animation and easing functions
+//
+// Deprecated: Use motion package instead. This package is kept for backward
+// compatibility only. The canonical animation system is motion/.
 package animation
 
 import (

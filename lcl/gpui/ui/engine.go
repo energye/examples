@@ -6,6 +6,7 @@ import (
 	"time"
 
 	coremath "github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/motion"
 	"github.com/energye/examples/lcl/gpui/overlay"
 	"github.com/energye/examples/lcl/gpui/render/font"
 	"github.com/energye/examples/lcl/gpui/render/pipeline"
@@ -102,9 +103,12 @@ func (e *Engine) Render() {
 
 	// Calculate delta time
 	now := time.Now()
-	dt := now.Sub(e.lastTime).Seconds()
+	dt := now.Sub(e.lastTime)
 	e.lastTime = now
-	e.cursorTime += dt
+	e.cursorTime += dt.Seconds()
+
+	// Update animations
+	e.updateAnimations(dt)
 
 	// Begin frame
 	e.renderer.BeginFrame(e.width, e.height)
@@ -127,6 +131,27 @@ func (e *Engine) Render() {
 
 	// End frame (flushes all batched draw calls)
 	e.renderer.EndFrame()
+}
+
+// updateAnimations updates all active animations in the widget tree
+func (e *Engine) updateAnimations(dt time.Duration) {
+	if e.root == nil {
+		return
+	}
+	e.updateContainerAnimations(e.root, dt)
+}
+
+func (e *Engine) updateContainerAnimations(container *widget.Container, dt time.Duration) {
+	for _, child := range container.Children() {
+		if anim, ok := child.(motion.Animatable); ok {
+			if tl := anim.Timeline(); tl != nil {
+				tl.Update(dt)
+			}
+		}
+		if sub, ok := child.(*widget.Container); ok {
+			e.updateContainerAnimations(sub, dt)
+		}
+	}
 }
 
 // SetSize sets the window size

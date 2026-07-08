@@ -46,6 +46,7 @@ type PortalHost struct {
 	pointerCaptureHit Widget
 	pointerStart      math.Vec2
 	pointerDragging   bool
+	previousFocus     Widget // Widget that had focus before portal opened
 }
 
 // NewPortalHost creates a portal host backed by an overlay manager.
@@ -107,6 +108,12 @@ func (h *PortalHost) Add(content Widget, options PortalOptions) {
 		h.unregisterFocusable(existing.Content)
 		existing.Content.SetParent(nil)
 	}
+
+	// Save previous focus when opening a focus-trapping portal
+	if options.FocusTrap && h.focus != nil {
+		h.previousFocus = h.focus.Current()
+	}
+
 	if owned, ok := content.(interface{ SetOwner(Widget) }); ok {
 		owned.SetOwner(content)
 	}
@@ -147,6 +154,15 @@ func (h *PortalHost) Remove(id string) {
 	if portal != nil {
 		h.unregisterFocusable(portal.Content)
 		portal.Content.SetParent(nil)
+
+		// Restore previous focus when closing a focus-trapping portal
+		if portal.Layer.Options.FocusTrap && h.previousFocus != nil {
+			if h.focus != nil {
+				h.focus.SetFocus(h.previousFocus)
+			}
+			h.previousFocus = nil
+		}
+
 		delete(h.portals, id)
 	}
 	if h.manager != nil {
