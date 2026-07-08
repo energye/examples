@@ -397,7 +397,17 @@ func (bm *BatchManager) FlushWithOffset(vao, vbo, ebo uint32, shaderMgr *shader.
 		// Upload index data
 		gl.BindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, ebo)
 		idxSize := int32(len(batch.Indices) * 4)
-		idxPtr := uintptr(unsafe.Pointer(&batch.Indices[0]))
+
+		// Compute base vertex offset: vertex data is uploaded at curVboOff bytes
+		// into the VBO, so indices must be shifted by the corresponding vertex count.
+		// Without this, all batches after the first reference vertex 0..N from the
+		// start of the VBO (where the first batch's data lives), not the current batch.
+		baseVertex := uint32(curVboOff / int32(VertexSize))
+		adjustedIndices := make([]uint32, len(batch.Indices))
+		for i, idx := range batch.Indices {
+			adjustedIndices[i] = idx + baseVertex
+		}
+		idxPtr := uintptr(unsafe.Pointer(&adjustedIndices[0]))
 
 		// Ring buffer: use offset if available
 		curEboOff := int32(0)
@@ -534,7 +544,10 @@ func (r *Renderer) BeginFrame(width, height float32) {
 	r.height = height
 	r.batch.Reset()
 	r.clipStack = r.clipStack[:0]
+	r.clipRadiusStack = r.clipRadiusStack[:0]
 	r.transformStack = r.transformStack[:0]
+	r.vboOffset = 0
+	r.eboOffset = 0
 	if !r.initialized {
 		return
 	}
