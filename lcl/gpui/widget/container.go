@@ -1,334 +1,264 @@
-// Package widget provides UI widgets
 package widget
 
-import (
-	"github.com/energye/examples/lcl/gpui/core/math"
-	"github.com/energye/examples/lcl/gpui/render/pipeline"
-)
+import "github.com/energye/examples/lcl/gpui/core/math"
 
-// Container is a widget that contains other widgets
+// Container is a generic widget node that owns children.
 type Container struct {
 	BaseWidget
 	children []Widget
-	focusMgr *FocusManager
+	focus    *FocusManager
+	clip     bool
 }
 
-// NewContainer creates a new container
+// NewContainer creates an empty container.
 func NewContainer() *Container {
-	return &Container{
+	c := &Container{
 		BaseWidget: NewBaseWidget(),
 		children:   make([]Widget, 0),
-		focusMgr:   NewFocusManager(),
+		focus:      NewFocusManager(),
 	}
+	c.SetOwner(c)
+	return c
 }
 
-// FocusManager returns the focus manager
-func (c *Container) FocusManager() *FocusManager {
-	return c.focusMgr
+// SetClip toggles clipping children to this container's bounds.
+func (c *Container) SetClip(clip bool) {
+	if c == nil {
+		return
+	}
+	c.clip = clip
+	c.Invalidate()
 }
 
-// Add adds a child widget
+// Add appends a child widget.
 func (c *Container) Add(child Widget) {
+	if c == nil || child == nil {
+		return
+	}
+	if owned, ok := child.(interface{ SetOwner(Widget) }); ok {
+		owned.SetOwner(child)
+	}
 	child.SetParent(c)
 	c.children = append(c.children, child)
-	if child.Focusable() && c.focusMgr != nil {
-		c.focusMgr.Add(child)
-	}
+	c.registerFocusable(child)
+	c.Invalidate()
 }
 
-// Remove removes a child widget
+// Remove detaches a child widget.
 func (c *Container) Remove(child Widget) {
-	for i, ch := range c.children {
-		if ch == child {
-			child.SetParent(nil)
-			c.children = append(c.children[:i], c.children[i+1:]...)
-			if c.focusMgr != nil {
-				c.focusMgr.Remove(child)
-			}
-			return
-		}
-	}
-}
-
-// Children returns the child widgets
-func (c *Container) Children() []Widget {
-	return c.children
-}
-
-// Render renders the container and its children
-func (c *Container) Render(renderer *pipeline.Renderer) {
-	if !c.visible {
+	if c == nil || child == nil {
 		return
 	}
-
-	renderer.PushTransform(math.TranslationMatrix(c.bounds.X, c.bounds.Y, 0))
-	defer renderer.PopTransform()
-
-	// Render children
-	for _, child := range c.children {
-		child.Render(renderer)
+	for i, item := range c.children {
+		if item != child {
+			continue
+		}
+		child.SetParent(nil)
+		c.children = append(c.children[:i], c.children[i+1:]...)
+		if c.focus != nil {
+			c.focus.Remove(child)
+		}
+		c.Invalidate()
+		return
 	}
 }
 
-// HandleEvent routes events to children using container-local coordinates.
-func (c *Container) HandleEvent(event UIEvent) bool {
+// Children returns a copy of the child list.
+func (c *Container) Children() []Widget {
+	if c == nil {
+		return nil
+	}
+	out := make([]Widget, len(c.children))
+	copy(out, c.children)
+	return out
+}
+
+// FocusManager returns the container focus manager.
+func (c *Container) FocusManager() *FocusManager {
+	if c == nil {
+		return nil
+	}
+	return c.focus
+}
+
+// RefreshFocus rebuilds focus order from the current child tree.
+func (c *Container) RefreshFocus() {
+	if c == nil {
+		return
+	}
+	current := Widget(nil)
+	if c.focus != nil {
+		current = c.focus.Current()
+	}
+	c.focus = NewFocusManager()
+	for _, child := range c.children {
+		c.registerFocusable(child)
+	}
+	if current != nil && current.Focusable() {
+		c.focus.SetFocus(current)
+	}
+}
+
+// Measure returns the maximum child extent, constrained by available space.
+func (c *Container) Measure(ctx *Context, constraints Constraints) math.Vec2 {
+	if c == nil {
+		return math.Vec2{}
+	}
+	size := c.BaseWidget.Measure(ctx, constraints)
+	for _, child := range c.children {
+		if child == nil || !child.Visible() {
+			continue
+		}
+		childSize := child.Measure(ctx, constraints)
+		bounds := child.Bounds()
+		if bounds.W <= 0 {
+			bounds.W = childSize.X
+		}
+		if bounds.H <= 0 {
+			bounds.H = childSize.Y
+		}
+		if right := bounds.X + bounds.W; right > size.X {
+			size.X = right
+		}
+		if bottom := bounds.Y + bounds.H; bottom > size.Y {
+			size.Y = bottom
+		}
+	}
+	return ClampSize(size, constraints)
+}
+
+// Layout assigns bounds to the container and preserves child local positions.
+func (c *Container) Layout(ctx *Context, rect math.Rect) {
+	if c == nil {
+		return
+	}
+	c.BaseWidget.Layout(ctx, rect)
+	for _, child := range c.children {
+		if child == nil {
+			continue
+		}
+		bounds := child.Bounds()
+		if bounds.W <= 0 || bounds.H <= 0 {
+			size := child.Measure(ctx, Constraints{Max: math.NewVec2(rect.W, rect.H)})
+			if bounds.W <= 0 {
+				bounds.W = size.X
+			}
+			if bounds.H <= 0 {
+				bounds.H = size.Y
+			}
+		}
+		child.Layout(ctx, bounds)
+	}
+}
+
+// Render renders all visible children in container-local coordinates.
+func (c *Container) Render(ctx *Context) {
+	if c == nil || ctx == nil || ctx.Renderer == nil || !c.Visible() {
+		return
+	}
+	bounds := c.Bounds()
+	ctx.Renderer.PushTransform(math.TranslationMatrix(bounds.X, bounds.Y, 0))
+	if c.clip {
+		ctx.Renderer.PushClip(math.NewRect(0, 0, bounds.W, bounds.H))
+	}
+	for _, child := range c.children {
+		if child != nil && child.Visible() {
+			child.Render(ctx)
+		}
+	}
+	if c.clip {
+		ctx.Renderer.PopClip()
+	}
+	ctx.Renderer.PopTransform()
+}
+
+// HitTest returns the deepest child hit by a point in parent-local coordinates.
+func (c *Container) HitTest(point math.Vec2) Widget {
+	if c == nil || !c.Visible() || !c.Enabled() {
+		return nil
+	}
+	bounds := c.Bounds()
+	if !bounds.Contains(point.X, point.Y) {
+		return nil
+	}
+	local := math.NewVec2(point.X-bounds.X, point.Y-bounds.Y)
+	for i := len(c.children) - 1; i >= 0; i-- {
+		child := c.children[i]
+		if child == nil {
+			continue
+		}
+		if hit := child.HitTest(local); hit != nil {
+			return hit
+		}
+	}
+	return c
+}
+
+// HandleEvent routes input to topmost children and updates common states.
+func (c *Container) HandleEvent(ctx *Context, event Event) bool {
+	if c == nil || !c.Visible() || !c.Enabled() {
+		return false
+	}
+	local := math.NewVec2(event.X-c.bounds.X, event.Y-c.bounds.Y)
 	switch event.Type {
 	case EventMouseDown:
-		localEvent := event
-		localEvent.X -= c.bounds.X
-		localEvent.Y -= c.bounds.Y
-
-		for i := len(c.children) - 1; i >= 0; i-- {
-			child := c.children[i]
-			if !child.Visible() || !child.Enabled() {
-				continue
-			}
-			if !child.Bounds().Contains(localEvent.X, localEvent.Y) {
-				continue
-			}
-			if child.Focusable() && c.focusMgr != nil {
-				c.focusMgr.SetFocus(child)
-			}
-			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
-				return true
-			}
-		}
-		return false
-
+		return c.dispatchPointer(ctx, event, local, true)
 	case EventMouseUp:
-		localEvent := event
-		localEvent.X -= c.bounds.X
-		localEvent.Y -= c.bounds.Y
-
-		handled := false
-		for i := len(c.children) - 1; i >= 0; i-- {
-			child := c.children[i]
-			if !child.Visible() || !child.Enabled() {
-				continue
-			}
-			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
-				handled = true
-			}
-		}
-		return handled
-
+		return c.dispatchPointer(ctx, event, local, false)
 	case EventMouseMove:
-		localEvent := event
-		localEvent.X -= c.bounds.X
-		localEvent.Y -= c.bounds.Y
-
-		handled := false
-		for i := len(c.children) - 1; i >= 0; i-- {
-			child := c.children[i]
-			if !child.Visible() || !child.Enabled() {
-				continue
-			}
-			if child.HandleEvent(localEvent) || dispatchLegacyEvent(child, localEvent) {
-				handled = true
-			}
-		}
-		return handled
-
+		return c.dispatchPointer(ctx, event, local, false)
 	case EventKeyDown, EventCharInput:
-		for _, child := range c.children {
-			if child.Focused() {
-				return child.HandleEvent(event) || dispatchLegacyEvent(child, event)
-			}
+		if c.focus == nil {
+			return false
 		}
+		focused := c.focus.Current()
+		return focused != nil && focused.HandleEvent(ctx, event)
+	default:
+		return false
 	}
+}
 
+func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, focusOnHit bool) bool {
+	for i := len(c.children) - 1; i >= 0; i-- {
+		child := c.children[i]
+		if child == nil || !child.Visible() || !child.Enabled() {
+			continue
+		}
+		hit := child.HitTest(point)
+		child.SetStateFlag(StateHover, hit != nil && event.Type == EventMouseMove)
+		if hit == nil {
+			continue
+		}
+		if focusOnHit && hit.Focusable() && c.focus != nil {
+			c.focus.SetFocus(hit)
+		}
+		childBounds := child.Bounds()
+		childEvent := event
+		childEvent.X = point.X
+		childEvent.Y = point.Y
+		childEvent.LocalX = point.X - childBounds.X
+		childEvent.LocalY = point.Y - childBounds.Y
+		if event.Type == EventMouseDown {
+			hit.SetStateFlag(StateActive, true)
+		}
+		if event.Type == EventMouseUp {
+			hit.SetStateFlag(StateActive, false)
+		}
+		return child.HandleEvent(ctx, childEvent)
+	}
 	return false
 }
 
-// MouseDown handles mouse down
-func (c *Container) MouseDown(x, y float32, button int) bool {
-	return c.HandleEvent(UIEvent{Type: EventMouseDown, X: x, Y: y, Button: button})
-}
-
-// MouseUp handles mouse up
-func (c *Container) MouseUp(x, y float32, button int) bool {
-	return c.HandleEvent(UIEvent{Type: EventMouseUp, X: x, Y: y, Button: button})
-}
-
-// MouseMove handles mouse move
-func (c *Container) MouseMove(x, y float32) bool {
-	return c.HandleEvent(UIEvent{Type: EventMouseMove, X: x, Y: y})
-}
-
-// KeyDown handles key down
-func (c *Container) KeyDown(key int, mods int) bool {
-	return c.HandleEvent(UIEvent{Type: EventKeyDown, Key: key, Mods: mods})
-}
-
-// CharInput handles character input
-func (c *Container) CharInput(char rune) bool {
-	return c.HandleEvent(UIEvent{Type: EventCharInput, Char: char})
-}
-
-// Focusable returns false (container itself is not focusable)
-func (c *Container) Focusable() bool {
-	return false
-}
-
-// FocusManager manages focus across widgets
-type FocusManager struct {
-	widgets []Widget
-	current Widget
-}
-
-// NewFocusManager creates a new focus manager
-func NewFocusManager() *FocusManager {
-	return &FocusManager{
-		widgets: make([]Widget, 0),
-	}
-}
-
-// Add adds a widget to the focus manager
-func (fm *FocusManager) Add(widget Widget) {
-	fm.widgets = append(fm.widgets, widget)
-}
-
-// Remove removes a widget from the focus manager
-func (fm *FocusManager) Remove(widget Widget) {
-	for i, w := range fm.widgets {
-		if w == widget {
-			fm.widgets = append(fm.widgets[:i], fm.widgets[i+1:]...)
-			if fm.current == widget {
-				fm.current = nil
-			}
-			return
-		}
-	}
-}
-
-// SetFocus sets focus to a widget
-func (fm *FocusManager) SetFocus(widget Widget) {
-	if fm.current == widget {
+func (c *Container) registerFocusable(widget Widget) {
+	if c == nil || widget == nil || c.focus == nil {
 		return
 	}
-
-	if fm.current != nil {
-		fm.current.Blur()
+	if widget.Focusable() {
+		c.focus.Add(widget)
 	}
-
-	fm.current = widget
-	if widget != nil {
-		widget.Focus()
-	}
-}
-
-// Current returns the currently focused widget
-func (fm *FocusManager) Current() Widget {
-	return fm.current
-}
-
-// Next focuses the next focusable widget
-func (fm *FocusManager) Next() {
-	if len(fm.widgets) == 0 {
-		return
-	}
-
-	// Find current index
-	currentIdx := -1
-	for i, w := range fm.widgets {
-		if w == fm.current {
-			currentIdx = i
-			break
+	if nested, ok := widget.(*Container); ok {
+		for _, child := range nested.children {
+			c.registerFocusable(child)
 		}
-	}
-
-	// Find next focusable widget
-	for i := 1; i <= len(fm.widgets); i++ {
-		idx := (currentIdx + i) % len(fm.widgets)
-		if fm.widgets[idx].Focusable() && fm.widgets[idx].Enabled() {
-			fm.SetFocus(fm.widgets[idx])
-			return
-		}
-	}
-}
-
-// Prev focuses the previous focusable widget
-func (fm *FocusManager) Prev() {
-	if len(fm.widgets) == 0 {
-		return
-	}
-
-	// Find current index
-	currentIdx := len(fm.widgets)
-	for i, w := range fm.widgets {
-		if w == fm.current {
-			currentIdx = i
-			break
-		}
-	}
-
-	// Find previous focusable widget
-	for i := 1; i <= len(fm.widgets); i++ {
-		idx := (currentIdx - i + len(fm.widgets)) % len(fm.widgets)
-		if fm.widgets[idx].Focusable() && fm.widgets[idx].Enabled() {
-			fm.SetFocus(fm.widgets[idx])
-			return
-		}
-	}
-}
-
-// Anchor represents widget anchor behavior
-type Anchor int
-
-const (
-	AnchorLeftTop     Anchor = iota // Fixed position (default)
-	AnchorRightTop                  // Follow right edge
-	AnchorLeftBottom                // Follow bottom edge
-	AnchorRightBottom               // Follow right and bottom edges
-	AnchorAll                       // Stretch to fill
-)
-
-// AnchoredContainer is a container with anchor support
-type AnchoredContainer struct {
-	Container
-}
-
-// NewAnchoredContainer creates a new anchored container
-func NewAnchoredContainer() *AnchoredContainer {
-	return &AnchoredContainer{
-		Container: *NewContainer(),
-	}
-}
-
-// UpdateLayout updates child layouts based on size change
-func (ac *AnchoredContainer) UpdateLayout(oldW, oldH, newW, newH float32) {
-	for _, child := range ac.children {
-		// Get anchor (default is left-top)
-		anchor := AnchorLeftTop
-		if anchorWidget, ok := child.(interface{ Anchor() Anchor }); ok {
-			anchor = anchorWidget.Anchor()
-		}
-
-		bounds := child.Bounds()
-		newBounds := bounds
-
-		dx := newW - oldW
-		dy := newH - oldH
-
-		switch anchor {
-		case AnchorLeftTop:
-			// No change
-
-		case AnchorRightTop:
-			newBounds.X += dx
-
-		case AnchorLeftBottom:
-			newBounds.Y += dy
-
-		case AnchorRightBottom:
-			newBounds.X += dx
-			newBounds.Y += dy
-
-		case AnchorAll:
-			newBounds.W += dx
-			newBounds.H += dy
-		}
-
-		child.SetBounds(newBounds)
 	}
 }

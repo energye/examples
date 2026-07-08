@@ -8,7 +8,9 @@ import (
 
 	"github.com/energye/lcl/api/libname"
 
-	"github.com/energye/examples/lcl/gpui/style/color"
+	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/render/pipeline"
+	"github.com/energye/examples/lcl/gpui/style/token"
 	"github.com/energye/examples/lcl/gpui/ui"
 	"github.com/energye/examples/lcl/gpui/widget"
 )
@@ -31,51 +33,63 @@ func main() {
 }
 
 func setupUI(engine *ui.Engine) {
-	font := engine.Font()
+	tokens := token.Current()
 
-	// Title
-	title := widget.NewLabel("Ant Design Style GPU UI", font)
-	title.SetPos(20, 20)
-	title.SetSize(400, 24)
-	title.SetColor(color.Primary)
+	panel := widget.NewBox(pipeline.BoxStyle{
+		Background:  tokens.Global.ColorBgContainer,
+		BorderColor: tokens.Global.ColorBorder,
+		BorderWidth: 1,
+		Radius:      tokens.Global.RadiusLG,
+		Shadows: []pipeline.Shadow{{
+			Offset: math.NewVec2(0, 6),
+			Blur:   14,
+			Color:  math.NewColor(0, 0, 0, 0.10),
+		}},
+	})
+	panel.SetPos(24, 24)
+	panel.SetSize(420, 160)
+	engine.AddWidget(panel)
+
+	title := widget.NewText("Ant Design Framework Core")
+	title.SetPos(48, 48)
+	title.SetSize(360, 28)
+	title.Font = engine.Font()
+	title.Color = tokens.Global.ColorText
+	title.SetEnabled(false)
 	engine.AddWidget(title)
 
-	// TextBox
-	textbox := widget.NewTextBox("Enter text here...", font)
-	textbox.SetPos(20, 60)
-	textbox.SetSize(300, 32)
-	textbox.SetOnChange(func(text string) {
-		fmt.Println("Text:", text)
+	status := widget.NewText("Box/Text primitives running on the new widget lifecycle")
+	status.SetPos(48, 86)
+	status.SetSize(360, 24)
+	status.Font = engine.Font()
+	status.Color = tokens.Global.ColorTextSecondary
+	status.Ellipsis = true
+	status.SetEnabled(false)
+	engine.AddWidget(status)
+
+	action := widget.NewBox(pipeline.BoxStyle{
+		Background:  tokens.Global.ColorPrimary,
+		BorderColor: tokens.Global.ColorPrimary,
+		BorderWidth: 1,
+		Radius:      tokens.Global.RadiusMD,
 	})
-	engine.AddWidget(textbox)
-
-	// Buttons
-	buttons := []struct {
-		name string
-		typ  widget.ButtonType
-		x    float32
-	}{
-		{"Primary", widget.ButtonPrimary, 20},
-		{"Default", widget.ButtonDefault, 130},
-		{"Success", widget.ButtonSuccess, 240},
-		{"Warning", widget.ButtonWarning, 350},
-		{"Danger", widget.ButtonDanger, 460},
+	action.SetPos(48, 126)
+	action.SetSize(128, 36)
+	action.SetFocusable(true)
+	action.OnClick = func() {
+		status.Text = "Clicked: event dispatch, focus, and state are active"
+		status.Invalidate()
+		fmt.Println("framework box clicked")
 	}
+	engine.AddWidget(action)
 
-	for _, b := range buttons {
-		btn := widget.NewButton(b.name, b.typ, font)
-		btn.SetPos(b.x, 110)
-		btn.SetSize(100, 32)
-		btn.SetOnClick(func() {
-			text := textbox.Text()
-			title.SetText(fmt.Sprintf("%s: %s", b.name, text))
-			fmt.Printf("%s clicked! Text: %s\n", b.name, text)
-		})
-		engine.AddWidget(btn)
-	}
-
-	// Set focus
-	engine.SetFocus(textbox)
+	label := widget.NewText("Click")
+	label.SetPos(87, 134)
+	label.SetSize(80, 20)
+	label.Font = engine.Font()
+	label.Color = tokens.Global.ColorTextLight
+	label.SetEnabled(false)
+	engine.AddWidget(label)
 
 	fmt.Println("✓ UI ready")
 }

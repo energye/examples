@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	coremath "github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/overlay"
 	"github.com/energye/examples/lcl/gpui/render/font"
 	"github.com/energye/examples/lcl/gpui/render/pipeline"
+	"github.com/energye/examples/lcl/gpui/style/token"
 	"github.com/energye/examples/lcl/gpui/widget"
 )
 
@@ -18,6 +21,7 @@ type Engine struct {
 	// Core components
 	renderer *pipeline.Renderer
 	root     *widget.Container
+	overlay  *overlay.Manager
 
 	// Font management
 	font *font.Font
@@ -42,6 +46,7 @@ func NewEngine() *Engine {
 	return &Engine{
 		renderer: pipeline.NewRenderer(),
 		root:     widget.NewContainer(),
+		overlay:  overlay.NewManager(),
 		lastTime: time.Now(),
 	}
 }
@@ -59,6 +64,9 @@ func (e *Engine) Initialize() error {
 	}
 	if e.root == nil {
 		e.root = widget.NewContainer()
+	}
+	if e.overlay == nil {
+		e.overlay = overlay.NewManager()
 	}
 
 	if err := e.renderer.Init(); err != nil {
@@ -86,10 +94,12 @@ func (e *Engine) Render() {
 
 	// Begin frame
 	e.renderer.BeginFrame(e.width, e.height)
+	ctx := e.Context()
 
 	// Render root container
 	if e.root != nil {
-		e.root.Render(e.renderer)
+		e.root.Layout(ctx, widgetRootRect(e.width, e.height))
+		e.root.Render(ctx)
 	}
 
 	// Call custom render handler
@@ -150,6 +160,30 @@ func (e *Engine) Renderer() *pipeline.Renderer {
 	return e.renderer
 }
 
+// Overlay returns the overlay manager.
+func (e *Engine) Overlay() *overlay.Manager {
+	if e == nil {
+		return nil
+	}
+	return e.overlay
+}
+
+// Context creates the current widget lifecycle context.
+func (e *Engine) Context() *widget.Context {
+	if e == nil {
+		return nil
+	}
+	scale := float32(1)
+	return &widget.Context{
+		Renderer: e.renderer,
+		Tokens:   token.Current(),
+		Font:     e.font,
+		Overlay:  e.overlay,
+		Viewport: widgetRootRect(e.width, e.height),
+		Scale:    scale,
+	}
+}
+
 // CursorTime returns the cursor animation time
 func (e *Engine) CursorTime() float64 {
 	if e == nil {
@@ -195,7 +229,7 @@ func (e *Engine) HandleMouseDown(x, y float32, button int) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseDown, X: x, Y: y, Button: button})
+	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button})
 }
 
 // HandleMouseUp handles mouse up event
@@ -203,7 +237,7 @@ func (e *Engine) HandleMouseUp(x, y float32, button int) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseUp, X: x, Y: y, Button: button})
+	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseUp, X: x, Y: y, LocalX: x, LocalY: y, Button: button})
 }
 
 // HandleMouseMove handles mouse move event
@@ -211,7 +245,7 @@ func (e *Engine) HandleMouseMove(x, y float32) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(widget.UIEvent{Type: widget.EventMouseMove, X: x, Y: y})
+	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseMove, X: x, Y: y, LocalX: x, LocalY: y})
 }
 
 // HandleKeyDown handles key down event
@@ -233,10 +267,7 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 
 	// Pass to focused widget
 	if focused := focusMgr.Current(); focused != nil {
-		event := widget.UIEvent{Type: widget.EventKeyDown, Key: key, Mods: mods}
-		if !focused.HandleEvent(event) {
-			focused.KeyDown(key, mods)
-		}
+		focused.HandleEvent(e.Context(), widget.Event{Type: widget.EventKeyDown, Key: key, Mods: mods})
 	}
 }
 
@@ -247,10 +278,7 @@ func (e *Engine) HandleCharInput(char rune) {
 	}
 	focusMgr := e.root.FocusManager()
 	if focused := focusMgr.Current(); focused != nil {
-		event := widget.UIEvent{Type: widget.EventCharInput, Char: char}
-		if !focused.HandleEvent(event) {
-			focused.CharInput(char)
-		}
+		focused.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char})
 	}
 }
 
@@ -294,4 +322,8 @@ func LoadDefaultFont(size float64) (*font.Font, error) {
 		return nil, fmt.Errorf("no font data available")
 	}
 	return font.NewFont(DefaultFontData, size)
+}
+
+func widgetRootRect(width, height float32) coremath.Rect {
+	return coremath.NewRect(0, 0, width, height)
 }
