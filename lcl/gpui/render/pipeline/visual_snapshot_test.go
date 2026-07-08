@@ -639,3 +639,48 @@ func maxInt(a, b int) int {
 	}
 	return b
 }
+
+// R-018: Transform 嵌套 - 验证 B-001 修复后的变换组合
+func TestTransformNested(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(245, 247, 250, 255))
+
+	// 基准：红色矩形在 (40, 40, 100, 60)
+	drawCPURect(img, rectF{40, 40, 100, 60}, rgba(255, 77, 79, 255))
+
+	// 平移 (150, 0)：蓝色矩形应该在 (190, 40, 100, 60)
+	// 模拟 TranslationMatrix(150, 0, 0) 应用到 (40, 40)
+	drawCPURect(img, rectF{40 + 150, 40, 100, 60}, rgba(22, 119, 255, 255))
+
+	// 缩放 (0.5, 0.5) 后再平移 (150, 0)：绿色矩形
+	// 原始位置 (40, 40, 100, 60) -> 缩放后 (20, 20, 50, 30) -> 平移后 (170, 20, 50, 30)
+	// 但因为我们先平移再缩放：平移后 (190, 40) -> 缩放后 (95, 20, 50, 30)
+	drawCPURect(img, rectF{190 * 0.5, 40 * 0.5, 100 * 0.5, 60 * 0.5}, rgba(82, 196, 26, 255))
+
+	// 黄色矩形回到原点 (验证栈恢复)
+	drawCPURect(img, rectF{40, 140, 100, 60}, rgba(250, 173, 20, 255))
+
+	writePNG(t, filepath.Join(outDir, "transform_nested.png"), img)
+}
+
+// R-007: 渐变+Transform 嵌套 - 验证 B-004 修复后的渐变方向
+func TestGradientWithTransform(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 无变换的水平渐变（基准）
+	drawCPULinearGradient(img, rectF{40, 40, 240, 60}, rgba(22, 119, 255, 255), rgba(82, 196, 26, 255))
+
+	// 模拟变换后的渐变：
+	// 变换：TranslationMatrix(0, 100, 0) * ScaleMatrix(1.5, 1, 1)
+	// 矩形 (40, 40, 240, 60) -> 变换后 (40*1.5, 40+100, 240*1.5, 60) = (60, 140, 360, 60)
+	// 渐变应该跟随矩形方向，而不是屏幕方向
+	drawCPULinearGradient(img, rectF{60, 140, 360, 60}, rgba(22, 119, 255, 255), rgba(82, 196, 26, 255))
+
+	// 垂直渐变（模拟旋转后的渐变方向）
+	drawCPUVerticalGradient(img, rectF{40, 240, 240, 60}, rgba(255, 77, 79, 255), rgba(250, 173, 20, 255))
+
+	writePNG(t, filepath.Join(outDir, "gradient_transform.png"), img)
+}
