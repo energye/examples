@@ -133,18 +133,18 @@ func (w *BaseWidget) SetFocusable(focusable bool) {
 		return
 	}
 	w.focusable = focusable
-	parent, ok := w.parent.(*Container)
-	if !ok || parent.focus == nil {
-		return
-	}
 	owner := w.self()
 	if owner == nil {
 		return
 	}
+	parent, ok := w.parent.(focusRegistrar)
+	if !ok {
+		return
+	}
 	if focusable {
-		parent.focus.Add(owner)
+		parent.addFocusable(owner)
 	} else {
-		parent.focus.Remove(owner)
+		parent.removeFocusable(owner)
 	}
 }
 

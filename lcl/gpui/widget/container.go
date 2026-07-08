@@ -2,6 +2,11 @@ package widget
 
 import "github.com/energye/examples/lcl/gpui/core/math"
 
+type focusRegistrar interface {
+	addFocusable(widget Widget)
+	removeFocusable(widget Widget)
+}
+
 // Container is a generic widget node that owns children.
 type Container struct {
 	BaseWidget
@@ -55,9 +60,7 @@ func (c *Container) Remove(child Widget) {
 		}
 		child.SetParent(nil)
 		c.children = append(c.children[:i], c.children[i+1:]...)
-		if c.focus != nil {
-			c.focus.Remove(child)
-		}
+		c.unregisterFocusable(child)
 		c.Invalidate()
 		return
 	}
@@ -254,11 +257,47 @@ func (c *Container) registerFocusable(widget Widget) {
 		return
 	}
 	if widget.Focusable() {
-		c.focus.Add(widget)
+		c.addFocusable(widget)
 	}
-	if nested, ok := widget.(*Container); ok {
+	switch nested := widget.(type) {
+	case *Container:
+		for _, child := range nested.children {
+			c.registerFocusable(child)
+		}
+	case *LayoutContainer:
 		for _, child := range nested.children {
 			c.registerFocusable(child)
 		}
 	}
+}
+
+func (c *Container) unregisterFocusable(widget Widget) {
+	if c == nil || widget == nil || c.focus == nil {
+		return
+	}
+	c.removeFocusable(widget)
+	switch nested := widget.(type) {
+	case *Container:
+		for _, child := range nested.children {
+			c.unregisterFocusable(child)
+		}
+	case *LayoutContainer:
+		for _, child := range nested.children {
+			c.unregisterFocusable(child)
+		}
+	}
+}
+
+func (c *Container) addFocusable(widget Widget) {
+	if c == nil || c.focus == nil || widget == nil {
+		return
+	}
+	c.focus.Add(widget)
+}
+
+func (c *Container) removeFocusable(widget Widget) {
+	if c == nil || c.focus == nil || widget == nil {
+		return
+	}
+	c.focus.Remove(widget)
 }
