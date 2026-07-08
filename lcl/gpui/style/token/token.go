@@ -218,11 +218,11 @@ func deriveGlobal(seed SeedToken, mode Mode) GlobalToken {
 		ColorInfo:          seed.ColorInfo,
 
 		// Generate 10-shade palettes for each semantic color
-		ColorPrimaryPalette: GeneratePalette(seed.ColorPrimary),
-		ColorSuccessPalette: GeneratePalette(seed.ColorSuccess),
-		ColorWarningPalette: GeneratePalette(seed.ColorWarning),
-		ColorErrorPalette:   GeneratePalette(seed.ColorError),
-		ColorInfoPalette:    GeneratePalette(seed.ColorInfo),
+		ColorPrimaryPalette: GeneratePaletteForMode(seed.ColorPrimary, mode),
+		ColorSuccessPalette: GeneratePaletteForMode(seed.ColorSuccess, mode),
+		ColorWarningPalette: GeneratePaletteForMode(seed.ColorWarning, mode),
+		ColorErrorPalette:   GeneratePaletteForMode(seed.ColorError, mode),
+		ColorInfoPalette:    GeneratePaletteForMode(seed.ColorInfo, mode),
 
 		ColorText:          text,
 		ColorTextSecondary: textSecondary,

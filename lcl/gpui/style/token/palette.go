@@ -6,35 +6,54 @@ import (
 )
 
 // Palette holds 10 shades of a color (index 1-10)
-// color-1 is lightest, color-10 is darkest
+// color-1 is lightest, color-10 is darkest in light mode
+// In dark mode, color-1 is darkest, color-10 is lightest
 type Palette [11]math.Color
 
 // GeneratePalette creates a 10-shade color palette from a seed color
 // following Ant Design's HSL-based algorithm
 func GeneratePalette(seed math.Color) Palette {
+	return GeneratePaletteForMode(seed, ModeLight)
+}
+
+// GeneratePaletteForMode creates a 10-shade color palette for the specified mode
+func GeneratePaletteForMode(seed math.Color, mode Mode) Palette {
 	hsl := seed.ToHSL()
 	var palette Palette
 
-	// Ant Design palette generation algorithm:
-	// color-1: very light (background tints)
-	// color-2 to color-4: light shades
-	// color-5: the seed color itself
-	// color-6 to color-9: progressively darker
-	// color-10: darkest
-
-	// Lightness steps for each index (Ant Design v5 approximate)
-	lightnessSteps := [11]float32{
+	// Light mode: color-1 lightest → color-10 darkest
+	lightLightness := [11]float32{
 		0,    // placeholder
 		0.97, // color-1: near white
 		0.93, // color-2
 		0.88, // color-3
 		0.80, // color-4
-		0.50, // color-5: base (will be adjusted)
+		0.50, // color-5: base
 		0.45, // color-6
 		0.40, // color-7
 		0.33, // color-8
 		0.26, // color-9
 		0.20, // color-10: darkest
+	}
+
+	// Dark mode: color-1 darkest → color-10 lightest
+	darkLightness := [11]float32{
+		0,    // placeholder
+		0.15, // color-1: darkest
+		0.20, // color-2
+		0.25, // color-3
+		0.30, // color-4
+		0.45, // color-5: base (adjusted for dark)
+		0.55, // color-6
+		0.65, // color-7
+		0.72, // color-8
+		0.80, // color-9
+		0.90, // color-10: lightest
+	}
+
+	lightnessSteps := lightLightness
+	if mode == ModeDark {
+		lightnessSteps = darkLightness
 	}
 
 	// Saturation adjustments (slightly desaturate very light/dark shades)

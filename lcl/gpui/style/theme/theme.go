@@ -1,4 +1,7 @@
 // Package theme provides the theme system
+//
+// Deprecated: Use style/token instead. This package provides a legacy theme system
+// that is not integrated with the token system. The canonical design system is style/token.
 package theme
 
 import (

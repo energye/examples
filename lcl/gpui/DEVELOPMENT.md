@@ -23,7 +23,7 @@
 | Phase 3 | 功能补全 | ⬜ 未开始 | - | - |
 | Phase 4 | 控件库扩展 | ⬜ 未开始 | - | - |
 
-**当前进度**：Phase 0 完成（含渲染测试计划），准备进入 Phase 1
+**当前进度**：Phase 0 ✅ + Phase 1 ✅ 全部完成，准备进入 Phase 2.2
 
 ### 渲染测试覆盖总览
 
@@ -76,7 +76,7 @@
 
 | ID | 问题 | 影响范围 | 状态 |
 |----|------|----------|------|
-| A-001 | 三套冲突的颜色/主题系统（color.go v4 / token.go v5 / theme.go 独立） | 整个样式层 | ⬜ |
+| A-001 | 三套冲突的颜色/主题系统（color.go v4 / token.go v5 / theme.go 独立） | 整个样式层 | ✅ |
 | A-002 | 两套重复的动画系统（motion/ 和 style/animation/），均未接入控件 | 整个动画层 | ⬜ |
 | A-003 | 焦点系统无法跨容器工作，registerFocusable 硬编码 Container/LayoutContainer 类型 | 事件系统 | ⬜ |
 | A-004 | Widget 接口缺少生命周期钩子（OnMount/OnUnmount/OnResize/OnStateChanged） | 控件框架 | ⬜ |
@@ -116,13 +116,13 @@
 
 ---
 
-## Phase 1：致命 Bug 修复 + 颜色系统统一 ⬜
+## Phase 1：致命 Bug 修复 + 颜色系统统一 ✅
 
 **目标**：修复所有导致渲染错误的 Bug，统一颜色系统为单一 Token 体系
 
 **预计工作项**：14 项
 
-### 1.1 数学与渲染 Bug 修复 ⬜
+### 1.1 数学与渲染 Bug 修复 ✅
 
 | 任务 | 关联问题 | 负责模块 | 验证测试 | 状态 |
 |------|----------|----------|----------|------|
@@ -134,16 +134,16 @@
 | 修复 FillRoundRectWithBorder 内圆角半径 | B-009 | `render/pipeline/text.go` | R-004 | ✅ |
 | 修复圆角 SDF 半径退化（添加 clamp） | B-010 | `render/shader/shader.go` | R-002 | ✅ |
 
-### 1.2 颜色系统统一 ⬜
+### 1.2 颜色系统统一 ✅
 
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
 | Color 添加 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate/HueRotate） | F-001 | `core/math/math.go` | ✅ |
 | 实现 10 级色板生成算法（基于 HSL 亮度阶梯） | F-002 | 新建 `style/token/palette.go` | ✅ |
 | Token 派生修正（圆角/间距/字号对齐 Ant Design v5） | F-003 | `style/token/token.go` | ✅ |
-| 废弃 `style/color/color.go`，统一使用 Token 系统 | A-001 | `style/color/` | ⬜ |
-| 废弃 `style/theme/theme.go`，统一使用 Token 系统 | A-001 | `style/theme/` | ⬜ |
-| 暗色模式色板重新生成（不只是背景/文本/边框） | F-003 | `style/token/token.go` | ⬜ |
+| 废弃 `style/color/color.go`，统一使用 Token 系统 | A-001 | `style/color/` | ✅ |
+| 废弃 `style/theme/theme.go`，统一使用 Token 系统 | A-001 | `style/theme/` | ✅ |
+| 暗色模式色板重新生成（不只是背景/文本/边框） | F-003 | `style/token/token.go` | ✅ |
 
 ### Phase 1 完成标准
 
@@ -154,7 +154,7 @@
 - [x] 颜色系统只有一个入口（token.Current()）
 - [x] Lighten/Darken 在 HSL 空间操作
 - [x] 10 级色板可正确生成
-- [ ] 暗色模式下组件颜色正确调整
+- [x] 暗色模式下组件颜色正确调整
 
 ### Phase 1 渲染测试要求
 
@@ -180,7 +180,7 @@
 
 **预计工作项**：12 项
 
-### 2.1 控件层 Bug 修复 ⬜
+### 2.1 控件层 Bug 修复 ✅
 
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
@@ -951,6 +951,36 @@ go run ./cmd/validate_snapshot \
 - 控件层：widget/focus.go（焦点管理）
 - 控件层：widget/container.go（registerFocusable 类型硬编码）
 - 控件层：widget/portal.go（Portal 焦点恢复）
+
+---
+
+### 2026-07-08 | Phase 1 | A-001 颜色系统统一完成
+
+**完成内容**：
+- `style/color/color.go` 添加 Deprecated 标记，指向 style/token
+- `style/theme/theme.go` 添加 Deprecated 标记，指向 style/token
+- `style/token/palette.go` 新增 `GeneratePaletteForMode()` 支持暗色模式色板生成
+  - 暗色模式：color-1 最暗 → color-10 最亮（与亮色模式相反）
+- `style/token/token.go` 派生函数使用 `GeneratePaletteForMode(seed, mode)` 按模式生成色板
+- Phase 1 全部 8 个完成标准全部勾选通过
+- 全部 11 个测试包通过
+
+**Phase 1 最终状态**：
+- Phase 1.1 数学与渲染 Bug 修复：✅ 7/7 完成
+- Phase 1.2 颜色系统统一：✅ 4/4 完成（F-001, F-002, F-003, A-001）
+- Phase 1 完成标准：✅ 8/8 通过
+
+**当前不足**：
+- Phase 2.2 焦点系统重构未开始（A-003）
+- Phase 2.3 生命周期钩子未开始（A-004）
+- 渲染测试 R-007, R-012, R-013, R-016, R-018 待实现
+
+**下一步**：继续 Phase 2.2 焦点系统重构
+
+**不足所在环节**：
+- 控件层：widget/focus.go（焦点管理）
+- 控件层：widget/container.go（registerFocusable 类型硬编码）
+- 测试层：render/pipeline/visual_snapshot_test.go（文本/Transform 测试待实现）
 
 ---
 

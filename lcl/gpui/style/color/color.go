@@ -1,4 +1,7 @@
 // Package color provides Ant Design style color system
+//
+// Deprecated: Use style/token instead. This package contains Ant Design v4 colors
+// and is kept only for backward compatibility. The canonical color system is style/token.
 package color
 
 import "github.com/energye/examples/lcl/gpui/core/math"
