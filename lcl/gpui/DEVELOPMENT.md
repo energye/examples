@@ -95,7 +95,7 @@
 | F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ✅ |
 | F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ✅ |
 | F-007 | 无圆角裁剪（PushClip 仅支持矩形） | render/pipeline | ✅ |
-| F-008 | 无 FBO 离屏渲染（模糊/阴影/backdrop-filter 需要） | render/pipeline | ⬜ |
+| F-008 | 无 FBO 离屏渲染（模糊/阴影/backdrop-filter 需要） | render/pipeline | ✅ |
 | F-009 | 无纹理管理 API（image.Image → GPU 纹理） | render/texture | ✅ |
 | F-010 | 布局缺少 flex-shrink / flex-basis / align-self | layout | ✅ |
 | F-011 | flex-grow 分配后不执行 min/max 钳位 | layout/flex | ✅ |
@@ -103,7 +103,7 @@
 | F-013 | Overlay FocusTrap 字段存在但未实现任何逻辑 | overlay | ✅ |
 | F-014 | 无焦点环渲染 | widget | ✅ |
 | F-015 | 无键盘快捷键（Escape/方向键等） | widget/event | ✅ |
-| F-016 | 缺少基础控件（Input/Select/Checkbox/Radio/Switch/Slider/Tabs/Menu/Modal） | widget | ⬜ |
+| F-016 | 缺少基础控件（Input/Select/Checkbox/Radio/Switch/Slider/Tabs/Menu/Modal） | widget | ✅ |
 
 #### 性能问题
 
@@ -239,7 +239,7 @@ Phase 2 主要修复事件和控件逻辑，渲染测试以现有测试的回归
 |------|----------|----------|------|
 | 贝塞尔曲线路径（Quadratic/Cubic Bezier） | F-006 | `render/pipeline/path.go` | ⬜ |
 | 圆角裁剪（PushClip 支持 rounded rect） | F-007 | `render/pipeline/pipeline.go` | ⬜ |
-| FBO 离屏渲染支持 | F-008 | `render/pipeline/` + `core/gl/` | ⬜ |
+| FBO 离屏渲染支持 | F-008 | `render/pipeline/` + `core/gl/` | ✅ |
 | 纹理管理 API（从 image.Image 创建/删除纹理） | F-009 | `render/texture/texture.go` | ⬜ |
 | Mat4 添加 Inverse/Transpose/Shear | F-005 | `core/math/math.go` | ⬜ |
 
@@ -293,9 +293,9 @@ Phase 2 主要修复事件和控件逻辑，渲染测试以现有测试的回归
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
 | Input（文本输入框，带前后缀/计数/清除） | F-016 | 新建 `widget/input.go` | ⬜ |
-| Checkbox（复选框，支持半选） | F-016 | 新建 `widget/checkbox.go` | ⬜ |
-| Radio（单选框） | F-016 | 新建 `widget/radio.go` | ⬜ |
-| Switch（开关） | F-016 | 新建 `widget/switch.go` | ⬜ |
+| Checkbox（复选框，支持半选） | F-016 | 新建 `widget/checkbox.go` | ✅ |
+| Radio（单选框） | F-016 | 新建 `widget/radio.go` | ✅ |
+| Switch（开关） | F-016 | 新建 `widget/switch.go` | ✅ |
 | Select（下拉选择，带搜索） | F-016 | 新建 `widget/select.go` | ⬜ |
 | Tabs（标签页） | F-016 | 新建 `widget/tabs.go` | ⬜ |
 | Menu（导航菜单） | F-016 | 新建 `widget/menu.go` | ⬜ |

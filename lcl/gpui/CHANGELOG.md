@@ -426,3 +426,48 @@ A-003 焦点跨容器协调：
 **不足所在环节**：
 - 渲染层：FBO 支持需 GL 函数扩展
 - 控件层：基础控件需逐个实现
+
+---
+
+### 2026-07-08 | F-008 + F-016 | FBO 离屏渲染 + 基础控件实现
+
+**完成内容**：
+
+F-008 FBO 离屏渲染：
+- `core/gl/gl.go` 新增 FBO 相关 GL 常量和函数绑定（GL 3.0+）
+  - GenFramebuffers, DeleteFramebuffers, BindFramebuffer
+  - FramebufferTexture2D, CheckFramebufferStatus
+  - GenRenderbuffers, RenderbufferStorage, FramebufferRenderbuffer
+- `render/pipeline/fbo.go` 新建 Framebuffer 管理器
+  - NewFramebuffer(config) - 创建 FBO（支持自定义颜色纹理和深度缓冲）
+  - Bind/Unbind - 绑定/解绑 FBO
+  - Delete - 释放资源
+  - FBOSupported() - 检测 FBO 支持
+
+F-016 基础控件实现：
+- `widget/checkbox.go` - Checkbox 控件
+  - 支持 checked/unchecked/indeterminate 三态
+  - Token 驱动样式（尺寸/圆角/间距）
+  - 绘制勾选/横线标记
+- `widget/radio.go` - Radio 控件
+  - 支持选中/未选中状态
+  - 圆形单选按钮样式
+- `widget/switch.go` - Switch 控件
+  - 支持开/关/加载状态
+  - 滑块轨道+圆形把手样式
+- `widget/tag.go` - Tag 控件
+  - 支持 7 种预设颜色（Default/Blue/Green/Red/Orange/Cyan/Purple）
+  - 支持关闭按钮
+  - 使用 10 级色板着色
+
+测试结果：11/11 包全部通过
+
+**当前剩余**：
+- P-002：阴影 shader 优化
+- P-004：VBO ring buffer
+
+**下一步**：继续 Phase 3 剩余任务或进入 Phase 4
+
+**不足所在环节**：
+- 渲染层：阴影 shader 未优化（多层圆角矩形叠加）
+- 渲染层：VBO 每次从 offset 0 重传

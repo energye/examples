@@ -68,6 +68,19 @@ const (
 	GL_STENCIL_BUFFER_BIT = 0x00000400
 
 	GL_TEXTURE0 = 0x84C0
+
+	// FBO constants
+	GL_FRAMEBUFFER            = 0x8D40
+	GL_READ_FRAMEBUFFER       = 0x8CA8
+	GL_DRAW_FRAMEBUFFER       = 0x8CA9
+	GL_COLOR_ATTACHMENT0      = 0x8CE0
+	GL_DEPTH_ATTACHMENT       = 0x8D00
+	GL_STENCIL_ATTACHMENT     = 0x8D20
+	GL_DEPTH_STENCIL_ATTACHMENT = 0x821A
+	GL_FRAMEBUFFER_COMPLETE   = 0x8CD5
+	GL_RENDERBUFFER           = 0x8D41
+	GL_DEPTH_COMPONENT24      = 0x81A6
+	GL_DEPTH24_STENCIL8       = 0x88F0
 )
 
 // GL function pointers
@@ -139,6 +152,18 @@ var (
 	TexSubImage2D  func(target uint32, level int32, xoffset int32, yoffset int32, width int32, height int32, format uint32, xtype uint32, pixels uintptr)
 	TexParameteri  func(target uint32, pname uint32, param int32)
 	ActiveTexture  func(texture uint32)
+
+	// FBO functions (GL 3.0+)
+	GenFramebuffers        func(n int32, framebuffers *uint32)
+	DeleteFramebuffers     func(n int32, framebuffers *uint32)
+	BindFramebuffer        func(target uint32, framebuffer uint32)
+	FramebufferTexture2D   func(target uint32, attachment uint32, textarget uint32, texture uint32, level int32)
+	CheckFramebufferStatus func(target uint32) uint32
+	GenRenderbuffers       func(n int32, renderbuffers *uint32)
+	DeleteRenderbuffers    func(n int32, renderbuffers *uint32)
+	BindRenderbuffer       func(target uint32, renderbuffer uint32)
+	RenderbufferStorage    func(target uint32, internalformat uint32, width int32, height int32)
+	FramebufferRenderbuffer func(target uint32, attachment uint32, renderbuffertarget uint32, renderbuffer uint32)
 )
 
 var initMu sync.Mutex
@@ -249,6 +274,20 @@ func Init() error {
 	bind(&TexParameteri, "glTexParameteri")
 	bind(&ActiveTexture, "glActiveTexture")
 
+	// FBO functions (GL 3.0+)
+	if fn := getGLFunc(lib, "glGenFramebuffers"); fn != 0 {
+		bind(&GenFramebuffers, "glGenFramebuffers")
+		bind(&DeleteFramebuffers, "glDeleteFramebuffers")
+		bind(&BindFramebuffer, "glBindFramebuffer")
+		bind(&FramebufferTexture2D, "glFramebufferTexture2D")
+		bind(&CheckFramebufferStatus, "glCheckFramebufferStatus")
+		bind(&GenRenderbuffers, "glGenRenderbuffers")
+		bind(&DeleteRenderbuffers, "glDeleteRenderbuffers")
+		bind(&BindRenderbuffer, "glBindRenderbuffer")
+		bind(&RenderbufferStorage, "glRenderbufferStorage")
+		bind(&FramebufferRenderbuffer, "glFramebufferRenderbuffer")
+	}
+
 	initOK = true
 	initialized = true
 	return nil
@@ -317,6 +356,17 @@ func resetGLFuncs() {
 	TexSubImage2D = nil
 	TexParameteri = nil
 	ActiveTexture = nil
+
+	GenFramebuffers = nil
+	DeleteFramebuffers = nil
+	BindFramebuffer = nil
+	FramebufferTexture2D = nil
+	CheckFramebufferStatus = nil
+	GenRenderbuffers = nil
+	DeleteRenderbuffers = nil
+	BindRenderbuffer = nil
+	RenderbufferStorage = nil
+	FramebufferRenderbuffer = nil
 }
 
 func openGLLibrary() (uintptr, error) {
