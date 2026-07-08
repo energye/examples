@@ -37,3 +37,23 @@ func TestEngineTabFocusUsesPortalFocusTrap(t *testing.T) {
 		t.Fatal("root focus manager should not receive tab while portal traps focus")
 	}
 }
+
+func TestEngineSynthesizesDoubleClick(t *testing.T) {
+	engine := NewEngine()
+	engine.SetSize(200, 200)
+
+	button := widget.NewButton("Open")
+	button.SetBounds(math.NewRect(0, 0, 80, 32))
+	clicks := 0
+	button.SetOnClick(func() {
+		clicks++
+	})
+	engine.AddWidget(button)
+	engine.Root().Layout(engine.Context(), math.NewRect(0, 0, 200, 200))
+
+	engine.HandleMouseDown(10, 10, 0)
+	engine.HandleMouseDown(10, 10, 0)
+	if clicks != 1 {
+		t.Fatalf("double click activations = %d, want 1", clicks)
+	}
+}

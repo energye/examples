@@ -169,3 +169,63 @@ func TestContainerCapturedMouseUpReturnsToPressedChild(t *testing.T) {
 		t.Fatalf("captured mouse up local = (%v,%v), want (150,80)", child.events[1].LocalX, child.events[1].LocalY)
 	}
 }
+
+func TestContainerMouseEnterLeave(t *testing.T) {
+	root := NewContainer()
+	root.Layout(nil, math.NewRect(0, 0, 200, 120))
+	first := newRecordingWidget(math.NewRect(0, 0, 40, 20))
+	second := newRecordingWidget(math.NewRect(60, 0, 40, 20))
+	root.Add(first)
+	root.Add(second)
+
+	root.HandleEvent(nil, Event{Type: EventMouseMove, X: 10, Y: 10})
+	root.HandleEvent(nil, Event{Type: EventMouseMove, X: 70, Y: 10})
+	root.HandleEvent(nil, Event{Type: EventMouseMove, X: 150, Y: 80})
+
+	assertEventTypes(t, first.events, []EventType{EventMouseEnter, EventMouseMove, EventMouseLeave})
+	assertEventTypes(t, second.events, []EventType{EventMouseEnter, EventMouseMove, EventMouseLeave})
+}
+
+func TestContainerMouseWheelRoutesToHitChild(t *testing.T) {
+	root := NewContainer()
+	root.Layout(nil, math.NewRect(0, 0, 200, 120))
+	child := newRecordingWidget(math.NewRect(10, 10, 40, 20))
+	root.Add(child)
+
+	root.HandleEvent(nil, Event{Type: EventMouseWheel, X: 20, Y: 20, DeltaY: 120})
+	if len(child.events) != 1 || child.events[0].Type != EventMouseWheel {
+		t.Fatalf("events = %#v, want one mouse wheel", child.events)
+	}
+	if child.events[0].DeltaY != 120 || child.events[0].LocalX != 10 || child.events[0].LocalY != 10 {
+		t.Fatalf("wheel event = %#v, want delta/local coordinates", child.events[0])
+	}
+}
+
+func TestContainerDragEvents(t *testing.T) {
+	root := NewContainer()
+	root.Layout(nil, math.NewRect(0, 0, 200, 120))
+	child := newRecordingWidget(math.NewRect(10, 10, 80, 40))
+	root.Add(child)
+
+	root.HandleEvent(nil, Event{Type: EventMouseDown, X: 20, Y: 20, Button: 1})
+	root.HandleEvent(nil, Event{Type: EventMouseMove, X: 40, Y: 35})
+	root.HandleEvent(nil, Event{Type: EventMouseUp, X: 45, Y: 40, Button: 1})
+
+	assertEventTypes(t, child.events, []EventType{EventMouseDown, EventMouseMove, EventDragStart, EventDragMove, EventMouseUp, EventDragEnd})
+	dragMove := child.events[3]
+	if dragMove.DeltaX != 20 || dragMove.DeltaY != 15 {
+		t.Fatalf("drag delta = (%v,%v), want (20,15)", dragMove.DeltaX, dragMove.DeltaY)
+	}
+}
+
+func assertEventTypes(t *testing.T, events []Event, want []EventType) {
+	t.Helper()
+	if len(events) != len(want) {
+		t.Fatalf("events = %d, want %d: %#v", len(events), len(want), events)
+	}
+	for i := range want {
+		if events[i].Type != want[i] {
+			t.Fatalf("event[%d] = %v, want %v; events=%#v", i, events[i].Type, want[i], events)
+		}
+	}
+}

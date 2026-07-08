@@ -40,9 +40,12 @@ type PortalHost struct {
 	manager           *overlay.Manager
 	portals           map[string]*Portal
 	focus             *FocusManager
+	hoverPortalID     string
 	pointerCaptureID  string
 	pointerCapture    Widget
 	pointerCaptureHit Widget
+	pointerStart      math.Vec2
+	pointerDragging   bool
 }
 
 // NewPortalHost creates a portal host backed by an overlay manager.
@@ -239,7 +242,7 @@ func (h *PortalHost) HandleEvent(ctx *Context, event Event) bool {
 		return false
 	}
 	switch event.Type {
-	case EventMouseDown, EventMouseUp, EventMouseMove:
+	case EventMouseDown, EventMouseUp, EventMouseMove, EventMouseWheel, EventDoubleClick:
 		return h.handlePointer(ctx, event)
 	case EventKeyDown, EventCharInput:
 		if h.focus == nil {
@@ -288,11 +291,17 @@ func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
 	}
 	layer, ok := h.manager.TopmostAt(event.X, event.Y)
 	if !ok {
+		if event.Type == EventMouseMove {
+			h.updateHover(ctx, "", event)
+		}
 		return h.consumeTopMask(event.X, event.Y)
 	}
 	portal := h.portals[layer.ID]
 	if portal == nil || portal.Content == nil {
 		return false
+	}
+	if event.Type == EventMouseMove {
+		h.updateHover(ctx, layer.ID, event)
 	}
 	local := math.NewVec2(event.X-layer.Bounds.X, event.Y-layer.Bounds.Y)
 	hit := portal.Content.HitTest(local)
@@ -312,6 +321,8 @@ func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
 		h.pointerCaptureID = layer.ID
 		h.pointerCapture = portal.Content
 		h.pointerCaptureHit = hit
+		h.pointerStart = math.NewVec2(event.X, event.Y)
+		h.pointerDragging = false
 	}
 	if event.Type == EventMouseUp {
 		hit.SetStateFlag(StateActive, false)
@@ -335,7 +346,17 @@ func (h *PortalHost) dispatchCapturedPointer(ctx *Context, event Event) bool {
 	portalEvent.LocalX = portalEvent.X
 	portalEvent.LocalY = portalEvent.Y
 	handled := portal.Content.HandleEvent(ctx, portalEvent)
+	if event.Type == EventMouseMove {
+		handled = h.dispatchCapturedDrag(ctx, portal, event) || handled
+	}
 	if event.Type == EventMouseUp {
+		if h.pointerDragging {
+			dragEnd := portalEvent
+			dragEnd.Type = EventDragEnd
+			dragEnd.DeltaX = event.X - h.pointerStart.X
+			dragEnd.DeltaY = event.Y - h.pointerStart.Y
+			handled = portal.Content.HandleEvent(ctx, dragEnd) || handled
+		}
 		if h.pointerCaptureHit != nil {
 			h.pointerCaptureHit.SetStateFlag(StateActive, false)
 		}
@@ -345,6 +366,33 @@ func (h *PortalHost) dispatchCapturedPointer(ctx *Context, event Event) bool {
 	return handled
 }
 
+func (h *PortalHost) dispatchCapturedDrag(ctx *Context, portal *Portal, event Event) bool {
+	if h == nil || portal == nil || portal.Content == nil {
+		return false
+	}
+	dx := event.X - h.pointerStart.X
+	dy := event.Y - h.pointerStart.Y
+	if !h.pointerDragging && dx*dx+dy*dy < 16 {
+		return false
+	}
+	bounds := portal.Layer.Bounds
+	dragEvent := event
+	dragEvent.X = event.X - bounds.X
+	dragEvent.Y = event.Y - bounds.Y
+	dragEvent.LocalX = dragEvent.X
+	dragEvent.LocalY = dragEvent.Y
+	dragEvent.DeltaX = dx
+	dragEvent.DeltaY = dy
+	if !h.pointerDragging {
+		h.pointerDragging = true
+		dragStart := dragEvent
+		dragStart.Type = EventDragStart
+		portal.Content.HandleEvent(ctx, dragStart)
+	}
+	dragEvent.Type = EventDragMove
+	return portal.Content.HandleEvent(ctx, dragEvent)
+}
+
 func (h *PortalHost) clearPointerCapture() {
 	if h == nil {
 		return
@@ -352,6 +400,35 @@ func (h *PortalHost) clearPointerCapture() {
 	h.pointerCaptureID = ""
 	h.pointerCapture = nil
 	h.pointerCaptureHit = nil
+	h.pointerDragging = false
+}
+
+func (h *PortalHost) updateHover(ctx *Context, id string, event Event) {
+	if h == nil || h.hoverPortalID == id {
+		return
+	}
+	if h.hoverPortalID != "" {
+		if portal := h.portals[h.hoverPortalID]; portal != nil && portal.Content != nil {
+			h.dispatchPortalHover(ctx, portal, event, EventMouseLeave)
+		}
+	}
+	h.hoverPortalID = id
+	if h.hoverPortalID != "" {
+		if portal := h.portals[h.hoverPortalID]; portal != nil && portal.Content != nil {
+			h.dispatchPortalHover(ctx, portal, event, EventMouseEnter)
+		}
+	}
+}
+
+func (h *PortalHost) dispatchPortalHover(ctx *Context, portal *Portal, event Event, eventType EventType) {
+	bounds := portal.Layer.Bounds
+	hoverEvent := event
+	hoverEvent.Type = eventType
+	hoverEvent.X = event.X - bounds.X
+	hoverEvent.Y = event.Y - bounds.Y
+	hoverEvent.LocalX = hoverEvent.X
+	hoverEvent.LocalY = hoverEvent.Y
+	portal.Content.HandleEvent(ctx, hoverEvent)
 }
 
 func (h *PortalHost) consumeTopMask(x, y float32) bool {

@@ -129,6 +129,18 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 	}
 
 	switch event.Type {
+	case EventMouseEnter:
+		if !c.options.Pointer {
+			return false
+		}
+		c.SetHover(true)
+		return false
+	case EventMouseLeave:
+		if !c.options.Pointer {
+			return false
+		}
+		c.SetHover(false)
+		return false
 	case EventMouseMove:
 		if !c.options.Pointer {
 			return false
@@ -158,6 +170,15 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 			c.activate(event)
 		}
 		return wasPressed
+	case EventDoubleClick:
+		if !c.options.Pointer {
+			return false
+		}
+		if c.eventInsideTarget(event) {
+			c.activate(event)
+			return true
+		}
+		return false
 	case EventKeyDown:
 		if !c.shouldHandleKey(event.Key) {
 			return false

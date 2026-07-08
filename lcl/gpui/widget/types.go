@@ -33,6 +33,13 @@ const (
 	EventMouseDown EventType = iota
 	EventMouseUp
 	EventMouseMove
+	EventMouseEnter
+	EventMouseLeave
+	EventMouseWheel
+	EventDoubleClick
+	EventDragStart
+	EventDragMove
+	EventDragEnd
 	EventKeyDown
 	EventCharInput
 )
@@ -47,6 +54,9 @@ type Event struct {
 	Key    int
 	Mods   int
 	Char   rune
+	DeltaX float32
+	DeltaY float32
+	Clicks int
 }
 
 // UIEvent is kept as a compatibility alias for engine callers.
@@ -114,4 +124,3 @@ func ClampSize(size math.Vec2, constraints Constraints) math.Vec2 {
 	}
 	return size
 }
-

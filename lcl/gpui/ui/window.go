@@ -71,6 +71,7 @@ func (w *Window) setupWindow(sender lcl.IObject) {
 	w.glControl.SetOnMouseDown(w.onMouseDown)
 	w.glControl.SetOnMouseUp(w.onMouseUp)
 	w.glControl.SetOnMouseMove(w.onMouseMove)
+	w.glControl.SetOnMouseWheel(w.onMouseWheel)
 	w.glControl.SetOnMouseEnter(func(lcl.IObject) { w.glControl.SetFocus() })
 
 	w.form.SetOnKeyDown(w.onKeyDown)
@@ -223,6 +224,17 @@ func (w *Window) onMouseMove(sender lcl.IObject, shift types.TShiftState, x, y i
 		return
 	}
 	w.engine.HandleMouseMove(float32(x), float32(y))
+}
+
+// onMouseWheel handles mouse wheel events
+func (w *Window) onMouseWheel(sender lcl.IObject, shift types.TShiftState, wheelDelta int32, mousePos types.TPoint, handled *bool) {
+	if w == nil || w.engine == nil {
+		return
+	}
+	w.engine.HandleMouseWheel(float32(mousePos.X), float32(mousePos.Y), 0, float32(wheelDelta))
+	if handled != nil {
+		*handled = true
+	}
 }
 
 // onKeyDown handles key down events

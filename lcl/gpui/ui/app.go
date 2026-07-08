@@ -144,6 +144,15 @@ func (a *Application) setupEvents() {
 		}
 	})
 
+	a.glControl.SetOnMouseWheel(func(sender lcl.IObject, shift types.TShiftState, wheelDelta int32, mousePos types.TPoint, handled *bool) {
+		if a.engine != nil {
+			a.engine.HandleMouseWheel(float32(mousePos.X), float32(mousePos.Y), 0, float32(wheelDelta))
+			if handled != nil {
+				*handled = true
+			}
+		}
+	})
+
 	a.glControl.SetOnMouseEnter(func(lcl.IObject) {
 		a.glControl.SetFocus()
 	})

@@ -13,8 +13,11 @@ type Container struct {
 	children          []Widget
 	focus             *FocusManager
 	clip              bool
+	hoverChild        Widget
 	pointerCapture    Widget
 	pointerCaptureHit Widget
+	pointerStart      math.Vec2
+	pointerDragging   bool
 }
 
 // NewContainer creates an empty container.
@@ -212,6 +215,10 @@ func (c *Container) HandleEvent(ctx *Context, event Event) bool {
 		return c.dispatchPointer(ctx, event, local, false)
 	case EventMouseMove:
 		return c.dispatchPointer(ctx, event, local, false)
+	case EventMouseWheel:
+		return c.dispatchWheel(ctx, event, local)
+	case EventDoubleClick:
+		return c.dispatchPointer(ctx, event, local, true)
 	case EventKeyDown, EventCharInput:
 		if c.focus == nil {
 			return false
@@ -237,6 +244,9 @@ func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, 
 		if hit == nil {
 			continue
 		}
+		if event.Type == EventMouseMove {
+			c.updateHover(ctx, child, event, point)
+		}
 		if focusOnHit && hit.Focusable() && c.focus != nil {
 			c.focus.SetFocus(hit)
 		}
@@ -250,11 +260,16 @@ func (c *Container) dispatchPointer(ctx *Context, event Event, point math.Vec2, 
 			hit.SetStateFlag(StateActive, true)
 			c.pointerCapture = child
 			c.pointerCaptureHit = hit
+			c.pointerStart = point
+			c.pointerDragging = false
 		}
 		if event.Type == EventMouseUp {
 			hit.SetStateFlag(StateActive, false)
 		}
 		return child.HandleEvent(ctx, childEvent)
+	}
+	if event.Type == EventMouseMove {
+		c.updateHover(ctx, nil, event, point)
 	}
 	return false
 }
@@ -271,15 +286,102 @@ func (c *Container) dispatchCapturedPointer(ctx *Context, event Event, point mat
 	childEvent.LocalX = point.X - childBounds.X
 	childEvent.LocalY = point.Y - childBounds.Y
 	handled := child.HandleEvent(ctx, childEvent)
+	if event.Type == EventMouseMove {
+		handled = c.dispatchCapturedDrag(ctx, child, event, point) || handled
+	}
 	if event.Type == EventMouseUp {
+		if c.pointerDragging {
+			dragEnd := childEvent
+			dragEnd.Type = EventDragEnd
+			dragEnd.DeltaX = point.X - c.pointerStart.X
+			dragEnd.DeltaY = point.Y - c.pointerStart.Y
+			handled = child.HandleEvent(ctx, dragEnd) || handled
+		}
 		if c.pointerCaptureHit != nil {
 			c.pointerCaptureHit.SetStateFlag(StateActive, false)
 		}
 		c.pointerCapture = nil
 		c.pointerCaptureHit = nil
+		c.pointerDragging = false
 		return true
 	}
 	return handled
+}
+
+func (c *Container) dispatchCapturedDrag(ctx *Context, child Widget, event Event, point math.Vec2) bool {
+	if child == nil {
+		return false
+	}
+	dx := point.X - c.pointerStart.X
+	dy := point.Y - c.pointerStart.Y
+	if !c.pointerDragging && dx*dx+dy*dy < 16 {
+		return false
+	}
+	childBounds := child.Bounds()
+	dragEvent := event
+	dragEvent.X = point.X
+	dragEvent.Y = point.Y
+	dragEvent.LocalX = point.X - childBounds.X
+	dragEvent.LocalY = point.Y - childBounds.Y
+	dragEvent.DeltaX = dx
+	dragEvent.DeltaY = dy
+	if !c.pointerDragging {
+		c.pointerDragging = true
+		dragStart := dragEvent
+		dragStart.Type = EventDragStart
+		child.HandleEvent(ctx, dragStart)
+	}
+	dragEvent.Type = EventDragMove
+	return child.HandleEvent(ctx, dragEvent)
+}
+
+func (c *Container) dispatchWheel(ctx *Context, event Event, point math.Vec2) bool {
+	for i := len(c.children) - 1; i >= 0; i-- {
+		child := c.children[i]
+		if child == nil || !child.Visible() || !child.Enabled() {
+			continue
+		}
+		if child.HitTest(point) == nil {
+			continue
+		}
+		childBounds := child.Bounds()
+		childEvent := event
+		childEvent.X = point.X
+		childEvent.Y = point.Y
+		childEvent.LocalX = point.X - childBounds.X
+		childEvent.LocalY = point.Y - childBounds.Y
+		return child.HandleEvent(ctx, childEvent)
+	}
+	return false
+}
+
+func (c *Container) updateHover(ctx *Context, child Widget, event Event, point math.Vec2) {
+	if c == nil || c.hoverChild == child {
+		return
+	}
+	if c.hoverChild != nil {
+		c.hoverChild.SetStateFlag(StateHover, false)
+		c.dispatchHoverEvent(ctx, c.hoverChild, event, point, EventMouseLeave)
+	}
+	c.hoverChild = child
+	if c.hoverChild != nil {
+		c.hoverChild.SetStateFlag(StateHover, true)
+		c.dispatchHoverEvent(ctx, c.hoverChild, event, point, EventMouseEnter)
+	}
+}
+
+func (c *Container) dispatchHoverEvent(ctx *Context, child Widget, event Event, point math.Vec2, eventType EventType) {
+	if child == nil {
+		return
+	}
+	childBounds := child.Bounds()
+	childEvent := event
+	childEvent.Type = eventType
+	childEvent.X = point.X
+	childEvent.Y = point.Y
+	childEvent.LocalX = point.X - childBounds.X
+	childEvent.LocalY = point.Y - childBounds.Y
+	child.HandleEvent(ctx, childEvent)
 }
 
 func (c *Container) registerFocusable(widget Widget) {

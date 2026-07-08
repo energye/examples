@@ -40,6 +40,12 @@ type Engine struct {
 	// Animation
 	lastTime   time.Time
 	cursorTime float64
+
+	// Pointer timing
+	lastClickTime   time.Time
+	lastClickX      float32
+	lastClickY      float32
+	lastClickButton int
 }
 
 // NewEngine creates a new UI engine
@@ -248,10 +254,17 @@ func (e *Engine) HandleMouseDown(x, y float32, button int) {
 		return
 	}
 	event := widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
-	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
-		return
+	e.dispatchPointerEvent(event)
+	if e.isDoubleClick(x, y, button) {
+		doubleEvent := event
+		doubleEvent.Type = widget.EventDoubleClick
+		doubleEvent.Clicks = 2
+		e.dispatchPointerEvent(doubleEvent)
 	}
-	e.root.HandleEvent(e.Context(), event)
+	e.lastClickTime = time.Now()
+	e.lastClickX = x
+	e.lastClickY = y
+	e.lastClickButton = button
 }
 
 // HandleMouseUp handles mouse up event
@@ -260,10 +273,7 @@ func (e *Engine) HandleMouseUp(x, y float32, button int) {
 		return
 	}
 	event := widget.Event{Type: widget.EventMouseUp, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
-	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
-		return
-	}
-	e.root.HandleEvent(e.Context(), event)
+	e.dispatchPointerEvent(event)
 }
 
 // HandleMouseMove handles mouse move event
@@ -272,10 +282,38 @@ func (e *Engine) HandleMouseMove(x, y float32) {
 		return
 	}
 	event := widget.Event{Type: widget.EventMouseMove, X: x, Y: y, LocalX: x, LocalY: y}
+	e.dispatchPointerEvent(event)
+}
+
+// HandleMouseWheel handles mouse wheel event.
+func (e *Engine) HandleMouseWheel(x, y, deltaX, deltaY float32) {
+	if e == nil || e.root == nil {
+		return
+	}
+	event := widget.Event{Type: widget.EventMouseWheel, X: x, Y: y, LocalX: x, LocalY: y, DeltaX: deltaX, DeltaY: deltaY}
+	e.dispatchPointerEvent(event)
+}
+
+func (e *Engine) dispatchPointerEvent(event widget.Event) {
+	if e == nil || e.root == nil {
+		return
+	}
 	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
 		return
 	}
 	e.root.HandleEvent(e.Context(), event)
+}
+
+func (e *Engine) isDoubleClick(x, y float32, button int) bool {
+	if e == nil || e.lastClickTime.IsZero() || e.lastClickButton != button {
+		return false
+	}
+	if time.Since(e.lastClickTime) > 500*time.Millisecond {
+		return false
+	}
+	dx := x - e.lastClickX
+	dy := y - e.lastClickY
+	return dx*dx+dy*dy <= 16
 }
 
 // HandleKeyDown handles key down event

@@ -258,6 +258,10 @@ func (c *LayoutContainer) HandleEvent(ctx *Context, event Event) bool {
 		return c.dispatchLayoutPointer(ctx, event, local, false)
 	case EventMouseMove:
 		return c.dispatchLayoutPointer(ctx, event, local, false)
+	case EventMouseWheel:
+		return c.dispatchWheel(ctx, event, local)
+	case EventDoubleClick:
+		return c.dispatchLayoutPointer(ctx, event, local, true)
 	case EventKeyDown, EventCharInput:
 		if c.focus == nil {
 			return false
@@ -299,10 +303,13 @@ func (c *LayoutContainer) dispatchLayoutPointer(ctx *Context, event Event, point
 			continue
 		}
 		hit := child.HitTest(point)
-		child.SetStateFlag(StateHover, hit != nil && event.Type == EventMouseMove)
 		if hit == nil {
 			continue
 		}
+		if event.Type == EventMouseMove {
+			c.updateHover(ctx, child, event, point)
+		}
+		child.SetStateFlag(StateHover, hit != nil && event.Type == EventMouseMove)
 		if focusOnHit && hit.Focusable() && c.focus != nil {
 			c.focus.SetFocus(hit)
 		}
@@ -316,11 +323,16 @@ func (c *LayoutContainer) dispatchLayoutPointer(ctx *Context, event Event, point
 			hit.SetStateFlag(StateActive, true)
 			c.pointerCapture = child
 			c.pointerCaptureHit = hit
+			c.pointerStart = point
+			c.pointerDragging = false
 		}
 		if event.Type == EventMouseUp {
 			hit.SetStateFlag(StateActive, false)
 		}
 		return child.HandleEvent(ctx, childEvent)
+	}
+	if event.Type == EventMouseMove {
+		c.updateHover(ctx, nil, event, point)
 	}
 	return false
 }
