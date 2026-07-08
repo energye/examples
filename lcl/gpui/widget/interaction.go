@@ -175,6 +175,8 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 			return false
 		}
 		if c.eventInsideTarget(event) {
+			c.pressed = false
+			c.target.SetStateFlag(StateActive, false)
 			c.activate(event)
 			return true
 		}

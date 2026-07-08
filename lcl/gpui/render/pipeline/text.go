@@ -118,7 +118,7 @@ func takeLine(text string, f *font.Font, maxWidth float32) (line, rest string) {
 			width += g.Advance
 		}
 		if width > maxWidth {
-			if lastSpace > 0 {
+			if lastSpace >= 0 {
 				return string(runes[:lastSpace]), strings.TrimLeft(string(runes[lastSpace+1:]), " \t")
 			}
 			if i == 0 {

@@ -253,13 +253,14 @@ func (e *Engine) HandleMouseDown(x, y float32, button int) {
 	if e == nil || e.root == nil {
 		return
 	}
-	event := widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
-	e.dispatchPointerEvent(event)
 	if e.isDoubleClick(x, y, button) {
-		doubleEvent := event
-		doubleEvent.Type = widget.EventDoubleClick
-		doubleEvent.Clicks = 2
-		e.dispatchPointerEvent(doubleEvent)
+		// Double-click: only dispatch DoubleClick, not MouseDown
+		event := widget.Event{Type: widget.EventDoubleClick, X: x, Y: y, LocalX: x, LocalY: y, Button: button, Clicks: 2}
+		e.dispatchPointerEvent(event)
+	} else {
+		// Single click: dispatch MouseDown
+		event := widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
+		e.dispatchPointerEvent(event)
 	}
 	e.lastClickTime = time.Now()
 	e.lastClickX = x

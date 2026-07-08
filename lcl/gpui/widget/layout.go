@@ -90,6 +90,18 @@ func (c *LayoutContainer) Remove(child Widget) {
 		delete(c.childStyles, child)
 		c.children = append(c.children[:i], c.children[i+1:]...)
 		c.unregisterFocusable(child)
+
+		// Clean up pointer capture state
+		if c.pointerCapture == child {
+			c.pointerCapture = nil
+			c.pointerCaptureHit = nil
+			c.pointerDragging = false
+		}
+		// Clean up hover state
+		if c.hoverChild == child {
+			c.hoverChild = nil
+		}
+
 		c.Invalidate()
 		return
 	}

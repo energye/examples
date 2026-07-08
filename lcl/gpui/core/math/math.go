@@ -176,6 +176,126 @@ func (c Color) Lerp(other Color, t float32) Color {
 	}
 }
 
+// HSL represents Hue (0-360), Saturation (0-1), Lightness (0-1)
+type HSL struct {
+	H, S, L float32
+}
+
+// ToHSL converts RGB color to HSL
+func (c Color) ToHSL() HSL {
+	r, g, b := c.R, c.G, c.B
+	max := max(max(r, g), b)
+	min := min(min(r, g), b)
+	l := (max + min) / 2
+
+	if max == min {
+		return HSL{H: 0, S: 0, L: l}
+	}
+
+	d := max - min
+	s := float32(0)
+	if l > 0.5 {
+		s = d / (2 - max - min)
+	} else {
+		s = d / (max + min)
+	}
+
+	var h float32
+	switch max {
+	case r:
+		h = (g - b) / d
+		if g < b {
+			h += 6
+		}
+	case g:
+		h = (b-r)/d + 2
+	case b:
+		h = (r-g)/d + 4
+	}
+	h /= 6
+
+	return HSL{H: h * 360, S: s, L: l}
+}
+
+// NewColorFromHSL creates a color from HSL values
+func NewColorFromHSL(h, s, l, a float32) Color {
+	if s == 0 {
+		return NewColor(l, l, l, a)
+	}
+
+	var q float32
+	if l < 0.5 {
+		q = l * (1 + s)
+	} else {
+		q = l + s - l*s
+	}
+	p := 2*l - q
+
+	hNorm := h / 360
+	r := hueToRGB(p, q, hNorm+1.0/3.0)
+	g := hueToRGB(p, q, hNorm)
+	b := hueToRGB(p, q, hNorm-1.0/3.0)
+
+	return NewColor(r, g, b, a)
+}
+
+func hueToRGB(p, q, t float32) float32 {
+	if t < 0 {
+		t += 1
+	}
+	if t > 1 {
+		t -= 1
+	}
+	if t < 1.0/6.0 {
+		return p + (q-p)*6*t
+	}
+	if t < 1.0/2.0 {
+		return q
+	}
+	if t < 2.0/3.0 {
+		return p + (q-p)*(2.0/3.0-t)*6
+	}
+	return p
+}
+
+// LightenHSL lightens the color by adjusting HSL lightness
+func (c Color) LightenHSL(amount float32) Color {
+	hsl := c.ToHSL()
+	hsl.L = min(hsl.L+amount, 1.0)
+	return NewColorFromHSL(hsl.H, hsl.S, hsl.L, c.A)
+}
+
+// DarkenHSL darkens the color by adjusting HSL lightness
+func (c Color) DarkenHSL(amount float32) Color {
+	hsl := c.ToHSL()
+	hsl.L = max(hsl.L-amount, 0.0)
+	return NewColorFromHSL(hsl.H, hsl.S, hsl.L, c.A)
+}
+
+// Saturate increases the saturation by the given amount (0-1)
+func (c Color) Saturate(amount float32) Color {
+	hsl := c.ToHSL()
+	hsl.S = min(hsl.S+amount, 1.0)
+	return NewColorFromHSL(hsl.H, hsl.S, hsl.L, c.A)
+}
+
+// Desaturate decreases the saturation by the given amount (0-1)
+func (c Color) Desaturate(amount float32) Color {
+	hsl := c.ToHSL()
+	hsl.S = max(hsl.S-amount, 0.0)
+	return NewColorFromHSL(hsl.H, hsl.S, hsl.L, c.A)
+}
+
+// HueRotate rotates the hue by the given degrees
+func (c Color) HueRotate(degrees float32) Color {
+	hsl := c.ToHSL()
+	hsl.H = float32(math.Mod(float64(hsl.H+degrees), 360))
+	if hsl.H < 0 {
+		hsl.H += 360
+	}
+	return NewColorFromHSL(hsl.H, hsl.S, hsl.L, c.A)
+}
+
 // Mat4 represents a 4x4 matrix
 type Mat4 [16]float32
 
@@ -231,13 +351,13 @@ func RotationMatrix(angle float32) Mat4 {
 	}
 }
 
-// Multiply multiplies two matrices
+// Multiply multiplies two matrices (column-major storage: element [row][col] = data[col*4+row])
 func (m Mat4) Multiply(other Mat4) Mat4 {
 	var result Mat4
-	for i := 0; i < 4; i++ {
-		for j := 0; j < 4; j++ {
+	for i := 0; i < 4; i++ {   // row of result
+		for j := 0; j < 4; j++ { // col of result
 			for k := 0; k < 4; k++ {
-				result[i*4+j] += m[i*4+k] * other[k*4+j]
+				result[j*4+i] += m[k*4+i] * other[j*4+k]
 			}
 		}
 	}

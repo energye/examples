@@ -88,10 +88,7 @@ func (b *Box) HandleEvent(ctx *Context, event Event) bool {
 			b.onClick()
 		}
 	})
-	if b.interaction.HandleEvent(ctx, event) {
-		return true
-	}
-	return event.Type == EventMouseDown || event.Type == EventMouseUp
+	return b.interaction.HandleEvent(ctx, event)
 }
 
 // Text is a basic text primitive.

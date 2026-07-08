@@ -330,8 +330,10 @@ uniform float uRadius;
 void main() {
     vec2 pos = vUV * uSize;
     vec2 center = uSize * 0.5;
-    vec2 q = abs(pos - center) - (center - vec2(uRadius));
-    float d = length(max(q, 0.0)) - uRadius;
+    float maxRadius = min(center.x, center.y);
+    float radius = min(uRadius, maxRadius);
+    vec2 q = abs(pos - center) - (center - vec2(radius));
+    float d = length(max(q, 0.0)) - radius;
 
     // Anti-aliased edge
     float pixelLength = length(vec2(dFdx(d), dFdy(d)));
@@ -369,8 +371,10 @@ uniform float uWidth;
 void main() {
     vec2 pos = vUV * uSize;
     vec2 center = uSize * 0.5;
-    vec2 q = abs(pos - center) - (center - vec2(uRadius));
-    float d = length(max(q, 0.0)) - uRadius;
+    float maxRadius = min(center.x, center.y);
+    float radius = min(uRadius, maxRadius);
+    vec2 q = abs(pos - center) - (center - vec2(radius));
+    float d = length(max(q, 0.0)) - radius;
 
     float pixelLength = length(vec2(dFdx(d), dFdy(d)));
     float aa = max(pixelLength * 1.5, 0.001);
@@ -414,11 +418,11 @@ uniform float uRadius;
 uniform float uUseRadius;
 
 void main() {
-    // Calculate projection of current position onto gradient line
+    // Use UV coordinates (0-1) for gradient calculation to avoid transform issues
     vec2 gradDir = uEnd - uStart;
     float gradLen = max(length(gradDir), 0.001);
     vec2 gradNorm = gradDir / gradLen;
-    float t = dot(vPos - uStart, gradNorm) / gradLen;
+    float t = dot(vUV - uStart, gradNorm) / gradLen;
     t = clamp(t, 0.0, 1.0);
 
     // Interpolate colors

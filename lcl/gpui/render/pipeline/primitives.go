@@ -8,22 +8,16 @@ import (
 	"github.com/energye/examples/lcl/gpui/render/font"
 )
 
-// DrawText draws text at the given position
+// DrawText draws text at the given position (y is the top of the line, baseline offset applied automatically)
 func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.Color) {
 	if r == nil || f == nil || text == "" {
 		return
 	}
 
 	shaderProg := r.shaderMgr.GetShader("texture")
-	r.shaderMgr.UseShader(shaderProg)
-
-	// Bind font texture
-	fontTex := f.Texture()
-	if fontTex > 0 {
-		// Already bound in batch manager
-	}
 
 	cx := x
+	ascent := f.Ascent()
 	for _, ch := range text {
 		g, ok := f.GetGlyph(ch)
 		if !ok {
@@ -31,34 +25,34 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 		}
 
 		if g.Width > 0 && g.Height > 0 {
-			gx := cx
-			gy := y
+			gx := cx + g.BearingX
+			gy := y + ascent - g.BearingY
 
 			src := math.NewRect(g.U0, g.V0, g.U1-g.U0, g.V1-g.V0)
 			dst := math.NewRect(gx, gy, g.Width, g.Height)
 
 			verts := QuadVertices(dst, src, color)
-			r.addQuad(shaderProg, fontTex, nil, verts)
+			r.addQuad(shaderProg, f.Texture(), nil, verts)
 		}
 
 		cx += g.Advance
 	}
 }
 
-// StrokeRect draws a rectangle outline
+// StrokeRect draws a rectangle outline (non-overlapping corners)
 func (r *Renderer) StrokeRect(rect math.Rect, width float32, color math.Color) {
 	if r == nil {
 		return
 	}
 	x, y, w, h := rect.X, rect.Y, rect.W, rect.H
 
-	// Top
-	r.FillRect(math.NewRect(x, y, w, width), color)
-	// Bottom
-	r.FillRect(math.NewRect(x, y+h-width, w, width), color)
-	// Left
+	// Top (shorter, excludes corners)
+	r.FillRect(math.NewRect(x+width, y, w-2*width, width), color)
+	// Bottom (shorter, excludes corners)
+	r.FillRect(math.NewRect(x+width, y+h-width, w-2*width, width), color)
+	// Left (full height)
 	r.FillRect(math.NewRect(x, y, width, h), color)
-	// Right
+	// Right (full height)
 	r.FillRect(math.NewRect(x+w-width, y, width, h), color)
 }
 
@@ -112,7 +106,7 @@ func (r *Renderer) FillRoundRectWithBorder(rect math.Rect, radius, borderWidth f
 		rect.W-2*borderWidth,
 		rect.H-2*borderWidth,
 	)
-	innerRadius := radius - borderWidth
+	innerRadius := radius - borderWidth/2
 	if innerRadius < 0 {
 		innerRadius = 0
 	}
@@ -240,11 +234,16 @@ func (r *Renderer) fillLinearGradient(rect math.Rect, radius float32, useRadius 
 	if useRadius {
 		useRadiusValue = 1
 	}
+
+	// Convert pixel coordinates to UV space (0-1 relative to rect)
+	uvStart := math.NewVec2((start.X-rect.X)/rect.W, (start.Y-rect.Y)/rect.H)
+	uvEnd := math.NewVec2((end.X-rect.X)/rect.W, (end.Y-rect.Y)/rect.H)
+
 	uniforms := UniformSet{
 		"uColorStart": Vec4Uniform(startColor.R, startColor.G, startColor.B, startColor.A),
 		"uColorEnd":   Vec4Uniform(endColor.R, endColor.G, endColor.B, endColor.A),
-		"uStart":      Vec2Uniform(start.X, start.Y),
-		"uEnd":        Vec2Uniform(end.X, end.Y),
+		"uStart":      Vec2Uniform(uvStart.X, uvStart.Y),
+		"uEnd":        Vec2Uniform(uvEnd.X, uvEnd.Y),
 		"uSize":       Vec2Uniform(rect.W, rect.H),
 		"uRadius":     FloatUniform(radius),
 		"uUseRadius":  FloatUniform(useRadiusValue),

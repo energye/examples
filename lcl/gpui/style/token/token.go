@@ -40,6 +40,14 @@ type GlobalToken struct {
 	ColorError         math.Color
 	ColorInfo          math.Color
 
+	// 10-shade palettes for each semantic color
+	// Index 1-10: color-1 (lightest) to color-10 (darkest)
+	ColorPrimaryPalette   Palette
+	ColorSuccessPalette   Palette
+	ColorWarningPalette   Palette
+	ColorErrorPalette     Palette
+	ColorInfoPalette      Palette
+
 	ColorText          math.Color
 	ColorTextSecondary math.Color
 	ColorTextDisabled  math.Color
@@ -202,12 +210,20 @@ func deriveGlobal(seed SeedToken, mode Mode) GlobalToken {
 
 	return GlobalToken{
 		ColorPrimary:       seed.ColorPrimary,
-		ColorPrimaryHover:  seed.ColorPrimary.Lighten(0.08),
-		ColorPrimaryActive: seed.ColorPrimary.Darken(0.10),
+		ColorPrimaryHover:  seed.ColorPrimary.LightenHSL(0.08),
+		ColorPrimaryActive: seed.ColorPrimary.DarkenHSL(0.10),
 		ColorSuccess:       seed.ColorSuccess,
 		ColorWarning:       seed.ColorWarning,
 		ColorError:         seed.ColorError,
 		ColorInfo:          seed.ColorInfo,
+
+		// Generate 10-shade palettes for each semantic color
+		ColorPrimaryPalette: GeneratePalette(seed.ColorPrimary),
+		ColorSuccessPalette: GeneratePalette(seed.ColorSuccess),
+		ColorWarningPalette: GeneratePalette(seed.ColorWarning),
+		ColorErrorPalette:   GeneratePalette(seed.ColorError),
+		ColorInfoPalette:    GeneratePalette(seed.ColorInfo),
+
 		ColorText:          text,
 		ColorTextSecondary: textSecondary,
 		ColorTextDisabled:  textDisabled,
@@ -217,16 +233,16 @@ func deriveGlobal(seed SeedToken, mode Mode) GlobalToken {
 		ColorBgElevated:    bgElevated,
 		ColorBgMask:        math.NewColor(0, 0, 0, 0.45),
 		ColorBorder:        border,
-		ColorBorderHover:   seed.ColorPrimary.Lighten(0.10),
+		ColorBorderHover:   seed.ColorPrimary.LightenHSL(0.10),
 		FontFamily:         seed.FontFamily,
 		FontSize:           seed.FontSize,
 		FontSizeSM:         seed.FontSize - 2,
 		FontSizeLG:         seed.FontSize + 2,
 		LineHeight:         seed.LineHeight,
-		RadiusSM:           seed.BorderRadius * 0.5,
+		RadiusSM:           seed.BorderRadius - 2,
 		RadiusMD:           seed.BorderRadius,
 		RadiusLG:           seed.BorderRadius + 2,
-		RadiusXL:           seed.BorderRadius + 4,
+		RadiusXL:           seed.BorderRadius + 2, // Ant Design v5: borderRadiusOuter
 		SpaceXXS:           seed.SizeUnit,
 		SpaceXS:            seed.SizeUnit * 2,
 		SpaceSM:            seed.SizeUnit * 3,

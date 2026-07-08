@@ -258,6 +258,8 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 		Advance: fixed26_6ToFloat32(adv),
 		Width:   float32(glyphW),
 		Height:  float32(glyphH),
+		BearingX: float32(dr.Min.X),
+		BearingY: float32(-dr.Min.Y),
 	}, image.Rect(destX, destY, destX+glyphW, destY+glyphH), true
 }
 

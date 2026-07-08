@@ -50,6 +50,339 @@ func TestWriteCoreDrawingSnapshots(t *testing.T) {
 	writePNG(t, filepath.Join(outDir, "svg_path.png"), paths)
 }
 
+// R-008: FillRect - 纯色矩形和半透明重叠
+func TestFillRect(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 5 个不透明纯色矩形
+	drawCPURect(img, rectF{40, 40, 100, 60}, rgba(255, 77, 79, 255))   // 红
+	drawCPURect(img, rectF{160, 40, 100, 60}, rgba(82, 196, 26, 255))   // 绿
+	drawCPURect(img, rectF{280, 40, 100, 60}, rgba(22, 119, 255, 255))  // 蓝
+	drawCPURect(img, rectF{400, 40, 100, 60}, rgba(250, 173, 20, 255))  // 黄
+	drawCPURect(img, rectF{520, 40, 100, 60}, rgba(128, 128, 128, 255)) // 灰
+
+	// 2 个半透明矩形重叠
+	drawCPURect(img, rectF{40, 140, 160, 100}, rgba(255, 77, 79, 128))  // 半透明红
+	drawCPURect(img, rectF{120, 180, 160, 100}, rgba(22, 119, 255, 128)) // 半透明蓝
+
+	writePNG(t, filepath.Join(outDir, "fill_rect.png"), img)
+}
+
+// R-009: DrawLine - 多角度线段
+func TestDrawLine(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	cx, cy := float32(320), float32(210)
+	radius := float32(150)
+	lineColor := rgba(22, 119, 255, 255)
+
+	// 8 条辐射线段
+	for i := 0; i < 8; i++ {
+		angle := float64(i) * stdmath.Pi / 4
+		x2 := cx + radius*float32(stdmath.Cos(angle))
+		y2 := cy + radius*float32(stdmath.Sin(angle))
+		drawCPULine(img, cx, cy, x2, y2, 2, lineColor)
+	}
+
+	writePNG(t, filepath.Join(outDir, "draw_line.png"), img)
+}
+
+// R-010: FillCircle - 不同大小圆形
+func TestFillCircle(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 小圆 (radius=16)
+	drawCPUCircle(img, 80, 100, 16, rgba(22, 119, 255, 255))
+	// 中圆 (radius=32)
+	drawCPUCircle(img, 200, 100, 32, rgba(82, 196, 26, 255))
+	// 大圆 (radius=64)
+	drawCPUCircle(img, 380, 120, 64, rgba(250, 173, 20, 255))
+	// 描边圆 (radius=32, stroke=2)
+	drawCPUStrokeCircle(img, 530, 120, 32, 2, rgba(255, 77, 79, 255))
+
+	writePNG(t, filepath.Join(outDir, "fill_circle.png"), img)
+}
+
+// R-011: DrawArc - 多角度圆弧
+func TestDrawArc(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 90° 扇形 (0°→90°)
+	drawCPUPieSlice(img, 120, 120, 80, 0, 90, rgba(22, 119, 255, 255))
+	// 180° 半圆 (0°→180°)
+	drawCPUPieSlice(img, 320, 120, 80, 0, 180, rgba(82, 196, 26, 255))
+	// 270° 弧描边 (45°→315°)
+	drawCPUArcStroke(img, 520, 120, 80, 3, 45, 315, rgba(255, 77, 79, 255))
+	// 小角度弧描边 (0°→60°)
+	drawCPUArcStroke(img, 120, 320, 80, 3, 0, 60, rgba(250, 173, 20, 255))
+
+	writePNG(t, filepath.Join(outDir, "draw_arc.png"), img)
+}
+
+// R-002: RoundRect 填充 - 不同圆角半径
+func TestRoundRectFill(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(245, 247, 250, 255))
+
+	// 小圆角 (radius=4, 32×32)
+	drawCPURoundRect(img, rectF{40, 40, 32, 32}, 4, rgba(22, 119, 255, 255))
+	// 中圆角 (radius=8, 120×48)
+	drawCPURoundRect(img, rectF{100, 40, 120, 48}, 8, rgba(82, 196, 26, 255))
+	// 大圆角 (radius=16, 200×80)
+	drawCPURoundRect(img, rectF{250, 40, 200, 80}, 16, rgba(250, 173, 20, 255))
+	// 胶囊形 (radius=9999, 160×48)
+	drawCPURoundRect(img, rectF{40, 150, 160, 48}, 9999, rgba(255, 77, 79, 255))
+	// 圆形 (radius=60, 120×120)
+	drawCPURoundRect(img, rectF{230, 140, 120, 120}, 60, rgba(19, 194, 194, 255))
+
+	writePNG(t, filepath.Join(outDir, "round_rect_fill.png"), img)
+}
+
+// R-004: RoundRect 填充+描边 - 模拟按钮
+func TestRoundRectWithBorder(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(245, 247, 250, 255))
+
+	// Primary 按钮: 蓝色填充 + 深蓝描边
+	drawCPURoundRect(img, rectF{40, 40, 128, 36}, 6, rgba(22, 119, 255, 255))
+	drawCPURoundStroke(img, rectF{40, 40, 128, 36}, 6, 1, rgba(9, 109, 217, 255))
+
+	// Default 按钮: 白色填充 + 灰色描边
+	drawCPURoundRect(img, rectF{200, 40, 128, 36}, 6, rgba(255, 255, 255, 255))
+	drawCPURoundStroke(img, rectF{200, 40, 128, 36}, 6, 1, rgba(217, 217, 217, 255))
+
+	// Danger 按钮: 红色填充 + 深红描边
+	drawCPURoundRect(img, rectF{360, 40, 128, 36}, 6, rgba(255, 77, 79, 255))
+	drawCPURoundStroke(img, rectF{360, 40, 128, 36}, 6, 1, rgba(207, 63, 65, 255))
+
+	writePNG(t, filepath.Join(outDir, "round_rect_with_border.png"), img)
+}
+
+// R-005: Shadow - 不同模糊半径阴影
+func TestShadow(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 小阴影 (blur=2)
+	drawCPUShadow(img, rectF{40, 60, 160, 60}, 2, rgba(0, 0, 0, 15))
+	drawCPURoundRect(img, rectF{40, 60, 160, 60}, 4, rgba(255, 255, 255, 255))
+
+	// 中阴影 (blur=16)
+	drawCPUShadow(img, rectF{240, 60, 160, 60}, 16, rgba(0, 0, 0, 20))
+	drawCPURoundRect(img, rectF{240, 60, 160, 60}, 4, rgba(255, 255, 255, 255))
+
+	// 大阴影 (blur=24)
+	drawCPUShadow(img, rectF{440, 60, 160, 60}, 24, rgba(0, 0, 0, 30))
+	drawCPURoundRect(img, rectF{440, 60, 160, 60}, 4, rgba(255, 255, 255, 255))
+
+	writePNG(t, filepath.Join(outDir, "shadow.png"), img)
+}
+
+// R-006: LinearGradient - 多方向渐变
+func TestLinearGradient(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 水平渐变 (左→右，蓝→绿)
+	drawCPULinearGradient(img, rectF{40, 40, 240, 60}, rgba(22, 119, 255, 255), rgba(82, 196, 26, 255))
+
+	// 垂直渐变 (上→下，红→黄) - 用 CPU 模拟
+	drawCPUVerticalGradient(img, rectF{40, 140, 240, 60}, rgba(255, 77, 79, 255), rgba(250, 173, 20, 255))
+
+	// 圆角渐变矩形 (左→右，蓝→绿，radius=8)
+	drawCPURoundLinearGradient(img, rectF{320, 40, 280, 60}, 8, rgba(22, 119, 255, 255), rgba(82, 196, 26, 255))
+
+	writePNG(t, filepath.Join(outDir, "linear_gradient.png"), img)
+}
+
+// R-022: Checkmark 图标
+func TestDrawCheckmark(t *testing.T) {
+	outDir := snapshotOutputDir(t)
+	img := image.NewRGBA(image.Rect(0, 0, 640, 420))
+	fillImage(img, rgba(255, 255, 255, 255))
+
+	// 模拟 Checkbox 选中状态: 蓝色圆角矩形 + 白色勾
+	drawCPURoundRect(img, rectF{40, 40, 24, 24}, 4, rgba(22, 119, 255, 255))
+	// 勾的两段线
+	drawCPULine(img, 46, 53, 51, 58, 2, rgba(255, 255, 255, 255))
+	drawCPULine(img, 51, 58, 60, 47, 2, rgba(255, 255, 255, 255))
+
+	// 更大的勾
+	drawCPURoundRect(img, rectF{100, 40, 32, 32}, 4, rgba(22, 119, 255, 255))
+	drawCPULine(img, 108, 57, 114, 63, 2.5, rgba(255, 255, 255, 255))
+	drawCPULine(img, 114, 63, 126, 49, 2.5, rgba(255, 255, 255, 255))
+
+	writePNG(t, filepath.Join(outDir, "checkmark.png"), img)
+}
+
+// Helper: drawCPURect draws a filled rectangle
+func drawCPURect(img *image.RGBA, r rectF, c color.RGBA) {
+	minX := maxInt(0, int(r.x))
+	minY := maxInt(0, int(r.y))
+	maxX := minInt(img.Bounds().Dx(), int(r.x+r.w))
+	maxY := minInt(img.Bounds().Dy(), int(r.y+r.h))
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			blendPixel(img, x, y, c)
+		}
+	}
+}
+
+// Helper: drawCPUCircle draws a filled circle using SDF
+func drawCPUCircle(img *image.RGBA, cx, cy, radius float32, c color.RGBA) {
+	drawCPURoundRect(img, rectF{cx - radius, cy - radius, radius * 2, radius * 2}, radius, c)
+}
+
+// Helper: drawCPUStrokeCircle draws a circle outline using SDF
+func drawCPUStrokeCircle(img *image.RGBA, cx, cy, radius, width float32, c color.RGBA) {
+	drawCPURoundStroke(img, rectF{cx - radius, cy - radius, radius * 2, radius * 2}, radius, width, c)
+}
+
+// Helper: drawCPULine draws a line using Bresenham-style approach with thickness
+func drawCPULine(img *image.RGBA, x1, y1, x2, y2, width float32, c color.RGBA) {
+	dx := x2 - x1
+	dy := y2 - y1
+	length := float32(stdmath.Sqrt(float64(dx*dx + dy*dy)))
+	if length < 0.001 {
+		return
+	}
+	nx := dx / length
+	ny := dy / length
+	px := -ny * width * 0.5
+	py := nx * width * 0.5
+
+	// Rasterize the line quad
+	minX := maxInt(0, int(stdmath.Floor(float64(min32(x1, min32(x2, min32(x1+px, x2+px)))))))
+	minY := maxInt(0, int(stdmath.Floor(float64(min32(y1, min32(y2, min32(y1+py, y2+py)))))))
+	maxX := minInt(img.Bounds().Dx(), int(stdmath.Ceil(float64(max32(x1, max32(x2, max32(x1+px, x2+px)))))))
+	maxY := minInt(img.Bounds().Dy(), int(stdmath.Ceil(float64(max32(y1, max32(y2, max32(y1+py, y2+py)))))))
+
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			// Check if point is within the line segment
+			pxf := float32(x) + 0.5
+			pyf := float32(y) + 0.5
+			// Project onto line
+			t := (pxf-x1)*nx + (pyf-y1)*ny
+			if t < 0 || t > length {
+				continue
+			}
+			// Distance from line
+			dist := abs32((pxf-x1)*(-ny) + (pyf-y1)*nx)
+			if dist <= width*0.5+0.5 {
+				alpha := clamp01(width*0.5 + 0.5 - dist)
+				src := c
+				src.A = uint8(float32(c.A) * alpha)
+				blendPixel(img, x, y, src)
+			}
+		}
+	}
+}
+
+// Helper: drawCPUVerticalGradient draws a vertical gradient
+func drawCPUVerticalGradient(img *image.RGBA, r rectF, start, end color.RGBA) {
+	minY := maxInt(0, int(r.y))
+	maxY := minInt(img.Bounds().Dy(), int(r.y+r.h))
+	for y := minY; y < maxY; y++ {
+		t := float32(y-minY) / max32(float32(maxY-minY), 1)
+		c := color.RGBA{
+			R: uint8(float32(start.R) + (float32(end.R)-float32(start.R))*t),
+			G: uint8(float32(start.G) + (float32(end.G)-float32(start.G))*t),
+			B: uint8(float32(start.B) + (float32(end.B)-float32(start.B))*t),
+			A: uint8(float32(start.A) + (float32(end.A)-float32(start.A))*t),
+		}
+		minX := maxInt(0, int(r.x))
+		maxX := minInt(img.Bounds().Dx(), int(r.x+r.w))
+		for x := minX; x < maxX; x++ {
+			blendPixel(img, x, y, c)
+		}
+	}
+}
+
+// Helper: drawCPUPieSlice draws a filled pie slice (arc sector)
+func drawCPUPieSlice(img *image.RGBA, cx, cy, radius float32, startDeg, endDeg float32, c color.RGBA) {
+	startRad := float64(startDeg) * stdmath.Pi / 180
+	endRad := float64(endDeg) * stdmath.Pi / 180
+	r := rectF{cx - radius, cy - radius, radius * 2, radius * 2}
+	minX := maxInt(0, int(r.x))
+	minY := maxInt(0, int(r.y))
+	maxX := minInt(img.Bounds().Dx(), int(r.x+r.w))
+	maxY := minInt(img.Bounds().Dy(), int(r.y+r.h))
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			dx := float32(x)+0.5 - cx
+			dy := float32(y)+0.5 - cy
+			dist := float32(stdmath.Sqrt(float64(dx*dx + dy*dy)))
+			if dist > radius+0.5 {
+				continue
+			}
+			angle := stdmath.Atan2(float64(dy), float64(dx))
+			if angle < 0 {
+				angle += 2 * stdmath.Pi
+			}
+			if startRad < endRad {
+				if angle < startRad || angle > endRad {
+					continue
+				}
+			}
+			alpha := clamp01(radius + 0.5 - dist)
+			src := c
+			src.A = uint8(float32(c.A) * alpha)
+			blendPixel(img, x, y, src)
+		}
+	}
+}
+
+// Helper: drawCPUArcStroke draws an arc outline
+func drawCPUArcStroke(img *image.RGBA, cx, cy, radius, width float32, startDeg, endDeg float32, c color.RGBA) {
+	startRad := float64(startDeg) * stdmath.Pi / 180
+	endRad := float64(endDeg) * stdmath.Pi / 180
+	r := rectF{cx - radius - width, cy - radius - width, (radius+width)*2, (radius+width)*2}
+	minX := maxInt(0, int(r.x))
+	minY := maxInt(0, int(r.y))
+	maxX := minInt(img.Bounds().Dx(), int(r.x+r.w))
+	maxY := minInt(img.Bounds().Dy(), int(r.y+r.h))
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			dx := float32(x)+0.5 - cx
+			dy := float32(y)+0.5 - cy
+			dist := float32(stdmath.Sqrt(float64(dx*dx + dy*dy)))
+			outer := clamp01(radius + width*0.5 + 0.5 - dist)
+			inner := clamp01(dist - (radius - width*0.5) + 0.5)
+			ring := outer * inner
+			if ring <= 0 {
+				continue
+			}
+			angle := stdmath.Atan2(float64(dy), float64(dx))
+			if angle < 0 {
+				angle += 2 * stdmath.Pi
+			}
+			inArc := false
+			if startRad < endRad {
+				inArc = angle >= startRad && angle <= endRad
+			}
+			if !inArc {
+				continue
+			}
+			src := c
+			src.A = uint8(float32(c.A) * ring)
+			blendPixel(img, x, y, src)
+		}
+	}
+}
+
 func snapshotOutputDir(t *testing.T) string {
 	t.Helper()
 	outDir := os.Getenv("GPUI_TEST_OUTPUT")

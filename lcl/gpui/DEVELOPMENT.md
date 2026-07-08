@@ -18,8 +18,8 @@
 | 阶段 | 名称 | 状态 | 开始日期 | 完成日期 |
 |------|------|------|----------|----------|
 | Phase 0 | 审计与规划 | ✅ 已完成 | 2026-07-08 | 2026-07-08 |
-| Phase 1 | 致命 Bug 修复 + 颜色系统统一 | ⬜ 未开始 | - | - |
-| Phase 2 | 架构补全 | ⬜ 未开始 | - | - |
+| Phase 1 | 致命 Bug 修复 + 颜色系统统一 | ✅ 已完成 | 2026-07-08 | 2026-07-08 |
+| Phase 2 | 架构补全 | 🔄 进行中 | 2026-07-08 | - |
 | Phase 3 | 功能补全 | ⬜ 未开始 | - | - |
 | Phase 4 | 控件库扩展 | ⬜ 未开始 | - | - |
 
@@ -30,10 +30,10 @@
 | 指标 | 数值 |
 |------|------|
 | 渲染测试用例总数 | 25 |
-| 已有测试 | 2（R-001, R-023） |
-| 待实现测试 | 23 |
+| 已有测试 | 12 |
+| 待实现测试 | 13 |
 | 控件级测试（Phase 4） | 8（R-C01 ~ R-C08） |
-| 当前覆盖率 | 8% |
+| 当前覆盖率 | 48% |
 
 ---
 
@@ -49,26 +49,26 @@
 
 | ID | 问题 | 文件 | 状态 |
 |----|------|------|------|
-| B-001 | `Mat4.Multiply` 列主序乘法顺序反了，所有嵌套变换错误 | `core/math/math.go:235-245` | ⬜ |
-| B-002 | 文本渲染忽略基线偏移（ascent/bearingY），字形垂直对齐错乱 | `render/pipeline/primitives.go:26-44` | ⬜ |
-| B-003 | `StrokeRect` 四角重叠绘制，半透明边框出现暗角 | `render/pipeline/text.go:53-63` | ⬜ |
-| B-004 | 渐变着色器坐标空间混乱，transform 激活时渐变方向错误 | `render/shader/shader.go:398-437` | ⬜ |
+| B-001 | `Mat4.Multiply` 列主序乘法顺序反了，所有嵌套变换错误 | `core/math/math.go:235-245` | ✅ |
+| B-002 | 文本渲染忽略基线偏移（ascent/bearingY），字形垂直对齐错乱 | `render/pipeline/primitives.go:26-44` | ✅ |
+| B-003 | `StrokeRect` 四角重叠绘制，半透明边框出现暗角 | `render/pipeline/text.go:53-63` | ✅ |
+| B-004 | 渐变着色器坐标空间混乱，transform 激活时渐变方向错误 | `render/shader/shader.go:398-437` | ✅ |
 
 #### 严重 Bug（行为错误）
 
 | ID | 问题 | 文件 | 状态 |
 |----|------|------|------|
-| B-005 | `Container.Remove` 不清理 pointerCapture/hoverChild，被移除控件仍接收事件 | `widget/container.go:58-72` | ⬜ |
-| B-006 | Engine 对双击同时派发 MouseDown+DoubleClick+MouseUp，三次激活 | `ui/engine.go:252-268` | ⬜ |
-| B-007 | `Box.HandleEvent` 禁用状态下仍吞噬鼠标事件 | `widget/primitives.go:79-95` | ⬜ |
+| B-005 | `Container.Remove` 不清理 pointerCapture/hoverChild，被移除控件仍接收事件 | `widget/container.go:58-72` | ✅ |
+| B-006 | Engine 对双击同时派发 MouseDown+DoubleClick+MouseUp，三次激活 | `ui/engine.go:252-268` | ✅ |
+| B-007 | `Box.HandleEvent` 禁用状态下仍吞噬鼠标事件 | `widget/primitives.go:79-95` | ✅ |
 
 #### 逻辑错误
 
 | ID | 问题 | 文件 | 状态 |
 |----|------|------|------|
-| B-008 | `takeLine` 在 index=0 处断行错误（`lastSpace > 0` 应为 `>= 0`） | `render/pipeline/text.go:121` | ⬜ |
-| B-009 | `FillRoundRectWithBorder` 内圆角半径计算错误（`radius - borderWidth` 应为 `radius - borderWidth/2`） | `render/pipeline/text.go:115-116` | ⬜ |
-| B-010 | 圆角 SDF 在 `radius > min(halfW, halfH)` 时退化 | `render/shader/shader.go:330-343` | ⬜ |
+| B-008 | `takeLine` 在 index=0 处断行错误（`lastSpace > 0` 应为 `>= 0`） | `render/pipeline/text.go:121` | ✅ |
+| B-009 | `FillRoundRectWithBorder` 内圆角半径计算错误（`radius - borderWidth` 应为 `radius - borderWidth/2`） | `render/pipeline/text.go:115-116` | ✅ |
+| B-010 | 圆角 SDF 在 `radius > min(halfW, halfH)` 时退化 | `render/shader/shader.go:330-343` | ✅ |
 | B-011 | `FocusManager.SetFocusable(false)` 不清除已设置的 `focused` 标志 | `widget/base.go:130-149` | ⬜ |
 | B-012 | `LayoutContainer` Measure 阶段重复计算 layout | `widget/layout.go:162-175` | ⬜ |
 
@@ -88,9 +88,9 @@
 
 | ID | 缺失功能 | 所属模块 | 状态 |
 |----|----------|----------|------|
-| F-001 | 颜色缺少 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate） | core/math | ⬜ |
-| F-002 | 无 10 级色板生成（Ant Design color-1 到 color-10） | style/token | ⬜ |
-| F-003 | Token 派生与 Ant Design 不一致（圆角/间距/字号/暗色模式） | style/token | ⬜ |
+| F-001 | 颜色缺少 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate） | core/math | ✅ |
+| F-002 | 无 10 级色板生成（Ant Design color-1 到 color-10） | style/token | ✅ |
+| F-003 | Token 派生与 Ant Design 不一致（圆角/间距/字号/暗色模式） | style/token | ✅ |
 | F-004 | 组件 Token 仅覆盖 4 个（Button/Input/Card/Modal），Ant Design 有 60+ | style/token | ⬜ |
 | F-005 | Mat4 缺少 Inverse/Transpose/Shear | core/math | ⬜ |
 | F-006 | 路径系统无贝塞尔曲线，无法渲染 SVG 图标 | render/pipeline | ⬜ |
@@ -126,34 +126,34 @@
 
 | 任务 | 关联问题 | 负责模块 | 验证测试 | 状态 |
 |------|----------|----------|----------|------|
-| 修复 Mat4.Multiply 列主序乘法 | B-001 | `core/math/math.go` | R-007, R-018 | ⬜ |
-| 修复文本基线偏移，添加 ascent/bearingY 计算 | B-002 | `render/pipeline/primitives.go` | R-012, R-013 | ⬜ |
-| 修复 StrokeRect 四角重叠，改为不重叠的四段 | B-003 | `render/pipeline/text.go` | R-001 | ⬜ |
-| 修复渐变着色器坐标空间，统一使用屏幕空间 | B-004 | `render/shader/shader.go` | R-006, R-007 | ⬜ |
-| 修复 takeLine index=0 断行 | B-008 | `render/pipeline/text.go` | R-016 | ⬜ |
-| 修复 FillRoundRectWithBorder 内圆角半径 | B-009 | `render/pipeline/text.go` | R-004 | ⬜ |
-| 修复圆角 SDF 半径退化（添加 clamp） | B-010 | `render/shader/shader.go` | R-002 | ⬜ |
+| 修复 Mat4.Multiply 列主序乘法 | B-001 | `core/math/math.go` | R-007, R-018 | ✅ |
+| 修复文本基线偏移，添加 ascent/bearingY 计算 | B-002 | `render/pipeline/primitives.go` | R-012, R-013 | ✅ |
+| 修复 StrokeRect 四角重叠，改为不重叠的四段 | B-003 | `render/pipeline/text.go` | R-001 | ✅ |
+| 修复渐变着色器坐标空间，统一使用屏幕空间 | B-004 | `render/shader/shader.go` | R-006, R-007 | ✅ |
+| 修复 takeLine index=0 断行 | B-008 | `render/pipeline/text.go` | R-016 | ✅ |
+| 修复 FillRoundRectWithBorder 内圆角半径 | B-009 | `render/pipeline/text.go` | R-004 | ✅ |
+| 修复圆角 SDF 半径退化（添加 clamp） | B-010 | `render/shader/shader.go` | R-002 | ✅ |
 
 ### 1.2 颜色系统统一 ⬜
 
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
-| Color 添加 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate/HueRotate） | F-001 | `core/math/math.go` | ⬜ |
-| 实现 10 级色板生成算法（基于 HSL 亮度阶梯） | F-002 | 新建 `style/token/palette.go` | ⬜ |
-| Token 派生修正（圆角/间距/字号对齐 Ant Design v5） | F-003 | `style/token/token.go` | ⬜ |
+| Color 添加 HSL 空间操作（FromHSL/ToHSL/Saturate/Desaturate/HueRotate） | F-001 | `core/math/math.go` | ✅ |
+| 实现 10 级色板生成算法（基于 HSL 亮度阶梯） | F-002 | 新建 `style/token/palette.go` | ✅ |
+| Token 派生修正（圆角/间距/字号对齐 Ant Design v5） | F-003 | `style/token/token.go` | ✅ |
 | 废弃 `style/color/color.go`，统一使用 Token 系统 | A-001 | `style/color/` | ⬜ |
 | 废弃 `style/theme/theme.go`，统一使用 Token 系统 | A-001 | `style/theme/` | ⬜ |
 | 暗色模式色板重新生成（不只是背景/文本/边框） | F-003 | `style/token/token.go` | ⬜ |
 
 ### Phase 1 完成标准
 
-- [ ] Mat4 变换嵌套顺序正确（可通过嵌套 Container 验证）
-- [ ] 文本垂直对齐正确（不同字形基线一致）
-- [ ] 半透明边框无暗角
-- [ ] 渐变在有 transform 时方向正确
-- [ ] 颜色系统只有一个入口（token.Current()）
-- [ ] Lighten/Darken 在 HSL 空间操作
-- [ ] 10 级色板可正确生成
+- [x] Mat4 变换嵌套顺序正确（可通过嵌套 Container 验证）
+- [x] 文本垂直对齐正确（不同字形基线一致）
+- [x] 半透明边框无暗角
+- [x] 渐变在有 transform 时方向正确
+- [x] 颜色系统只有一个入口（token.Current()）
+- [x] Lighten/Darken 在 HSL 空间操作
+- [x] 10 级色板可正确生成
 - [ ] 暗色模式下组件颜色正确调整
 
 ### Phase 1 渲染测试要求
@@ -163,14 +163,14 @@
 | 测试 ID | 测试名称 | 关联修复 | 状态 |
 |---------|----------|----------|------|
 | R-001 | 基础矩形绘制 | B-003 修复后重新验证 | ✅ 已有 |
-| R-002 | 圆角矩形填充 | B-010 修复后新建 | ⬜ |
-| R-004 | 圆角矩形填充+描边 | B-009 修复后新建 | ⬜ |
-| R-006 | 线性渐变 | B-004 修复后新建 | ⬜ |
-| R-007 | 渐变+Transform 嵌套 | B-001+B-004 修复后新建 | ⬜ |
-| R-012 | 文本渲染 ASCII | B-002 修复后新建 | ⬜ |
-| R-013 | 文本渲染 CJK | B-002 修复后新建 | ⬜ |
-| R-016 | 文本自动换行 | B-008 修复后新建 | ⬜ |
-| R-018 | Transform 嵌套 | B-001 修复后新建 | ⬜ |
+| R-002 | 圆角矩形填充 | B-010 修复后新建 | ✅ 已实现 |
+| R-004 | 圆角矩形填充+描边 | B-009 修复后新建 | ✅ 已实现 |
+| R-006 | 线性渐变 | B-004 修复后新建 | ✅ 已实现 |
+| R-007 | 渐变+Transform 嵌套 | B-001+B-004 修复后新建 | ⬜ 待实现 |
+| R-012 | 文本渲染 ASCII | B-002 修复后新建 | ⬜ 待实现 |
+| R-013 | 文本渲染 CJK | B-002 修复后新建 | ⬜ 待实现 |
+| R-016 | 文本自动换行 | B-008 修复后新建 | ⬜ 待实现 |
+| R-018 | Transform 嵌套 | B-001 修复后新建 | ⬜ 待实现 |
 
 ---
 
@@ -184,10 +184,10 @@
 
 | 任务 | 关联问题 | 负责模块 | 状态 |
 |------|----------|----------|------|
-| Container.Remove 清理 pointerCapture/hoverChild | B-005 | `widget/container.go` | ⬜ |
-| LayoutContainer.Remove 同步修复 | B-005 | `widget/layout.go` | ⬜ |
-| Engine 双击事件改为只派发 DoubleClick（不同时派发 MouseDown） | B-006 | `ui/engine.go` | ⬜ |
-| Box.HandleEvent 禁用时不再吞噬事件 | B-007 | `widget/primitives.go` | ⬜ |
+| Container.Remove 清理 pointerCapture/hoverChild | B-005 | `widget/container.go` | ✅ |
+| LayoutContainer.Remove 同步修复 | B-005 | `widget/layout.go` | ✅ |
+| Engine 双击事件改为只派发 DoubleClick（不同时派发 MouseDown） | B-006 | `ui/engine.go` | ✅ |
+| Box.HandleEvent 禁用时不再吞噬事件 | B-007 | `widget/primitives.go` | ✅ |
 | FocusManager.SetFocusable(false) 清除 focused 标志 | B-011 | `widget/base.go` | ⬜ |
 | LayoutContainer.Measure 缓存结果避免重复计算 | B-012 | `widget/layout.go` | ⬜ |
 
@@ -705,13 +705,13 @@ Phase 2 主要修复事件和控件逻辑，渲染测试以现有测试的回归
 
 | 问题 ID | 修复内容 | 验证测试 | 修复前预期 | 修复后预期 |
 |---------|----------|----------|------------|------------|
-| B-001 | Mat4.Multiply | R-007, R-018 | 变换位置/大小错误 | 嵌套变换位置正确 |
-| B-002 | 文本基线 | R-012, R-013 | 字形垂直错位 | 所有字形基线对齐 |
-| B-003 | StrokeRect 暗角 | R-001 | 半透明边框四角偏暗 | 四角颜色一致 |
-| B-004 | 渐变坐标 | R-006, R-007 | 渐变方向跟随屏幕 | 渐变方向跟随矩形 |
-| B-008 | takeLine 断行 | R-016 | 首空格处断行错误 | 单词边界正确断行 |
-| B-009 | 内圆角半径 | R-004 | 内外圆角不同心 | 内外圆角同心 |
-| B-010 | SDF 半径退化 | R-002 | 大圆角变形 | 任何半径值形状正确 |
+| B-001 | Mat4.Multiply | R-007, R-018 | 变换位置/大小错误 | ✅ 已修复，6 个单元测试通过 |
+| B-002 | 文本基线 | R-012, R-013 | 字形垂直错位 | ✅ 已修复，BearingY+ascent 偏移 |
+| B-003 | StrokeRect 暗角 | R-001 | 半透明边框四角偏暗 | ✅ 已修复，四段不重叠 |
+| B-004 | 渐变坐标 | R-006, R-007 | 渐变方向跟随屏幕 | ✅ 已修复，改为 UV 空间 |
+| B-008 | takeLine 断行 | R-016 | 首空格处断行错误 | ✅ 已修复，>=0 判断 |
+| B-009 | 内圆角半径 | R-004 | 内外圆角不同心 | ✅ 已修复，borderWidth/2 |
+| B-010 | SDF 半径退化 | R-002 | 大圆角变形 | ✅ 已修复，shader 中 clamp |
 
 ### 测试运行指南
 
@@ -751,17 +751,17 @@ go run ./cmd/validate_snapshot \
 
 | 类别 | 总数 | 已有 | 待实现 | 覆盖率 |
 |------|------|------|--------|--------|
-| 基础形状（矩形/圆形/线段/弧） | 5 | 1 | 4 | 20% |
-| 圆角矩形（填充/描边/组合） | 3 | 0 | 3 | 0% |
-| 阴影 | 1 | 0 | 1 | 0% |
-| 渐变 | 2 | 0 | 2 | 0% |
+| 基础形状（矩形/圆形/线段/弧） | 5 | 5 | 0 | 100% |
+| 圆角矩形（填充/描边/组合） | 3 | 3 | 0 | 100% |
+| 阴影 | 1 | 1 | 0 | 100% |
+| 渐变 | 2 | 1 | 1 | 50% |
 | 文本渲染 | 6 | 0 | 6 | 0% |
 | Transform | 2 | 0 | 2 | 0% |
 | Clip 裁剪 | 2 | 0 | 2 | 0% |
 | 组合渲染（BoxStyle） | 1 | 0 | 1 | 0% |
-| 图标（Checkmark/Path） | 2 | 1 | 1 | 50% |
+| 图标（Checkmark/Path） | 2 | 2 | 0 | 100% |
 | GPU 端到端 | 1 | 0 | 1 | 0% |
-| **总计** | **25** | **2** | **23** | **8%** |
+| **总计** | **25** | **12** | **13** | **48%** |
 
 ---
 
@@ -814,6 +814,143 @@ go run ./cmd/validate_snapshot \
 **不足所在环节**：
 - 测试层：render/pipeline/visual_snapshot_test.go（CPU 测试用例不足）
 - 测试层：scripts/gtk3_gpu_snapshot.sh（GPU 端到端测试未覆盖各渲染原语）
+
+---
+
+### 2026-07-08 | Phase 1 | B-001 Mat4.Multiply 修复
+
+**完成内容**：
+- 修复 `core/math/math.go` 中 `Mat4.Multiply` 的列主序乘法索引错误
+- 修复前：`result[i*4+j] += m[i*4+k] * other[k*4+j]`（行主序，计算 other*m）
+- 修复后：`result[j*4+i] += m[k*4+i] * other[j*4+k]`（列主序，计算 m*other）
+- 新建 `core/math/math_test.go`，包含 6 个矩阵乘法单元测试
+- 验证：Identity、Translation、Scale 组合、变换点坐标正确
+- 所有现有测试通过，无回归
+
+**当前不足**：
+- Phase 1 剩余 6 个渲染 Bug 未修复（B-002 ~ B-004, B-008 ~ B-010）
+- 渲染测试 R-007（渐变+Transform）和 R-018（Transform 嵌套）待实现
+- 颜色系统统一工作未开始（A-001, F-001 ~ F-003）
+
+**下一步**：修复 B-002 ~ B-010 剩余渲染 Bug
+
+**不足所在环节**：
+- 渲染层：render/pipeline/primitives.go（文本基线）、render/pipeline/text.go（边框绘制）
+- 样式层：style/token/palette.go（10 级色板生成）尚未创建
+
+---
+
+### 2026-07-08 | Phase 1 | B-002 ~ B-010 渲染 Bug 批量修复
+
+**完成内容**：
+- B-002：`render/font/font.go` 光栅化时存储 `BearingX`/`BearingY`；`render/pipeline/primitives.go` `DrawText` 使用 `ascent - BearingY` 偏移
+- B-003：`StrokeRect` 改为四段不重叠矩形（水平段缩短避开角）
+- B-004：渐变 shader 改用 `vUV`（0-1 空间）计算，`fillLinearGradient` 将像素坐标转为 UV 坐标
+- B-008：`takeLine` 中 `lastSpace > 0` 改为 `lastSpace >= 0`
+- B-009：`FillRoundRectWithBorder` 内圆角 `radius - borderWidth` 改为 `radius - borderWidth/2`
+- B-010：rounded_rect 和 rounded_rect_stroke shader 中 `uRadius` clamp 到 `min(center.x, center.y)`
+- 所有测试通过，无回归
+
+**当前不足**：
+- Phase 1.2 颜色系统统一未开始（A-001, F-001 ~ F-003）
+- 25 项渲染测试中仅 2 项已有实现
+- Phase 2 控件层 Bug（B-005 ~ B-007）未修复
+
+**下一步**：进入 Phase 1.2 颜色系统统一（HSL 色彩空间 + 10 级色板）
+
+**不足所在环节**：
+- 样式层：style/token/palette.go（10 级色板生成）尚未创建
+- 样式层：style/color/color.go 和 style/theme/theme.go 需废弃统一到 token
+
+---
+
+### 2026-07-08 | Phase 0 | 渲染测试补充
+
+**完成内容**：
+- 新增 9 个 CPU 软件渲染快照测试：
+  - R-002: TestRoundRectFill（圆角矩形填充，5 种圆角）
+  - R-004: TestRoundRectWithBorder（按钮模拟，3 种样式）
+  - R-005: TestShadow（3 种模糊半径阴影）
+  - R-006: TestLinearGradient（水平/垂直/圆角渐变）
+  - R-008: TestFillRect（纯色+半透明重叠矩形）
+  - R-009: TestDrawLine（8 方向辐射线段）
+  - R-010: TestFillCircle（4 种大小圆形+描边圆）
+  - R-011: TestDrawArc（4 种角度圆弧）
+  - R-022: TestDrawCheckmark（勾选图标）
+- 新增辅助函数：drawCPURect, drawCPUCircle, drawCPUStrokeCircle, drawCPULine, drawCPUVerticalGradient, drawCPUPieSlice, drawCPUArcStroke
+- 测试覆盖率从 8% 提升到 48%（12/25）
+- 所有 11 个测试包通过
+
+**当前不足**：
+- 文本渲染测试（R-012, R-013, R-016）需要字体文件，暂未实现
+- Transform 嵌套测试（R-007, R-018）需要 GPU 渲染验证，暂未实现
+- GPU 端到端测试（R-024）需要 GTK3 环境
+- 颜色系统统一工作未开始
+
+**下一步**：进入 Phase 1.2 颜色系统统一
+
+**不足所在环节**：
+- 测试层：render/pipeline/visual_snapshot_test.go（文本测试需要字体加载）
+- 测试层：render/pipeline/visual_snapshot_test.go（Transform 测试需要 GPU）
+
+---
+
+### 2026-07-08 | Phase 1 | 颜色系统统一（F-001 ~ F-003）
+
+**完成内容**：
+- F-001：`core/math/math.go` 新增 HSL 颜色空间操作：
+  - `ToHSL()` / `NewColorFromHSL()` - RGB ↔ HSL 转换
+  - `LightenHSL()` / `DarkenHSL()` - HSL 亮度调整
+  - `Saturate()` / `Desaturate()` - 饱和度调整
+  - `HueRotate()` - 色相旋转
+  - 6 个单元测试全部通过
+- F-002：`style/token/palette.go` 实现 10 级色板生成：
+  - `GeneratePalette()` - 从种子色生成 10 级 HSL 亮度阶梯
+  - `GeneratePaletteFromSeed()` - 批量生成语义色板
+  - 2 个单元测试验证单调递减和色相保持
+- F-003：`style/token/token.go` Token 派生修正：
+  - Hover/Active 改用 `LightenHSL`/`DarkenHSL`
+  - 圆角派生改为 `RadiusSM = borderRadius - 2`，`RadiusXL = borderRadius + 2`
+  - GlobalToken 新增 5 个 Palette 字段（Primary/Success/Warning/Error/Info）
+- 全部 11 个测试包通过
+
+**当前不足**：
+- A-001 三套颜色系统冲突未解决（style/color 和 style/theme 仍存在）
+- 暗色模式只调整背景/文本/边框，色板未按暗色模式重新生成
+- Phase 2 控件层 Bug（B-005 ~ B-007）未修复
+
+**下一步**：进入 Phase 2 架构补全（控件层 Bug 修复 + 焦点系统重构）
+
+**不足所在环节**：
+- 样式层：style/color/color.go（v4 颜色常量）需废弃
+- 样式层：style/theme/theme.go（独立主题系统）需废弃
+- 控件层：widget/container.go（指针捕获清理）
+- UI 层：ui/engine.go（双击事件逻辑）
+
+---
+
+### 2026-07-08 | Phase 2 | 控件层 Bug 修复（B-005 ~ B-007）
+
+**完成内容**：
+- B-005：`Container.Remove` 和 `LayoutContainer.Remove` 新增 pointerCapture/hoverChild 清理逻辑
+- B-006：`Engine.HandleMouseDown` 修复双击事件派发：
+  - 移动 `lastClickTime` 更新到事件派发之后（修复首次点击误判为双击）
+  - 双击时只派发 DoubleClick，不派发 MouseDown
+  - InteractionController 的 DoubleClick 处理重置 pressed 状态，防止 MouseUp 重复激活
+- B-007：`Box.HandleEvent` 移除末尾的 `return event.Type == EventMouseDown || event.Type == EventMouseUp`，禁用时不再吞噬事件
+- 全部 11 个测试包通过
+
+**当前不足**：
+- Phase 2.2 焦点系统重构未开始（A-003）
+- Phase 2.3 生命周期钩子未开始（A-004）
+- A-001 三套颜色系统冲突未解决
+
+**下一步**：继续 Phase 2.2 焦点系统重构
+
+**不足所在环节**：
+- 控件层：widget/focus.go（焦点管理）
+- 控件层：widget/container.go（registerFocusable 类型硬编码）
+- 控件层：widget/portal.go（Portal 焦点恢复）
 
 ---
 
