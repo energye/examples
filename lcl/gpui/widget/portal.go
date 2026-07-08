@@ -1,0 +1,385 @@
+package widget
+
+import (
+	"sort"
+
+	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/overlay"
+)
+
+// PortalOptions controls a widget rendered in the top-level overlay host.
+type PortalOptions struct {
+	ID             string
+	Kind           overlay.LayerKind
+	ZIndex         int
+	Anchor         math.Rect
+	Bounds         math.Rect
+	Placement      overlay.Placement
+	Offset         math.Vec2
+	Flip           bool
+	Clamp          bool
+	CloseOnOutside bool
+	FocusTrap      bool
+	HasMask        bool
+	MaskColor      math.Color
+	OnDismiss      func(id string)
+}
+
+// Portal binds overlay layer metadata to a widget subtree.
+type Portal struct {
+	Layer     overlay.Layer
+	Content   Widget
+	Flip      bool
+	Clamp     bool
+	MaskColor math.Color
+	OnDismiss func(id string)
+}
+
+// PortalHost owns top-level widget portals that escape parent clipping.
+type PortalHost struct {
+	manager *overlay.Manager
+	portals map[string]*Portal
+	focus   *FocusManager
+}
+
+// NewPortalHost creates a portal host backed by an overlay manager.
+func NewPortalHost(manager *overlay.Manager) *PortalHost {
+	if manager == nil {
+		manager = overlay.NewManager()
+	}
+	return &PortalHost{
+		manager: manager,
+		portals: make(map[string]*Portal),
+		focus:   NewFocusManager(),
+	}
+}
+
+// Manager returns the backing overlay manager.
+func (h *PortalHost) Manager() *overlay.Manager {
+	if h == nil {
+		return nil
+	}
+	return h.manager
+}
+
+// FocusManager returns the portal focus manager.
+func (h *PortalHost) FocusManager() *FocusManager {
+	if h == nil {
+		return nil
+	}
+	return h.focus
+}
+
+// FocusTrapActive reports whether the topmost portal traps keyboard focus.
+func (h *PortalHost) FocusTrapActive() bool {
+	if h == nil {
+		return false
+	}
+	layers := h.layers()
+	if len(layers) == 0 {
+		return false
+	}
+	return layers[len(layers)-1].Options.FocusTrap
+}
+
+// Add inserts or replaces a portal.
+func (h *PortalHost) Add(content Widget, options PortalOptions) {
+	if h == nil || content == nil || options.ID == "" {
+		return
+	}
+	if h.manager == nil {
+		h.manager = overlay.NewManager()
+	}
+	if h.portals == nil {
+		h.portals = make(map[string]*Portal)
+	}
+	if h.focus == nil {
+		h.focus = NewFocusManager()
+	}
+
+	if existing := h.portals[options.ID]; existing != nil {
+		h.unregisterFocusable(existing.Content)
+		existing.Content.SetParent(nil)
+	}
+	if owned, ok := content.(interface{ SetOwner(Widget) }); ok {
+		owned.SetOwner(content)
+	}
+	content.SetParent(nil)
+
+	layer := overlay.Layer{
+		ID:        options.ID,
+		Kind:      options.Kind,
+		ZIndex:    options.ZIndex,
+		Bounds:    options.Bounds,
+		Anchor:    options.Anchor,
+		Placement: options.Placement,
+		Offset:    options.Offset,
+		Options: overlay.Options{
+			CloseOnOutside: options.CloseOnOutside,
+			FocusTrap:      options.FocusTrap,
+			HasMask:        options.HasMask,
+		},
+	}
+	h.portals[options.ID] = &Portal{
+		Layer:     layer,
+		Content:   content,
+		Flip:      options.Flip,
+		Clamp:     options.Clamp,
+		MaskColor: options.MaskColor,
+		OnDismiss: options.OnDismiss,
+	}
+	h.manager.Add(layer)
+	h.registerFocusable(content)
+}
+
+// Remove removes a portal by ID.
+func (h *PortalHost) Remove(id string) {
+	if h == nil || id == "" {
+		return
+	}
+	portal := h.portals[id]
+	if portal != nil {
+		h.unregisterFocusable(portal.Content)
+		portal.Content.SetParent(nil)
+		delete(h.portals, id)
+	}
+	if h.manager != nil {
+		h.manager.Remove(id)
+	}
+}
+
+// Portal returns a portal by ID.
+func (h *PortalHost) Portal(id string) (*Portal, bool) {
+	if h == nil {
+		return nil, false
+	}
+	portal, ok := h.portals[id]
+	return portal, ok
+}
+
+// Layout measures and positions all portals in viewport coordinates.
+func (h *PortalHost) Layout(ctx *Context, viewport math.Rect) {
+	if h == nil {
+		return
+	}
+	for _, layer := range h.layers() {
+		portal := h.portals[layer.ID]
+		if portal == nil || portal.Content == nil {
+			continue
+		}
+		bounds := portal.Layer.Bounds
+		size := math.NewVec2(bounds.W, bounds.H)
+		if size.X <= 0 || size.Y <= 0 {
+			measured := portal.Content.Measure(ctx, Constraints{Max: math.NewVec2(viewport.W, viewport.H)})
+			if size.X <= 0 {
+				size.X = measured.X
+			}
+			if size.Y <= 0 {
+				size.Y = measured.Y
+			}
+		}
+		if size.X <= 0 {
+			size.X = viewport.W
+		}
+		if size.Y <= 0 {
+			size.Y = viewport.H
+		}
+		anchor := portal.Layer.Anchor
+		if anchor.W <= 0 && anchor.H <= 0 && anchor.X == 0 && anchor.Y == 0 {
+			anchor = viewport
+		}
+		if portal.usesPlacement() {
+			bounds = overlay.Place(anchor, size, viewport, portal.Layer.Placement, overlay.PlacementOptions{
+				Offset: portal.Layer.Offset,
+				Flip:   portal.Flip,
+				Clamp:  portal.Clamp,
+			})
+		} else {
+			bounds.W = size.X
+			bounds.H = size.Y
+		}
+		portal.Layer.Bounds = bounds
+		portal.Content.Layout(ctx, math.NewRect(0, 0, bounds.W, bounds.H))
+		if h.manager != nil {
+			h.manager.Add(portal.Layer)
+		}
+	}
+}
+
+// Render draws all portals above the normal widget tree.
+func (h *PortalHost) Render(ctx *Context) {
+	if h == nil || ctx == nil || ctx.Renderer == nil {
+		return
+	}
+	for _, layer := range h.layers() {
+		portal := h.portals[layer.ID]
+		if portal == nil || portal.Content == nil || !portal.Content.Visible() {
+			continue
+		}
+		if portal.Layer.Options.HasMask {
+			mask := portal.MaskColor
+			if mask.A == 0 {
+				mask = ctx.Tokens.Global.ColorBgMask
+			}
+			ctx.Renderer.FillRect(ctx.Viewport, mask)
+		}
+		bounds := portal.Layer.Bounds
+		ctx.Renderer.PushTransform(math.TranslationMatrix(bounds.X, bounds.Y, 0))
+		portal.Content.Render(ctx)
+		ctx.Renderer.PopTransform()
+	}
+}
+
+// HandleEvent routes input to the topmost portal before the normal widget tree.
+func (h *PortalHost) HandleEvent(ctx *Context, event Event) bool {
+	if h == nil || h.manager == nil {
+		return false
+	}
+	switch event.Type {
+	case EventMouseDown, EventMouseUp, EventMouseMove:
+		return h.handlePointer(ctx, event)
+	case EventKeyDown, EventCharInput:
+		if h.focus == nil {
+			return false
+		}
+		focused := h.focus.Current()
+		if focused != nil {
+			return focused.HandleEvent(ctx, event)
+		}
+		return h.FocusTrapActive()
+	default:
+		return false
+	}
+}
+
+// DismissOutside removes close-on-outside portals above a point.
+func (h *PortalHost) DismissOutside(x, y float32) []string {
+	if h == nil || h.manager == nil {
+		return nil
+	}
+	targets := h.manager.DismissTargets(x, y)
+	ids := make([]string, 0, len(targets))
+	for _, layer := range targets {
+		portal := h.portals[layer.ID]
+		if portal == nil {
+			continue
+		}
+		ids = append(ids, layer.ID)
+		onDismiss := portal.OnDismiss
+		h.Remove(layer.ID)
+		if onDismiss != nil {
+			onDismiss(layer.ID)
+		}
+	}
+	return ids
+}
+
+func (h *PortalHost) handlePointer(ctx *Context, event Event) bool {
+	if event.Type == EventMouseDown {
+		if dismissed := h.DismissOutside(event.X, event.Y); len(dismissed) > 0 {
+			return true
+		}
+	}
+	layer, ok := h.manager.TopmostAt(event.X, event.Y)
+	if !ok {
+		return h.consumeTopMask(event.X, event.Y)
+	}
+	portal := h.portals[layer.ID]
+	if portal == nil || portal.Content == nil {
+		return false
+	}
+	local := math.NewVec2(event.X-layer.Bounds.X, event.Y-layer.Bounds.Y)
+	hit := portal.Content.HitTest(local)
+	if hit == nil {
+		return portal.Layer.Options.HasMask
+	}
+	if event.Type == EventMouseDown && hit.Focusable() && h.focus != nil {
+		h.focus.SetFocus(hit)
+	}
+	portalEvent := event
+	portalEvent.X = local.X
+	portalEvent.Y = local.Y
+	portalEvent.LocalX = local.X
+	portalEvent.LocalY = local.Y
+	if event.Type == EventMouseDown {
+		hit.SetStateFlag(StateActive, true)
+	}
+	if event.Type == EventMouseUp {
+		hit.SetStateFlag(StateActive, false)
+	}
+	if portal.Content.HandleEvent(ctx, portalEvent) {
+		return true
+	}
+	return portal.Layer.Options.HasMask
+}
+
+func (h *PortalHost) consumeTopMask(x, y float32) bool {
+	layers := h.layers()
+	for i := len(layers) - 1; i >= 0; i-- {
+		if portal := h.portals[layers[i].ID]; portal != nil && portal.Layer.Options.HasMask {
+			return true
+		}
+	}
+	return false
+}
+
+func (h *PortalHost) layers() []overlay.Layer {
+	if h == nil || h.manager == nil {
+		return nil
+	}
+	layers := h.manager.Layers()
+	sort.SliceStable(layers, func(i, j int) bool {
+		if layers[i].ZIndex == layers[j].ZIndex {
+			return layers[i].ID < layers[j].ID
+		}
+		return layers[i].ZIndex < layers[j].ZIndex
+	})
+	return layers
+}
+
+func (h *PortalHost) registerFocusable(widget Widget) {
+	if h == nil || h.focus == nil || widget == nil {
+		return
+	}
+	if widget.Focusable() {
+		h.focus.Add(widget)
+	}
+	switch nested := widget.(type) {
+	case *Container:
+		for _, child := range nested.children {
+			h.registerFocusable(child)
+		}
+	case *LayoutContainer:
+		for _, child := range nested.children {
+			h.registerFocusable(child)
+		}
+	}
+}
+
+func (h *PortalHost) unregisterFocusable(widget Widget) {
+	if h == nil || h.focus == nil || widget == nil {
+		return
+	}
+	h.focus.Remove(widget)
+	switch nested := widget.(type) {
+	case *Container:
+		for _, child := range nested.children {
+			h.unregisterFocusable(child)
+		}
+	case *LayoutContainer:
+		for _, child := range nested.children {
+			h.unregisterFocusable(child)
+		}
+	}
+}
+
+func (p *Portal) usesPlacement() bool {
+	if p == nil {
+		return false
+	}
+	anchor := p.Layer.Anchor
+	offset := p.Layer.Offset
+	return anchor.X != 0 || anchor.Y != 0 || anchor.W != 0 || anchor.H != 0 ||
+		offset.X != 0 || offset.Y != 0 ||
+		p.Layer.Placement != overlay.BottomLeft
+}

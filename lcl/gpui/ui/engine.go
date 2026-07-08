@@ -22,6 +22,7 @@ type Engine struct {
 	renderer *pipeline.Renderer
 	root     *widget.Container
 	overlay  *overlay.Manager
+	portal   *widget.PortalHost
 
 	// Font management
 	font *font.Font
@@ -43,10 +44,12 @@ type Engine struct {
 
 // NewEngine creates a new UI engine
 func NewEngine() *Engine {
+	overlayMgr := overlay.NewManager()
 	return &Engine{
 		renderer: pipeline.NewRenderer(),
 		root:     widget.NewContainer(),
-		overlay:  overlay.NewManager(),
+		overlay:  overlayMgr,
+		portal:   widget.NewPortalHost(overlayMgr),
 		lastTime: time.Now(),
 	}
 }
@@ -67,6 +70,9 @@ func (e *Engine) Initialize() error {
 	}
 	if e.overlay == nil {
 		e.overlay = overlay.NewManager()
+	}
+	if e.portal == nil {
+		e.portal = widget.NewPortalHost(e.overlay)
 	}
 
 	if err := e.renderer.Init(); err != nil {
@@ -100,6 +106,10 @@ func (e *Engine) Render() {
 	if e.root != nil {
 		e.root.Layout(ctx, widgetRootRect(e.width, e.height))
 		e.root.Render(ctx)
+	}
+	if e.portal != nil {
+		e.portal.Layout(ctx, widgetRootRect(e.width, e.height))
+		e.portal.Render(ctx)
 	}
 
 	// Call custom render handler
@@ -168,6 +178,14 @@ func (e *Engine) Overlay() *overlay.Manager {
 	return e.overlay
 }
 
+// PortalHost returns the top-level portal host.
+func (e *Engine) PortalHost() *widget.PortalHost {
+	if e == nil {
+		return nil
+	}
+	return e.portal
+}
+
 // Context creates the current widget lifecycle context.
 func (e *Engine) Context() *widget.Context {
 	if e == nil {
@@ -229,7 +247,11 @@ func (e *Engine) HandleMouseDown(x, y float32, button int) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button})
+	event := widget.Event{Type: widget.EventMouseDown, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
+	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
+		return
+	}
+	e.root.HandleEvent(e.Context(), event)
 }
 
 // HandleMouseUp handles mouse up event
@@ -237,7 +259,11 @@ func (e *Engine) HandleMouseUp(x, y float32, button int) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseUp, X: x, Y: y, LocalX: x, LocalY: y, Button: button})
+	event := widget.Event{Type: widget.EventMouseUp, X: x, Y: y, LocalX: x, LocalY: y, Button: button}
+	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
+		return
+	}
+	e.root.HandleEvent(e.Context(), event)
 }
 
 // HandleMouseMove handles mouse move event
@@ -245,7 +271,11 @@ func (e *Engine) HandleMouseMove(x, y float32) {
 	if e == nil || e.root == nil {
 		return
 	}
-	e.root.HandleEvent(e.Context(), widget.Event{Type: widget.EventMouseMove, X: x, Y: y, LocalX: x, LocalY: y})
+	event := widget.Event{Type: widget.EventMouseMove, X: x, Y: y, LocalX: x, LocalY: y}
+	if e.portal != nil && e.portal.HandleEvent(e.Context(), event) {
+		return
+	}
+	e.root.HandleEvent(e.Context(), event)
 }
 
 // HandleKeyDown handles key down event
@@ -254,6 +284,11 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 		return
 	}
 	focusMgr := e.root.FocusManager()
+	portalFocusActive := e.portal != nil && e.portal.FocusManager() != nil &&
+		(e.portal.FocusManager().Current() != nil || e.portal.FocusTrapActive())
+	if portalFocusActive {
+		focusMgr = e.portal.FocusManager()
+	}
 
 	// Handle Tab for focus cycling
 	if key == 9 { // Tab
@@ -266,6 +301,9 @@ func (e *Engine) HandleKeyDown(key int, mods int) {
 	}
 
 	// Pass to focused widget
+	if e.portal != nil && portalFocusActive && e.portal.HandleEvent(e.Context(), widget.Event{Type: widget.EventKeyDown, Key: key, Mods: mods}) {
+		return
+	}
 	if focused := focusMgr.Current(); focused != nil {
 		focused.HandleEvent(e.Context(), widget.Event{Type: widget.EventKeyDown, Key: key, Mods: mods})
 	}
@@ -277,6 +315,10 @@ func (e *Engine) HandleCharInput(char rune) {
 		return
 	}
 	focusMgr := e.root.FocusManager()
+	if e.portal != nil && (e.portal.FocusManager().Current() != nil || e.portal.FocusTrapActive()) &&
+		e.portal.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char}) {
+		return
+	}
 	if focused := focusMgr.Current(); focused != nil {
 		focused.HandleEvent(e.Context(), widget.Event{Type: widget.EventCharInput, Char: char})
 	}
