@@ -53,8 +53,23 @@ func (t *Transition) SetTarget(target float32) {
 	t.state = Running
 }
 
+// Reset sets the current value and stops the transition.
+func (t *Transition) Reset(value float32) {
+	if t == nil {
+		return
+	}
+	t.from = value
+	t.to = value
+	t.value = value
+	t.elapsed = 0
+	t.state = Idle
+}
+
 // Update advances the transition.
 func (t *Transition) Update(dt time.Duration) {
+	if t == nil {
+		return
+	}
 	if t.state != Running {
 		return
 	}

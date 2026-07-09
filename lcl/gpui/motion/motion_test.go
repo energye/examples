@@ -37,6 +37,23 @@ func TestTransitionRetargetsFromCurrentValue(t *testing.T) {
 	}
 }
 
+func TestTransitionReset(t *testing.T) {
+	tr := NewTransition(0, 100*time.Millisecond, Linear)
+	tr.SetTarget(10)
+	tr.Update(50 * time.Millisecond)
+
+	tr.Reset(3)
+	if tr.Value() != 3 {
+		t.Fatalf("value = %v, want 3", tr.Value())
+	}
+	if tr.Running() {
+		t.Fatal("reset transition should not be running")
+	}
+	if tr.Target() != 3 {
+		t.Fatalf("target = %v, want 3", tr.Target())
+	}
+}
+
 func TestTimeline(t *testing.T) {
 	timeline := NewTimeline()
 	timeline.Add("opacity", NewTransition(0, 100*time.Millisecond, Linear))

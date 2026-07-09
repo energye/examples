@@ -74,15 +74,15 @@
 
 #### 架构缺陷
 
-| ID    | 问题                                                             | 影响范围 | 状态 |
-|-------|----------------------------------------------------------------|----------|------|
-| A-001 | 三套冲突的颜色/主题系统（color.go v4 / token.go v5 / theme.go 独立）          | 整个样式层 | ✅ |
-| A-002 | 两套重复的动画系统（motion/ 和 style/animation/），均未接入控件, 波纹效果，滑块切换动态效果 等等和其他控件的特效能力                 | 整个动画层 | ⬜ |
-| A-003 | 焦点系统无法跨容器工作，registerFocusable 硬编码 Container/LayoutContainer 类型 | 事件系统 | ✅ |
-| A-004 | Widget 接口缺少生命周期钩子（OnMount/OnUnmount/OnResize/OnStateChanged）   | 控件框架 | ✅ |
-| A-005 | SetOwner 必须手动调用，忘记调用导致 HitTest/SetFocusable 行为错误               | 控件框架 | ✅ |
-| A-006 | Application 使用全局 currentApp 变量，不支持多实例                          | UI 层 | ✅ |
-| A-007 | 无 DPI 缩放支持，Engine.Context() 硬编码 Scale=1                        | 渲染层 | ✅ |
+| ID    | 问题                                                                                  | 影响范围 | 状态 |
+|-------|-------------------------------------------------------------------------------------|----------|------|
+| A-001 | 三套冲突的颜色/主题系统（color.go v4 / token.go v5 / theme.go 独立）                               | 整个样式层 | ✅ |
+| A-002 | 动画系统（motion/ 和 style/animation/），均未接入控件, 增加波纹效果，滑块切换动态效果 等等ant design都具有的控件的特效能力 | 整个动画层 | ✅ |
+| A-003 | 焦点系统无法跨容器工作，registerFocusable 硬编码 Container/LayoutContainer 类型                      | 事件系统 | ✅ |
+| A-004 | Widget 接口缺少生命周期钩子（OnMount/OnUnmount/OnResize/OnStateChanged）                        | 控件框架 | ✅ |
+| A-005 | SetOwner 必须手动调用，忘记调用导致 HitTest/SetFocusable 行为错误                                    | 控件框架 | ✅ |
+| A-006 | Application 使用全局 currentApp 变量，不支持多实例                                               | UI 层 | ✅ |
+| A-007 | 无 DPI 缩放支持，Engine.Context() 硬编码 Scale=1                                             | 渲染层 | ✅ |
 
 #### 功能缺失
 

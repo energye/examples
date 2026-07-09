@@ -8,11 +8,11 @@ import (
 // Checkbox is a checkbox control with checked/unchecked/indeterminate states.
 type Checkbox struct {
 	ControlSurface
-	text        string
-	font        *font.Font
-	checked     bool
+	text          string
+	font          *font.Font
+	checked       bool
 	indeterminate bool
-	onChange    func(checked bool)
+	onChange      func(checked bool)
 }
 
 // NewCheckbox creates a new checkbox.
@@ -177,6 +177,7 @@ func (cb *Checkbox) Render(ctx *Context) {
 		ctx.Renderer.FillRoundRect(box, radius, bgColor)
 		ctx.Renderer.StrokeRoundRect(box, radius, borderWidth, borderColor)
 	}
+	cb.RenderMotionOverlay(ctx, bounds)
 
 	// Draw text
 	f := cb.effectiveFont(ctx)

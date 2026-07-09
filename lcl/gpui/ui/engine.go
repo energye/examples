@@ -135,22 +135,25 @@ func (e *Engine) Render() {
 
 // updateAnimations updates all active animations in the widget tree
 func (e *Engine) updateAnimations(dt time.Duration) {
-	if e.root == nil {
-		return
-	}
-	e.updateContainerAnimations(e.root, dt)
+	e.updateWidgetAnimations(e.root, dt)
+	e.updateWidgetAnimations(e.portal, dt)
 }
 
-func (e *Engine) updateContainerAnimations(container *widget.Container, dt time.Duration) {
-	for _, child := range container.Children() {
-		if anim, ok := child.(motion.Animatable); ok {
-			if tl := anim.Timeline(); tl != nil {
-				tl.Update(dt)
-			}
+func (e *Engine) updateWidgetAnimations(node interface{}, dt time.Duration) {
+	if node == nil {
+		return
+	}
+	if anim, ok := node.(motion.Animatable); ok {
+		if tl := anim.Timeline(); tl != nil {
+			tl.Update(dt)
 		}
-		if sub, ok := child.(*widget.Container); ok {
-			e.updateContainerAnimations(sub, dt)
-		}
+	}
+	parent, ok := node.(interface{ Children() []widget.Widget })
+	if !ok {
+		return
+	}
+	for _, child := range parent.Children() {
+		e.updateWidgetAnimations(child, dt)
 	}
 }
 

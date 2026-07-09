@@ -20,7 +20,7 @@ func NewTimeline() *Timeline {
 
 // Add adds or replaces a transition.
 func (t *Timeline) Add(name string, transition *Transition) {
-	if t == nil {
+	if t == nil || name == "" {
 		return
 	}
 	t.transitions[name] = transition
@@ -32,6 +32,35 @@ func (t *Timeline) Get(name string) *Transition {
 		return nil
 	}
 	return t.transitions[name]
+}
+
+// Value returns a transition's current value, or fallback when it is missing.
+func (t *Timeline) Value(name string, fallback float32) float32 {
+	transition := t.Get(name)
+	if transition == nil {
+		return fallback
+	}
+	return transition.Value()
+}
+
+// Names returns the registered transition names.
+func (t *Timeline) Names() []string {
+	if t == nil {
+		return nil
+	}
+	names := make([]string, 0, len(t.transitions))
+	for name := range t.transitions {
+		names = append(names, name)
+	}
+	return names
+}
+
+// Len returns the number of registered transitions.
+func (t *Timeline) Len() int {
+	if t == nil {
+		return 0
+	}
+	return len(t.transitions)
 }
 
 // SetTarget sets a transition target.

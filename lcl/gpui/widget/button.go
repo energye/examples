@@ -232,6 +232,7 @@ func (b *Button) Render(ctx *Context) {
 	style := b.buttonStyle(ctx)
 	bounds := b.Bounds()
 	ctx.Renderer.DrawBox(bounds, style.BoxStyle())
+	b.RenderMotionOverlay(ctx, bounds)
 
 	// Draw focus ring when focused
 	if b.HasState(StateFocus) {

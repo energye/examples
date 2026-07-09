@@ -1,8 +1,13 @@
 package widget
 
 import (
+	"time"
+
 	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/motion"
 )
+
+const switchThumbPosition = "switch.thumb.position"
 
 // Switch is a toggle switch control.
 type Switch struct {
@@ -35,6 +40,7 @@ func (s *Switch) SetChecked(checked bool) {
 	}
 	s.checked = checked
 	s.SetStateFlag(StateChecked, checked)
+	s.setThumbTarget(checked)
 	s.Invalidate()
 }
 
@@ -106,13 +112,14 @@ func (s *Switch) Render(ctx *Context) {
 	// Draw track
 	track := math.NewRect(bounds.X, bounds.Y+(bounds.H-height)/2, width, height)
 	ctx.Renderer.FillRoundRect(track, radius, trackColor)
+	s.RenderMotionOverlay(ctx, track)
 
 	// Draw thumb
 	thumbY := bounds.Y + (bounds.H-innerSize)/2
-	thumbX := bounds.X + innerMargin
-	if s.checked {
-		thumbX = bounds.X + width - innerSize - innerMargin
-	}
+	thumbProgress := s.MotionValue(switchThumbPosition, boolProgress(s.checked))
+	thumbMinX := bounds.X + innerMargin
+	thumbMaxX := bounds.X + width - innerSize - innerMargin
+	thumbX := thumbMinX + (thumbMaxX-thumbMinX)*thumbProgress
 	thumb := math.NewRect(thumbX, thumbY, innerSize, innerSize)
 	ctx.Renderer.FillRoundRect(thumb, innerSize/2, math.NewColor(1, 1, 1, 1))
 }
@@ -126,11 +133,27 @@ func (s *Switch) HandleEvent(ctx *Context, event Event) bool {
 		s.interaction = NewInteractionController(s)
 	}
 	s.interaction.SetOnClick(func(Event) {
-		s.checked = !s.checked
-		s.SetStateFlag(StateChecked, s.checked)
+		s.SetChecked(!s.checked)
 		if s.onChange != nil {
 			s.onChange(s.checked)
 		}
 	})
 	return s.interaction.HandleEvent(ctx, event)
+}
+
+func (s *Switch) setThumbTarget(checked bool) {
+	if s == nil {
+		return
+	}
+	if s.EnsureTimeline().Get(switchThumbPosition) == nil {
+		s.AddTransition(switchThumbPosition, boolProgress(!checked), 180*time.Millisecond, motion.EaseOut)
+	}
+	s.SetMotionTarget(switchThumbPosition, boolProgress(checked))
+}
+
+func boolProgress(value bool) float32 {
+	if value {
+		return 1
+	}
+	return 0
 }

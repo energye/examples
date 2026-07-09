@@ -6,6 +6,29 @@
 
 > 每次更新后在此追加记录，格式：日期 | 阶段 | 完成内容 | 当前不足 | 下一步
 
+### 2026-07-09 | Phase 0 | A-002 动画系统接入控件底座
+
+**完成内容**：
+- `BaseWidget` 接入 `motion.Timeline`，所有现有控件和新增控件都可通过统一 API 注册/读取/驱动动画
+- `ControlSurface` 新增 Ant Design 风格 press wave/ripple 底层能力，Button/Checkbox/Radio/Switch 可复用渲染 motion overlay
+- `Switch` checked 状态接入 thumb position transition，实现切换动态效果
+- `Engine` 动画遍历从硬编码 `Container` 扩展为任意 `Children() []widget.Widget` 树，覆盖 `LayoutContainer` 与 `PortalHost` 内容
+- `PortalHost` 新增 `Children()`，portal 中的控件动画可被主循环更新
+- `motion.Transition` 新增 `Reset()`，支持点击类动效重复从起点播放
+- 新增 motion、ControlSurface、Switch、Engine 动画接入单元测试
+- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+
+**当前不足**：
+- `style/animation` 仍保留为 Deprecated 兼容层，新增代码应使用 `motion/`
+- 更复杂的上层控件动效（Slider 拖动反馈、Select/Modal 出入场）可在 Phase 4 控件实现时基于本次底座接入
+
+**下一步**：进入后续控件扩展时，统一通过 `BaseWidget` motion API 和 `ControlSurface` motion overlay 接入动效
+
+**不足所在环节**：
+- 上层控件层：尚未逐一实现所有 Ant Design 控件的专属动效，但底层接入能力已完成
+
+---
+
 ### 2026-07-08 | Phase 0 | 审计完成
 
 **完成内容**：

@@ -1,6 +1,11 @@
 package widget
 
-import "github.com/energye/examples/lcl/gpui/core/math"
+import (
+	"time"
+
+	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/motion"
+)
 
 // BaseWidget provides default widget lifecycle and state behavior.
 type BaseWidget struct {
@@ -14,6 +19,7 @@ type BaseWidget struct {
 	state       State
 	preferred   math.Vec2
 	invalidated bool
+	timeline    *motion.Timeline
 }
 
 // NewBaseWidget creates a visible enabled base widget.
@@ -252,6 +258,60 @@ func (w *BaseWidget) ClearInvalidated() {
 		return
 	}
 	w.invalidated = false
+}
+
+// Timeline returns the widget animation timeline when one has been registered.
+func (w *BaseWidget) Timeline() *motion.Timeline {
+	if w == nil {
+		return nil
+	}
+	return w.timeline
+}
+
+// EnsureTimeline returns the widget animation timeline, creating it on first use.
+func (w *BaseWidget) EnsureTimeline() *motion.Timeline {
+	if w == nil {
+		return nil
+	}
+	if w.timeline == nil {
+		w.timeline = motion.NewTimeline()
+	}
+	return w.timeline
+}
+
+// AddTransition registers a named float transition on the widget timeline.
+func (w *BaseWidget) AddTransition(name string, value float32, duration time.Duration, easing motion.Easing) *motion.Transition {
+	if w == nil || name == "" {
+		return nil
+	}
+	transition := motion.NewTransition(value, duration, easing)
+	w.EnsureTimeline().Add(name, transition)
+	return transition
+}
+
+// SetMotionTarget starts a named transition toward target.
+func (w *BaseWidget) SetMotionTarget(name string, target float32) bool {
+	if w == nil || w.timeline == nil {
+		return false
+	}
+	if ok := w.timeline.SetTarget(name, target); ok {
+		w.Invalidate()
+		return true
+	}
+	return false
+}
+
+// MotionValue returns a named transition value or fallback when missing.
+func (w *BaseWidget) MotionValue(name string, fallback float32) float32 {
+	if w == nil || w.timeline == nil {
+		return fallback
+	}
+	return w.timeline.Value(name, fallback)
+}
+
+// MotionRunning reports whether the widget has active transitions.
+func (w *BaseWidget) MotionRunning() bool {
+	return w != nil && w.timeline != nil && w.timeline.Running()
 }
 
 // Measure returns the preferred size constrained by available space.

@@ -77,6 +77,22 @@ func (h *PortalHost) FocusManager() *FocusManager {
 	return h.focus
 }
 
+// Children returns portal content widgets ordered by layer z-index.
+func (h *PortalHost) Children() []Widget {
+	if h == nil {
+		return nil
+	}
+	layers := h.layers()
+	children := make([]Widget, 0, len(layers))
+	for _, layer := range layers {
+		portal := h.portals[layer.ID]
+		if portal != nil && portal.Content != nil {
+			children = append(children, portal.Content)
+		}
+	}
+	return children
+}
+
 // FocusTrapActive reports whether the topmost portal traps keyboard focus.
 func (h *PortalHost) FocusTrapActive() bool {
 	if h == nil {

@@ -154,6 +154,7 @@ func (r *Radio) Render(ctx *Context) {
 		dot := math.NewRect(cx-dotRadius, cy-dotRadius, dotRadius*2, dotRadius*2)
 		ctx.Renderer.FillRoundRect(dot, dotRadius, dotColor)
 	}
+	r.RenderMotionOverlay(ctx, bounds)
 
 	// Draw text
 	f := r.effectiveFont(ctx)

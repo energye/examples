@@ -2,8 +2,10 @@ package widget
 
 import (
 	"testing"
+	"time"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/motion"
 	"github.com/energye/examples/lcl/gpui/style/token"
 )
 
@@ -52,6 +54,39 @@ func TestControlSurfacePointerClick(t *testing.T) {
 	}
 	if clicks != 1 {
 		t.Fatalf("clicks = %d, want 1", clicks)
+	}
+}
+
+func TestControlSurfacePointerStartsRippleTimeline(t *testing.T) {
+	control := NewControlSurface()
+	control.SetBounds(math.NewRect(10, 20, 80, 32))
+
+	control.HandleEvent(nil, Event{Type: EventMouseDown, LocalX: 12, LocalY: 8, Button: 1})
+
+	timeline := control.Timeline()
+	if timeline == nil {
+		t.Fatal("mouse down should create control motion timeline")
+	}
+	if !timeline.Running() {
+		t.Fatal("ripple transitions should be running after press")
+	}
+	if got := timeline.Get(controlRippleProgress).Value(); got != 0 {
+		t.Fatalf("ripple progress = %v, want 0 at start", got)
+	}
+	if got := timeline.Get(controlRippleAlpha).Value(); got <= 0 {
+		t.Fatalf("ripple alpha = %v, want positive at start", got)
+	}
+}
+
+func TestBaseWidgetMotionTimelineIsOptIn(t *testing.T) {
+	w := newRecordingWidget(math.NewRect(0, 0, 10, 10))
+	if w.Timeline() != nil {
+		t.Fatal("new widget should not allocate a timeline until motion is registered")
+	}
+	w.AddTransition("opacity", 0, time.Second, motion.Linear)
+	w.SetMotionTarget("opacity", 1)
+	if w.Timeline() == nil || !w.MotionRunning() {
+		t.Fatal("registered transition should create a running timeline")
 	}
 }
 
