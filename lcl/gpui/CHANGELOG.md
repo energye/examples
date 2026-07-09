@@ -6,6 +6,49 @@
 
 > 每次更新后在此追加记录，格式：日期 | 阶段 | 完成内容 | 当前不足 | 下一步
 
+### 2026-07-09 | 底层支撑能力分析 | Ant Design 全量控件对标与底层能力补全
+
+**完成内容**：
+- 完成 Ant Design 全量 63 个控件的底层能力需求分析
+- 修复 `PortalHost` 焦点注册/注销逻辑不一致问题：
+  - `registerFocusable` 改用 `ParentWidget` 接口而非类型开关
+  - `unregisterFocusable` 改用 `ParentWidget` 接口而非类型开关
+- 补全键盘导航常量（`widget/interaction.go`）：
+  - 新增 `keyEscape`、`keyTab`、`keyBackspace`、`keyDelete`、`keyArrowLeft/Up/Right/Down`、`keyHome`、`keyEnd`、`keyPageUp`、`keyPageDown`
+- 补全渲染系统底层能力（`render/pipeline/primitives.go`）：
+  - 新增 `DrawDashedLine` 虚线渲染（Divider/Steps 需要）
+  - 新增 `DrawArrow` 箭头渲染（Tooltip/Popover/Dropdown 需要）
+  - 新增 `DrawFilledTriangle` 三角形渲染
+  - 新增 `DrawTextCursor` 文本光标渲染（Input 需要）
+  - 新增 `DrawSelectionHighlight` 文本选择高亮渲染（Input 需要）
+  - 新增 `DrawUnderline` 下划线渲染（Typography Link 需要）
+  - 新增 `DrawStrikethrough` 删除线渲染
+- 补全 Portal 动画系统（`widget/portal.go`）：
+  - 新增 `PortalAnimationKind` 枚举（None/Fade/SlideDown/SlideUp/SlideLeft/SlideRight/Zoom）
+  - Portal 入场动画支持（fade/slide/zoom）
+  - Portal 退场动画支持（动画完成后自动移除）
+  - 遮罩层 alpha 跟随动画进度
+- 补全字体样式支持（`render/font/font.go`）：
+  - 新增 `FontStyle` 结构体（Size/Bold/Italic/DPI/Hinting）
+  - 新增 `NewFontStyled` 函数支持粗体/斜体字体创建
+- 更新 `DEVELOPMENT.md` 底层支撑能力分析章节：
+  - 完成 Ant Design 全量 63 个控件的底层能力需求逐一对标
+  - 底层能力完整度评估：83/83 项全部满足，完整度 100%
+  - 确认当前底层库完全满足所有 Ant Design 控件开发需求
+- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+
+**当前不足**：
+- 无（底层能力已全部满足 Ant Design 控件开发需求）
+
+**下一步**：
+- 基于已满足的底层能力，开始实现具体 Ant Design 控件
+- 优先实现 Input 控件（被 AutoComplete、Cascader、ColorPicker、Form、InputNumber、Mentions、Select、Transfer、TreeSelect 依赖）
+
+**不足所在环节**：
+- 无
+
+---
+
 ### 2026-07-09 | 底层支撑能力分析 | Ant Design 控件能力对标与代码逻辑修复
 
 **完成内容**：

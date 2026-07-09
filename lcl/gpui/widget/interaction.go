@@ -1,8 +1,20 @@
 package widget
 
 const (
-	keyEnter = 13
-	keySpace = 32
+	keyEnter      = 13
+	keySpace      = 32
+	keyEscape     = 27
+	keyTab        = 9
+	keyBackspace  = 8
+	keyDelete     = 46
+	keyArrowLeft  = 37
+	keyArrowUp    = 38
+	keyArrowRight = 39
+	keyArrowDown  = 40
+	keyHome       = 36
+	keyEnd        = 35
+	keyPageUp     = 33
+	keyPageDown   = 34
 )
 
 // InteractionOptions controls the default pointer and keyboard behavior.

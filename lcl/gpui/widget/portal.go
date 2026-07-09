@@ -2,9 +2,24 @@ package widget
 
 import (
 	"sort"
+	"time"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
+	"github.com/energye/examples/lcl/gpui/motion"
 	"github.com/energye/examples/lcl/gpui/overlay"
+)
+
+// PortalAnimationKind identifies the portal entrance/exit animation type.
+type PortalAnimationKind int
+
+const (
+	PortalAnimNone PortalAnimationKind = iota
+	PortalAnimFade                    // Fade in/out
+	PortalAnimSlideDown               // Slide down from top
+	PortalAnimSlideUp                 // Slide up from bottom
+	PortalAnimSlideLeft               // Slide from right
+	PortalAnimSlideRight              // Slide from left
+	PortalAnimZoom                    // Scale zoom in/out
 )
 
 // PortalOptions controls a widget rendered in the top-level overlay host.
@@ -23,16 +38,24 @@ type PortalOptions struct {
 	HasMask        bool
 	MaskColor      math.Color
 	OnDismiss      func(id string)
+	Animation      PortalAnimationKind // Entrance/exit animation type
+	AnimDuration   time.Duration       // Animation duration (default 200ms)
 }
 
 // Portal binds overlay layer metadata to a widget subtree.
 type Portal struct {
-	Layer     overlay.Layer
-	Content   Widget
-	Flip      bool
-	Clamp     bool
-	MaskColor math.Color
-	OnDismiss func(id string)
+	Layer          overlay.Layer
+	Content        Widget
+	Flip           bool
+	Clamp          bool
+	MaskColor      math.Color
+	OnDismiss      func(id string)
+	animation      PortalAnimationKind
+	animDuration   time.Duration
+	animProgress   *motion.Transition // 0 = hidden/entering, 1 = fully visible
+	entering       bool
+	exiting        bool
+	exitingContent Widget // Content snapshot for exit animation
 }
 
 // PortalHost owns top-level widget portals that escape parent clipping.
@@ -149,38 +172,75 @@ func (h *PortalHost) Add(content Widget, options PortalOptions) {
 			HasMask:        options.HasMask,
 		},
 	}
-	h.portals[options.ID] = &Portal{
-		Layer:     layer,
-		Content:   content,
-		Flip:      options.Flip,
-		Clamp:     options.Clamp,
-		MaskColor: options.MaskColor,
-		OnDismiss: options.OnDismiss,
+	portal := &Portal{
+		Layer:        layer,
+		Content:      content,
+		Flip:         options.Flip,
+		Clamp:        options.Clamp,
+		MaskColor:    options.MaskColor,
+		OnDismiss:    options.OnDismiss,
+		animation:    options.Animation,
+		animDuration: options.AnimDuration,
 	}
+	// Initialize entrance animation if specified
+	if options.Animation != PortalAnimNone {
+		duration := options.AnimDuration
+		if duration <= 0 {
+			duration = 200 * time.Millisecond
+		}
+		portal.animProgress = motion.NewTransition(0, duration, motion.EaseOut)
+		portal.animProgress.SetTarget(1)
+		portal.entering = true
+	}
+	h.portals[options.ID] = portal
 	h.manager.Add(layer)
 	h.registerFocusable(content)
 }
 
 // Remove removes a portal by ID.
+// If the portal has an exit animation, it starts the animation and removes when complete.
 func (h *PortalHost) Remove(id string) {
 	if h == nil || id == "" {
 		return
 	}
 	portal := h.portals[id]
-	if portal != nil {
-		h.unregisterFocusable(portal.Content)
-		portal.Content.SetParent(nil)
-
-		// Restore previous focus when closing a focus-trapping portal
-		if portal.Layer.Options.FocusTrap && h.previousFocus != nil {
-			if h.focus != nil {
-				h.focus.SetFocus(h.previousFocus)
-			}
-			h.previousFocus = nil
-		}
-
-		delete(h.portals, id)
+	if portal == nil {
+		return
 	}
+
+	// If portal has animation and isn't already exiting, start exit animation
+	if portal.animation != PortalAnimNone && portal.animProgress != nil && !portal.exiting {
+		portal.exiting = true
+		portal.entering = false
+		portal.exitingContent = portal.Content
+		portal.animProgress.SetTarget(0)
+		// Don't remove yet - let the animation play
+		return
+	}
+
+	// Immediate remove (no animation or animation already complete)
+	h.removePortalImmediate(id)
+}
+
+// removePortalImmediate performs the actual portal removal.
+func (h *PortalHost) removePortalImmediate(id string) {
+	portal := h.portals[id]
+	if portal == nil {
+		return
+	}
+
+	h.unregisterFocusable(portal.Content)
+	portal.Content.SetParent(nil)
+
+	// Restore previous focus when closing a focus-trapping portal
+	if portal.Layer.Options.FocusTrap && h.previousFocus != nil {
+		if h.focus != nil {
+			h.focus.SetFocus(h.previousFocus)
+		}
+		h.previousFocus = nil
+	}
+
+	delete(h.portals, id)
 	if h.manager != nil {
 		h.manager.Remove(id)
 	}
@@ -249,22 +309,81 @@ func (h *PortalHost) Render(ctx *Context) {
 	if h == nil || ctx == nil || ctx.Renderer == nil {
 		return
 	}
+	// Track portals to remove after iteration (exit animation complete)
+	var toRemove []string
 	for _, layer := range h.layers() {
 		portal := h.portals[layer.ID]
-		if portal == nil || portal.Content == nil || !portal.Content.Visible() {
+		if portal == nil {
 			continue
 		}
+		// Handle exit animation completion
+		if portal.exiting && portal.animProgress != nil {
+			if portal.animProgress.Value() <= 0.01 {
+				toRemove = append(toRemove, layer.ID)
+				continue
+			}
+		}
+		content := portal.Content
+		if portal.exiting && portal.exitingContent != nil {
+			content = portal.exitingContent
+		}
+		if content == nil || !content.Visible() {
+			continue
+		}
+
+		animProgress := float32(1)
+		if portal.animProgress != nil {
+			animProgress = portal.animProgress.Value()
+		}
+
+		// Draw mask with animated alpha
 		if portal.Layer.Options.HasMask {
 			mask := portal.MaskColor
 			if mask.A == 0 {
 				mask = ctx.Tokens.Global.ColorBgMask
 			}
+			mask.A *= animProgress
 			ctx.Renderer.FillRect(ctx.Viewport, mask)
 		}
+
 		bounds := portal.Layer.Bounds
-		ctx.Renderer.PushTransform(math.TranslationMatrix(bounds.X, bounds.Y, 0))
-		portal.Content.Render(ctx)
+		offsetX := bounds.X
+		offsetY := bounds.Y
+
+		// Apply animation transform
+		switch portal.animation {
+		case PortalAnimFade:
+			// Only alpha changes, handled below
+		case PortalAnimSlideDown:
+			offsetY = bounds.Y - bounds.H*(1-animProgress)
+		case PortalAnimSlideUp:
+			offsetY = bounds.Y + bounds.H*(1-animProgress)
+		case PortalAnimSlideLeft:
+			offsetX = bounds.X + bounds.W*(1-animProgress)
+		case PortalAnimSlideRight:
+			offsetX = bounds.X - bounds.W*(1-animProgress)
+		case PortalAnimZoom:
+			// Scale from 0.8 to 1.0
+			scale := 0.8 + 0.2*animProgress
+			centerX := bounds.X + bounds.W/2
+			centerY := bounds.Y + bounds.H/2
+			ctx.Renderer.PushTransform(math.TranslationMatrix(centerX, centerY, 0))
+			ctx.Renderer.PushTransform(math.ScaleMatrix(scale, scale, 1))
+			ctx.Renderer.PushTransform(math.TranslationMatrix(-bounds.W/2, -bounds.H/2, 0))
+			content.Render(ctx)
+			ctx.Renderer.PopTransform()
+			ctx.Renderer.PopTransform()
+			ctx.Renderer.PopTransform()
+			continue
+		}
+
+		ctx.Renderer.PushTransform(math.TranslationMatrix(offsetX, offsetY, 0))
+		content.Render(ctx)
 		ctx.Renderer.PopTransform()
+	}
+	// Remove portals whose exit animation completed
+	for _, id := range toRemove {
+		h.removePortalImmediate(id)
 	}
 }
 
@@ -278,7 +397,7 @@ func (h *PortalHost) HandleEvent(ctx *Context, event Event) bool {
 		return h.handlePointer(ctx, event)
 	case EventKeyDown:
 		// Handle Escape key to close topmost portal
-		if event.Key == 27 { // Escape
+		if event.Key == keyEscape {
 			layers := h.layers()
 			if len(layers) > 0 {
 				topmost := layers[len(layers)-1]

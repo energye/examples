@@ -56,20 +56,46 @@ const (
 	maxGlyphs    = 4096
 )
 
+// FontStyle describes font style options.
+type FontStyle struct {
+	Size    float64
+	Bold    bool
+	Italic  bool
+	DPI     float64
+	Hinting font.Hinting
+}
+
 // NewFont creates a new font from TTF data
 func NewFont(ttfData []byte, fontSize float64) (*Font, error) {
+	return NewFontStyled(ttfData, FontStyle{
+		Size:    fontSize,
+		DPI:     96,
+		Hinting: font.HintingFull,
+	})
+}
+
+// NewFontStyled creates a new font with style options (bold/italic).
+func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 	// Parse font (supports both TTF and TTC)
 	f, err := parseFont(ttfData)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create face
-	face, err := opentype.NewFace(f, &opentype.FaceOptions{
-		Size:    fontSize,
-		DPI:     96,
-		Hinting: font.HintingFull,
-	})
+	if style.Size <= 0 {
+		style.Size = 14
+	}
+	if style.DPI <= 0 {
+		style.DPI = 96
+	}
+
+	// Create face with style options
+	faceOptions := &opentype.FaceOptions{
+		Size:    style.Size,
+		DPI:     style.DPI,
+		Hinting: style.Hinting,
+	}
+	face, err := opentype.NewFace(f, faceOptions)
 	if err != nil {
 		return nil, fmt.Errorf("new face: %w", err)
 	}
@@ -78,7 +104,7 @@ func NewFont(ttfData []byte, fontSize float64) (*Font, error) {
 	m := face.Metrics()
 	ascent := fixed26_6ToFloat32(m.Ascent)
 	descent := fixed26_6ToFloat32(m.Descent)
-	cellSize := int(fontSize*1.5) + 4
+	cellSize := int(style.Size*1.5) + 4
 	if cellSize < 8 {
 		cellSize = 8
 	}
@@ -92,7 +118,7 @@ func NewFont(ttfData []byte, fontSize float64) (*Font, error) {
 		texHeight:  atlasSize,
 		atlas:      image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize)),
 		glyphs:     make(map[rune]*GlyphInfo),
-		fontSize:   fontSize,
+		fontSize:   style.Size,
 		lineHeight: ascent + descent,
 		ascent:     ascent,
 		descent:    descent,

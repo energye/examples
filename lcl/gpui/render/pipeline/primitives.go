@@ -167,6 +167,42 @@ func (r *Renderer) DrawLine(x1, y1, x2, y2, width float32, color math.Color) {
 	r.addQuad(shaderProg, 0, nil, verts)
 }
 
+// DrawDashedLine draws a dashed line between two points.
+// dashLen is the length of each dash, gapLen is the length of each gap.
+func (r *Renderer) DrawDashedLine(x1, y1, x2, y2, width, dashLen, gapLen float32, color math.Color) {
+	if r == nil || dashLen <= 0 || gapLen <= 0 {
+		return
+	}
+	dx := x2 - x1
+	dy := y2 - y1
+	length := float32(stdmath.Sqrt(float64(dx*dx + dy*dy)))
+	if length < 0.001 {
+		return
+	}
+
+	// Normalize direction
+	nx := dx / length
+	ny := dy / length
+
+	segmentLen := dashLen + gapLen
+	dist := float32(0)
+	for dist < length {
+		segStart := dist
+		segEnd := dist + dashLen
+		if segEnd > length {
+			segEnd = length
+		}
+		if segStart < length {
+			sx := x1 + nx*segStart
+			sy := y1 + ny*segStart
+			ex := x1 + nx*segEnd
+			ey := y1 + ny*segEnd
+			r.DrawLine(sx, sy, ex, ey, width, color)
+		}
+		dist += segmentLen
+	}
+}
+
 // DrawCheckmark draws a checkmark icon
 func (r *Renderer) DrawCheckmark(rect math.Rect, size float32, color math.Color) {
 	center := rect.Center()
@@ -182,6 +218,93 @@ func (r *Renderer) DrawCheckmark(rect math.Rect, size float32, color math.Color)
 	// Draw lines
 	r.DrawLine(x1, y1, x2, y2, 2, color)
 	r.DrawLine(x2, y2, x3, y3, 2, color)
+}
+
+// DrawArrow draws a triangle arrow pointer.
+// direction: 0=up, 1=right, 2=down, 3=left
+// Used by Tooltip, Popover, Popconfirm, Dropdown for their arrow indicators.
+func (r *Renderer) DrawArrow(center math.Vec2, size float32, direction int, color math.Color) {
+	if r == nil || size <= 0 {
+		return
+	}
+	halfSize := size * 0.5
+	var p1, p2, p3 math.Vec2
+	switch direction {
+	case 0: // Up
+		p1 = math.NewVec2(center.X, center.Y-halfSize)
+		p2 = math.NewVec2(center.X-halfSize, center.Y+halfSize)
+		p3 = math.NewVec2(center.X+halfSize, center.Y+halfSize)
+	case 1: // Right
+		p1 = math.NewVec2(center.X+halfSize, center.Y)
+		p2 = math.NewVec2(center.X-halfSize, center.Y-halfSize)
+		p3 = math.NewVec2(center.X-halfSize, center.Y+halfSize)
+	case 2: // Down
+		p1 = math.NewVec2(center.X, center.Y+halfSize)
+		p2 = math.NewVec2(center.X-halfSize, center.Y-halfSize)
+		p3 = math.NewVec2(center.X+halfSize, center.Y-halfSize)
+	case 3: // Left
+		p1 = math.NewVec2(center.X-halfSize, center.Y)
+		p2 = math.NewVec2(center.X+halfSize, center.Y-halfSize)
+		p3 = math.NewVec2(center.X+halfSize, center.Y+halfSize)
+	default:
+		return
+	}
+	shaderProg := r.shaderMgr.GetShader("color")
+	verts := [3]Vertex{
+		{X: p1.X, Y: p1.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: p2.X, Y: p2.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: p3.X, Y: p3.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+	}
+	r.addTriangle(shaderProg, 0, nil, verts)
+}
+
+// DrawFilledTriangle draws a filled triangle from three vertices.
+func (r *Renderer) DrawFilledTriangle(p1, p2, p3 math.Vec2, color math.Color) {
+	if r == nil {
+		return
+	}
+	shaderProg := r.shaderMgr.GetShader("color")
+	verts := [3]Vertex{
+		{X: p1.X, Y: p1.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: p2.X, Y: p2.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: p3.X, Y: p3.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+	}
+	r.addTriangle(shaderProg, 0, nil, verts)
+}
+
+// DrawTextCursor draws a text cursor (caret) at the given position.
+// Used by Input component for text editing.
+func (r *Renderer) DrawTextCursor(x, y, height float32, width float32, color math.Color) {
+	if r == nil || width <= 0 || height <= 0 {
+		return
+	}
+	r.FillRect(math.NewRect(x-width/2, y, width, height), color)
+}
+
+// DrawSelectionHighlight draws a text selection highlight rectangle.
+// Used by Input component for text selection.
+func (r *Renderer) DrawSelectionHighlight(rect math.Rect, color math.Color) {
+	if r == nil || rect.W <= 0 || rect.H <= 0 {
+		return
+	}
+	r.FillRect(rect, color)
+}
+
+// DrawUnderline draws an underline below text.
+// Used by Typography Link component.
+func (r *Renderer) DrawUnderline(x, y, width, thickness float32, color math.Color) {
+	if r == nil || width <= 0 || thickness <= 0 {
+		return
+	}
+	r.FillRect(math.NewRect(x, y, width, thickness), color)
+}
+
+// DrawStrikethrough draws a strikethrough line through text.
+func (r *Renderer) DrawStrikethrough(x, y, width, thickness float32, color math.Color) {
+	if r == nil || width <= 0 || thickness <= 0 {
+		return
+	}
+	r.FillRect(math.NewRect(x, y-thickness/2, width, thickness), color)
 }
 
 // DrawShadow draws a shadow effect using a dedicated shadow shader.
