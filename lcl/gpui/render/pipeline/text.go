@@ -114,10 +114,7 @@ func takeLine(text string, f *font.Font, maxWidth float32) (line, rest string) {
 			lastSpace = i
 			lastSpaceByte = i
 		}
-		g, ok := f.GetGlyph(r)
-		if ok {
-			width += g.Advance
-		}
+		width += f.RuneAdvance(r)
 		if width > maxWidth {
 			if lastSpace >= 0 {
 				return text[:lastSpaceByte], strings.TrimLeft(text[lastSpaceByte+len(" "):], " \t")

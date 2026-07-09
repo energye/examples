@@ -3,6 +3,7 @@ package font
 import (
 	"image"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"golang.org/x/image/font"
@@ -166,6 +167,81 @@ func TestDrawGlyphMaskStoresWhiteRGBWithCoverageAlpha(t *testing.T) {
 				dst.Pix[off+0], dst.Pix[off+1], dst.Pix[off+2], dst.Pix[off+3],
 				check.a)
 		}
+	}
+}
+
+func TestReadFontFileCachesByPath(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "font.ttf")
+	if err := os.WriteFile(path, []byte("first"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	first, err := ReadFontFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("second"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	second, err := ReadFontFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if &first[0] != &second[0] {
+		t.Fatal("ReadFontFile should return cached bytes for the same path")
+	}
+	if string(second) != "first" {
+		t.Fatalf("cached file data = %q, want first read", string(second))
+	}
+}
+
+func TestValidateFontDataRejectsInvalidData(t *testing.T) {
+	if err := ValidateFontData([]byte("not a font")); err == nil {
+		t.Fatal("ValidateFontData should reject invalid font bytes")
+	}
+}
+
+func TestFontCoverageScoreRejectsInvalidData(t *testing.T) {
+	if _, err := FontCoverageScore([]byte("not a font"), CJKProbeRunes); err == nil {
+		t.Fatal("FontCoverageScore should reject invalid font bytes")
+	}
+}
+
+func TestSystemFontCandidatesIncludesEnvironmentPathsFirst(t *testing.T) {
+	dir := t.TempDir()
+	first := filepath.Join(dir, "first.ttf")
+	second := filepath.Join(dir, "second.ttf")
+	if err := os.WriteFile(first, []byte("first"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(second, []byte("second"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GPUI_FONT_PATHS", first+string(os.PathListSeparator)+second)
+
+	candidates := SystemFontCandidates()
+	if len(candidates) < 2 {
+		t.Fatalf("candidate count = %d, want at least 2", len(candidates))
+	}
+	if candidates[0] != first || candidates[1] != second {
+		t.Fatalf("env candidates = %q, %q; want %q, %q", candidates[0], candidates[1], first, second)
+	}
+}
+
+func TestRuneAdvanceIncludesLetterSpacing(t *testing.T) {
+	f := &Font{
+		letterGap: 3,
+		glyphs: map[rune]*GlyphInfo{
+			'A': {Advance: 10},
+		},
+	}
+
+	if got := f.RuneAdvance('A'); got != 13 {
+		t.Fatalf("RuneAdvance = %v, want 13", got)
+	}
+	if got := f.TextWidth("AA"); got != 26 {
+		t.Fatalf("TextWidth with letter spacing = %v, want 26", got)
 	}
 }
 

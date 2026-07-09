@@ -1,0 +1,9 @@
+GPU Test: Freetype text rendering
+=================================
+
+Coverage:
+- Small text anti-aliasing
+- CJK and Latin mixed text
+- Bold and italic synthetic styles
+- Letter spacing
+- Multiline wrapping, center/right alignment, ellipsis

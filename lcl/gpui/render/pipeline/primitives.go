@@ -23,7 +23,7 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 	topY := snapTextCoord(y)
 	ascent := f.Ascent()
 	for _, ch := range text {
-		g, ok := f.GetGlyph(ch)
+		glyphFont, g, ok := f.ResolveGlyph(ch)
 		if !ok {
 			continue
 		}
@@ -36,10 +36,10 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 			dst := math.NewRect(gx, gy, g.Width, g.Height)
 
 			verts := QuadVertices(dst, src, color)
-			r.addQuad(shaderProg, f.Texture(), nil, verts)
+			r.addQuad(shaderProg, glyphFont.Texture(), nil, verts)
 		}
 
-		cx += g.Advance
+		cx += f.RuneAdvance(ch)
 	}
 }
 

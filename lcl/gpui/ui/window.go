@@ -3,9 +3,9 @@ package ui
 
 import (
 	"fmt"
-	"os"
 	"time"
 
+	renderfont "github.com/energye/examples/lcl/gpui/render/font"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -100,29 +100,31 @@ func (w *Window) loadFont() {
 	if w == nil {
 		return
 	}
-	paths := []string{
-		// High quality CJK fonts
-		"/usr/share/fonts/opentype/noto/NotoSansCJK-Light.ttc",
-		"/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-		"/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
-		// Fallback
-		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-		"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-		"/System/Library/Fonts/PingFang.ttc",
-		"C:/Windows/Fonts/msyh.ttc",
-		"C:/Windows/Fonts/arial.ttf",
-	}
-
-	for _, p := range paths {
-		d, err := os.ReadFile(p)
-		if err == nil {
-			SetDefaultFontData(d)
-			fmt.Printf("✓ Font file loaded: %s\n", p)
-			return
+	systemFonts, err := renderfont.LoadSystemFontSet()
+	if err == nil {
+		fallbacks := make([][]byte, 0, len(systemFonts)-1)
+		for _, fallback := range systemFonts[1:] {
+			fallbacks = append(fallbacks, fallback.Data)
 		}
+		SetDefaultFontSet(systemFonts[0].Data, fallbacks...)
+		fmt.Printf("✓ Font file loaded: %s", systemFonts[0].Path)
+		if len(systemFonts) > 1 {
+			fmt.Printf(" + %d fallback(s)", len(systemFonts)-1)
+		}
+		bestCJK := 0
+		for _, systemFont := range systemFonts {
+			if systemFont.CJKScore > bestCJK {
+				bestCJK = systemFont.CJKScore
+			}
+		}
+		if bestCJK < len(renderfont.CJKProbeRunes) {
+			fmt.Printf(" (CJK coverage %d/%d)", bestCJK, len(renderfont.CJKProbeRunes))
+		}
+		fmt.Println()
+		return
 	}
 
-	fmt.Println("✗ Warning: no font file found")
+	fmt.Println("✗ Warning: no freetype-supported font file found")
 }
 
 // onPaint handles paint events

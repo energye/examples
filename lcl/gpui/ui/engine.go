@@ -440,9 +440,24 @@ func (e *Engine) IsInitialized() bool {
 // DefaultFontData holds the default font data
 var DefaultFontData []byte
 
+// DefaultFontFallbackData holds fallback font data used for missing glyphs.
+var DefaultFontFallbackData [][]byte
+
 // SetDefaultFontData sets the default font data
 func SetDefaultFontData(data []byte) {
 	DefaultFontData = data
+	DefaultFontFallbackData = nil
+}
+
+// SetDefaultFontSet sets the default font and fallback font data.
+func SetDefaultFontSet(data []byte, fallbacks ...[]byte) {
+	DefaultFontData = data
+	DefaultFontFallbackData = DefaultFontFallbackData[:0]
+	for _, fallback := range fallbacks {
+		if len(fallback) > 0 {
+			DefaultFontFallbackData = append(DefaultFontFallbackData, fallback)
+		}
+	}
 }
 
 // LoadFont loads a font from TTF data
@@ -455,7 +470,19 @@ func LoadDefaultFont(size float64) (*font.Font, error) {
 	if DefaultFontData == nil {
 		return nil, fmt.Errorf("no font data available")
 	}
-	return font.NewFont(DefaultFontData, size)
+	f, err := font.NewFont(DefaultFontData, size)
+	if err != nil {
+		return nil, err
+	}
+	fallbacks := make([]*font.Font, 0, len(DefaultFontFallbackData))
+	for _, data := range DefaultFontFallbackData {
+		fallback, err := font.NewFont(data, size)
+		if err == nil && fallback != nil {
+			fallbacks = append(fallbacks, fallback)
+		}
+	}
+	f.SetFallbacks(fallbacks...)
+	return f, nil
 }
 
 func widgetRootRect(width, height float32) coremath.Rect {
