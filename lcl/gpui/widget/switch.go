@@ -24,6 +24,10 @@ func NewSwitch() *Switch {
 	}
 	s.SetOwner(s)
 	s.interaction.SetTarget(s)
+	options := s.interaction.Options()
+	options.ClickOnMouseDown = true
+	options.ClickOnMouseUp = false
+	s.interaction.SetOptions(options)
 	s.SetFocusable(true)
 	return s
 }
@@ -56,6 +60,7 @@ func (s *Switch) SetLoading(loading bool) {
 	}
 	s.loading = loading
 	s.SetStateFlag(StateLoading, loading)
+	s.SetLoadingMotion(loading)
 }
 
 // SetOnChange sets the change callback.
@@ -108,11 +113,13 @@ func (s *Switch) Render(ctx *Context) {
 			trackColor = global.ColorBorderHover
 		}
 	}
+	trackColor = s.AnimatedColor(ctx, "switch.track", trackColor)
 
 	// Draw track
 	track := math.NewRect(bounds.X, bounds.Y+(bounds.H-height)/2, width, height)
 	ctx.Renderer.FillRoundRect(track, radius, trackColor)
 	s.RenderMotionOverlay(ctx, track)
+	s.RenderFocusRing(ctx, track, radius)
 
 	// Draw thumb
 	thumbY := bounds.Y + (bounds.H-innerSize)/2
@@ -122,6 +129,13 @@ func (s *Switch) Render(ctx *Context) {
 	thumbX := thumbMinX + (thumbMaxX-thumbMinX)*thumbProgress
 	thumb := math.NewRect(thumbX, thumbY, innerSize, innerSize)
 	ctx.Renderer.FillRoundRect(thumb, innerSize/2, math.NewColor(1, 1, 1, 1))
+	if s.loading {
+		spinnerColor := global.ColorPrimary
+		if s.HasState(StateDisabled) {
+			spinnerColor = global.ColorTextDisabled
+		}
+		s.RenderLoadingSpinner(ctx, thumb.Center(), innerSize*0.28, spinnerColor)
+	}
 }
 
 // HandleEvent handles switch interaction.
@@ -131,6 +145,10 @@ func (s *Switch) HandleEvent(ctx *Context, event Event) bool {
 	}
 	if s.interaction == nil {
 		s.interaction = NewInteractionController(s)
+		options := s.interaction.Options()
+		options.ClickOnMouseDown = true
+		options.ClickOnMouseUp = false
+		s.interaction.SetOptions(options)
 	}
 	s.interaction.SetOnClick(func(Event) {
 		s.SetChecked(!s.checked)

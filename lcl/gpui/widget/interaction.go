@@ -9,6 +9,7 @@ const (
 type InteractionOptions struct {
 	Pointer               bool
 	Keyboard              bool
+	ClickOnMouseDown      bool
 	ClickOnMouseUp        bool
 	EnterActivates        bool
 	SpaceActivates        bool
@@ -21,6 +22,7 @@ func DefaultInteractionOptions() InteractionOptions {
 	return InteractionOptions{
 		Pointer:               true,
 		Keyboard:              true,
+		ClickOnMouseDown:      false,
 		ClickOnMouseUp:        true,
 		EnterActivates:        true,
 		SpaceActivates:        true,
@@ -157,6 +159,9 @@ func (c *InteractionController) HandleEvent(ctx *Context, event Event) bool {
 		}
 		c.pressed = true
 		c.target.SetStateFlag(StateActive, true)
+		if c.options.ClickOnMouseDown && c.eventInsideTarget(event) {
+			c.activate(event)
+		}
 		return true
 	case EventMouseUp:
 		if !c.options.Pointer {

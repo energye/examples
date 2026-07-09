@@ -81,6 +81,30 @@ func TestInteractionControllerMouseUpOutsideDoesNotActivate(t *testing.T) {
 	}
 }
 
+func TestInteractionControllerCanActivateOnMouseDown(t *testing.T) {
+	target := newRecordingWidget(math.NewRect(0, 0, 40, 20))
+	controller := NewInteractionController(target)
+	options := controller.Options()
+	options.ClickOnMouseDown = true
+	options.ClickOnMouseUp = false
+	controller.SetOptions(options)
+	clicks := 0
+	controller.SetOnClick(func(Event) {
+		clicks++
+	})
+
+	if !controller.HandleEvent(nil, Event{Type: EventMouseDown, LocalX: 10, LocalY: 10, Button: 1}) {
+		t.Fatal("mouse down should be handled")
+	}
+	if clicks != 1 {
+		t.Fatalf("mouse down activations = %d, want 1", clicks)
+	}
+	controller.HandleEvent(nil, Event{Type: EventMouseUp, LocalX: 10, LocalY: 10, Button: 1})
+	if clicks != 1 {
+		t.Fatalf("mouse up should not activate when disabled, activations = %d", clicks)
+	}
+}
+
 func TestInteractionControllerKeyboardActivationRequiresFocus(t *testing.T) {
 	target := newRecordingWidget(math.NewRect(0, 0, 40, 20))
 	target.SetFocusable(true)

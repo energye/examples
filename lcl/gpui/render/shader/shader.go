@@ -357,10 +357,10 @@ void main() {
     vec2 q = abs(pos - center) - (center - vec2(radius));
     float d = length(max(q, 0.0)) - radius;
 
-    // Anti-aliased edge
-    float pixelLength = length(vec2(dFdx(d), dFdy(d)));
-    float aa = 1.5;
-    float alpha = 1.0 - smoothstep(-aa * pixelLength, aa * pixelLength, d);
+    // Screen-space SDF antialiasing. Keep at least one pixel of transition so
+    // small controls do not look jagged on low DPI displays.
+    float aa = max(length(vec2(dFdx(d), dFdy(d))), 0.75);
+    float alpha = 1.0 - smoothstep(-aa, aa, d);
 
     gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }
@@ -398,11 +398,11 @@ void main() {
     vec2 q = abs(pos - center) - (center - vec2(radius));
     float d = length(max(q, 0.0)) - radius;
 
-    float pixelLength = length(vec2(dFdx(d), dFdy(d)));
-    float aa = max(pixelLength * 1.5, 0.001);
-    float outerAlpha = 1.0 - smoothstep(0.0, aa, d);
-    float innerAlpha = smoothstep(-uWidth - aa, -uWidth + aa, d);
-    float alpha = outerAlpha * innerAlpha;
+    float strokeWidth = max(uWidth, 0.0);
+    float aa = max(length(vec2(dFdx(d), dFdy(d))), 0.75);
+    float halfWidth = strokeWidth * 0.5;
+    float strokeCenter = -halfWidth;
+    float alpha = 1.0 - smoothstep(halfWidth - aa, halfWidth + aa, abs(d - strokeCenter));
 
     gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }

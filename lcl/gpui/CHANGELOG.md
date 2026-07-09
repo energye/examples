@@ -6,6 +6,44 @@
 
 > 每次更新后在此追加记录，格式：日期 | 阶段 | 完成内容 | 当前不足 | 下一步
 
+### 2026-07-09 | Phase 0 | Ant Design 控件底层视觉与交互补强
+
+**完成内容**：
+- 修复圆角控件边缘粗重和抗锯齿不足：
+  - `rounded_rect` shader 改为屏幕空间 SDF AA，并保留最小 0.75px 过渡宽度
+  - `rounded_rect_stroke` 改为描边中线模型，避免边框整体向内变厚
+  - `DrawBox` 在圆角背景+边框场景优先使用合成边框绘制，减少两层硬边叠加
+- 修复点击瞬间 wave/ripple 覆盖不足：
+  - `ControlSurface` 的 press wave 支持 MouseDown、DoubleClick、键盘激活重复启动
+  - 连续快速点击时每次激活都会重置 ripple progress/alpha
+- 修复 Switch 连续点击切换不可靠：
+  - `InteractionOptions` 新增 `ClickOnMouseDown`
+  - `Switch` 使用按下即切换、释放不重复切换，DoubleClick 仍触发一次切换
+- 补齐 Loading 态底层视觉反馈：
+  - `motion.Transition` 支持 loop，供持续动效复用
+  - `ControlSurface` 新增 `SetLoadingMotion` / `RenderLoadingSpinner`
+  - Button/Switch loading 态接入统一 spinner，保留 loading 防重复触发语义
+- 统一键盘焦点视觉：
+  - `ControlSurface` 新增 `ResolveFocusRing` / `RenderFocusRing`
+  - Button/Checkbox/Radio/Switch 接入 token 派生焦点环，新增控件可直接复用
+- 补齐状态颜色过渡：
+  - `ControlSurface` 新增 `AnimatedColor` / `ResolveAnimatedControlStyle`
+  - Button/Checkbox/Radio/Switch 的 hover/active/focus/disabled 关键颜色使用 token motion duration 过渡，减少状态跳变
+- `DEVELOPMENT.md` 新增 A-002 Ant Design 控件底层能力关联表，说明视觉、wave、即时切换、timeline、portal 动画分别在什么时候使用
+- 新增 shader、interaction、ControlSurface、Button、Switch、motion 单元测试
+- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+
+**当前不足**：
+- 当前验证以单元测试和 shader 策略断言为主，真实 GPU 截图回归仍依赖后续 R-024/控件快照
+- Modal/Dropdown/Slider/Tabs 等专属 Ant Design 动效需要在对应上层控件实现时接入本次底座
+
+**下一步**：扩展具体控件时按 `DEVELOPMENT.md` A-002 关联表复用底层能力，补充控件级渲染快照
+
+**不足所在环节**：
+- 测试层：缺少覆盖完整示例程序的一键 GPU 视觉差异测试
+
+---
+
 ### 2026-07-09 | Phase 0 | A-002 动画系统接入控件底座
 
 **完成内容**：

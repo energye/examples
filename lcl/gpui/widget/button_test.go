@@ -117,6 +117,9 @@ func TestButtonLoadingBlocksClick(t *testing.T) {
 	if clicks != 0 {
 		t.Fatalf("clicks = %d, want 0", clicks)
 	}
+	if spin := button.Timeline().Get(controlLoadingSpin); spin == nil || !spin.Running() {
+		t.Fatal("loading button should run spinner motion")
+	}
 }
 
 func TestButtonMouseUpOutsideClearsActiveWithoutClick(t *testing.T) {

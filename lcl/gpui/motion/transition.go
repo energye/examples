@@ -20,6 +20,7 @@ type Transition struct {
 	duration time.Duration
 	easing   Easing
 	state    State
+	loop     bool
 }
 
 // NewTransition creates a transition.
@@ -53,6 +54,19 @@ func (t *Transition) SetTarget(target float32) {
 	t.state = Running
 }
 
+// SetLoop toggles whether the transition repeats after reaching its target.
+func (t *Transition) SetLoop(loop bool) {
+	if t == nil {
+		return
+	}
+	t.loop = loop
+}
+
+// Loop reports whether the transition repeats.
+func (t *Transition) Loop() bool {
+	return t != nil && t.loop
+}
+
 // Reset sets the current value and stops the transition.
 func (t *Transition) Reset(value float32) {
 	if t == nil {
@@ -76,8 +90,13 @@ func (t *Transition) Update(dt time.Duration) {
 	t.elapsed += dt
 	progress := float32(t.elapsed) / float32(t.duration)
 	if progress >= 1 {
-		progress = 1
-		t.state = Done
+		if t.loop {
+			t.elapsed %= t.duration
+			progress = float32(t.elapsed) / float32(t.duration)
+		} else {
+			progress = 1
+			t.state = Done
+		}
 	}
 	eased := t.easing(progress)
 	t.value = t.from + (t.to-t.from)*eased

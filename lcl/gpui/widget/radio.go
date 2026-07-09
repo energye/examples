@@ -142,6 +142,9 @@ func (r *Radio) Render(ctx *Context) {
 	} else if r.HasState(StateHover) {
 		borderColor = dotColor
 	}
+	bgColor = r.AnimatedColor(ctx, "radio.background", bgColor)
+	borderColor = r.AnimatedColor(ctx, "radio.border", borderColor)
+	dotColor = r.AnimatedColor(ctx, "radio.dot", dotColor)
 
 	// Draw circle
 	circle := math.NewRect(cx-radius, cy-radius, boxSize, boxSize)
@@ -155,6 +158,7 @@ func (r *Radio) Render(ctx *Context) {
 		ctx.Renderer.FillRoundRect(dot, dotRadius, dotColor)
 	}
 	r.RenderMotionOverlay(ctx, bounds)
+	r.RenderFocusRing(ctx, circle, radius)
 
 	// Draw text
 	f := r.effectiveFont(ctx)
@@ -163,6 +167,7 @@ func (r *Radio) Render(ctx *Context) {
 		if r.HasState(StateDisabled) {
 			textColor = global.ColorTextDisabled
 		}
+		textColor = r.AnimatedColor(ctx, "radio.text", textColor)
 		textX := bounds.X + boxSize + gap
 		textY := bounds.Y + (bounds.H-f.LineHeight())/2
 		ctx.Renderer.DrawText(r.text, textX, textY, f, textColor)

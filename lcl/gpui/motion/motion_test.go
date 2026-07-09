@@ -54,6 +54,23 @@ func TestTransitionReset(t *testing.T) {
 	}
 }
 
+func TestTransitionLoop(t *testing.T) {
+	tr := NewTransition(0, 100*time.Millisecond, Linear)
+	tr.SetLoop(true)
+	tr.SetTarget(1)
+
+	tr.Update(150 * time.Millisecond)
+	if !tr.Running() {
+		t.Fatal("looping transition should keep running")
+	}
+	if tr.Value() != 0.5 {
+		t.Fatalf("looping value = %v, want 0.5 after wrapping", tr.Value())
+	}
+	if !tr.Loop() {
+		t.Fatal("loop flag should be reported")
+	}
+}
+
 func TestTimeline(t *testing.T) {
 	timeline := NewTimeline()
 	timeline.Add("opacity", NewTransition(0, 100*time.Millisecond, Linear))

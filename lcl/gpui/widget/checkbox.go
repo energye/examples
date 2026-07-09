@@ -163,6 +163,9 @@ func (cb *Checkbox) Render(ctx *Context) {
 	} else if cb.HasState(StateHover) {
 		borderColor = checkColor
 	}
+	bgColor = cb.AnimatedColor(ctx, "checkbox.background", bgColor)
+	borderColor = cb.AnimatedColor(ctx, "checkbox.border", borderColor)
+	checkColor = cb.AnimatedColor(ctx, "checkbox.check", checkColor)
 
 	// Draw box
 	if cb.checked || cb.indeterminate {
@@ -178,6 +181,7 @@ func (cb *Checkbox) Render(ctx *Context) {
 		ctx.Renderer.StrokeRoundRect(box, radius, borderWidth, borderColor)
 	}
 	cb.RenderMotionOverlay(ctx, bounds)
+	cb.RenderFocusRing(ctx, box, radius)
 
 	// Draw text
 	f := cb.effectiveFont(ctx)
@@ -186,6 +190,7 @@ func (cb *Checkbox) Render(ctx *Context) {
 		if cb.HasState(StateDisabled) {
 			textColor = global.ColorTextDisabled
 		}
+		textColor = cb.AnimatedColor(ctx, "checkbox.text", textColor)
 		textX := boxX + boxSize + gap
 		textY := bounds.Y + (bounds.H-f.LineHeight())/2
 		ctx.Renderer.DrawText(cb.text, textX, textY, f, textColor)

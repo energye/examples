@@ -140,6 +140,7 @@ func (b *Button) SetLoading(loading bool) {
 	}
 	b.loading = loading
 	b.SetStateFlag(StateLoading, loading)
+	b.SetLoadingMotion(loading)
 }
 
 // Loading reports whether the button is loading.
@@ -229,18 +230,17 @@ func (b *Button) Render(ctx *Context) {
 	if b == nil || ctx == nil || ctx.Renderer == nil || !b.Visible() {
 		return
 	}
-	style := b.buttonStyle(ctx)
+	style := b.ResolveAnimatedControlStyle(ctx, b.buttonStyle(ctx))
 	bounds := b.Bounds()
 	ctx.Renderer.DrawBox(bounds, style.BoxStyle())
 	b.RenderMotionOverlay(ctx, bounds)
-
-	// Draw focus ring when focused
-	if b.HasState(StateFocus) {
-		focusRing := bounds.Expand(2)
-		ctx.Renderer.StrokeRoundRect(focusRing, style.Metrics.Radius+2, 2, ctx.Tokens.Global.ColorPrimary)
-	}
+	b.RenderFocusRing(ctx, bounds, style.Metrics.Radius)
 
 	f := b.effectiveFont(ctx)
+	if b.loading {
+		b.renderLoadingContent(ctx, bounds, style, f)
+		return
+	}
 	if f == nil || b.text == "" {
 		return
 	}
@@ -253,6 +253,28 @@ func (b *Button) Render(ctx *Context) {
 		Ellipsis:   true,
 		LineHeight: f.LineHeight(),
 	})
+}
+
+func (b *Button) renderLoadingContent(ctx *Context, bounds math.Rect, style ControlStyle, f *font.Font) {
+	iconSize := style.Metrics.Height * 0.45
+	gap := style.Metrics.IconGap
+	textWidth := float32(0)
+	if f != nil && b.text != "" {
+		textWidth = f.TextWidth(b.text)
+	}
+	totalWidth := iconSize
+	if textWidth > 0 {
+		totalWidth += gap + textWidth
+	}
+	x := bounds.X + (bounds.W-totalWidth)/2
+	center := math.NewVec2(x+iconSize/2, bounds.Y+bounds.H/2)
+	b.RenderLoadingSpinner(ctx, center, iconSize/2, style.Palette.Text)
+	if f == nil || b.text == "" {
+		return
+	}
+	textX := x + iconSize + gap
+	textY := bounds.Y + (bounds.H-f.LineHeight())/2
+	ctx.Renderer.DrawText(b.text, textX, textY, f, style.Palette.Text)
 }
 
 // HandleEvent applies shared button interaction.

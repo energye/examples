@@ -84,6 +84,32 @@
 | A-006 | Application 使用全局 currentApp 变量，不支持多实例                                               | UI 层 | ✅ |
 | A-007 | 无 DPI 缩放支持，Engine.Context() 硬编码 Scale=1                                             | 渲染层 | ✅ |
 
+#### A-002 Ant Design 控件底层能力关联表
+
+| Ant Design 能力基准 | 当前底层实现 | 什么时候使用 | 验证 |
+|---------------------|--------------|--------------|------|
+| 圆角控件边缘应平滑、轻量，描边不应粗重发黑 | `render/shader` 的 rounded rect SDF 使用屏幕空间 AA，`rounded_rect_stroke` 使用描边中线；`render/pipeline.DrawBox` 对圆角背景+边框优先走 `FillRoundRectWithBorder` | Button/Input/Select/Switch/Tag/Card/Modal 等所有圆角面板或控件边框 | `render/shader.TestRoundedRectShadersUseSoftScreenSpaceAntialiasing`、全量 `go test ./...` |
+| Hover/Active/Focus/Disabled 状态颜色应短时过渡而不是跳变 | `ControlSurface.AnimatedColor` 和 `ResolveAnimatedControlStyle` 基于 token motion duration 驱动颜色 transition；Button/Checkbox/Radio/Switch 已接入 | 所有有状态控件的文字、背景、边框、选择色、轨道色 | `widget.TestControlSurfaceAnimatedColorTransitionsToTarget`、全量 `go test ./...` |
+| 点击瞬间需要扩散 wave/ripple 反馈 | `widget.ControlSurface` 内置 press wave，支持 MouseDown/DoubleClick/键盘激活重启动画 | Button/Checkbox/Radio/Switch 及后续所有继承 `ControlSurface` 的可点击控件 | `widget.TestControlSurfacePointerStartsRippleTimeline`、`widget.TestControlSurfaceDoubleClickRestartsRippleTimeline` |
+| 状态切换类控件应响应每次快速点击 | `InteractionOptions.ClickOnMouseDown` 支持按下即激活；`Switch` 使用 mouse-down 激活、mouse-up 不重复激活，DoubleClick 仍会切换 | Switch、未来 Slider thumb/Segmented/Rate 等需要即时反馈的控件 | `widget.TestInteractionControllerCanActivateOnMouseDown`、`widget.TestSwitchRapidClicksToggleEveryActivation` |
+| 开关、滑块等位置变化应使用统一 motion timeline | `BaseWidget` 提供 `AddTransition`、`SetMotionTarget`、`MotionValue`；`Switch` thumb 使用 `switch.thumb.position` transition | Switch、Slider、Tabs ink bar、Collapse 展开、Modal/Dropdown 入场等状态位移动画 | `widget.TestSwitchCheckedStartsThumbTransition`、`ui.TestEngineUpdatesNestedLayoutAnimations` |
+| Loading 态需要视觉反馈并阻止重复触发 | `ControlSurface` 提供 `SetLoadingMotion` 和 `RenderLoadingSpinner`；Button/Switch 已接入循环 spinner | Button/Switch/Spin/Upload/Table loading，后续控件不要单独实现计时器 | `widget.TestControlSurfaceLoadingMotionLoops`、`widget.TestButtonLoadingBlocksClick`、`widget.TestSwitchLoadingStartsSpinnerMotion` |
+| 键盘可访问性需要明确 focus ring | `ControlSurface.ResolveFocusRing` / `RenderFocusRing` 统一 token 色焦点环；Button/Checkbox/Radio/Switch 已接入 | 所有可 focus 的输入/选择/操作控件；新增控件不要手写独立焦点环 | `widget.TestControlSurfaceFocusRingUsesTokenFallback`、`widget.TestControlSurfaceDisabledFocusRingHidden` |
+| Portal/Overlay 中的控件动画也要被主循环推进 | `Engine.updateWidgetAnimations` 遍历任意 `Children() []widget.Widget`，`PortalHost.Children()` 暴露内容树 | Tooltip/Popover/Dropdown/Modal/Notification/Message 内的控件和入退场动画 | `ui.TestEngineUpdatesPortalAnimations` |
+| 未来新增控件不应重新实现一套动效底座 | 交互控件继承 `ControlSurface`；只读/展示控件继承 `BaseWidget` 并按需注册 motion transition | 新增 Ant Design 控件时优先复用，不在控件内手写独立计时器 | `motion.TestTransitionReset`、`motion.TestTimeline` |
+
+#### Ant Design 后续控件能力接入清单
+
+| 能力 | 当前底座 | 后续落点 | 状态 |
+|------|----------|----------|------|
+| Popup 入场/退场动效（fade/slide/zoom） | `BaseWidget` motion timeline、`PortalHost.Children()` 动画遍历 | Dropdown/Select/Tooltip/Popover/Modal/Drawer | ⬜ |
+| 表单校验反馈动效与状态色 | `ComponentBase.Status`、Token semantic colors、ControlSurface wave | Form/Input/Select/Checkbox/Radio/Upload | ⬜ |
+| Slider/Rate/Segmented 的拖拽即时反馈 | `InteractionOptions.ClickOnMouseDown`、drag events、motion timeline | Slider/Rate/Segmented/Tabs ink bar | ⬜ |
+| Loading 防重复提交与 loading 图标动效 | `StateLoading`、`InteractionOptions.ConsumeLoading`、`ControlSurface.RenderLoadingSpinner` | Button/Switch 已接入；Spin/Table/Upload 待上层控件实现 | ⚠️ |
+| 键盘 roving focus 与方向键操作 | `FocusManager`、`EventKeyDown`、统一 interaction controller、`ControlSurface.RenderFocusRing` | 单控件焦点环已接入；Menu/Tabs/Radio.Group/Select/Tree/Table 的组内方向键导航待实现 | ⚠️ |
+| 大列表虚拟滚动和滚动阴影 | `LayoutContainer` scroll、render shadow/FBO 能力 | Select/Table/Tree/List/Transfer | ⬜ |
+| 控件级视觉快照回归 | render snapshot、R-024 GPU 端到端计划 | Button/Input/Switch/Checkbox/Radio/Select/Modal/Table | ⬜ |
+
 #### 功能缺失
 
 | ID | 缺失功能 | 所属模块 | 状态 |

@@ -42,6 +42,12 @@ func (r *Renderer) DrawBox(rect math.Rect, style BoxStyle) {
 		}
 	}
 
+	if !style.SkipBackground && !style.SkipBorder && !style.UseGradient &&
+		style.Radius > 0 && style.BorderWidth > 0 && style.BorderColor.A > 0 {
+		r.FillRoundRectWithBorder(rect, style.Radius, style.BorderWidth, style.Background, style.BorderColor)
+		return
+	}
+
 	if !style.SkipBackground {
 		if style.UseGradient {
 			if style.Radius > 0 {
