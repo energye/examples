@@ -604,6 +604,9 @@ void main() {
     float halfWidth = uLineWidth * 0.5;
     float aa = max(length(vec2(dFdx(dist), dFdy(dist))), 0.75);
     float alpha = 1.0 - smoothstep(halfWidth - aa, halfWidth + aa, dist);
+    if (alpha <= 0.0) {
+        discard;
+    }
 
     gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }
@@ -663,9 +666,61 @@ void main() {
     float dist2 = distToEdge(vPos, uV2, uV0);
     float dist = min(dist0, min(dist1, dist2));
 
-    // Anti-aliasing
+    // Signed distance is positive inside the original triangle and negative in
+    // the expanded coverage band around it.
     float aa = max(length(vec2(dFdx(dist), dFdy(dist))), 0.75);
-    float alpha = inside ? (1.0 - smoothstep(0.0, aa, dist)) : 0.0;
+    float signedDist = inside ? dist : -dist;
+    float alpha = smoothstep(-aa, aa, signedDist);
+    if (alpha <= 0.0) {
+        discard;
+    }
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+}
+` + "\x00",
+	},
+	"path_edge_aa": {
+		// Vertex shader for path edge antialiasing strips.
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform mat4 uProj;
+
+void main() {
+    vColor = aColor;
+    vPos = aPos;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for the outside coverage ramp of a filled path edge.
+		`#version 120
+varying vec4 vColor;
+varying vec2 vPos;
+uniform vec2 uEdgeStart;
+uniform vec2 uEdgeEnd;
+uniform vec2 uOutwardNormal;
+uniform float uAAWidth;
+
+void main() {
+    vec2 edge = uEdgeEnd - uEdgeStart;
+    float edgeLen = length(edge);
+    if (edgeLen < 0.001 || uAAWidth <= 0.001) {
+        discard;
+    }
+
+    vec2 tangent = edge / edgeLen;
+    float along = dot(vPos - uEdgeStart, tangent);
+    float endDist = max(max(-along, along - edgeLen), 0.0);
+    float outsideDist = dot(vPos - uEdgeStart, normalize(uOutwardNormal));
+    float dist = max(outsideDist, endDist);
+    float aa = max(uAAWidth, 0.75);
+    float alpha = 1.0 - smoothstep(0.0, aa, dist);
+    if (alpha <= 0.0) {
+        discard;
+    }
 
     gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }

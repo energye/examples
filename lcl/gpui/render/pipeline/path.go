@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	stdmath "math"
+
 	"github.com/energye/examples/lcl/gpui/core/gl"
 	"github.com/energye/examples/lcl/gpui/core/math"
 )
@@ -18,10 +20,10 @@ const (
 
 // PathCommand stores one vector path command.
 type PathCommand struct {
-	Kind   PathCommandKind
-	Pos    math.Vec2
-	Ctrl1  math.Vec2 // Control point 1 (for QuadTo/CubicTo)
-	Ctrl2  math.Vec2 // Control point 2 (for CubicTo)
+	Kind  PathCommandKind
+	Pos   math.Vec2
+	Ctrl1 math.Vec2 // Control point 1 (for QuadTo/CubicTo)
+	Ctrl2 math.Vec2 // Control point 2 (for CubicTo)
 }
 
 // Path stores a simple vector path.
@@ -52,8 +54,8 @@ func (p *Path) Close() {
 // QuadTo adds a quadratic Bezier curve segment.
 func (p *Path) QuadTo(cx, cy, x, y float32) {
 	p.commands = append(p.commands, PathCommand{
-		Kind: PathQuadTo,
-		Pos:  math.NewVec2(x, y),
+		Kind:  PathQuadTo,
+		Pos:   math.NewVec2(x, y),
 		Ctrl1: math.NewVec2(cx, cy),
 	})
 }
@@ -97,30 +99,20 @@ func (r *Renderer) StrokePath(path *Path, width float32, color math.Color) {
 			hasCurrent = true
 		case PathQuadTo:
 			if hasCurrent {
-				// Flatten quadratic Bezier to line segments
-				segments := 16
-				for i := 1; i <= segments; i++ {
-					t := float32(i) / float32(segments)
-					mt := 1 - t
-					x := mt*mt*current.X + 2*mt*t*cmd.Ctrl1.X + t*t*cmd.Pos.X
-					y := mt*mt*current.Y + 2*mt*t*cmd.Ctrl1.Y + t*t*cmd.Pos.Y
-					r.DrawLine(current.X, current.Y, x, y, width, color)
-					current = math.NewVec2(x, y)
+				points := flattenQuadBezier(current, cmd.Ctrl1, cmd.Pos, quadBezierSegmentCount(current, cmd.Ctrl1, cmd.Pos))
+				for _, point := range points {
+					r.DrawLine(current.X, current.Y, point.X, point.Y, width, color)
+					current = point
 				}
 			}
 			current = cmd.Pos
 			hasCurrent = true
 		case PathCubicTo:
 			if hasCurrent {
-				// Flatten cubic Bezier to line segments
-				segments := 16
-				for i := 1; i <= segments; i++ {
-					t := float32(i) / float32(segments)
-					mt := 1 - t
-					x := mt*mt*mt*current.X + 3*mt*mt*t*cmd.Ctrl1.X + 3*mt*t*t*cmd.Ctrl2.X + t*t*t*cmd.Pos.X
-					y := mt*mt*mt*current.Y + 3*mt*mt*t*cmd.Ctrl1.Y + 3*mt*t*t*cmd.Ctrl2.Y + t*t*t*cmd.Pos.Y
-					r.DrawLine(current.X, current.Y, x, y, width, color)
-					current = math.NewVec2(x, y)
+				points := flattenCubicBezier(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, cubicBezierSegmentCount(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos))
+				for _, point := range points {
+					r.DrawLine(current.X, current.Y, point.X, point.Y, width, color)
+					current = point
 				}
 			}
 			current = cmd.Pos
@@ -138,6 +130,7 @@ func (r *Renderer) StrokePath(path *Path, width float32, color math.Color) {
 func (r *Renderer) FillConvexPath(path *Path, color math.Color) {
 	points := pathPoints(path)
 	r.fillTriangleFan(points, color)
+	r.drawPathEdgeAA(points, color)
 }
 
 // FillPath fills simple subpaths. Non-convex paths are triangulated with ear clipping.
@@ -149,6 +142,7 @@ func (r *Renderer) FillPath(path *Path, color math.Color) {
 		triangles := triangulateSimplePolygon(points)
 		if len(triangles) == 0 {
 			r.fillTriangleFan(points, color)
+			r.drawPathEdgeAA(points, color)
 			continue
 		}
 
@@ -161,6 +155,7 @@ func (r *Renderer) FillPath(path *Path, color math.Color) {
 			}
 			r.addTriangle(shaderProg, 0, nil, verts)
 		}
+		r.drawPathEdgeAA(points, color)
 	}
 }
 
@@ -274,6 +269,54 @@ func (r *Renderer) fillSubpathTriangles(points []math.Vec2, color math.Color) {
 	}
 }
 
+func (r *Renderer) drawPathEdgeAA(points []math.Vec2, color math.Color) {
+	if r == nil || len(points) < 3 {
+		return
+	}
+	shaderProg := r.shaderMgr.GetShader("path_edge_aa")
+	if shaderProg == nil {
+		return
+	}
+	expanded := offsetPolygonForAA(points, primitiveAAWidth)
+	if len(expanded) != len(points) {
+		return
+	}
+
+	ccw := polygonArea(points) >= 0
+	for i, p0 := range points {
+		p1 := points[(i+1)%len(points)]
+		o0 := expanded[i]
+		o1 := expanded[(i+1)%len(points)]
+
+		edgeNormal, ok := outwardEdgeNormal(p0, p1, ccw)
+		if !ok {
+			continue
+		}
+		screenP0 := r.transformedShaderPoint(p0)
+		screenP1 := r.transformedShaderPoint(p1)
+		screenOut := r.transformedShaderPoint(p0.Add(edgeNormal.Scale(primitiveAAWidth))).Sub(screenP0)
+		screenAAWidth := screenOut.Length()
+		if screenAAWidth < 0.001 {
+			screenAAWidth = primitiveAAWidth
+			screenOut = edgeNormal
+		}
+
+		uniforms := UniformSet{
+			"uEdgeStart":     Vec2Uniform(screenP0.X, screenP0.Y),
+			"uEdgeEnd":       Vec2Uniform(screenP1.X, screenP1.Y),
+			"uOutwardNormal": Vec2Uniform(screenOut.X, screenOut.Y),
+			"uAAWidth":       FloatUniform(screenAAWidth),
+		}
+		verts := [4]Vertex{
+			colorVertex(p0, color),
+			colorVertex(p1, color),
+			colorVertex(o1, color),
+			colorVertex(o0, color),
+		}
+		r.addQuad(shaderProg, 0, uniforms, verts)
+	}
+}
+
 func pathSubpaths(path *Path) [][]math.Vec2 {
 	if path == nil {
 		return nil
@@ -295,11 +338,11 @@ func pathSubpaths(path *Path) [][]math.Vec2 {
 			current = append(current, cmd.Pos)
 			currentPos = cmd.Pos
 		case PathQuadTo:
-			flattened := flattenQuadBezier(currentPos, cmd.Ctrl1, cmd.Pos, 16)
+			flattened := flattenQuadBezier(currentPos, cmd.Ctrl1, cmd.Pos, quadBezierSegmentCount(currentPos, cmd.Ctrl1, cmd.Pos))
 			current = append(current, flattened...)
 			currentPos = cmd.Pos
 		case PathCubicTo:
-			flattened := flattenCubicBezier(currentPos, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, 16)
+			flattened := flattenCubicBezier(currentPos, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, cubicBezierSegmentCount(currentPos, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos))
 			current = append(current, flattened...)
 			currentPos = cmd.Pos
 		case PathClose:
@@ -448,13 +491,11 @@ func pathPoints(path *Path) []math.Vec2 {
 			current = cmd.Pos
 			points = append(points, cmd.Pos)
 		case PathQuadTo:
-			// Flatten quadratic Bezier to line segments
-			flattened := flattenQuadBezier(current, cmd.Ctrl1, cmd.Pos, 16)
+			flattened := flattenQuadBezier(current, cmd.Ctrl1, cmd.Pos, quadBezierSegmentCount(current, cmd.Ctrl1, cmd.Pos))
 			points = append(points, flattened...)
 			current = cmd.Pos
 		case PathCubicTo:
-			// Flatten cubic Bezier to line segments
-			flattened := flattenCubicBezier(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, 16)
+			flattened := flattenCubicBezier(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos, cubicBezierSegmentCount(current, cmd.Ctrl1, cmd.Ctrl2, cmd.Pos))
 			points = append(points, flattened...)
 			current = cmd.Pos
 		}
@@ -464,6 +505,7 @@ func pathPoints(path *Path) []math.Vec2 {
 
 // flattenQuadBezier flattens a quadratic Bezier curve into line segments
 func flattenQuadBezier(p0, p1, p2 math.Vec2, segments int) []math.Vec2 {
+	segments = clampBezierSegments(segments)
 	points := make([]math.Vec2, segments)
 	for i := 1; i <= segments; i++ {
 		t := float32(i) / float32(segments)
@@ -478,6 +520,7 @@ func flattenQuadBezier(p0, p1, p2 math.Vec2, segments int) []math.Vec2 {
 
 // flattenCubicBezier flattens a cubic Bezier curve into line segments
 func flattenCubicBezier(p0, p1, p2, p3 math.Vec2, segments int) []math.Vec2 {
+	segments = clampBezierSegments(segments)
 	points := make([]math.Vec2, segments)
 	for i := 1; i <= segments; i++ {
 		t := float32(i) / float32(segments)
@@ -488,6 +531,30 @@ func flattenCubicBezier(p0, p1, p2, p3 math.Vec2, segments int) []math.Vec2 {
 		points[i-1] = math.NewVec2(x, y)
 	}
 	return points
+}
+
+func quadBezierSegmentCount(p0, p1, p2 math.Vec2) int {
+	controlLen := p1.Sub(p0).Length() + p2.Sub(p1).Length()
+	chordLen := p2.Sub(p0).Length()
+	curvature := controlLen - chordLen
+	return clampBezierSegments(int(stdmath.Ceil(float64(controlLen/6 + curvature*0.75))))
+}
+
+func cubicBezierSegmentCount(p0, p1, p2, p3 math.Vec2) int {
+	controlLen := p1.Sub(p0).Length() + p2.Sub(p1).Length() + p3.Sub(p2).Length()
+	chordLen := p3.Sub(p0).Length()
+	curvature := controlLen - chordLen
+	return clampBezierSegments(int(stdmath.Ceil(float64(controlLen/6 + curvature*0.75))))
+}
+
+func clampBezierSegments(segments int) int {
+	if segments < 12 {
+		return 12
+	}
+	if segments > 128 {
+		return 128
+	}
+	return segments
 }
 
 func polygonCenter(points []math.Vec2) math.Vec2 {

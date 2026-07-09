@@ -151,20 +151,43 @@ func (r *Renderer) DrawLine(x1, y1, x2, y2, width float32, color math.Color) {
 	nx := dx / length
 	ny := dy / length
 
+	halfWidth := width * 0.5
+	geometryHalfWidth := halfWidth + primitiveAAWidth
+
+	// Expand the submitted geometry so the SDF shader has pixels outside the
+	// mathematical segment where it can draw the coverage ramp.
+	sx := x1 - nx*primitiveAAWidth
+	sy := y1 - ny*primitiveAAWidth
+	ex := x2 + nx*primitiveAAWidth
+	ey := y2 + ny*primitiveAAWidth
+
 	// Perpendicular
-	px := -ny * width * 0.5
-	py := nx * width * 0.5
+	px := -ny * geometryHalfWidth
+	py := nx * geometryHalfWidth
 
 	// Create quad
 	verts := [4]Vertex{
-		{X: x1 + px, Y: y1 + py, U: 0, V: 0, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: x1 - px, Y: y1 - py, U: 1, V: 0, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: x2 - px, Y: y2 - py, U: 1, V: 1, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: x2 + px, Y: y2 + py, U: 0, V: 1, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: sx + px, Y: sy + py, U: 0, V: 0, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: sx - px, Y: sy - py, U: 1, V: 0, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: ex - px, Y: ey - py, U: 1, V: 1, R: color.R, G: color.G, B: color.B, A: color.A},
+		{X: ex + px, Y: ey + py, U: 0, V: 1, R: color.R, G: color.G, B: color.B, A: color.A},
 	}
 
-	shaderProg := r.shaderMgr.GetShader("color")
-	r.addQuad(shaderProg, 0, nil, verts)
+	lineStart := r.transformedShaderPoint(math.NewVec2(x1, y1))
+	lineEnd := r.transformedShaderPoint(math.NewVec2(x2, y2))
+	screenWidth := transformedLineWidth(r, math.NewVec2(x1, y1), math.NewVec2(-ny*halfWidth, nx*halfWidth), width)
+	uniforms := UniformSet{
+		"uLineStart": Vec2Uniform(lineStart.X, lineStart.Y),
+		"uLineEnd":   Vec2Uniform(lineEnd.X, lineEnd.Y),
+		"uLineWidth": FloatUniform(screenWidth),
+	}
+
+	shaderProg := r.shaderMgr.GetShader("line")
+	if shaderProg == nil {
+		shaderProg = r.shaderMgr.GetShader("color")
+		uniforms = nil
+	}
+	r.addQuad(shaderProg, 0, uniforms, verts)
 }
 
 // DrawDashedLine draws a dashed line between two points.
@@ -249,13 +272,7 @@ func (r *Renderer) DrawArrow(center math.Vec2, size float32, direction int, colo
 	default:
 		return
 	}
-	shaderProg := r.shaderMgr.GetShader("color")
-	verts := [3]Vertex{
-		{X: p1.X, Y: p1.Y, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: p2.X, Y: p2.Y, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: p3.X, Y: p3.Y, R: color.R, G: color.G, B: color.B, A: color.A},
-	}
-	r.addTriangle(shaderProg, 0, nil, verts)
+	r.drawAATriangle(p1, p2, p3, color)
 }
 
 // DrawFilledTriangle draws a filled triangle from three vertices.
@@ -263,13 +280,51 @@ func (r *Renderer) DrawFilledTriangle(p1, p2, p3 math.Vec2, color math.Color) {
 	if r == nil {
 		return
 	}
-	shaderProg := r.shaderMgr.GetShader("color")
-	verts := [3]Vertex{
-		{X: p1.X, Y: p1.Y, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: p2.X, Y: p2.Y, R: color.R, G: color.G, B: color.B, A: color.A},
-		{X: p3.X, Y: p3.Y, R: color.R, G: color.G, B: color.B, A: color.A},
+	r.drawAATriangle(p1, p2, p3, color)
+}
+
+func (r *Renderer) drawAATriangle(p1, p2, p3 math.Vec2, color math.Color) {
+	expanded, ok := expandTriangleForAA(p1, p2, p3, primitiveAAWidth)
+	if !ok {
+		return
 	}
-	r.addTriangle(shaderProg, 0, nil, verts)
+	tp1 := r.transformedShaderPoint(p1)
+	tp2 := r.transformedShaderPoint(p2)
+	tp3 := r.transformedShaderPoint(p3)
+	uniforms := UniformSet{
+		"uV0": Vec2Uniform(tp1.X, tp1.Y),
+		"uV1": Vec2Uniform(tp2.X, tp2.Y),
+		"uV2": Vec2Uniform(tp3.X, tp3.Y),
+	}
+
+	shaderProg := r.shaderMgr.GetShader("triangle")
+	if shaderProg == nil {
+		shaderProg = r.shaderMgr.GetShader("color")
+		uniforms = nil
+		expanded = [3]math.Vec2{p1, p2, p3}
+	}
+	verts := [3]Vertex{
+		colorVertex(expanded[0], color),
+		colorVertex(expanded[1], color),
+		colorVertex(expanded[2], color),
+	}
+	r.addTriangle(shaderProg, 0, uniforms, verts)
+}
+
+func transformedLineWidth(r *Renderer, origin, halfOffset math.Vec2, fallback float32) float32 {
+	if r == nil || len(r.transformStack) == 0 {
+		return fallback
+	}
+	if halfOffset.Length() < 0.001 {
+		return fallback
+	}
+	a := r.transformedShaderPoint(origin.Add(halfOffset))
+	b := r.transformedShaderPoint(origin.Sub(halfOffset))
+	width := a.Sub(b).Length()
+	if width < 0.001 {
+		return fallback
+	}
+	return width
 }
 
 // DrawTextCursor draws a text cursor (caret) at the given position.
@@ -330,9 +385,9 @@ func (r *Renderer) DrawShadow(rect math.Rect, offset math.Vec2, blur float32, co
 	)
 
 	uniforms := UniformSet{
-		"uSize":  Vec2Uniform(rect.W, rect.H),
+		"uSize":   Vec2Uniform(rect.W, rect.H),
 		"uRadius": FloatUniform(4), // Default corner radius
-		"uBlur":  FloatUniform(blur),
+		"uBlur":   FloatUniform(blur),
 	}
 
 	uv := math.NewRect(0, 0, 1, 1)

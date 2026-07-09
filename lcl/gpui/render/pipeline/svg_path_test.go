@@ -45,6 +45,30 @@ func TestParseSVGPathFlattensCubic(t *testing.T) {
 	}
 }
 
+func TestBezierSegmentCountScalesWithCurveSize(t *testing.T) {
+	short := cubicBezierSegmentCount(
+		coremath.NewVec2(0, 0),
+		coremath.NewVec2(10, 0),
+		coremath.NewVec2(10, 10),
+		coremath.NewVec2(20, 10),
+	)
+	long := cubicBezierSegmentCount(
+		coremath.NewVec2(0, 0),
+		coremath.NewVec2(200, -120),
+		coremath.NewVec2(360, 260),
+		coremath.NewVec2(520, 40),
+	)
+	if short < 12 {
+		t.Fatalf("short curve segments = %d, want at least 12", short)
+	}
+	if long <= 16 {
+		t.Fatalf("long curve segments = %d, want more than the old fixed 16", long)
+	}
+	if long <= short {
+		t.Fatalf("long curve segments = %d, want greater than short curve %d", long, short)
+	}
+}
+
 func TestParseSVGPathSmoothCubicAndQuadratic(t *testing.T) {
 	path, err := ParseSVGPath("M0 0 C10 0 10 10 20 10 S30 20 40 10 Q50 0 60 10 T80 10")
 	if err != nil {

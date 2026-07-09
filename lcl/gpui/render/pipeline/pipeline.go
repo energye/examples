@@ -3,6 +3,7 @@ package pipeline
 
 import (
 	"fmt"
+	stdmath "math"
 	"sort"
 	"strings"
 	"unsafe"
@@ -86,19 +87,21 @@ func (u UniformSet) fastKey() uint64 {
 	if len(u) == 0 {
 		return 0
 	}
-	h := uint64(14695981039346656037) // FNV offset basis
+	h := uint64(14695981039346656037) ^ uint64(len(u))*1099511628211
 	for name, value := range u {
+		entry := uint64(14695981039346656037)
 		for i := 0; i < len(name); i++ {
-			h ^= uint64(name[i])
-			h *= 1099511628211
+			entry ^= uint64(name[i])
+			entry *= 1099511628211
 		}
-		h ^= uint64(value.Kind)
-		h *= 1099511628211
+		entry ^= uint64(value.Kind)
+		entry *= 1099511628211
 		for _, v := range value.Values {
-			bits := uint32(v)
-			h ^= uint64(bits)
-			h *= 1099511628211
+			bits := stdmath.Float32bits(v)
+			entry ^= uint64(bits)
+			entry *= 1099511628211
 		}
+		h ^= entry
 	}
 	return h
 }
@@ -198,9 +201,9 @@ type Batch struct {
 	uniformKey  string
 	uniformHash uint64
 	Clip        *math.Rect
-	clipKey    string
-	Verts      []Vertex
-	Indices    []uint32
+	clipKey     string
+	Verts       []Vertex
+	Indices     []uint32
 }
 
 // BatchManager manages draw batches
@@ -441,20 +444,20 @@ func (bm *BatchManager) FlushWithOffset(vao, vbo, ebo uint32, shaderMgr *shader.
 
 // Renderer is the main renderer
 type Renderer struct {
-	vao            uint32
-	vbo            uint32
-	ebo            uint32
-	shaderMgr      *shader.ShaderManager
-	batch          *BatchManager
-	projMatrix     [16]float32
-	width          float32
-	height         float32
-	clipStack      []math.Rect
+	vao             uint32
+	vbo             uint32
+	ebo             uint32
+	shaderMgr       *shader.ShaderManager
+	batch           *BatchManager
+	projMatrix      [16]float32
+	width           float32
+	height          float32
+	clipStack       []math.Rect
 	clipRadiusStack []float32
-	transformStack []math.Mat4
-	vboOffset      int32 // Current offset in VBO ring buffer
-	eboOffset      int32 // Current offset in EBO ring buffer
-	initialized    bool
+	transformStack  []math.Mat4
+	vboOffset       int32 // Current offset in VBO ring buffer
+	eboOffset       int32 // Current offset in EBO ring buffer
+	initialized     bool
 }
 
 // NewRenderer creates a new renderer

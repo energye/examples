@@ -98,6 +98,30 @@ func TestBeginFrameWithoutInitResetsCPUState(t *testing.T) {
 	}
 }
 
+func TestUniformFastKeyDistinguishesFractionalValues(t *testing.T) {
+	a := UniformSet{"uLineWidth": FloatUniform(0.25)}
+	b := UniformSet{"uLineWidth": FloatUniform(0.75)}
+	if a.fastKey() == b.fastKey() {
+		t.Fatal("fractional uniform values should not collide by integer truncation")
+	}
+}
+
+func TestUniformFastKeyIsOrderIndependent(t *testing.T) {
+	a := UniformSet{
+		"uLineStart": Vec2Uniform(0.25, 1.5),
+		"uLineEnd":   Vec2Uniform(100.75, 40.125),
+		"uLineWidth": FloatUniform(2.5),
+	}
+	b := UniformSet{
+		"uLineWidth": FloatUniform(2.5),
+		"uLineEnd":   Vec2Uniform(100.75, 40.125),
+		"uLineStart": Vec2Uniform(0.25, 1.5),
+	}
+	if a.fastKey() != b.fastKey() {
+		t.Fatal("equivalent uniform sets should have the same fast key")
+	}
+}
+
 func TestCaptureRGBAWithoutReadPixelsIsSafe(t *testing.T) {
 	r := NewRenderer()
 	r.width = 16

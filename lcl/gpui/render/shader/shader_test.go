@@ -40,3 +40,28 @@ func TestRoundedRectShadersUseSoftScreenSpaceAntialiasing(t *testing.T) {
 		t.Fatal("rounded rect stroke should use distance from the stroke centerline")
 	}
 }
+
+func TestLineAndTriangleShadersUseExpandedCoverageAntialiasing(t *testing.T) {
+	line := BuiltinShaderSources["line"][1]
+	if !strings.Contains(line, "smoothstep(halfWidth - aa, halfWidth + aa, dist)") {
+		t.Fatal("line shader should fade across the line SDF edge")
+	}
+
+	triangle := BuiltinShaderSources["triangle"][1]
+	if !strings.Contains(triangle, "signedDist = inside ? dist : -dist") {
+		t.Fatal("triangle shader should use a signed distance around the original triangle")
+	}
+	if !strings.Contains(triangle, "smoothstep(-aa, aa, signedDist)") {
+		t.Fatal("triangle shader should keep the interior opaque and fade only the edge")
+	}
+}
+
+func TestPathEdgeShaderDrawsOnlyOutsideCoverageRamp(t *testing.T) {
+	pathEdge := BuiltinShaderSources["path_edge_aa"][1]
+	if !strings.Contains(pathEdge, "uOutwardNormal") {
+		t.Fatal("path edge shader should know the path exterior direction")
+	}
+	if !strings.Contains(pathEdge, "1.0 - smoothstep(0.0, aa, dist)") {
+		t.Fatal("path edge shader should fade from the filled edge to transparent outside")
+	}
+}
