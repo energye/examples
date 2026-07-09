@@ -14,9 +14,13 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 		return
 	}
 
-	shaderProg := r.shaderMgr.GetShader("texture")
+	shaderProg := r.shaderMgr.GetShader("text")
+	if shaderProg == nil {
+		shaderProg = r.shaderMgr.GetShader("texture")
+	}
 
-	cx := x
+	cx := snapTextCoord(x)
+	topY := snapTextCoord(y)
 	ascent := f.Ascent()
 	for _, ch := range text {
 		g, ok := f.GetGlyph(ch)
@@ -25,8 +29,8 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 		}
 
 		if g.Width > 0 && g.Height > 0 {
-			gx := cx + g.BearingX
-			gy := y + ascent - g.BearingY
+			gx := snapTextCoord(cx + g.BearingX)
+			gy := snapTextCoord(topY + ascent - g.BearingY)
 
 			src := math.NewRect(g.U0, g.V0, g.U1-g.U0, g.V1-g.V0)
 			dst := math.NewRect(gx, gy, g.Width, g.Height)
@@ -37,6 +41,10 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 
 		cx += g.Advance
 	}
+}
+
+func snapTextCoord(v float32) float32 {
+	return float32(stdmath.Floor(float64(v) + 0.5))
 }
 
 // StrokeRect draws a rectangle outline (non-overlapping corners)

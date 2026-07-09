@@ -3,8 +3,8 @@ package pipeline
 import (
 	"image"
 	"image/color"
-	"path/filepath"
 	stdmath "math"
+	"path/filepath"
 	"testing"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
@@ -47,10 +47,10 @@ func TestDrawArrow(t *testing.T) {
 	fillImage(img, rgba(255, 255, 255, 255))
 
 	// Draw arrows in 4 directions
-	drawCPUArrow(img, 160, 100, 40, 0, rgba(22, 119, 255, 255))  // Up
-	drawCPUArrow(img, 480, 100, 40, 1, rgba(82, 196, 26, 255))   // Right
-	drawCPUArrow(img, 160, 320, 40, 2, rgba(255, 77, 79, 255))   // Down
-	drawCPUArrow(img, 480, 320, 40, 3, rgba(250, 173, 20, 255))  // Left
+	drawCPUArrow(img, 160, 100, 40, 0, rgba(22, 119, 255, 255)) // Up
+	drawCPUArrow(img, 480, 100, 40, 1, rgba(82, 196, 26, 255))  // Right
+	drawCPUArrow(img, 160, 320, 40, 2, rgba(255, 77, 79, 255))  // Down
+	drawCPUArrow(img, 480, 320, 40, 3, rgba(250, 173, 20, 255)) // Left
 
 	writePNG(t, filepath.Join(outDir, "arrow.png"), img)
 
@@ -76,9 +76,9 @@ func TestDrawTextCursor(t *testing.T) {
 	fillImage(img, rgba(255, 255, 255, 255))
 
 	// Draw cursor at different positions
-	drawCPURect(img, rectF{100-1, 100, 2, 20}, rgba(0, 0, 0, 255))
-	drawCPURect(img, rectF{200-1, 150, 2, 24}, rgba(22, 119, 255, 255))
-	drawCPURect(img, rectF{300-1, 200, 2, 28}, rgba(255, 0, 0, 255))
+	drawCPURect(img, rectF{100 - 1, 100, 2, 20}, rgba(0, 0, 0, 255))
+	drawCPURect(img, rectF{200 - 1, 150, 2, 24}, rgba(22, 119, 255, 255))
+	drawCPURect(img, rectF{300 - 1, 200, 2, 28}, rgba(255, 0, 0, 255))
 
 	writePNG(t, filepath.Join(outDir, "text_cursor.png"), img)
 
@@ -97,6 +97,22 @@ func TestDrawTextCursor(t *testing.T) {
 	}
 }
 
+func TestSnapTextCoordAlignsToNearestPixel(t *testing.T) {
+	cases := []struct {
+		in, want float32
+	}{
+		{10.1, 10},
+		{10.49, 10},
+		{10.5, 11},
+		{10.9, 11},
+	}
+	for _, tc := range cases {
+		if got := snapTextCoord(tc.in); got != tc.want {
+			t.Fatalf("snapTextCoord(%v) = %v, want %v", tc.in, got, tc.want)
+		}
+	}
+}
+
 // TestDrawSelectionHighlight verifies selection highlight rendering.
 func TestDrawSelectionHighlight(t *testing.T) {
 	outDir := snapshotOutputDir(t)
@@ -104,8 +120,8 @@ func TestDrawSelectionHighlight(t *testing.T) {
 	fillImage(img, rgba(255, 255, 255, 255))
 
 	// Draw selection highlights
-	drawCPURect(img, rectF{50, 100, 200, 20}, rgba(22, 119, 255, 64))  // Selection
-	drawCPURect(img, rectF{50, 150, 300, 20}, rgba(22, 119, 255, 64))  // Longer selection
+	drawCPURect(img, rectF{50, 100, 200, 20}, rgba(22, 119, 255, 64)) // Selection
+	drawCPURect(img, rectF{50, 150, 300, 20}, rgba(22, 119, 255, 64)) // Longer selection
 
 	writePNG(t, filepath.Join(outDir, "selection_highlight.png"), img)
 

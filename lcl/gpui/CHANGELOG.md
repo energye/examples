@@ -6,6 +6,33 @@
 
 > 每次更新后在此追加记录，格式：日期 | 阶段 | 完成内容 | 当前不足 | 下一步
 
+### 2026-07-09 | 渲染质量修复 | 文本渲染清晰度优化
+
+**完成内容**：
+- 修复字体 atlas 灰度 mask 直接作为 RGBA 颜色参与采样的问题：
+  - glyph atlas 改为白色 RGB + 覆盖率 alpha
+  - 新增 `text` shader，只使用 glyph alpha 作为文字覆盖率
+  - 避免 `texture * color` 后再走普通 alpha blend 导致的 alpha 双乘、笔画变淡和细小空白
+- `DrawText` 使用专用 text shader，并将文本起点/glyph quad 对齐到整像素，减少半像素采样造成的发虚
+- 新增字体 mask 写入、text shader 策略、文本坐标对齐单元测试
+- GPU 验证：
+  - `anti_aliasing` 示例生成 `/tmp/gpui-text-aa/gpu_anti_aliasing.png`
+  - `underline` 示例生成 `/tmp/gpui-text-underline/gpu_underline.png`
+  - `strikethrough` 示例生成 `/tmp/gpui-text-strike/gpu_strikethrough.png`
+  - 三张截图均通过 `cmd/validate_snapshot`
+- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+
+**当前不足**：
+- 目前仍是灰度 AA 文本渲染，尚未实现 LCD subpixel rendering；在需要亚像素字体渲染的平台可继续扩展
+
+**下一步**：
+- 若后续引入 DPI 缩放或不同字体大小缓存，继续保持 glyph atlas 的 alpha-only 语义和像素对齐策略
+
+**不足所在环节**：
+- 渲染层：字体渲染可进一步扩展亚像素/LCD 文本方案
+
+---
+
 ### 2026-07-09 | 底层支撑能力分析 | Ant Design 全量控件对标与底层能力补全
 
 **完成内容**：

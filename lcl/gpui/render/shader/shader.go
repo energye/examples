@@ -326,6 +326,48 @@ void main() {
 }
 ` + "\x00",
 	},
+	"text": {
+		// Vertex shader
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vPos;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform mat4 uProj;
+
+void main() {
+    vPos = aPos;
+    vUV = aUV;
+    vColor = aColor;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for grayscale glyph masks.
+		`#version 120
+varying vec2 vPos;
+varying vec2 vUV;
+varying vec4 vColor;
+uniform sampler2D uTex;
+uniform vec4 uClipRect;
+uniform float uClipRadius;
+
+void main() {
+    if (uClipRadius > 0.0) {
+        vec2 center = uClipRect.xy + uClipRect.zw * 0.5;
+        vec2 q = abs(vPos - center) - (uClipRect.zw * 0.5 - vec2(uClipRadius));
+        float d = length(max(q, 0.0)) - uClipRadius;
+        if (d > 0.5) discard;
+    }
+    float coverage = texture2D(uTex, vUV).a;
+    if (coverage <= 0.0) {
+        discard;
+    }
+    gl_FragColor = vec4(vColor.rgb, vColor.a * coverage);
+}
+` + "\x00",
+	},
 	"rounded_rect": {
 		// Vertex shader
 		`#version 120

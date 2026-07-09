@@ -25,6 +25,26 @@
 
 **当前进度**：Phase 0 ✅ + Phase 1 ✅ + Phase 2 ✅ 全部完成，准备进入 Phase 3
 
+### 2026-07-09 文本渲染清晰度修复 ✅
+
+**目标**：修复文本锯齿、发虚、笔画细小空白问题，使中英文文本边缘更实、更清晰。
+
+**完成内容**：
+- `render/font` glyph atlas 改为白色 RGB + 覆盖率 alpha，避免灰度 mask 同时污染 RGB 和 alpha
+- 新增 `text` shader，仅使用 glyph alpha 作为覆盖率输出文字颜色，避免 alpha 双乘导致边缘变淡、细笔画断续
+- `DrawText` 默认使用 `text` shader，并将文本起点与 glyph quad 对齐到整像素，减少半像素采样模糊
+- 新增字体 mask、text shader、文本坐标对齐测试
+
+**验证**：
+- `env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+- GPU 示例生成并验证：
+  - `/tmp/gpui-text-aa/gpu_anti_aliasing.png`
+  - `/tmp/gpui-text-underline/gpu_underline.png`
+  - `/tmp/gpui-text-strike/gpu_strikethrough.png`
+
+**遗留**：
+- 当前为灰度 AA 文本；LCD subpixel rendering 可作为后续增强，不影响本次清晰度修复结论
+
 ### 渲染测试覆盖总览
 
 | 指标 | 数值 |

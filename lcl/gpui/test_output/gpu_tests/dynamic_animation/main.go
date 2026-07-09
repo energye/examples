@@ -99,15 +99,14 @@ func (w *DynamicAnimationTestWidget) Render(ctx *widget.Context) {
 
 	// 测试6: 渐变色动画
 	hue := float32(stdmath.Mod(elapsed*60, 360))
-	r := float32(stdmath.Abs(stdmath.Sin(float64(hue)*stdmath.Pi/180)))
-	g := float32(stdmath.Abs(stdmath.Sin(float64(hue+120)*stdmath.Pi/180)))
-	b := float32(stdmath.Abs(stdmath.Sin(float64(hue+240)*stdmath.Pi/180)))
+	r := float32(stdmath.Abs(stdmath.Sin(float64(hue) * stdmath.Pi / 180)))
+	g := float32(stdmath.Abs(stdmath.Sin(float64(hue+120) * stdmath.Pi / 180)))
+	b := float32(stdmath.Abs(stdmath.Sin(float64(hue+240) * stdmath.Pi / 180)))
 	ctx.Renderer.FillRoundRect(math.NewRect(1200, 150, 200, 100), 16, math.NewColor(r, g, b, 1))
 
 	ctx.Renderer.PopClip()
 
 	// 触发重绘以维持动画
-	w.Invalidate()
 }
 
 func main() {

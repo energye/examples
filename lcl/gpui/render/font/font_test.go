@@ -1,6 +1,7 @@
 package font
 
 import (
+	"image"
 	"os"
 	"testing"
 
@@ -110,13 +111,13 @@ func TestFontTextWidthCalculation(t *testing.T) {
 
 func TestGlyphInfoMetrics(t *testing.T) {
 	g := &GlyphInfo{
-		U0:      0.0,
-		V0:      0.0,
-		U1:      0.5,
-		V1:      0.5,
-		Advance: 10,
-		Width:   8,
-		Height:  12,
+		U0:       0.0,
+		V0:       0.0,
+		U1:       0.5,
+		V1:       0.5,
+		Advance:  10,
+		Width:    8,
+		Height:   12,
 		BearingX: 1,
 		BearingY: 11,
 	}
@@ -135,6 +136,36 @@ func TestGlyphInfoMetrics(t *testing.T) {
 	}
 	if g.BearingY != 11 {
 		t.Fatalf("GlyphInfo.BearingY = %f, want 11", g.BearingY)
+	}
+}
+
+func TestDrawGlyphMaskStoresWhiteRGBWithCoverageAlpha(t *testing.T) {
+	dst := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	mask := image.NewAlpha(image.Rect(0, 0, 2, 2))
+	mask.Pix[mask.PixOffset(0, 0)] = 0
+	mask.Pix[mask.PixOffset(1, 0)] = 64
+	mask.Pix[mask.PixOffset(0, 1)] = 128
+	mask.Pix[mask.PixOffset(1, 1)] = 255
+
+	drawGlyphMask(dst, image.Rect(1, 1, 3, 3), mask, image.Point{})
+
+	checks := []struct {
+		x, y int
+		a    uint8
+	}{
+		{1, 1, 0},
+		{2, 1, 64},
+		{1, 2, 128},
+		{2, 2, 255},
+	}
+	for _, check := range checks {
+		off := dst.PixOffset(check.x, check.y)
+		if dst.Pix[off+0] != 255 || dst.Pix[off+1] != 255 || dst.Pix[off+2] != 255 || dst.Pix[off+3] != check.a {
+			t.Fatalf("pixel (%d,%d) = rgba(%d,%d,%d,%d), want white alpha %d",
+				check.x, check.y,
+				dst.Pix[off+0], dst.Pix[off+1], dst.Pix[off+2], dst.Pix[off+3],
+				check.a)
+		}
 	}
 }
 

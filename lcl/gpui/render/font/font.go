@@ -272,18 +272,17 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 	destX := cellX + glyphPadding
 	destY := cellY + glyphPadding
 
-	// Draw glyph
-	draw.Draw(atlas, image.Rect(destX, destY, destX+glyphW, destY+glyphH),
-		mask, maskp, draw.Over)
+	glyphRect := image.Rect(destX, destY, destX+glyphW, destY+glyphH)
+	drawGlyphMask(atlas, glyphRect, mask, maskp)
 
 	return &GlyphInfo{
-		U0:      float32(destX) / float32(atlasSize),
-		V0:      float32(destY) / float32(atlasSize),
-		U1:      float32(destX+glyphW) / float32(atlasSize),
-		V1:      float32(destY+glyphH) / float32(atlasSize),
-		Advance: fixed26_6ToFloat32(adv),
-		Width:   float32(glyphW),
-		Height:  float32(glyphH),
+		U0:       float32(destX) / float32(atlasSize),
+		V0:       float32(destY) / float32(atlasSize),
+		U1:       float32(destX+glyphW) / float32(atlasSize),
+		V1:       float32(destY+glyphH) / float32(atlasSize),
+		Advance:  fixed26_6ToFloat32(adv),
+		Width:    float32(glyphW),
+		Height:   float32(glyphH),
 		BearingX: float32(dr.Min.X),
 		BearingY: float32(-dr.Min.Y),
 	}, image.Rect(destX, destY, destX+glyphW, destY+glyphH), true
@@ -538,6 +537,49 @@ func unsafePtr(p []byte) uintptr {
 		return 0
 	}
 	return uintptr(unsafe.Pointer(&p[0]))
+}
+
+func drawGlyphMask(dst *image.RGBA, rect image.Rectangle, mask image.Image, maskp image.Point) {
+	if dst == nil || mask == nil || rect.Empty() {
+		return
+	}
+	rect = rect.Intersect(dst.Bounds())
+	if rect.Empty() {
+		return
+	}
+
+	if alpha, ok := mask.(*image.Alpha); ok {
+		for y := 0; y < rect.Dy(); y++ {
+			srcY := maskp.Y + y
+			if srcY < alpha.Rect.Min.Y || srcY >= alpha.Rect.Max.Y {
+				continue
+			}
+			for x := 0; x < rect.Dx(); x++ {
+				srcX := maskp.X + x
+				if srcX < alpha.Rect.Min.X || srcX >= alpha.Rect.Max.X {
+					continue
+				}
+				a := alpha.Pix[alpha.PixOffset(srcX, srcY)]
+				off := dst.PixOffset(rect.Min.X+x, rect.Min.Y+y)
+				dst.Pix[off+0] = 255
+				dst.Pix[off+1] = 255
+				dst.Pix[off+2] = 255
+				dst.Pix[off+3] = a
+			}
+		}
+		return
+	}
+
+	for y := 0; y < rect.Dy(); y++ {
+		for x := 0; x < rect.Dx(); x++ {
+			_, _, _, a16 := mask.At(maskp.X+x, maskp.Y+y).RGBA()
+			off := dst.PixOffset(rect.Min.X+x, rect.Min.Y+y)
+			dst.Pix[off+0] = 255
+			dst.Pix[off+1] = 255
+			dst.Pix[off+2] = 255
+			dst.Pix[off+3] = uint8(a16 >> 8)
+		}
+	}
 }
 
 func fontTextureGLReady() bool {

@@ -65,3 +65,16 @@ func TestPathEdgeShaderDrawsOnlyOutsideCoverageRamp(t *testing.T) {
 		t.Fatal("path edge shader should fade from the filled edge to transparent outside")
 	}
 }
+
+func TestTextShaderUsesMaskAlphaWithoutDoubleMultiplyingColor(t *testing.T) {
+	text := BuiltinShaderSources["text"][1]
+	if !strings.Contains(text, "coverage = texture2D(uTex, vUV).a") {
+		t.Fatal("text shader should use glyph mask alpha as coverage")
+	}
+	if !strings.Contains(text, "vec4(vColor.rgb, vColor.a * coverage)") {
+		t.Fatal("text shader should preserve text RGB and apply coverage only to alpha")
+	}
+	if strings.Contains(text, "texture2D(uTex, vUV) * vColor") {
+		t.Fatal("text shader should not multiply glyph mask RGB into text color")
+	}
+}
