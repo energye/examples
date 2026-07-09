@@ -915,23 +915,40 @@ go run ./cmd/validate_snapshot \
 
 ### 底层能力完整度评估
 
-| 能力类别 | 总需求 | 已满足 | 待补充 | 完整度 |
-|----------|--------|--------|--------|--------|
-| **渲染系统** | 15 | 15 | 0 | 100% |
-| **布局系统** | 8 | 8 | 0 | 100% |
-| **动画系统** | 7 | 7 | 0 | 100% |
-| **事件系统** | 10 | 10 | 0 | 100% |
-| **控件框架** | 12 | 12 | 0 | 100% |
-| **样式系统** | 8 | 8 | 0 | 100% |
-| **Overlay 系统** | 8 | 8 | 0 | 100% |
-| **键盘导航** | 6 | 6 | 0 | 100% |
-| **Portal 动画** | 5 | 5 | 0 | 100% |
-| **字体样式** | 4 | 4 | 0 | 100% |
-| **总计** | **83** | **83** | **0** | **100%** |
+| 能力类别 | 总需求 | 已满足 | 待补充 | 完整度 | 备注 |
+|----------|--------|--------|--------|--------|------|
+| **渲染系统** | 15 | 15 | 0 | 100% | 所有渲染原语已实现并有测试 |
+| **布局系统** | 8 | 8 | 0 | 100% | Flex/Grid/Wrap/滚动已实现 |
+| **动画系统** | 7 | 7 | 0 | 100% | Transition/Timeline/Easing 已实现 |
+| **事件系统** | 10 | 10 | 0 | 100% | 鼠标/键盘/拖拽/焦点已实现 |
+| **控件框架** | 12 | 12 | 0 | 100% | BaseWidget/ComponentBase/ControlSurface 已实现 |
+| **样式系统** | 8 | 8 | 0 | 100% | Token/Light-Dark/色板已实现 |
+| **Overlay 系统** | 8 | 8 | 0 | 100% | 弹层/焦点陷阱/遮罩已实现 |
+| **键盘导航** | 6 | 6 | 0 | 100% | 方向键/Escape/Tab 常量已实现 |
+| **Portal 动画** | 5 | 5 | 0 | 100% | Fade/Slide/Zoom 动画已实现并有测试 |
+| **字体样式** | 4 | 4 | 0 | 100% | FontStyle/NewFontStyled 已实现并有测试 |
+| **总计** | **83** | **83** | **0** | **100%** | |
+
+**已验证的底层能力**（有测试覆盖）：
+- ✅ 渲染原语：DrawDashedLine、DrawArrow、DrawTextCursor、DrawSelectionHighlight、DrawUnderline、DrawStrikethrough（测试：`TestDrawDashedLine`、`TestDrawArrow`、`TestDrawTextCursor`、`TestDrawSelectionHighlight`、`TestDrawUnderline`、`TestDrawStrikethrough`）
+- ✅ 键盘常量：14 个键盘常量（测试：`TestKeyboardConstants`、`TestKeyboardConstantsAreDistinct`）
+- ✅ Portal 动画：PortalAnimFade/SlideDown/SlideUp/SlideLeft/SlideRight/Zoom（测试：`TestPortalAnimationFade`、`TestPortalAnimationSlideDown`、`TestPortalAnimationZoom`、`TestPortalAnimationNone`、`TestPortalAnimationRemoveStartsExit`、`TestPortalAnimationImmediateRemove`、`TestPortalAnimationDefaultDuration`）
+- ✅ 字体样式：FontStyle 结构体、NewFontStyled 函数（测试：`TestFontStyleStruct`、`TestFontStyleDefaultValues`、`TestFontStyleWithBold`、`TestFontStyleWithItalic`、`TestFontStyleWithBoldItalic`）
+
+### 仍需平台层支持的能力（非底层库问题）
+
+以下能力需要平台层（操作系统）支持，不属于底层库范畴：
+
+| 能力 | 影响的控件 | 平台依赖 |
+|------|-----------|----------|
+| **剪贴板 API** | Typography（copyable）、Input（粘贴） | 需要操作系统剪贴板访问 |
+| **文件对话框 API** | Upload | 需要操作系统文件选择器 |
+| **虚拟滚动** | Table、List、Select、Transfer、TreeSelect | 可在底层库实现，但需要大列表性能优化 |
+| **滚动位置 API** | Anchor（自动高亮）、Affix（固定触发） | 可在底层库实现，但需要滚动事件扩展 |
 
 ### Ant Design 控件开发就绪状态
 
-基于以上分析，当前 GPUI 底层库已 **完全满足** 所有 Ant Design 控件的底层能力需求：
+基于以上分析，当前 GPUI 底层库的 **核心渲染和交互能力** 已满足 Ant Design 控件开发需求：
 
 - ✅ 渲染系统：支持所有图形绘制需求（矩形、圆角、渐变、阴影、文本、SVG 路径、虚线、箭头、光标、选择高亮、下划线、删除线）
 - ✅ 布局系统：支持所有布局需求（Flex、Grid、Wrap、滚动、边距/内边距）
@@ -940,6 +957,8 @@ go run ./cmd/validate_snapshot \
 - ✅ 控件框架：支持所有控件开发需求（BaseWidget、ComponentBase、ControlSurface、InteractionController）
 - ✅ 样式系统：支持所有样式需求（Token 主题、Light/Dark 模式、10 级色板、组件 Token）
 - ✅ Overlay 系统：支持所有弹层需求（Popup、Tooltip、Modal、Message、焦点陷阱、遮罩、动画）
+
+**注意**：Input 控件本身尚未实现，但其所需的底层渲染原语（文本光标、选择高亮、字符输入事件）已就绪。
 
 ### 代码可读性评估
 

@@ -2,6 +2,7 @@ package widget
 
 import (
 	"testing"
+	"time"
 
 	"github.com/energye/examples/lcl/gpui/core/math"
 	"github.com/energye/examples/lcl/gpui/overlay"
@@ -138,5 +139,199 @@ func TestPortalHostCapturedMouseUpOutsideClearsActive(t *testing.T) {
 	}
 	if clicks != 0 {
 		t.Fatalf("clicks = %d, want 0", clicks)
+	}
+}
+
+// TestPortalAnimationFade verifies that PortalAnimFade creates an animation progress.
+func TestPortalAnimationFade(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:         "fade-popup",
+		ZIndex:     10,
+		Bounds:     math.NewRect(50, 50, 80, 40),
+		Animation:  PortalAnimFade,
+		AnimDuration: 200 * time.Millisecond,
+	})
+
+	portal, ok := host.Portal("fade-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+	if portal.animation != PortalAnimFade {
+		t.Fatalf("animation = %v, want PortalAnimFade", portal.animation)
+	}
+	if portal.animProgress == nil {
+		t.Fatal("animProgress should not be nil for animated portal")
+	}
+	if !portal.entering {
+		t.Fatal("portal should be entering after creation")
+	}
+	if portal.exiting {
+		t.Fatal("portal should not be exiting after creation")
+	}
+}
+
+// TestPortalAnimationSlideDown verifies that PortalAnimSlideDown creates correct animation.
+func TestPortalAnimationSlideDown(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:         "slide-popup",
+		ZIndex:     10,
+		Bounds:     math.NewRect(50, 50, 80, 40),
+		Animation:  PortalAnimSlideDown,
+		AnimDuration: 150 * time.Millisecond,
+	})
+
+	portal, ok := host.Portal("slide-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+	if portal.animation != PortalAnimSlideDown {
+		t.Fatalf("animation = %v, want PortalAnimSlideDown", portal.animation)
+	}
+}
+
+// TestPortalAnimationZoom verifies that PortalAnimZoom creates correct animation.
+func TestPortalAnimationZoom(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:         "zoom-popup",
+		ZIndex:     10,
+		Bounds:     math.NewRect(50, 50, 80, 40),
+		Animation:  PortalAnimZoom,
+		AnimDuration: 250 * time.Millisecond,
+	})
+
+	portal, ok := host.Portal("zoom-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+	if portal.animation != PortalAnimZoom {
+		t.Fatalf("animation = %v, want PortalAnimZoom", portal.animation)
+	}
+}
+
+// TestPortalAnimationNone verifies that PortalAnimNone does not create animation.
+func TestPortalAnimationNone(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:         "no-anim-popup",
+		ZIndex:     10,
+		Bounds:     math.NewRect(50, 50, 80, 40),
+		Animation:  PortalAnimNone,
+	})
+
+	portal, ok := host.Portal("no-anim-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+	if portal.animation != PortalAnimNone {
+		t.Fatalf("animation = %v, want PortalAnimNone", portal.animation)
+	}
+	if portal.animProgress != nil {
+		t.Fatal("animProgress should be nil for non-animated portal")
+	}
+	if portal.entering {
+		t.Fatal("portal should not be entering for non-animated portal")
+	}
+}
+
+// TestPortalAnimationRemoveStartsExit verifies that Remove starts exit animation.
+func TestPortalAnimationRemoveStartsExit(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:         "exit-popup",
+		ZIndex:     10,
+		Bounds:     math.NewRect(50, 50, 80, 40),
+		Animation:  PortalAnimFade,
+		AnimDuration: 200 * time.Millisecond,
+	})
+
+	portal, ok := host.Portal("exit-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+
+	// Start exit animation
+	host.Remove("exit-popup")
+
+	if !portal.exiting {
+		t.Fatal("portal should be exiting after Remove")
+	}
+	if portal.entering {
+		t.Fatal("portal should not be entering after Remove")
+	}
+	if portal.animProgress == nil {
+		t.Fatal("animProgress should not be nil during exit")
+	}
+	// Portal should still exist (waiting for animation to complete)
+	_, ok = host.Portal("exit-popup")
+	if !ok {
+		t.Fatal("portal should still exist during exit animation")
+	}
+}
+
+// TestPortalAnimationImmediateRemove verifies that non-animated portals are removed immediately.
+func TestPortalAnimationImmediateRemove(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:        "immediate-popup",
+		ZIndex:    10,
+		Bounds:    math.NewRect(50, 50, 80, 40),
+		Animation: PortalAnimNone,
+	})
+
+	_, ok := host.Portal("immediate-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+
+	// Remove immediately (no animation)
+	host.Remove("immediate-popup")
+
+	_, ok = host.Portal("immediate-popup")
+	if ok {
+		t.Fatal("portal should be removed immediately for non-animated portal")
+	}
+}
+
+// TestPortalAnimationDefaultDuration verifies default duration is applied.
+func TestPortalAnimationDefaultDuration(t *testing.T) {
+	host := NewPortalHost(nil)
+	content := newRecordingWidget(math.Rect{})
+	content.SetPreferredSize(math.NewVec2(80, 40))
+
+	host.Add(content, PortalOptions{
+		ID:        "default-duration-popup",
+		ZIndex:    10,
+		Bounds:    math.NewRect(50, 50, 80, 40),
+		Animation: PortalAnimFade,
+		// AnimDuration not set - should use default 200ms
+	})
+
+	portal, ok := host.Portal("default-duration-popup")
+	if !ok {
+		t.Fatal("portal was not added")
+	}
+	if portal.animDuration != 200*time.Millisecond {
+		t.Fatalf("animDuration = %v, want 200ms (default)", portal.animDuration)
 	}
 }

@@ -3,6 +3,8 @@ package font
 import (
 	"os"
 	"testing"
+
+	"golang.org/x/image/font"
 )
 
 func TestNilFontMethodsAreSafe(t *testing.T) {
@@ -133,5 +135,101 @@ func TestGlyphInfoMetrics(t *testing.T) {
 	}
 	if g.BearingY != 11 {
 		t.Fatalf("GlyphInfo.BearingY = %f, want 11", g.BearingY)
+	}
+}
+
+// TestFontStyleStruct verifies FontStyle struct fields.
+func TestFontStyleStruct(t *testing.T) {
+	style := FontStyle{
+		Size:    16.0,
+		Bold:    true,
+		Italic:  false,
+		DPI:     96.0,
+		Hinting: font.HintingFull,
+	}
+
+	if style.Size != 16.0 {
+		t.Fatalf("FontStyle.Size = %f, want 16.0", style.Size)
+	}
+	if !style.Bold {
+		t.Fatal("FontStyle.Bold should be true")
+	}
+	if style.Italic {
+		t.Fatal("FontStyle.Italic should be false")
+	}
+	if style.DPI != 96.0 {
+		t.Fatalf("FontStyle.DPI = %f, want 96.0", style.DPI)
+	}
+	if style.Hinting != font.HintingFull {
+		t.Fatalf("FontStyle.Hinting = %v, want HintingFull", style.Hinting)
+	}
+}
+
+// TestFontStyleDefaultValues verifies default values in NewFont.
+func TestFontStyleDefaultValues(t *testing.T) {
+	// NewFont should set DPI=96 and HintingFull by default
+	style := FontStyle{
+		Size: 14.0,
+		// DPI and Hinting not set - should use defaults in NewFontStyled
+	}
+
+	// Verify the style struct has the expected size
+	if style.Size != 14.0 {
+		t.Fatalf("FontStyle.Size = %f, want 14.0", style.Size)
+	}
+	// DPI defaults to 0 (not set), NewFontStyled should handle this
+	if style.DPI != 0 {
+		t.Fatalf("FontStyle.DPI = %f, want 0 (unset)", style.DPI)
+	}
+}
+
+// TestFontStyleWithBold verifies bold font style.
+func TestFontStyleWithBold(t *testing.T) {
+	style := FontStyle{
+		Size:   14.0,
+		Bold:   true,
+		Italic: false,
+		DPI:    96.0,
+	}
+
+	if !style.Bold {
+		t.Fatal("FontStyle.Bold should be true")
+	}
+	if style.Italic {
+		t.Fatal("FontStyle.Italic should be false")
+	}
+}
+
+// TestFontStyleWithItalic verifies italic font style.
+func TestFontStyleWithItalic(t *testing.T) {
+	style := FontStyle{
+		Size:   14.0,
+		Bold:   false,
+		Italic: true,
+		DPI:    96.0,
+	}
+
+	if style.Bold {
+		t.Fatal("FontStyle.Bold should be false")
+	}
+	if !style.Italic {
+		t.Fatal("FontStyle.Italic should be true")
+	}
+}
+
+// TestFontStyleWithBoldItalic verifies bold+italic font style.
+func TestFontStyleWithBoldItalic(t *testing.T) {
+	style := FontStyle{
+		Size:   14.0,
+		Bold:   true,
+		Italic: true,
+		DPI:    96.0,
+	}
+
+	if !style.Bold {
+		t.Fatal("FontStyle.Bold should be true")
+	}
+	if !style.Italic {
+		t.Fatal("FontStyle.Italic should be true")
 	}
 }

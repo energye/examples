@@ -188,6 +188,7 @@ func (h *PortalHost) Add(content Widget, options PortalOptions) {
 		if duration <= 0 {
 			duration = 200 * time.Millisecond
 		}
+		portal.animDuration = duration
 		portal.animProgress = motion.NewTransition(0, duration, motion.EaseOut)
 		portal.animProgress.SetTarget(1)
 		portal.entering = true

@@ -195,3 +195,74 @@ func TestBoxClickRequiresPress(t *testing.T) {
 		t.Fatalf("clicks = %d, want 1", clicks)
 	}
 }
+
+// TestKeyboardConstants verifies that all keyboard constants have correct values.
+func TestKeyboardConstants(t *testing.T) {
+	// Verify standard key codes
+	if keyEnter != 13 {
+		t.Fatalf("keyEnter = %d, want 13", keyEnter)
+	}
+	if keySpace != 32 {
+		t.Fatalf("keySpace = %d, want 32", keySpace)
+	}
+	if keyEscape != 27 {
+		t.Fatalf("keyEscape = %d, want 27", keyEscape)
+	}
+	if keyTab != 9 {
+		t.Fatalf("keyTab = %d, want 9", keyTab)
+	}
+	if keyBackspace != 8 {
+		t.Fatalf("keyBackspace = %d, want 8", keyBackspace)
+	}
+	if keyDelete != 46 {
+		t.Fatalf("keyDelete = %d, want 46", keyDelete)
+	}
+	if keyArrowLeft != 37 {
+		t.Fatalf("keyArrowLeft = %d, want 37", keyArrowLeft)
+	}
+	if keyArrowUp != 38 {
+		t.Fatalf("keyArrowUp = %d, want 38", keyArrowUp)
+	}
+	if keyArrowRight != 39 {
+		t.Fatalf("keyArrowRight = %d, want 39", keyArrowRight)
+	}
+	if keyArrowDown != 40 {
+		t.Fatalf("keyArrowDown = %d, want 40", keyArrowDown)
+	}
+	if keyHome != 36 {
+		t.Fatalf("keyHome = %d, want 36", keyHome)
+	}
+	if keyEnd != 35 {
+		t.Fatalf("keyEnd = %d, want 35", keyEnd)
+	}
+	if keyPageUp != 33 {
+		t.Fatalf("keyPageUp = %d, want 33", keyPageUp)
+	}
+	if keyPageDown != 34 {
+		t.Fatalf("keyPageDown = %d, want 34", keyPageDown)
+	}
+}
+
+// TestKeyboardConstantsAreDistinct verifies that all keyboard constants are unique.
+func TestKeyboardConstantsAreDistinct(t *testing.T) {
+	constants := map[int]string{
+		keyEnter:      "keyEnter",
+		keySpace:      "keySpace",
+		keyEscape:     "keyEscape",
+		keyTab:        "keyTab",
+		keyBackspace:  "keyBackspace",
+		keyDelete:     "keyDelete",
+		keyArrowLeft:  "keyArrowLeft",
+		keyArrowUp:    "keyArrowUp",
+		keyArrowRight: "keyArrowRight",
+		keyArrowDown:  "keyArrowDown",
+		keyHome:       "keyHome",
+		keyEnd:        "keyEnd",
+		keyPageUp:     "keyPageUp",
+		keyPageDown:   "keyPageDown",
+	}
+
+	if len(constants) != 14 {
+		t.Fatalf("expected 14 distinct keyboard constants, got %d", len(constants))
+	}
+}
