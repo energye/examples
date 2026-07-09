@@ -32,35 +32,57 @@ func NewTextCursorTestWidget() *TextCursorTestWidget {
 
 // Render 渲染文本光标测试内容
 func (w *TextCursorTestWidget) Render(ctx *widget.Context) {
-	if w == nil || ctx == nil || ctx.Renderer == nil {
+	if w == nil || ctx == nil || ctx.Renderer == nil || ctx.Font == nil {
 		return
 	}
 	bounds := w.Bounds()
 	ctx.Renderer.PushClip(bounds)
 
+	f := ctx.Font
+
 	// 测试1: 不同位置光标
-	ctx.Renderer.DrawText("Hello World", 100, 120, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(100, 120, 24, 2, math.NewColor(0, 0, 0, 1)) // 开头
-	ctx.Renderer.DrawTextCursor(200, 120, 24, 2, math.NewColor(0, 0, 0, 1)) // 中间
-	ctx.Renderer.DrawTextCursor(350, 120, 24, 2, math.NewColor(0, 0, 0, 1)) // 结尾
+	text := "Hello World"
+	textX := float32(100)
+	textY := float32(120)
+	ctx.Renderer.DrawText(text, textX, textY, f, math.NewColor(0, 0, 0, 1))
+	// 开头光标
+	ctx.Renderer.DrawTextCursor(textX, textY, f.LineHeight(), 2, math.NewColor(0, 0, 0, 1))
+	// 中间光标 (在 "Hello " 之后)
+	midWidth := f.TextWidth("Hello ")
+	ctx.Renderer.DrawTextCursor(textX+midWidth, textY, f.LineHeight(), 2, math.NewColor(0, 0, 0, 1))
+	// 结尾光标
+	endWidth := f.TextWidth(text)
+	ctx.Renderer.DrawTextCursor(textX+endWidth, textY, f.LineHeight(), 2, math.NewColor(0, 0, 0, 1))
 
 	// 测试2: 不同高度光标
-	ctx.Renderer.DrawTextCursor(100, 280, 16, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(300, 280, 24, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(500, 280, 32, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(700, 280, 48, 2, math.NewColor(0, 0, 0, 1))
+	text2 := "Height Test"
+	text2X := float32(100)
+	text2Y := float32(280)
+	ctx.Renderer.DrawText(text2, text2X, text2Y, f, math.NewColor(0, 0, 0, 0.5))
+	ctx.Renderer.DrawTextCursor(text2X, text2Y, 16, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text2X+200, text2Y, 24, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text2X+400, text2Y, 32, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text2X+600, text2Y, 48, 2, math.NewColor(0, 0, 0, 1))
 
 	// 测试3: 不同宽度光标
-	ctx.Renderer.DrawTextCursor(100, 430, 24, 1, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(300, 430, 24, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(500, 430, 24, 3, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawTextCursor(700, 430, 24, 4, math.NewColor(0, 0, 0, 1))
+	text3 := "Width Test"
+	text3X := float32(100)
+	text3Y := float32(430)
+	ctx.Renderer.DrawText(text3, text3X, text3Y, f, math.NewColor(0, 0, 0, 0.5))
+	ctx.Renderer.DrawTextCursor(text3X, text3Y, f.LineHeight(), 1, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text3X+200, text3Y, f.LineHeight(), 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text3X+400, text3Y, f.LineHeight(), 3, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawTextCursor(text3X+600, text3Y, f.LineHeight(), 4, math.NewColor(0, 0, 0, 1))
 
 	// 测试4: 不同颜色光标
-	ctx.Renderer.DrawTextCursor(100, 580, 24, 2, math.NewColor(0, 0, 0, 1)) // 黑
-	ctx.Renderer.DrawTextCursor(300, 580, 24, 2, math.NewColor(1, 0, 0, 1)) // 红
-	ctx.Renderer.DrawTextCursor(500, 580, 24, 2, math.NewColor(0, 0, 1, 1)) // 蓝
-	ctx.Renderer.DrawTextCursor(700, 580, 24, 2, math.NewColor(0, 1, 0, 1)) // 绿
+	text4 := "Color Test"
+	text4X := float32(100)
+	text4Y := float32(580)
+	ctx.Renderer.DrawText(text4, text4X, text4Y, f, math.NewColor(0, 0, 0, 0.5))
+	ctx.Renderer.DrawTextCursor(text4X, text4Y, f.LineHeight(), 2, math.NewColor(0, 0, 0, 1))   // 黑
+	ctx.Renderer.DrawTextCursor(text4X+200, text4Y, f.LineHeight(), 2, math.NewColor(1, 0, 0, 1)) // 红
+	ctx.Renderer.DrawTextCursor(text4X+400, text4Y, f.LineHeight(), 2, math.NewColor(0, 0, 1, 1)) // 蓝
+	ctx.Renderer.DrawTextCursor(text4X+600, text4Y, f.LineHeight(), 2, math.NewColor(0, 1, 0, 1)) // 绿
 
 	ctx.Renderer.PopClip()
 }

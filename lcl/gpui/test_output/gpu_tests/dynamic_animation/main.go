@@ -105,6 +105,9 @@ func (w *DynamicAnimationTestWidget) Render(ctx *widget.Context) {
 	ctx.Renderer.FillRoundRect(math.NewRect(1200, 150, 200, 100), 16, math.NewColor(r, g, b, 1))
 
 	ctx.Renderer.PopClip()
+
+	// 触发重绘以维持动画
+	w.Invalidate()
 }
 
 func main() {

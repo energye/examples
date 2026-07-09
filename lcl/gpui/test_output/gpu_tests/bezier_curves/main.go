@@ -43,13 +43,13 @@ func (w *BezierTestWidget) Render(ctx *widget.Context) {
 	path1 := pipeline.NewPath()
 	path1.MoveTo(100, 200)
 	path1.QuadTo(300, 100, 500, 200)
-	ctx.Renderer.StrokePath(path1, 2, math.NewColor(0, 0, 1, 1))
+	ctx.Renderer.StrokePath(path1, 3, math.NewColor(0, 0, 1, 1))
 
 	// 测试2: 三次贝塞尔曲线
 	path2 := pipeline.NewPath()
 	path2.MoveTo(100, 350)
 	path2.CubicTo(200, 250, 400, 450, 500, 350)
-	ctx.Renderer.StrokePath(path2, 2, math.NewColor(1, 0, 0, 1))
+	ctx.Renderer.StrokePath(path2, 3, math.NewColor(1, 0, 0, 1))
 
 	// 测试3: 复杂贝塞尔曲线（心形）
 	path3 := pipeline.NewPath()
@@ -63,15 +63,18 @@ func (w *BezierTestWidget) Render(ctx *widget.Context) {
 	path3.Close()
 	ctx.Renderer.FillPath(path3, math.NewColor(1, 0.2, 0.4, 1))
 
-	// 测试4: 螺旋线
+	// 测试4: 螺旋线 - 从中心开始螺旋
+	spiralCx := float32(1200)
+	spiralCy := float32(300)
 	path4 := pipeline.NewPath()
-	path4.MoveTo(1200, 300)
-	for i := 0; i < 360; i++ {
+	// 从中心开始，初始半径为0
+	path4.MoveTo(spiralCx, spiralCy)
+	for i := 1; i <= 720; i++ {
 		t := float64(i) * stdmath.Pi / 180
-		r := 50 + float64(i)*0.3
-		x := 1200 + r*stdmath.Cos(t)
-		y := 300 + r*stdmath.Sin(t)
-		path4.LineTo(float32(x), float32(y))
+		r := float64(i) * 0.15 // 半径从0开始增长
+		x := spiralCx + float32(r*stdmath.Cos(t))
+		y := spiralCy + float32(r*stdmath.Sin(t))
+		path4.LineTo(x, y)
 	}
 	ctx.Renderer.StrokePath(path4, 2, math.NewColor(0, 1, 0, 1))
 

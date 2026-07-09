@@ -32,33 +32,43 @@ func NewUnderlineTestWidget() *UnderlineTestWidget {
 
 // Render 渲染下划线测试内容
 func (w *UnderlineTestWidget) Render(ctx *widget.Context) {
-	if w == nil || ctx == nil || ctx.Renderer == nil {
+	if w == nil || ctx == nil || ctx.Renderer == nil || ctx.Font == nil {
 		return
 	}
 	bounds := w.Bounds()
 	ctx.Renderer.PushClip(bounds)
 
-	// 测试1: 文本下划线
-	ctx.Renderer.DrawText("Hello World", 100, 120, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(100, 144, 250, 2, math.NewColor(0, 0, 0, 1))
+	f := ctx.Font
+
+	// 测试1: 文本下划线 - 使用实际文本宽度
+	text := "Hello World"
+	textX := float32(100)
+	textY := float32(120)
+	textWidth := f.TextWidth(text)
+	ctx.Renderer.DrawText(text, textX, textY, f, math.NewColor(0, 0, 0, 1))
+	// 下划线在文本底部，长度等于文本宽度
+	ctx.Renderer.DrawUnderline(textX, textY+f.LineHeight(), textWidth, 2, math.NewColor(0, 0, 0, 1))
 
 	// 测试2: 不同厚度下划线
-	ctx.Renderer.DrawUnderline(100, 280, 400, 1, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(100, 300, 400, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(100, 320, 400, 3, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(100, 340, 400, 4, math.NewColor(0, 0, 0, 1))
+	thickY := float32(280)
+	ctx.Renderer.DrawUnderline(100, thickY, 300, 1, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(100, thickY+20, 300, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(100, thickY+40, 300, 3, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(100, thickY+60, 300, 4, math.NewColor(0, 0, 0, 1))
 
 	// 测试3: 不同颜色下划线
-	ctx.Renderer.DrawUnderline(100, 430, 200, 2, math.NewColor(0, 0, 0, 1)) // 黑
-	ctx.Renderer.DrawUnderline(350, 430, 200, 2, math.NewColor(1, 0, 0, 1)) // 红
-	ctx.Renderer.DrawUnderline(600, 430, 200, 2, math.NewColor(0, 0, 1, 1)) // 蓝
-	ctx.Renderer.DrawUnderline(850, 430, 200, 2, math.NewColor(0, 1, 0, 1)) // 绿
+	colorY := float32(430)
+	ctx.Renderer.DrawUnderline(100, colorY, 200, 2, math.NewColor(0, 0, 0, 1))   // 黑
+	ctx.Renderer.DrawUnderline(350, colorY, 200, 2, math.NewColor(1, 0, 0, 1))   // 红
+	ctx.Renderer.DrawUnderline(600, colorY, 200, 2, math.NewColor(0, 0, 1, 1))   // 蓝
+	ctx.Renderer.DrawUnderline(850, colorY, 200, 2, math.NewColor(0, 1, 0, 1))   // 绿
 
 	// 测试4: 不同长度下划线
-	ctx.Renderer.DrawUnderline(100, 580, 50, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(200, 580, 100, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(350, 580, 200, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawUnderline(600, 580, 400, 2, math.NewColor(0, 0, 0, 1))
+	lenY := float32(580)
+	ctx.Renderer.DrawUnderline(100, lenY, 50, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(200, lenY, 100, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(350, lenY, 200, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawUnderline(600, lenY, 400, 2, math.NewColor(0, 0, 0, 1))
 
 	ctx.Renderer.PopClip()
 }

@@ -32,33 +32,43 @@ func NewStrikethroughTestWidget() *StrikethroughTestWidget {
 
 // Render 渲染删除线测试内容
 func (w *StrikethroughTestWidget) Render(ctx *widget.Context) {
-	if w == nil || ctx == nil || ctx.Renderer == nil {
+	if w == nil || ctx == nil || ctx.Renderer == nil || ctx.Font == nil {
 		return
 	}
 	bounds := w.Bounds()
 	ctx.Renderer.PushClip(bounds)
 
-	// 测试1: 文本删除线
-	ctx.Renderer.DrawText("Hello World", 100, 120, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(100, 132, 250, 2, math.NewColor(0, 0, 0, 1))
+	f := ctx.Font
+
+	// 测试1: 文本删除线 - 使用实际文本宽度和正确垂直位置
+	text := "Hello World"
+	textX := float32(100)
+	textY := float32(120)
+	textWidth := f.TextWidth(text)
+	ctx.Renderer.DrawText(text, textX, textY, f, math.NewColor(0, 0, 0, 1))
+	// 删除线在文本垂直中间位置
+	ctx.Renderer.DrawStrikethrough(textX, textY+f.LineHeight()/2, textWidth, 2, math.NewColor(0, 0, 0, 1))
 
 	// 测试2: 不同厚度删除线
-	ctx.Renderer.DrawStrikethrough(100, 280, 400, 1, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(100, 300, 400, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(100, 320, 400, 3, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(100, 340, 400, 4, math.NewColor(0, 0, 0, 1))
+	thickY := float32(280)
+	ctx.Renderer.DrawStrikethrough(100, thickY, 300, 1, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(100, thickY+20, 300, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(100, thickY+40, 300, 3, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(100, thickY+60, 300, 4, math.NewColor(0, 0, 0, 1))
 
 	// 测试3: 不同颜色删除线
-	ctx.Renderer.DrawStrikethrough(100, 430, 200, 2, math.NewColor(0, 0, 0, 1)) // 黑
-	ctx.Renderer.DrawStrikethrough(350, 430, 200, 2, math.NewColor(1, 0, 0, 1)) // 红
-	ctx.Renderer.DrawStrikethrough(600, 430, 200, 2, math.NewColor(0, 0, 1, 1)) // 蓝
-	ctx.Renderer.DrawStrikethrough(850, 430, 200, 2, math.NewColor(0, 1, 0, 1)) // 绿
+	colorY := float32(430)
+	ctx.Renderer.DrawStrikethrough(100, colorY, 200, 2, math.NewColor(0, 0, 0, 1))   // 黑
+	ctx.Renderer.DrawStrikethrough(350, colorY, 200, 2, math.NewColor(1, 0, 0, 1))   // 红
+	ctx.Renderer.DrawStrikethrough(600, colorY, 200, 2, math.NewColor(0, 0, 1, 1))   // 蓝
+	ctx.Renderer.DrawStrikethrough(850, colorY, 200, 2, math.NewColor(0, 1, 0, 1))   // 绿
 
 	// 测试4: 不同长度删除线
-	ctx.Renderer.DrawStrikethrough(100, 580, 50, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(200, 580, 100, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(350, 580, 200, 2, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawStrikethrough(600, 580, 400, 2, math.NewColor(0, 0, 0, 1))
+	lenY := float32(580)
+	ctx.Renderer.DrawStrikethrough(100, lenY, 50, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(200, lenY, 100, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(350, lenY, 200, 2, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawStrikethrough(600, lenY, 400, 2, math.NewColor(0, 0, 0, 1))
 
 	ctx.Renderer.PopClip()
 }

@@ -40,22 +40,22 @@ func (w *AntiAliasingTestWidget) Render(ctx *widget.Context) {
 
 	// 测试1: 小圆角矩形（按钮尺寸）
 	ctx.Renderer.FillRoundRect(math.NewRect(100, 100, 80, 32), 4, math.NewColor(0.2, 0.5, 1, 1))
-	ctx.Renderer.StrokeRoundRect(math.NewRect(100, 100, 80, 32), 4, 1, math.NewColor(0, 0, 0, 0.3))
+	ctx.Renderer.StrokeRoundRect(math.NewRect(100, 100, 80, 32), 4, 1, math.NewColor(0.1, 0.3, 0.8, 1))
 
-	// 测试2: 中圆角矩形（输入框尺寸）
-	ctx.Renderer.FillRoundRect(math.NewRect(200, 100, 200, 40), 8, math.NewColor(1, 1, 1, 1))
-	ctx.Renderer.StrokeRoundRect(math.NewRect(200, 100, 200, 40), 8, 1, math.NewColor(0, 0, 0, 0.2))
+	// 测试2: 中圆角矩形（输入框尺寸）- 使用可见颜色
+	ctx.Renderer.FillRoundRect(math.NewRect(200, 100, 200, 40), 8, math.NewColor(0.9, 0.95, 1, 1))
+	ctx.Renderer.StrokeRoundRect(math.NewRect(200, 100, 200, 40), 8, 2, math.NewColor(0, 0, 0, 0.3))
 
-	// 测试3: 大圆角矩形（卡片尺寸）
-	ctx.Renderer.FillRoundRect(math.NewRect(100, 200, 300, 150), 16, math.NewColor(1, 1, 1, 1))
-	ctx.Renderer.StrokeRoundRect(math.NewRect(100, 200, 300, 150), 16, 2, math.NewColor(0, 0, 0, 0.15))
+	// 测试3: 大圆角矩形（卡片尺寸）- 使用可见颜色
+	ctx.Renderer.FillRoundRect(math.NewRect(100, 200, 300, 150), 16, math.NewColor(0.95, 0.95, 0.95, 1))
+	ctx.Renderer.StrokeRoundRect(math.NewRect(100, 200, 300, 150), 16, 2, math.NewColor(0, 0, 0, 0.2))
 
 	// 测试4: 胶囊形（Tag/Pill）
 	ctx.Renderer.FillRoundRect(math.NewRect(500, 100, 120, 32), 16, math.NewColor(0.2, 0.8, 0.4, 1))
 
 	// 测试5: 圆形
 	ctx.Renderer.FillCircle(math.NewVec2(600, 300), 60, math.NewColor(1, 0.5, 0, 1))
-	ctx.Renderer.StrokeCircle(math.NewVec2(600, 300), 60, 2, math.NewColor(0, 0, 0, 0.3))
+	ctx.Renderer.StrokeCircle(math.NewVec2(600, 300), 60, 2, math.NewColor(0.8, 0.4, 0, 1))
 
 	// 测试6: 小圆形（头像尺寸）
 	ctx.Renderer.FillCircle(math.NewVec2(750, 150), 20, math.NewColor(0.8, 0.2, 0.8, 1))
@@ -69,14 +69,19 @@ func (w *AntiAliasingTestWidget) Render(ctx *widget.Context) {
 		ctx.Renderer.DrawLine(x1, y1, x2, y2, 2, math.NewColor(0, 0, 0, 0.5))
 	}
 
-	// 测试8: 小文字（抗锯齿）
-	ctx.Renderer.DrawText("Hello World 你好世界", 100, 450, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawText("ABCDEFGHIJ 1234567890", 100, 480, ctx.Font, math.NewColor(0, 0, 0, 0.7))
+	// 测试8: 小文字（抗锯齿）- 使用更大字号
+	if ctx.Font != nil {
+		ctx.Renderer.DrawText("Hello World 你好世界", 100, 450, ctx.Font, math.NewColor(0, 0, 0, 1))
+		ctx.Renderer.DrawText("ABCDEFGHIJ 1234567890", 100, 480, ctx.Font, math.NewColor(0, 0, 0, 0.8))
+	}
 
 	// 测试9: 混合形状
 	ctx.Renderer.FillRoundRect(math.NewRect(500, 400, 200, 100), 20, math.NewColor(0.9, 0.9, 0.9, 1))
+	ctx.Renderer.StrokeRoundRect(math.NewRect(500, 400, 200, 100), 20, 2, math.NewColor(0, 0, 0, 0.2))
 	ctx.Renderer.FillCircle(math.NewVec2(600, 450), 30, math.NewColor(0.2, 0.5, 1, 1))
-	ctx.Renderer.DrawText("混合", 570, 440, ctx.Font, math.NewColor(1, 1, 1, 1))
+	if ctx.Font != nil {
+		ctx.Renderer.DrawText("混合", 570, 440, ctx.Font, math.NewColor(1, 1, 1, 1))
+	}
 
 	ctx.Renderer.PopClip()
 }

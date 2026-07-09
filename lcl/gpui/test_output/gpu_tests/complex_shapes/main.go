@@ -55,16 +55,20 @@ func (w *ComplexShapesTestWidget) Render(ctx *widget.Context) {
 	ctx.Renderer.FillPath(hexPath, math.NewColor(0.2, 0.6, 1, 1))
 	ctx.Renderer.StrokePath(hexPath, 2, math.NewColor(0, 0, 0, 0.3))
 
-	// 测试2: 五角星
+	// 测试2: 五角星 - 使用 EvenOdd 填充规则避免凸起
 	starPath := pipeline.NewPath()
+	outerR := float32(60)
+	innerR := float32(25)
+	starCx := float32(450)
+	starCy := float32(200)
 	for i := 0; i < 10; i++ {
 		angle := float64(i)*stdmath.Pi/5 - stdmath.Pi/2
-		r := float32(60)
+		r := outerR
 		if i%2 == 1 {
-			r = 25
+			r = innerR
 		}
-		x := 450 + r*float32(stdmath.Cos(angle))
-		y := 200 + r*float32(stdmath.Sin(angle))
+		x := starCx + r*float32(stdmath.Cos(angle))
+		y := starCy + r*float32(stdmath.Sin(angle))
 		if i == 0 {
 			starPath.MoveTo(x, y)
 		} else {
@@ -72,7 +76,8 @@ func (w *ComplexShapesTestWidget) Render(ctx *widget.Context) {
 		}
 	}
 	starPath.Close()
-	ctx.Renderer.FillPath(starPath, math.NewColor(1, 0.8, 0, 1))
+	ctx.Renderer.FillPathEvenOdd(starPath, math.NewColor(1, 0.8, 0, 1))
+	ctx.Renderer.StrokePath(starPath, 1.5, math.NewColor(0.8, 0.6, 0, 1))
 
 	// 测试3: 菱形
 	diamondPath := pipeline.NewPath()

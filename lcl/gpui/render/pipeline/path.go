@@ -95,6 +95,36 @@ func (r *Renderer) StrokePath(path *Path, width float32, color math.Color) {
 			}
 			current = cmd.Pos
 			hasCurrent = true
+		case PathQuadTo:
+			if hasCurrent {
+				// Flatten quadratic Bezier to line segments
+				segments := 16
+				for i := 1; i <= segments; i++ {
+					t := float32(i) / float32(segments)
+					mt := 1 - t
+					x := mt*mt*current.X + 2*mt*t*cmd.Ctrl1.X + t*t*cmd.Pos.X
+					y := mt*mt*current.Y + 2*mt*t*cmd.Ctrl1.Y + t*t*cmd.Pos.Y
+					r.DrawLine(current.X, current.Y, x, y, width, color)
+					current = math.NewVec2(x, y)
+				}
+			}
+			current = cmd.Pos
+			hasCurrent = true
+		case PathCubicTo:
+			if hasCurrent {
+				// Flatten cubic Bezier to line segments
+				segments := 16
+				for i := 1; i <= segments; i++ {
+					t := float32(i) / float32(segments)
+					mt := 1 - t
+					x := mt*mt*mt*current.X + 3*mt*mt*t*cmd.Ctrl1.X + 3*mt*t*t*cmd.Ctrl2.X + t*t*t*cmd.Pos.X
+					y := mt*mt*mt*current.Y + 3*mt*mt*t*cmd.Ctrl1.Y + 3*mt*t*t*cmd.Ctrl2.Y + t*t*t*cmd.Pos.Y
+					r.DrawLine(current.X, current.Y, x, y, width, color)
+					current = math.NewVec2(x, y)
+				}
+			}
+			current = cmd.Pos
+			hasCurrent = true
 		case PathClose:
 			if hasCurrent {
 				r.DrawLine(current.X, current.Y, start.X, start.Y, width, color)

@@ -556,4 +556,119 @@ void main() {
 }
 ` + "\x00",
 	},
+	"line": {
+		// Vertex shader for line
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    vPos = aPos;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for line with SDF anti-aliasing
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform vec2 uLineStart;
+uniform vec2 uLineEnd;
+uniform float uLineWidth;
+
+void main() {
+    vec2 lineDir = uLineEnd - uLineStart;
+    float lineLen = length(lineDir);
+    if (lineLen < 0.001) {
+        discard;
+    }
+    vec2 lineNorm = lineDir / lineLen;
+
+    // Project point onto line
+    vec2 toPoint = vPos - uLineStart;
+    float proj = dot(toPoint, lineNorm);
+    proj = clamp(proj, 0.0, lineLen);
+
+    // Calculate distance to closest point on line
+    vec2 closest = uLineStart + lineNorm * proj;
+    float dist = length(vPos - closest);
+
+    // Anti-aliasing using screen-space derivatives
+    float halfWidth = uLineWidth * 0.5;
+    float aa = max(length(vec2(dFdx(dist), dFdy(dist))), 0.75);
+    float alpha = 1.0 - smoothstep(halfWidth - aa, halfWidth + aa, dist);
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+}
+` + "\x00",
+	},
+	"triangle": {
+		// Vertex shader for triangle
+		`#version 120
+attribute vec2 aPos;
+attribute vec2 aUV;
+attribute vec4 aColor;
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform mat4 uProj;
+
+void main() {
+    vUV = aUV;
+    vColor = aColor;
+    vPos = aPos;
+    gl_Position = uProj * vec4(aPos, 0.0, 1.0);
+}
+` + "\x00",
+		// Fragment shader for triangle with SDF anti-aliasing
+		`#version 120
+varying vec2 vUV;
+varying vec4 vColor;
+varying vec2 vPos;
+uniform vec2 uV0;
+uniform vec2 uV1;
+uniform vec2 uV2;
+
+float cross2d(vec2 a, vec2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+float distToEdge(vec2 p, vec2 a, vec2 b) {
+    vec2 ab = b - a;
+    vec2 ap = p - a;
+    float t = clamp(dot(ap, ab) / dot(ab, ab), 0.0, 1.0);
+    vec2 closest = a + t * ab;
+    return length(p - closest);
+}
+
+void main() {
+    // Calculate signed distances to each edge
+    float d0 = cross2d(uV1 - uV0, vPos - uV0);
+    float d1 = cross2d(uV2 - uV1, vPos - uV1);
+    float d2 = cross2d(uV0 - uV2, vPos - uV2);
+
+    // Check if point is inside triangle
+    bool inside = (d0 >= 0.0 && d1 >= 0.0 && d2 >= 0.0) || (d0 <= 0.0 && d1 <= 0.0 && d2 <= 0.0);
+
+    // Calculate distance to nearest edge
+    float dist0 = distToEdge(vPos, uV0, uV1);
+    float dist1 = distToEdge(vPos, uV1, uV2);
+    float dist2 = distToEdge(vPos, uV2, uV0);
+    float dist = min(dist0, min(dist1, dist2));
+
+    // Anti-aliasing
+    float aa = max(length(vec2(dFdx(dist), dFdy(dist))), 0.75);
+    float alpha = inside ? (1.0 - smoothstep(0.0, aa, dist)) : 0.0;
+
+    gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+}
+` + "\x00",
+	},
 }

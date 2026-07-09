@@ -38,64 +38,67 @@ func (w *ShadowTestWidget) Render(ctx *widget.Context) {
 	bounds := w.Bounds()
 	ctx.Renderer.PushClip(bounds)
 
-	// 测试1: 小阴影（按钮样式）
+	// 使用浅灰色背景以便观察阴影
+	ctx.Renderer.FillRect(bounds, math.NewColor(0.95, 0.95, 0.95, 1))
+
+	// 测试1: 小阴影（按钮样式）- 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(100, 100, 200, 60),
-		math.NewVec2(0, 2), 4,
-		math.NewColor(0, 0, 0, 0.1),
+		math.NewVec2(0, 3), 8,
+		math.NewColor(0, 0, 0, 0.25),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(100, 100, 200, 60), 8, math.NewColor(0.2, 0.5, 1, 1))
 
-	// 测试2: 中阴影（卡片样式）
+	// 测试2: 中阴影（卡片样式）- 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(400, 100, 300, 150),
-		math.NewVec2(0, 4), 12,
-		math.NewColor(0, 0, 0, 0.15),
+		math.NewVec2(0, 6), 16,
+		math.NewColor(0, 0, 0, 0.3),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(400, 100, 300, 150), 12, math.NewColor(1, 1, 1, 1))
 
-	// 测试3: 大阴影（弹窗样式）
+	// 测试3: 大阴影（弹窗样式）- 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(800, 100, 400, 200),
-		math.NewVec2(0, 8), 24,
-		math.NewColor(0, 0, 0, 0.2),
+		math.NewVec2(0, 10), 30,
+		math.NewColor(0, 0, 0, 0.35),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(800, 100, 400, 200), 16, math.NewColor(1, 1, 1, 1))
 
-	// 测试4: 彩色阴影
+	// 测试4: 彩色阴影 - 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(100, 350, 200, 100),
-		math.NewVec2(0, 4), 12,
-		math.NewColor(0.2, 0.5, 1, 0.3),
+		math.NewVec2(0, 6), 16,
+		math.NewColor(0.2, 0.5, 1, 0.5),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(100, 350, 200, 100), 12, math.NewColor(1, 1, 1, 1))
 
-	// 测试5: 偏移阴影
+	// 测试5: 偏移阴影 - 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(400, 350, 200, 100),
-		math.NewVec2(8, 8), 16,
-		math.NewColor(0, 0, 0, 0.2),
+		math.NewVec2(10, 10), 20,
+		math.NewColor(0, 0, 0, 0.35),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(400, 350, 200, 100), 12, math.NewColor(1, 1, 1, 1))
 
-	// 测试6: 多层阴影
+	// 测试6: 多层阴影 - 增加alpha值
 	ctx.Renderer.DrawShadow(
 		math.NewRect(800, 350, 200, 100),
-		math.NewVec2(0, 2), 4,
-		math.NewColor(0, 0, 0, 0.1),
+		math.NewVec2(0, 3), 6,
+		math.NewColor(0, 0, 0, 0.2),
 	)
 	ctx.Renderer.DrawShadow(
 		math.NewRect(800, 350, 200, 100),
-		math.NewVec2(0, 8), 16,
-		math.NewColor(0, 0, 0, 0.15),
+		math.NewVec2(0, 10), 24,
+		math.NewColor(0, 0, 0, 0.3),
 	)
 	ctx.Renderer.FillRoundRect(math.NewRect(800, 350, 200, 100), 12, math.NewColor(1, 1, 1, 1))
 
-	// 测试7: 圆形阴影
+	// 测试7: 圆形阴影 - 使用圆形阴影绘制
 	ctx.Renderer.DrawShadow(
 		math.NewRect(1200, 150, 100, 100),
-		math.NewVec2(0, 4), 12,
-		math.NewColor(0, 0, 0, 0.2),
+		math.NewVec2(0, 6), 16,
+		math.NewColor(0, 0, 0, 0.3),
 	)
 	ctx.Renderer.FillCircle(math.NewVec2(1250, 200), 50, math.NewColor(0.2, 0.8, 0.4, 1))
 

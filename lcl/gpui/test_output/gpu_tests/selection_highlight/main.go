@@ -32,31 +32,54 @@ func NewSelectionHighlightTestWidget() *SelectionHighlightTestWidget {
 
 // Render 渲染选择高亮测试内容
 func (w *SelectionHighlightTestWidget) Render(ctx *widget.Context) {
-	if w == nil || ctx == nil || ctx.Renderer == nil {
+	if w == nil || ctx == nil || ctx.Renderer == nil || ctx.Font == nil {
 		return
 	}
 	bounds := w.Bounds()
 	ctx.Renderer.PushClip(bounds)
 
-	// 测试1: 部分文本选择
-	ctx.Renderer.DrawText("Hello World", 100, 120, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(150, 120, 100, 24), math.NewColor(0.2, 0.5, 1, 0.3))
+	f := ctx.Font
+	lineHeight := f.LineHeight()
+
+	// 测试1: 部分文本选择 - 选择 "World"
+	text1 := "Hello World"
+	text1X := float32(100)
+	text1Y := float32(120)
+	ctx.Renderer.DrawText(text1, text1X, text1Y, f, math.NewColor(0, 0, 0, 1))
+	// 计算 "Hello " 的宽度作为选择起点
+	helloWidth := f.TextWidth("Hello ")
+	worldWidth := f.TextWidth("World")
+	// 高亮区域垂直居中于文本，上下各留2px边距
+	highlightPadding := float32(2)
+	ctx.Renderer.DrawSelectionHighlight(
+		math.NewRect(text1X+helloWidth, text1Y-highlightPadding, worldWidth, lineHeight+highlightPadding*2),
+		math.NewColor(0.2, 0.5, 1, 0.4),
+	)
 
 	// 测试2: 全部文本选择
-	ctx.Renderer.DrawText("Hello World", 100, 280, ctx.Font, math.NewColor(0, 0, 0, 1))
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(100, 280, 250, 24), math.NewColor(0.2, 0.5, 1, 0.3))
+	text2 := "Hello World"
+	text2X := float32(100)
+	text2Y := float32(280)
+	text2Width := f.TextWidth(text2)
+	ctx.Renderer.DrawText(text2, text2X, text2Y, f, math.NewColor(0, 0, 0, 1))
+	ctx.Renderer.DrawSelectionHighlight(
+		math.NewRect(text2X, text2Y-highlightPadding, text2Width, lineHeight+highlightPadding*2),
+		math.NewColor(0.2, 0.5, 1, 0.4),
+	)
 
-	// 测试3: 不同透明度选择
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(100, 430, 200, 24), math.NewColor(0.2, 0.5, 1, 0.1))
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(350, 430, 200, 24), math.NewColor(0.2, 0.5, 1, 0.2))
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(600, 430, 200, 24), math.NewColor(0.2, 0.5, 1, 0.3))
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(850, 430, 200, 24), math.NewColor(0.2, 0.5, 1, 0.5))
+	// 测试3: 不同透明度选择 - 使用更高透明度确保可见
+	alphaY := float32(430)
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(100, alphaY, 200, lineHeight+highlightPadding*2), math.NewColor(0.2, 0.5, 1, 0.2))
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(350, alphaY, 200, lineHeight+highlightPadding*2), math.NewColor(0.2, 0.5, 1, 0.35))
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(600, alphaY, 200, lineHeight+highlightPadding*2), math.NewColor(0.2, 0.5, 1, 0.5))
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(850, alphaY, 200, lineHeight+highlightPadding*2), math.NewColor(0.2, 0.5, 1, 0.7))
 
 	// 测试4: 不同颜色选择
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(100, 580, 200, 24), math.NewColor(0, 0, 1, 0.3)) // 蓝
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(350, 580, 200, 24), math.NewColor(0, 1, 0, 0.3)) // 绿
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(600, 580, 200, 24), math.NewColor(1, 0, 0, 0.3)) // 红
-	ctx.Renderer.DrawSelectionHighlight(math.NewRect(850, 580, 200, 24), math.NewColor(1, 1, 0, 0.3)) // 黄
+	colorY := float32(580)
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(100, colorY, 200, lineHeight+highlightPadding*2), math.NewColor(0, 0, 1, 0.4))  // 蓝
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(350, colorY, 200, lineHeight+highlightPadding*2), math.NewColor(0, 1, 0, 0.4))  // 绿
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(600, colorY, 200, lineHeight+highlightPadding*2), math.NewColor(1, 0, 0, 0.4))  // 红
+	ctx.Renderer.DrawSelectionHighlight(math.NewRect(850, colorY, 200, lineHeight+highlightPadding*2), math.NewColor(1, 1, 0, 0.4))  // 黄
 
 	ctx.Renderer.PopClip()
 }
