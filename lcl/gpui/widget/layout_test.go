@@ -150,3 +150,267 @@ func assertWidgetRect(t *testing.T, got math.Rect, x, y, w, h float32) {
 		t.Fatalf("rect = (%v,%v,%v,%v), want (%v,%v,%v,%v)", got.X, got.Y, got.W, got.H, x, y, w, h)
 	}
 }
+
+// TestScrollPositionAPI verifies that SetOnScroll callback fires correctly.
+func TestScrollPositionAPI(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	// Add a tall child to enable scrolling
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(500)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	// Track scroll callbacks
+	scrollEvents := []math.Vec2{}
+	root.SetOnScroll(func(x, y float32) {
+		scrollEvents = append(scrollEvents, math.NewVec2(x, y))
+	})
+
+	// SetScroll should trigger callback
+	root.SetScroll(0, 50)
+	if len(scrollEvents) != 1 {
+		t.Fatalf("expected 1 scroll event, got %d", len(scrollEvents))
+	}
+	if scrollEvents[0].Y != 50 {
+		t.Fatalf("scroll Y = %v, want 50", scrollEvents[0].Y)
+	}
+
+	// SetScroll to same position should NOT trigger callback
+	root.SetScroll(0, 50)
+	if len(scrollEvents) != 1 {
+		t.Fatalf("expected 1 scroll event (no change), got %d", len(scrollEvents))
+	}
+
+	// SetScroll to different position should trigger callback
+	root.SetScroll(0, 100)
+	if len(scrollEvents) != 2 {
+		t.Fatalf("expected 2 scroll events, got %d", len(scrollEvents))
+	}
+	if scrollEvents[1].Y != 100 {
+		t.Fatalf("scroll Y = %v, want 100", scrollEvents[1].Y)
+	}
+}
+
+// TestScrollPositionAPIScrollTo verifies ScrollTo triggers callback.
+func TestScrollPositionAPIScrollTo(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(500)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	scrollEvents := []math.Vec2{}
+	root.SetOnScroll(func(x, y float32) {
+		scrollEvents = append(scrollEvents, math.NewVec2(x, y))
+	})
+
+	// ScrollTo should trigger callback - scroll to a position within bounds
+	// rect.Y=150, rect.H=50, viewport.H=100
+	// rect.Y + rect.H = 200 > scroll.Y + viewport.H = 100
+	// So scroll.Y = rect.Y + rect.H - viewport.H = 200 - 100 = 100
+	root.ScrollTo(math.NewRect(0, 150, 50, 50))
+	if len(scrollEvents) != 1 {
+		t.Fatalf("expected 1 scroll event, got %d", len(scrollEvents))
+	}
+	if scrollEvents[0].Y != 100 {
+		t.Fatalf("scroll Y = %v, want 100", scrollEvents[0].Y)
+	}
+}
+
+// TestScrollPositionAPIMouseWheel verifies mouse wheel triggers callback.
+func TestScrollPositionAPIMouseWheel(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(500)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	scrollEvents := []math.Vec2{}
+	root.SetOnScroll(func(x, y float32) {
+		scrollEvents = append(scrollEvents, math.NewVec2(x, y))
+	})
+
+	// Mouse wheel should trigger callback
+	// DeltaY = -1 means scroll down (positive Y direction)
+	root.HandleEvent(nil, Event{Type: EventMouseWheel, X: 10, Y: 10, DeltaY: -1})
+	if len(scrollEvents) != 1 {
+		t.Fatalf("expected 1 scroll event, got %d", len(scrollEvents))
+	}
+	// scroll.Y should be 30 (scrollSpeed=30, DeltaY=-1, so scroll.Y -= (-1)*30 = +30)
+	if scrollEvents[0].Y != 30 {
+		t.Fatalf("scroll Y = %v, want 30", scrollEvents[0].Y)
+	}
+}
+
+// TestScrollPositionAPINilHandler verifies nil handler is safe.
+func TestScrollPositionAPINilHandler(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(500)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	// No handler set - should not panic
+	root.SetScroll(0, 50)
+	root.ScrollTo(math.NewRect(0, 200, 50, 50))
+}
+
+// TestScrollPositionAPIGetters verifies Scroll and ContentSize getters.
+func TestScrollPositionAPIGetters(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(500)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	// Initial scroll should be 0,0
+	scroll := root.Scroll()
+	if scroll.X != 0 || scroll.Y != 0 {
+		t.Fatalf("initial scroll = (%v,%v), want (0,0)", scroll.X, scroll.Y)
+	}
+
+	// ContentSize should reflect child size
+	contentSize := root.ContentSize()
+	if contentSize.Y < 500 {
+		t.Fatalf("content size Y = %v, want >= 500", contentSize.Y)
+	}
+
+	// Set scroll and verify
+	root.SetScroll(0, 100)
+	scroll = root.Scroll()
+	if scroll.Y != 100 {
+		t.Fatalf("scroll Y = %v, want 100", scroll.Y)
+	}
+}
+
+// TestVirtualScrollBasic verifies basic virtual scrolling setup.
+func TestVirtualScrollBasic(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	// Enable virtual scrolling with 100 items of height 20
+	root.SetVirtualScroll(20, 100)
+
+	if !root.IsVirtualScrollEnabled() {
+		t.Fatal("virtual scroll should be enabled")
+	}
+	if root.TotalItems() != 100 {
+		t.Fatalf("total items = %d, want 100", root.TotalItems())
+	}
+
+	// Check initial visible range
+	start, end := root.VisibleRange()
+	if start != 0 {
+		t.Fatalf("visible start = %d, want 0", start)
+	}
+	// viewport height = 100, item height = 20, so 5 items visible + 3 buffer = 8
+	if end != 8 {
+		t.Fatalf("visible end = %d, want 8", end)
+	}
+}
+
+// TestVirtualScrollOnScroll verifies visible range updates on scroll.
+func TestVirtualScrollOnScroll(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	// Add a tall child to enable scrolling
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(2000)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	// Enable virtual scrolling with 100 items of height 20
+	root.SetVirtualScroll(20, 100)
+
+	visibleChanges := []int{}
+	root.SetOnVisibleChanged(func(start, end int) {
+		visibleChanges = append(visibleChanges, start)
+	})
+
+	// Scroll down
+	root.SetScroll(0, 200)
+
+	// Should have triggered visible range change
+	if len(visibleChanges) == 0 {
+		t.Fatal("expected visible range change callback")
+	}
+
+	// Check that visible range updated
+	start, end := root.VisibleRange()
+	if start < 7 {
+		t.Fatalf("visible start = %d, want >= 7 (scrolled 200px / 20px per item = 10 items)", start)
+	}
+	if end <= start {
+		t.Fatalf("visible end (%d) should be > start (%d)", end, start)
+	}
+}
+
+// TestVirtualScrollCallback verifies OnVisibleChanged callback.
+func TestVirtualScrollCallback(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+	child := newRecordingWidget(math.Rect{})
+	root.AddLayout(child, layout.Style{Width: layout.Px(200), Height: layout.Px(2000)})
+	root.Layout(nil, math.NewRect(0, 0, 200, 100))
+
+	root.SetVirtualScroll(20, 100)
+
+	callCount := 0
+	root.SetOnVisibleChanged(func(start, end int) {
+		callCount++
+	})
+
+	// Multiple scrolls should trigger callback only when range changes
+	root.SetScroll(0, 100)
+	root.SetScroll(0, 100) // Same position - no change
+	root.SetScroll(0, 200)
+
+	// Should have at least 2 calls (initial + scroll to 200)
+	if callCount < 2 {
+		t.Fatalf("expected at least 2 visible range changes, got %d", callCount)
+	}
+}
+
+// TestVirtualScrollDisabledByDefault verifies virtual scroll is off by default.
+func TestVirtualScrollDisabledByDefault(t *testing.T) {
+	root := NewScrollArea(layout.Style{
+		Direction:  layout.Column,
+		OverflowX:  layout.OverflowScroll,
+		OverflowY:  layout.OverflowScroll,
+	})
+
+	if root.IsVirtualScrollEnabled() {
+		t.Fatal("virtual scroll should be disabled by default")
+	}
+	if root.TotalItems() != 0 {
+		t.Fatalf("total items = %d, want 0", root.TotalItems())
+	}
+	start, end := root.VisibleRange()
+	if start != 0 || end != 0 {
+		t.Fatalf("visible range = (%d,%d), want (0,0)", start, end)
+	}
+}

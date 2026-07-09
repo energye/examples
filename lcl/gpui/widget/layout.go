@@ -14,6 +14,15 @@ type LayoutContainer struct {
 	contentSize  coremath.Vec2
 	cachedResult *layout.Result
 	cacheValid   bool
+	onScroll     func(x, y float32) // Scroll position change callback
+
+	// Virtual scrolling support
+	virtualScroll    bool    // Enable virtual scrolling
+	itemHeight       float32 // Fixed item height for virtual scrolling (0 = variable)
+	visibleStart     int     // First visible item index
+	visibleEnd       int     // Last visible item index
+	totalItems       int     // Total number of items
+	onVisibleChanged func(start, end int) // Callback when visible range changes
 }
 
 // NewLayoutContainer creates a generic layout-backed container.
@@ -147,9 +156,15 @@ func (c *LayoutContainer) SetScroll(x, y float32) {
 	if c == nil {
 		return
 	}
+	oldX, oldY := c.scroll.X, c.scroll.Y
 	c.scroll = coremath.NewVec2(x, y)
 	c.clampScroll()
+	c.updateVisibleRange()
 	c.Invalidate()
+	// Fire callback if scroll position changed
+	if c.onScroll != nil && (c.scroll.X != oldX || c.scroll.Y != oldY) {
+		c.onScroll(c.scroll.X, c.scroll.Y)
+	}
 }
 
 // ScrollTo adjusts scroll offset so a content-local rect becomes visible.
@@ -157,6 +172,7 @@ func (c *LayoutContainer) ScrollTo(rect coremath.Rect) {
 	if c == nil {
 		return
 	}
+	oldX, oldY := c.scroll.X, c.scroll.Y
 	viewport := c.Bounds()
 	if rect.X < c.scroll.X {
 		c.scroll.X = rect.X
@@ -169,7 +185,99 @@ func (c *LayoutContainer) ScrollTo(rect coremath.Rect) {
 		c.scroll.Y = rect.Y + rect.H - viewport.H
 	}
 	c.clampScroll()
+	c.updateVisibleRange()
 	c.Invalidate()
+	// Fire callback if scroll position changed
+	if c.onScroll != nil && (c.scroll.X != oldX || c.scroll.Y != oldY) {
+		c.onScroll(c.scroll.X, c.scroll.Y)
+	}
+}
+
+// SetOnScroll sets the scroll position change callback.
+func (c *LayoutContainer) SetOnScroll(handler func(x, y float32)) {
+	if c == nil {
+		return
+	}
+	c.onScroll = handler
+}
+
+// SetVirtualScroll enables virtual scrolling for large lists.
+// itemHeight is the fixed height of each item (0 = variable height).
+// totalItems is the total number of items in the list.
+func (c *LayoutContainer) SetVirtualScroll(itemHeight float32, totalItems int) {
+	if c == nil {
+		return
+	}
+	c.virtualScroll = true
+	c.itemHeight = itemHeight
+	c.totalItems = totalItems
+	c.updateVisibleRange()
+}
+
+// SetOnVisibleChanged sets the callback when visible range changes.
+func (c *LayoutContainer) SetOnVisibleChanged(handler func(start, end int)) {
+	if c == nil {
+		return
+	}
+	c.onVisibleChanged = handler
+}
+
+// VisibleRange returns the current visible item range.
+func (c *LayoutContainer) VisibleRange() (start, end int) {
+	if c == nil {
+		return 0, 0
+	}
+	return c.visibleStart, c.visibleEnd
+}
+
+// TotalItems returns the total number of items.
+func (c *LayoutContainer) TotalItems() int {
+	if c == nil {
+		return 0
+	}
+	return c.totalItems
+}
+
+// updateVisibleRange calculates which items are visible based on scroll position.
+func (c *LayoutContainer) updateVisibleRange() {
+	if c == nil || !c.virtualScroll {
+		return
+	}
+
+	bounds := c.Bounds()
+	if c.itemHeight <= 0 {
+		// Variable height - use content size / total items as estimate
+		if c.totalItems > 0 && c.contentSize.Y > 0 {
+			c.itemHeight = c.contentSize.Y / float32(c.totalItems)
+		} else {
+			return
+		}
+	}
+
+	// Calculate visible range with buffer
+	bufferItems := 3
+	start := int(c.scroll.Y / c.itemHeight) - bufferItems
+	if start < 0 {
+		start = 0
+	}
+	end := int((c.scroll.Y + bounds.H) / c.itemHeight) + bufferItems
+	if end > c.totalItems {
+		end = c.totalItems
+	}
+
+	// Fire callback if range changed
+	if start != c.visibleStart || end != c.visibleEnd {
+		c.visibleStart = start
+		c.visibleEnd = end
+		if c.onVisibleChanged != nil {
+			c.onVisibleChanged(start, end)
+		}
+	}
+}
+
+// IsVirtualScrollEnabled reports whether virtual scrolling is enabled.
+func (c *LayoutContainer) IsVirtualScrollEnabled() bool {
+	return c != nil && c.virtualScroll
 }
 
 // Invalidate clears the layout cache.
@@ -207,6 +315,12 @@ func (c *LayoutContainer) Layout(ctx *Context, rect coremath.Rect) {
 	}
 	c.BaseWidget.Layout(ctx, rect)
 
+	// Virtual scrolling: only layout visible children
+	if c.virtualScroll && c.itemHeight > 0 && c.totalItems > 0 {
+		c.layoutVirtual(ctx, rect)
+		return
+	}
+
 	var result layout.Result
 	if c.cacheValid && c.cachedResult != nil {
 		result = *c.cachedResult
@@ -218,12 +332,67 @@ func (c *LayoutContainer) Layout(ctx *Context, rect coremath.Rect) {
 	}
 	c.contentSize = result.ContentSize
 	c.clampScroll()
+	c.updateVisibleRange()
 
 	for i, child := range c.children {
 		if child == nil || i >= len(result.Children) {
 			continue
 		}
 		child.Layout(ctx, result.Children[i].Bounds)
+	}
+}
+
+// layoutVirtual performs layout for virtual scrolling mode.
+func (c *LayoutContainer) layoutVirtual(ctx *Context, rect coremath.Rect) {
+	if c == nil || !c.virtualScroll || c.itemHeight <= 0 || c.totalItems <= 0 {
+		return
+	}
+
+	// Calculate total content size
+	c.contentSize = coremath.NewVec2(rect.W, float32(c.totalItems)*c.itemHeight)
+	c.clampScroll()
+	c.updateVisibleRange()
+
+	// Only layout visible children
+	visibleCount := c.visibleEnd - c.visibleStart
+	if visibleCount <= 0 {
+		return
+	}
+
+	// Create layout only for visible children
+	node := layout.NewNode(c.Style)
+	node.Style.Width = layout.Px(rect.W)
+	node.Style.Height = layout.Px(rect.H)
+	node.Children = make([]*layout.Node, 0, visibleCount)
+
+	for i := c.visibleStart; i < c.visibleEnd && i < len(c.children); i++ {
+		child := c.children[i]
+		if child == nil || !child.Visible() {
+			node.Children = append(node.Children, nil)
+			continue
+		}
+		style := c.childStyles[child]
+		childRef := child
+		node.Children = append(node.Children, &layout.Node{
+			Style: style,
+			Measure: func(available coremath.Vec2) coremath.Vec2 {
+				return childRef.Measure(ctx, Constraints{Max: available})
+			},
+		})
+	}
+
+	result := layout.Compute(node, coremath.NewVec2(rect.W, rect.H))
+
+	// Apply layout results to visible children
+	for i, childResult := range result.Children {
+		childIdx := c.visibleStart + i
+		if childIdx >= len(c.children) || c.children[childIdx] == nil {
+			continue
+		}
+		// Offset by scroll position
+		bounds := childResult.Bounds
+		bounds.Y += float32(c.visibleStart) * c.itemHeight
+		c.children[childIdx].Layout(ctx, bounds)
 	}
 }
 
@@ -241,11 +410,19 @@ func (c *LayoutContainer) Render(ctx *Context) {
 	if c.scroll.X != 0 || c.scroll.Y != 0 {
 		ctx.Renderer.PushTransform(coremath.TranslationMatrix(-c.scroll.X, -c.scroll.Y, 0))
 	}
-	for _, child := range c.children {
-		if child != nil && child.Visible() {
-			child.Render(ctx)
+
+	// Render children - skip invisible ones when virtual scrolling is enabled
+	for i, child := range c.children {
+		if child == nil || !child.Visible() {
+			continue
 		}
+		// Virtual scrolling: skip children outside visible range
+		if c.virtualScroll && (i < c.visibleStart || i >= c.visibleEnd) {
+			continue
+		}
+		child.Render(ctx)
 	}
+
 	if c.scroll.X != 0 || c.scroll.Y != 0 {
 		ctx.Renderer.PopTransform()
 	}
@@ -270,6 +447,10 @@ func (c *LayoutContainer) HitTest(point coremath.Vec2) Widget {
 		if child == nil {
 			continue
 		}
+		// Virtual scrolling: skip children outside visible range
+		if c.virtualScroll && (i < c.visibleStart || i >= c.visibleEnd) {
+			continue
+		}
 		if hit := child.HitTest(local); hit != nil {
 			return hit
 		}
@@ -291,6 +472,24 @@ func (c *LayoutContainer) HandleEvent(ctx *Context, event Event) bool {
 	case EventMouseMove:
 		return c.dispatchLayoutPointer(ctx, event, local, false)
 	case EventMouseWheel:
+		// Handle scroll for the container itself
+		if c.Style.OverflowX == layout.OverflowScroll || c.Style.OverflowY == layout.OverflowScroll {
+			oldX, oldY := c.scroll.X, c.scroll.Y
+			scrollSpeed := float32(30)
+			if c.Style.OverflowY == layout.OverflowScroll {
+				c.scroll.Y -= event.DeltaY * scrollSpeed
+			}
+			if c.Style.OverflowX == layout.OverflowScroll {
+				c.scroll.X -= event.DeltaX * scrollSpeed
+			}
+			c.clampScroll()
+			c.updateVisibleRange()
+			c.Invalidate()
+			if c.onScroll != nil && (c.scroll.X != oldX || c.scroll.Y != oldY) {
+				c.onScroll(c.scroll.X, c.scroll.Y)
+			}
+			return true
+		}
 		return c.dispatchWheel(ctx, event, local)
 	case EventDoubleClick:
 		return c.dispatchLayoutPointer(ctx, event, local, true)
@@ -332,6 +531,10 @@ func (c *LayoutContainer) dispatchLayoutPointer(ctx *Context, event Event, point
 	for i := len(c.children) - 1; i >= 0; i-- {
 		child := c.children[i]
 		if child == nil || !child.Visible() || !child.Enabled() {
+			continue
+		}
+		// Virtual scrolling: skip children outside visible range
+		if c.virtualScroll && (i < c.visibleStart || i >= c.visibleEnd) {
 			continue
 		}
 		hit := child.HitTest(point)

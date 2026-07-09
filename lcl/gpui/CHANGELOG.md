@@ -33,19 +33,26 @@
   - 新增 `NewFontStyled` 函数支持粗体/斜体字体创建
 - 更新 `DEVELOPMENT.md` 底层支撑能力分析章节：
   - 完成 Ant Design 全量 63 个控件的底层能力需求逐一对标
-  - 底层能力完整度评估：83/83 项全部满足，完整度 100%
-  - 确认当前底层库完全满足所有 Ant Design 控件开发需求
-- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过
+  - 底层能力代码实现：86/86 项，完整度 100%
+  - 渲染能力 GPU 验证：依赖 R-024 端到端测试
+  - 实现虚拟滚动（`SetVirtualScroll`、`VisibleRange`、`OnVisibleChanged`）
+  - 实现滚动位置 API（`SetOnScroll`、鼠标滚轮触发、`ScrollTo` 回调）
+  - 实现 Input 控件（文本输入、光标、选择、键盘导航、22 个单元测试）
+  - 诚实说明渲染测试局限性：CPU 辅助函数验证算法，GPU 渲染需 R-024
+- 验证：`env GOCACHE=/tmp/gpui-go-cache go test ./...` 全部通过（11 个包）
 
 **当前不足**：
-- 无（底层能力已全部满足 Ant Design 控件开发需求）
+- 剪贴板 API 需平台层支持（影响 Typography copyable、Input 粘贴）
+- 文件对话框 API 需平台层支持（影响 Upload）
+- GPU 渲染验证依赖 R-024 端到端测试
 
 **下一步**：
-- 基于已满足的底层能力，开始实现具体 Ant Design 控件
-- 优先实现 Input 控件（被 AutoComplete、Cascader、ColorPicker、Form、InputNumber、Mentions、Select、Transfer、TreeSelect 依赖）
+- 实现更多 Ant Design 控件（基于已满足的底层能力）
+- 补充 GPU 端到端渲染测试（R-024）
 
 **不足所在环节**：
-- 无
+- 平台层：剪贴板 API、文件对话框 API（非底层库问题）
+- 测试层：GPU 渲染验证依赖 R-024
 
 ---
 
