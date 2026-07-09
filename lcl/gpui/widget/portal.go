@@ -521,13 +521,9 @@ func (h *PortalHost) registerFocusable(widget Widget) {
 	if widget.Focusable() {
 		h.focus.Add(widget)
 	}
-	switch nested := widget.(type) {
-	case *Container:
-		for _, child := range nested.children {
-			h.registerFocusable(child)
-		}
-	case *LayoutContainer:
-		for _, child := range nested.children {
+	// Use ParentWidget interface for consistent traversal
+	if parent, ok := widget.(ParentWidget); ok {
+		for _, child := range parent.Children() {
 			h.registerFocusable(child)
 		}
 	}
@@ -538,13 +534,9 @@ func (h *PortalHost) unregisterFocusable(widget Widget) {
 		return
 	}
 	h.focus.Remove(widget)
-	switch nested := widget.(type) {
-	case *Container:
-		for _, child := range nested.children {
-			h.unregisterFocusable(child)
-		}
-	case *LayoutContainer:
-		for _, child := range nested.children {
+	// Use ParentWidget interface for consistent traversal
+	if parent, ok := widget.(ParentWidget); ok {
+		for _, child := range parent.Children() {
 			h.unregisterFocusable(child)
 		}
 	}

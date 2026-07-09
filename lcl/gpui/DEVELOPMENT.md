@@ -792,6 +792,103 @@ go run ./cmd/validate_snapshot \
 
 ---
 
+## 底层支撑能力分析与 Ant Design 对标
+
+**分析日期**：2026-07-09
+
+**目标**：以 Ant Design 控件库为基准，检查当前 UI 库的底层支撑能力，确保支持所有 Ant Design 控件能力、特效和功能行为。
+
+### 底层支撑能力总览
+
+| 能力类别 | 当前实现状态 | Ant Design 对标 | 备注 |
+|----------|--------------|-----------------|------|
+| **渲染系统** | ✅ 完整 | 支持 | 矩形、圆角、渐变、阴影、文本、SVG 路径 |
+| **布局系统** | ✅ 完整 | 支持 | Flex、Grid、Wrap、滚动 |
+| **动画系统** | ✅ 完整 | 支持 | Transition、Timeline、Easing、Loop |
+| **事件系统** | ✅ 完整 | 支持 | 鼠标、键盘、拖拽、指针捕获 |
+| **控件框架** | ✅ 完整 | 支持 | BaseWidget、ComponentBase、ControlSurface |
+| **样式系统** | ✅ 完整 | 支持 | Token 主题、Light/Dark 模式、10 级色板 |
+| **Overlay 系统** | ✅ 完整 | 支持 | Popup、Tooltip、Modal、Message 层级 |
+
+### 已修复的代码逻辑问题
+
+| 问题 ID | 问题描述 | 修复文件 | 修复内容 |
+|---------|----------|----------|----------|
+| L-001 | PortalHost 焦点注册使用类型开关而非接口 | `widget/portal.go` | 改用 `ParentWidget` 接口保持一致性 |
+| L-002 | PortalHost 焦点注销使用类型开关而非接口 | `widget/portal.go` | 改用 `ParentWidget` 接口保持一致性 |
+
+### Ant Design 控件能力底层支撑详情
+
+#### 1. 视觉反馈能力
+
+| Ant Design 能力 | 底层支撑 | 实现位置 | 状态 |
+|-----------------|----------|----------|------|
+| 圆角控件边缘平滑 | 圆角 SDF 着色器 + 屏幕空间 AA | `render/shader/shader.go` | ✅ |
+| 状态颜色过渡动画 | `ControlSurface.AnimatedColor` | `widget/control_surface.go` | ✅ |
+| 点击波纹效果 | `ControlSurface.RenderMotionOverlay` | `widget/control_surface.go` | ✅ |
+| 焦点环渲染 | `ControlSurface.RenderFocusRing` | `widget/control_surface.go` | ✅ |
+| Loading 旋转动画 | `ControlSurface.RenderLoadingSpinner` | `widget/control_surface.go` | ✅ |
+
+#### 2. 交互行为能力
+
+| Ant Design 能力 | 底层支撑 | 实现位置 | 状态 |
+|-----------------|----------|----------|------|
+| 鼠标按下即激活 | `InteractionOptions.ClickOnMouseDown` | `widget/interaction.go` | ✅ |
+| 键盘激活（Enter/Space） | `InteractionController.HandleEvent` | `widget/interaction.go` | ✅ |
+| 拖拽事件支持 | `Container.dispatchCapturedDrag` | `widget/container.go` | ✅ |
+| 指针捕获 | `Container.pointerCapture` | `widget/container.go` | ✅ |
+| 焦点管理 | `FocusManager` | `widget/focus.go` | ✅ |
+
+#### 3. 动画系统能力
+
+| Ant Design 能力 | 底层支撑 | 实现位置 | 状态 |
+|-----------------|----------|----------|------|
+| 状态过渡动画 | `motion.Transition` | `motion/transition.go` | ✅ |
+| 循环动画 | `Transition.SetLoop` | `motion/transition.go` | ✅ |
+| 缓动函数 | `motion.EaseOut/EaseIn/EaseInOut` | `motion/easing.go` | ✅ |
+| 动画时间线 | `motion.Timeline` | `motion/timeline.go` | ✅ |
+| 颜色过渡 | `ControlSurface.AnimatedColor` | `widget/control_surface.go` | ✅ |
+
+#### 4. 布局系统能力
+
+| Ant Design 能力 | 底层支撑 | 实现位置 | 状态 |
+|-----------------|----------|----------|------|
+| Flex 布局 | `layout.layoutLinear` | `layout/flex.go` | ✅ |
+| Grid 布局 | `layout.layoutGrid` | `layout/grid.go` | ✅ |
+| Wrap 换行 | `layout.layoutRowWrap` | `layout/flex.go` | ✅ |
+| 滚动支持 | `LayoutContainer.SetScroll` | `widget/layout.go` | ✅ |
+| 边距/内边距 | `layout.Edges` | `layout/layout.go` | ✅ |
+
+#### 5. Overlay 系统能力
+
+| Ant Design 能力 | 底层支撑 | 实现位置 | 状态 |
+|-----------------|----------|----------|------|
+| 弹层管理 | `overlay.Manager` | `overlay/overlay.go` | ✅ |
+| 点击外部关闭 | `PortalHost.DismissOutside` | `widget/portal.go` | ✅ |
+| 焦点陷阱 | `PortalHost.FocusTrapActive` | `widget/portal.go` | ✅ |
+| 遮罩层 | `PortalHost.Render` (mask) | `widget/portal.go` | ✅ |
+| Escape 键关闭 | `PortalHost.HandleEvent` | `widget/portal.go` | ✅ |
+
+### 待改进项
+
+| 问题 ID | 问题描述 | 优先级 | 预计工作量 |
+|---------|----------|--------|-----------|
+| I-001 | 动画系统可进一步优化贝塞尔曲线支持 | 中 | 2 天 |
+| I-002 | 焦点系统可添加方向键导航支持 | 中 | 3 天 |
+| I-003 | Overlay 系统可添加动画过渡效果 | 低 | 2 天 |
+| I-004 | 布局系统可添加 align-self 支持 | 低 | 1 天 |
+
+### 代码可读性评估
+
+| 评估维度 | 当前状态 | 改进建议 |
+|----------|----------|----------|
+| 命名规范 | ✅ 良好 | 保持一致性 |
+| 注释完整性 | ✅ 良好 | 关键函数有详细注释 |
+| 代码结构 | ✅ 良好 | 模块化清晰 |
+| 测试覆盖 | ✅ 良好 | 核心功能有测试覆盖 |
+
+---
+
 > 迭代日志已迁移至 [CHANGELOG.md](CHANGELOG.md)
 
 ---
