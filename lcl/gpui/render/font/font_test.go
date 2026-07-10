@@ -2,8 +2,6 @@ package font
 
 import (
 	"image"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"golang.org/x/image/font"
@@ -35,35 +33,16 @@ func TestNilFontMethodsAreSafe(t *testing.T) {
 	f.Delete()
 }
 
-func TestFontLoadingAndMetrics(t *testing.T) {
-	// Try to load a system font
-	fontPaths := []string{
-		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-		"/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
-		"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-	}
-
-	var fontData []byte
-	var err error
-	for _, path := range fontPaths {
-		fontData, err = os.ReadFile(path)
-		if err == nil {
-			break
-		}
-	}
-
-	if fontData == nil {
-		t.Skip("No system font found, skipping font loading test")
+func TestEmbeddedFontDataIsAvailable(t *testing.T) {
+	data := EmbeddedFontData()
+	if data == nil {
+		t.Skip("No embedded font data — run scripts/download_font.sh first")
 		return
 	}
-
-	// Note: NewFont requires GL context for texture upload
-	// This test verifies the font data can be read
-	if len(fontData) == 0 {
-		t.Fatal("Font file is empty")
+	if len(data) == 0 {
+		t.Fatal("Embedded font data is empty")
 	}
-
-	t.Logf("Font data loaded: %d bytes", len(fontData))
+	t.Logf("Embedded font data loaded: %d bytes", len(data))
 }
 
 func TestFontTextWidthCalculation(t *testing.T) {
@@ -170,32 +149,6 @@ func TestDrawGlyphMaskStoresWhiteRGBWithCoverageAlpha(t *testing.T) {
 	}
 }
 
-func TestReadFontFileCachesByPath(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "font.ttf")
-	if err := os.WriteFile(path, []byte("first"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	first, err := ReadFontFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte("second"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	second, err := ReadFontFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if &first[0] != &second[0] {
-		t.Fatal("ReadFontFile should return cached bytes for the same path")
-	}
-	if string(second) != "first" {
-		t.Fatalf("cached file data = %q, want first read", string(second))
-	}
-}
-
 func TestValidateFontDataRejectsInvalidData(t *testing.T) {
 	if err := ValidateFontData([]byte("not a font")); err == nil {
 		t.Fatal("ValidateFontData should reject invalid font bytes")
@@ -203,29 +156,8 @@ func TestValidateFontDataRejectsInvalidData(t *testing.T) {
 }
 
 func TestFontCoverageScoreRejectsInvalidData(t *testing.T) {
-	if _, err := FontCoverageScore([]byte("not a font"), CJKProbeRunes); err == nil {
+	if _, err := FontCoverageScore([]byte("not a font"), []rune{'A', 'B'}); err == nil {
 		t.Fatal("FontCoverageScore should reject invalid font bytes")
-	}
-}
-
-func TestSystemFontCandidatesIncludesEnvironmentPathsFirst(t *testing.T) {
-	dir := t.TempDir()
-	first := filepath.Join(dir, "first.ttf")
-	second := filepath.Join(dir, "second.ttf")
-	if err := os.WriteFile(first, []byte("first"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(second, []byte("second"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("GPUI_FONT_PATHS", first+string(os.PathListSeparator)+second)
-
-	candidates := SystemFontCandidates()
-	if len(candidates) < 2 {
-		t.Fatalf("candidate count = %d, want at least 2", len(candidates))
-	}
-	if candidates[0] != first || candidates[1] != second {
-		t.Fatalf("env candidates = %q, %q; want %q, %q", candidates[0], candidates[1], first, second)
 	}
 }
 

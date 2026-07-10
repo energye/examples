@@ -465,12 +465,17 @@ func LoadFont(ttfData []byte, size float64) (*font.Font, error) {
 	return font.NewFont(ttfData, size)
 }
 
-// LoadDefaultFont loads the default font
+// LoadDefaultFont loads the default font.
+// Uses DefaultFontData if set, otherwise falls back to the embedded font.
 func LoadDefaultFont(size float64) (*font.Font, error) {
-	if DefaultFontData == nil {
-		return nil, fmt.Errorf("no font data available")
+	data := DefaultFontData
+	if data == nil {
+		data = font.EmbeddedFontData()
 	}
-	f, err := font.NewFont(DefaultFontData, size)
+	if data == nil {
+		return nil, fmt.Errorf("no font data available — run scripts/download_font.sh to embed the default font, or call SetDefaultFontData")
+	}
+	f, err := font.NewFont(data, size)
 	if err != nil {
 		return nil, err
 	}

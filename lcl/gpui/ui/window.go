@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	renderfont "github.com/energye/examples/lcl/gpui/render/font"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -89,42 +88,7 @@ func (w *Window) onShow(sender lcl.IObject) {
 	if w == nil || w.glControl == nil {
 		return
 	}
-	// Load font first
-	w.loadFont()
-
 	w.glControl.Invalidate()
-}
-
-// loadFont loads a suitable font
-func (w *Window) loadFont() {
-	if w == nil {
-		return
-	}
-	systemFonts, err := renderfont.LoadSystemFontSet()
-	if err == nil {
-		fallbacks := make([][]byte, 0, len(systemFonts)-1)
-		for _, fallback := range systemFonts[1:] {
-			fallbacks = append(fallbacks, fallback.Data)
-		}
-		SetDefaultFontSet(systemFonts[0].Data, fallbacks...)
-		fmt.Printf("✓ Font file loaded: %s", systemFonts[0].Path)
-		if len(systemFonts) > 1 {
-			fmt.Printf(" + %d fallback(s)", len(systemFonts)-1)
-		}
-		bestCJK := 0
-		for _, systemFont := range systemFonts {
-			if systemFont.CJKScore > bestCJK {
-				bestCJK = systemFont.CJKScore
-			}
-		}
-		if bestCJK < len(renderfont.CJKProbeRunes) {
-			fmt.Printf(" (CJK coverage %d/%d)", bestCJK, len(renderfont.CJKProbeRunes))
-		}
-		fmt.Println()
-		return
-	}
-
-	fmt.Println("✗ Warning: no freetype-supported font file found")
 }
 
 // onPaint handles paint events
@@ -177,14 +141,13 @@ func (w *Window) ensureInitialized() bool {
 
 	w.engine.SetSize(float32(w.form.Width()), float32(w.form.Height()))
 
-	if DefaultFontData != nil {
-		f, err := LoadDefaultFont(14)
-		if err != nil {
-			fmt.Println("✗ Font load error:", err)
-		} else {
-			w.engine.SetFont(f)
-			fmt.Println("✓ Font loaded")
-		}
+	// Load font (uses embedded font by default, or user-provided via SetDefaultFontData)
+	f, err := LoadDefaultFont(14)
+	if err != nil {
+		fmt.Println("✗ Font load error:", err)
+	} else {
+		w.engine.SetFont(f)
+		fmt.Println("✓ Font loaded")
 	}
 
 	w.initialized = true

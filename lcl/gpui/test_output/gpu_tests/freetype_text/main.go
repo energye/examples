@@ -166,29 +166,28 @@ func setupUI(engine *ui.Engine) {
 }
 
 func buildTestFonts(fallback *renderfont.Font) (*renderfont.Font, *renderfont.Font, *renderfont.Font, *renderfont.Font) {
-	if ui.DefaultFontData == nil {
+	embeddedData := renderfont.EmbeddedFontData()
+	if embeddedData == nil {
 		return fallback, fallback, fallback, fallback
 	}
 
-	regular, err := newDefaultStyledFont(renderfont.FontStyle{
-		Size: 10, DPI: 96, Hinting: xfont.HintingFull,
-	})
+	regular, err := renderfont.NewFont(embeddedData, 10)
 	if err != nil {
 		regular = fallback
 	}
-	bold, err := newDefaultStyledFont(renderfont.FontStyle{
+	bold, err := renderfont.NewFontStyled(embeddedData, renderfont.FontStyle{
 		Size: 18, DPI: 96, Hinting: xfont.HintingFull, Bold: true,
 	})
 	if err != nil {
 		bold = fallback
 	}
-	italic, err := newDefaultStyledFont(renderfont.FontStyle{
+	italic, err := renderfont.NewFontStyled(embeddedData, renderfont.FontStyle{
 		Size: 18, DPI: 96, Hinting: xfont.HintingFull, Italic: true,
 	})
 	if err != nil {
 		italic = fallback
 	}
-	spaced, err := newDefaultStyledFont(renderfont.FontStyle{
+	spaced, err := renderfont.NewFontStyled(embeddedData, renderfont.FontStyle{
 		Size: 18, DPI: 96, Hinting: xfont.HintingFull, LetterSpacing: 3,
 	})
 	if err != nil {
@@ -198,17 +197,9 @@ func buildTestFonts(fallback *renderfont.Font) (*renderfont.Font, *renderfont.Fo
 }
 
 func newDefaultStyledFont(style renderfont.FontStyle) (*renderfont.Font, error) {
-	f, err := renderfont.NewFontStyled(ui.DefaultFontData, style)
+	f, err := renderfont.NewFontStyled(renderfont.EmbeddedFontData(), style)
 	if err != nil {
 		return nil, err
 	}
-	fallbacks := make([]*renderfont.Font, 0, len(ui.DefaultFontFallbackData))
-	for _, data := range ui.DefaultFontFallbackData {
-		fallback, err := renderfont.NewFontStyled(data, style)
-		if err == nil && fallback != nil {
-			fallbacks = append(fallbacks, fallback)
-		}
-	}
-	f.SetFallbacks(fallbacks...)
 	return f, nil
 }

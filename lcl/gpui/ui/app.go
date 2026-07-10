@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	renderfont "github.com/energye/examples/lcl/gpui/render/font"
 	"github.com/energye/lcl/lcl"
 	"github.com/energye/lcl/types"
 )
@@ -85,9 +84,8 @@ func (f *appForm) FormCreate(sender lcl.IObject) {
 	// Setup event handlers
 	app.setupEvents()
 
-	// Set show handler
+	// Set show handler — no system font scanning, uses embedded font automatically
 	app.form.SetOnShow(func(sender lcl.IObject) {
-		loadSystemFont()
 		app.ready = true
 		app.startRenderLoop()
 		app.glControl.Invalidate()
@@ -209,15 +207,13 @@ func (a *Application) ensureInitialized() bool {
 
 	a.engine.SetSize(float32(a.form.Width()), float32(a.form.Height()))
 
-	// Load font
-	if DefaultFontData != nil {
-		font, err := LoadDefaultFont(14)
-		if err != nil {
-			fmt.Println("Font load error:", err)
-		} else {
-			a.engine.SetFont(font)
-			fmt.Println("✓ Font loaded")
-		}
+	// Load font (uses embedded font by default, or user-provided via SetDefaultFontData)
+	font, err := LoadDefaultFont(14)
+	if err != nil {
+		fmt.Println("Font load error:", err)
+	} else {
+		a.engine.SetFont(font)
+		fmt.Println("✓ Font loaded")
 	}
 
 	if a.onSetup != nil {
@@ -279,32 +275,4 @@ func (a *Application) saveSnapshotIfRequested() {
 	a.snapshotSaved = true
 	fmt.Println("✓ GPU snapshot:", path)
 	a.form.Close()
-}
-
-// loadSystemFont loads a system font
-func loadSystemFont() {
-	systemFonts, err := renderfont.LoadSystemFontSet()
-	if err == nil {
-		fallbacks := make([][]byte, 0, len(systemFonts)-1)
-		for _, fallback := range systemFonts[1:] {
-			fallbacks = append(fallbacks, fallback.Data)
-		}
-		SetDefaultFontSet(systemFonts[0].Data, fallbacks...)
-		fmt.Printf("✓ Font: %s", systemFonts[0].Path)
-		if len(systemFonts) > 1 {
-			fmt.Printf(" + %d fallback(s)", len(systemFonts)-1)
-		}
-		bestCJK := 0
-		for _, systemFont := range systemFonts {
-			if systemFont.CJKScore > bestCJK {
-				bestCJK = systemFont.CJKScore
-			}
-		}
-		if bestCJK < len(renderfont.CJKProbeRunes) {
-			fmt.Printf(" (CJK coverage %d/%d)", bestCJK, len(renderfont.CJKProbeRunes))
-		}
-		fmt.Println()
-		return
-	}
-	fmt.Println("✗ No freetype-supported font found")
 }

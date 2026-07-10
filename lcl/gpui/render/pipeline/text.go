@@ -47,10 +47,16 @@ func (r *Renderer) DrawTextInRect(text string, rect math.Rect, opts TextOptions)
 	}
 
 	lines := wrapText(text, opts.Font, rect.W, maxLines, opts.Ellipsis)
-	r.PushClip(rect)
+	// Clip to the rect extended by the font's descent so that full glyphs
+	// (including descenders for characters like g/j/p/q/y) are not truncated.
+	clipRect := rect
+	if dy := opts.Font.Descent(); dy > 0 {
+		clipRect.H += dy + 2
+	}
+	r.PushClip(clipRect)
 	for i, line := range lines {
 		y := rect.Y + float32(i)*lineHeight
-		if y+lineHeight > rect.Y+rect.H {
+		if y >= rect.Y+rect.H {
 			break
 		}
 		x := alignedTextX(line, rect, opts.Font, opts.Align)

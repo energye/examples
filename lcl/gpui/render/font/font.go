@@ -3,24 +3,32 @@ package font
 
 import (
 	"crypto/sha256"
+	_ "embed"
 	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
-	"os"
-	"path/filepath"
-	"strings"
 	"sync"
 	"unsafe"
 
 	"github.com/energye/examples/lcl/gpui/core/gl"
 	"github.com/energye/examples/lcl/gpui/core/math"
 
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font/opentype"
+	"golang.org/x/image/font/sfnt"
 	xfont "golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
+
+//go:embed fonts/NotoSansCJK-Regular.ttc
+var embeddedFontData []byte
+
+// EmbeddedFontData returns the embedded default font data (Noto Sans CJK Regular).
+// It covers Latin, CJK Unified Ideographs (Chinese, Japanese, Korean), Kana, and Hangul.
+// Returns nil if the font file was not embedded at build time.
+func EmbeddedFontData() []byte {
+	return embeddedFontData
+}
 
 // GlyphInfo stores glyph metrics and atlas position
 type GlyphInfo struct {
@@ -51,17 +59,27 @@ type Font struct {
 	cellSize   int
 	cols       int
 	nextSlot   int
+	// gpuSlot tracks how many glyphs have been uploaded to the GPU texture.
+	// If gpuSlot < nextSlot, the GPU texture is stale and must be synced.
+	gpuSlot    int
 	style      FontStyle
 	cacheKey   fontCacheKey
-	ttFont     *truetype.Font
 	fallbacks  []*Font
 
-	// Font face for freetype on-demand rasterization.
+	// sfntFont is the parsed font (supports TTC/OTC/TTF/OTF via opentype.ParseCollection).
+	sfntFont *opentype.Font
+	// sfntBuf is a reusable buffer for sfnt operations (e.g. GlyphIndex).
+	sfntBuf *sfnt.Buffer
+
+	// Font face for on-demand glyph rasterization.
 	face xfont.Face
 }
 
 const (
-	atlasSize    = 2048
+	// initialAtlasSize is the starting font atlas size (256x256 = 256KB RGBA).
+	initialAtlasSize = 256
+	// maxAtlasSize is the maximum atlas size before we stop growing.
+	maxAtlasSize = 4096
 	glyphPadding = 2
 	maxGlyphs    = 4096
 )
@@ -89,64 +107,11 @@ type fontCacheKey struct {
 
 var globalFontCache = struct {
 	sync.Mutex
-	files  map[string][]byte
-	parsed map[[sha256.Size]byte]*truetype.Font
+	parsed map[[sha256.Size]byte]*opentype.Font
 	fonts  map[fontCacheKey]*Font
 }{
-	files:  make(map[string][]byte),
-	parsed: make(map[[sha256.Size]byte]*truetype.Font),
+	parsed: make(map[[sha256.Size]byte]*opentype.Font),
 	fonts:  make(map[fontCacheKey]*Font),
-}
-
-// SystemFont contains bytes and metadata for a discovered system font.
-type SystemFont struct {
-	Path       string
-	Data       []byte
-	LatinScore int
-	CJKScore   int
-	Validated  bool
-}
-
-// LatinProbeRunes are used to choose a primary UI font for ASCII text.
-var LatinProbeRunes = []rune{'A', 'a', '0', ' '}
-
-// CJKProbeRunes are used to prefer fonts that cover Chinese, Japanese, and Korean text.
-var CJKProbeRunes = []rune{'中', '文', '日', '本', '語', 'あ', 'ア', '한', '글'}
-
-var defaultFontPatterns = []string{
-	// User-installed fonts.
-	"~/.local/share/fonts/**/*.ttf",
-	"~/.local/share/fonts/**/*.ttc",
-	"~/.fonts/**/*.ttf",
-	"~/.fonts/**/*.ttc",
-	// Linux CJK TrueType families.
-	"/usr/share/fonts/truetype/wqy/*.ttc",
-	"/usr/share/fonts/truetype/wqy/*.ttf",
-	"/usr/share/fonts/truetype/arphic/*.ttf",
-	"/usr/share/fonts/truetype/arphic/*.ttc",
-	"/usr/share/fonts/truetype/droid/*.ttf",
-	"/usr/share/fonts/truetype/droid/*.ttc",
-	"/usr/share/fonts/truetype/noto/*CJK*.ttc",
-	"/usr/share/fonts/truetype/noto/*CJK*.ttf",
-	"/usr/share/fonts/truetype/noto/NotoSans*.ttf",
-	"/usr/share/fonts/truetype/noto/NotoSerif*.ttf",
-	// Common fallbacks.
-	"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-	"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-	// macOS.
-	"/System/Library/Fonts/PingFang.ttc",
-	"/System/Library/Fonts/STHeiti Light.ttc",
-	"/System/Library/Fonts/Hiragino Sans GB.ttc",
-	"/Library/Fonts/Arial Unicode.ttf",
-	// Windows.
-	"C:/Windows/Fonts/msyh.ttc",
-	"C:/Windows/Fonts/msyh.ttf",
-	"C:/Windows/Fonts/simsun.ttc",
-	"C:/Windows/Fonts/simhei.ttf",
-	"C:/Windows/Fonts/msgothic.ttc",
-	"C:/Windows/Fonts/meiryo.ttc",
-	"C:/Windows/Fonts/malgun.ttf",
-	"C:/Windows/Fonts/arial.ttf",
 }
 
 // NewFont creates a new font from TTF data
@@ -159,6 +124,7 @@ func NewFont(ttfData []byte, fontSize float64) (*Font, error) {
 }
 
 // NewFontStyled creates a new font with style options (bold/italic).
+// It supports TTF, OTF, TTC, and OTC font formats.
 func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 	style = normalizeFontStyle(style)
 	key := cacheKeyFor(ttfData, style)
@@ -170,17 +136,20 @@ func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 	}
 	globalFontCache.Unlock()
 
-	// Parse font through golang/freetype (supports both TTF and TTC).
-	f, err := parseFontCached(ttfData, key.hash)
+	// Parse font via opentype (supports TTF/OTF single fonts and TTC/OTC collections).
+	parsedFont, err := parseFontAny(ttfData, key.hash)
 	if err != nil {
 		return nil, err
 	}
 
-	face := truetype.NewFace(f, &truetype.Options{
+	face, err := opentype.NewFace(parsedFont, &opentype.FaceOptions{
 		Size:    style.Size,
 		DPI:     style.DPI,
 		Hinting: style.Hinting,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("create opentype face: %w", err)
+	}
 
 	// Calculate metrics
 	m := face.Metrics()
@@ -194,15 +163,16 @@ func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 	if cellSize < 8 {
 		cellSize = 8
 	}
-	cols := atlasSize / cellSize
+	initSize := initialAtlasSize
+	cols := initSize / cellSize
 	if cols < 1 {
 		cols = 1
 	}
 
 	fontObj := &Font{
-		texWidth:   atlasSize,
-		texHeight:  atlasSize,
-		atlas:      image.NewRGBA(image.Rect(0, 0, atlasSize, atlasSize)),
+		texWidth:   initSize,
+		texHeight:  initSize,
+		atlas:      image.NewRGBA(image.Rect(0, 0, initSize, initSize)),
 		glyphs:     make(map[rune]*GlyphInfo),
 		fontSize:   style.Size,
 		lineHeight: lineHeight,
@@ -213,18 +183,14 @@ func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 		cols:       cols,
 		style:      style,
 		cacheKey:   key,
-		ttFont:     f,
+		sfntFont:   parsedFont,
+		sfntBuf:    &sfnt.Buffer{},
 		face:       face,
 	}
 
-	// Pre-rasterize common characters
-	fontObj.preRasterize()
-
-	// Upload to GPU
-	if err := fontObj.uploadToGPU(); err != nil {
-		face.Close()
-		return nil, err
-	}
+	// No pre-rasterization — glyphs are rasterized on demand via GetGlyph/addGlyph.
+	// Upload initial empty atlas to GPU so the texture exists for uploadRect later.
+	_ = fontObj.uploadToGPU()
 
 	globalFontCache.Lock()
 	if cached := globalFontCache.fonts[key]; cached != nil {
@@ -238,250 +204,74 @@ func NewFontStyled(ttfData []byte, style FontStyle) (*Font, error) {
 	return fontObj, nil
 }
 
-// ValidateFontData verifies that font data is supported by the freetype parser.
+// parseFontAny parses font data in any supported format (TTF, OTF, TTC, OTC).
+// It first tries a single-font parse, then falls back to collection parsing.
+func parseFontAny(data []byte, hash [sha256.Size]byte) (*opentype.Font, error) {
+	// Check cache
+	globalFontCache.Lock()
+	if f := globalFontCache.parsed[hash]; f != nil {
+		globalFontCache.Unlock()
+		return f, nil
+	}
+	globalFontCache.Unlock()
+
+	// Try single-font parse first
+	f, err := opentype.Parse(data)
+	if err == nil {
+		globalFontCache.Lock()
+		if cached := globalFontCache.parsed[hash]; cached != nil {
+			globalFontCache.Unlock()
+			return cached, nil
+		}
+		globalFontCache.parsed[hash] = f
+		globalFontCache.Unlock()
+		return f, nil
+	}
+
+	// Fall back to collection parse (TTC/OTC)
+	coll, collErr := opentype.ParseCollection(data)
+	if collErr != nil {
+		return nil, fmt.Errorf("parse font: single=%v, collection=%v", err, collErr)
+	}
+	if coll.NumFonts() == 0 {
+		return nil, fmt.Errorf("font collection is empty")
+	}
+	f, err = coll.Font(0)
+	if err != nil {
+		return nil, fmt.Errorf("get first font from collection: %w", err)
+	}
+
+	globalFontCache.Lock()
+	if cached := globalFontCache.parsed[hash]; cached != nil {
+		globalFontCache.Unlock()
+		return cached, nil
+	}
+	globalFontCache.parsed[hash] = f
+	globalFontCache.Unlock()
+	return f, nil
+}
+
+// ValidateFontData verifies that font data is supported by the opentype parser.
 func ValidateFontData(ttfData []byte) error {
-	key := cacheKeyFor(ttfData, normalizeFontStyle(FontStyle{}))
-	_, err := parseFontCached(ttfData, key.hash)
+	_, err := parseFontAny(ttfData, sha256.Sum256(ttfData))
 	return err
 }
 
-// FontCoverageScore counts how many probe runes a freetype-supported font contains.
+// FontCoverageScore counts how many probe runes a font contains.
 func FontCoverageScore(ttfData []byte, probes []rune) (int, error) {
-	key := cacheKeyFor(ttfData, normalizeFontStyle(FontStyle{}))
-	f, err := parseFontCached(ttfData, key.hash)
+	f, err := parseFontAny(ttfData, sha256.Sum256(ttfData))
 	if err != nil {
 		return 0, err
 	}
+	buf := &sfnt.Buffer{}
 	score := 0
 	for _, r := range probes {
-		if f.Index(r) != 0 {
+		idx, err := f.GlyphIndex(buf, r)
+		if err == nil && idx != 0 {
 			score++
 		}
 	}
 	return score, nil
-}
-
-// LoadSystemFontData returns the primary freetype-supported system font.
-//
-// GPUI_FONT_PATHS can override or prepend candidates. It uses the OS path-list
-// separator (":" on Unix, ";" on Windows). Glob patterns are accepted.
-func LoadSystemFontData() (SystemFont, error) {
-	fonts, err := LoadSystemFontSet()
-	if err != nil {
-		return SystemFont{}, err
-	}
-	return fonts[0], nil
-}
-
-// LoadSystemFontSet returns a primary Latin font followed by CJK-capable fallbacks.
-func LoadSystemFontSet() ([]SystemFont, error) {
-	paths := SystemFontCandidates()
-	var candidates []SystemFont
-	var firstValid SystemFont
-
-	for _, path := range paths {
-		data, err := ReadFontFile(path)
-		if err != nil {
-			continue
-		}
-		cjkScore, err := FontCoverageScore(data, CJKProbeRunes)
-		if err != nil {
-			continue
-		}
-		latinScore, err := FontCoverageScore(data, LatinProbeRunes)
-		if err != nil {
-			continue
-		}
-		candidate := SystemFont{Path: path, Data: data, LatinScore: latinScore, CJKScore: cjkScore, Validated: true}
-		if firstValid.Data == nil {
-			firstValid = candidate
-		}
-		candidates = append(candidates, candidate)
-	}
-
-	if len(candidates) == 0 {
-		return nil, fmt.Errorf("no freetype-supported system font found")
-	}
-
-	primary := firstValid
-	for _, candidate := range candidates {
-		if candidate.LatinScore > primary.LatinScore ||
-			(candidate.LatinScore == primary.LatinScore && candidate.CJKScore > primary.CJKScore) {
-			primary = candidate
-		}
-	}
-
-	out := []SystemFont{primary}
-	for len(out) < 9 {
-		bestIndex := -1
-		var best SystemFont
-		for i, candidate := range candidates {
-			if candidate.Path == primary.Path || containsSystemFont(out[1:], candidate.Path) {
-				continue
-			}
-			if candidate.CJKScore <= 0 {
-				continue
-			}
-			if bestIndex < 0 || candidate.CJKScore > best.CJKScore ||
-				(candidate.CJKScore == best.CJKScore && candidate.LatinScore > best.LatinScore) {
-				bestIndex = i
-				best = candidate
-			}
-		}
-		if bestIndex < 0 {
-			break
-		}
-		out = append(out, best)
-	}
-	return out, nil
-}
-
-func containsSystemFont(fonts []SystemFont, path string) bool {
-	for _, font := range fonts {
-		if font.Path == path {
-			return true
-		}
-	}
-	return false
-}
-
-// SystemFontCandidates returns configured and built-in font candidates.
-func SystemFontCandidates() []string {
-	patterns := make([]string, 0, len(defaultFontPatterns)+8)
-	if env := os.Getenv("GPUI_FONT_PATHS"); env != "" {
-		for _, item := range filepath.SplitList(env) {
-			item = strings.TrimSpace(item)
-			if item != "" {
-				patterns = append(patterns, item)
-			}
-		}
-	}
-	patterns = append(patterns, defaultFontPatterns...)
-
-	seen := make(map[string]bool, len(patterns))
-	paths := make([]string, 0, len(patterns))
-	for _, pattern := range patterns {
-		for _, path := range expandFontPattern(pattern) {
-			abs, err := filepath.Abs(path)
-			if err == nil {
-				path = abs
-			}
-			if !seen[path] {
-				seen[path] = true
-				paths = append(paths, path)
-			}
-		}
-	}
-	return paths
-}
-
-func expandFontPattern(pattern string) []string {
-	pattern = expandHome(pattern)
-	if strings.Contains(pattern, "**") {
-		return globRecursive(pattern)
-	}
-	matches, err := filepath.Glob(pattern)
-	if err == nil && len(matches) > 0 {
-		return matches
-	}
-	if _, err := os.Stat(pattern); err == nil {
-		return []string{pattern}
-	}
-	return nil
-}
-
-func expandHome(path string) string {
-	if path == "~" {
-		if home, err := os.UserHomeDir(); err == nil {
-			return home
-		}
-	}
-	if strings.HasPrefix(path, "~/") {
-		if home, err := os.UserHomeDir(); err == nil {
-			return filepath.Join(home, path[2:])
-		}
-	}
-	return path
-}
-
-func globRecursive(pattern string) []string {
-	parts := strings.SplitN(pattern, "**", 2)
-	root := strings.TrimSuffix(parts[0], string(os.PathSeparator))
-	if root == "" {
-		root = "."
-	}
-	suffix := ""
-	if len(parts) > 1 {
-		suffix = strings.TrimPrefix(parts[1], string(os.PathSeparator))
-	}
-
-	var matches []string
-	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil || d == nil {
-			return nil
-		}
-		if d.IsDir() {
-			return nil
-		}
-		candidate := path
-		if suffix != "" {
-			candidate = filepath.Join(path, suffix)
-		}
-		if ok, _ := filepath.Match(filepath.Base(pattern), filepath.Base(path)); ok || suffix == "" {
-			if suffix == "" || strings.HasSuffix(path, strings.TrimPrefix(suffix, "*")) {
-				matches = append(matches, path)
-			}
-			_ = candidate
-		}
-		return nil
-	})
-	return matches
-}
-
-// NewFontFromFile creates or reuses a font from a TTF/TTC file path.
-func NewFontFromFile(path string, fontSize float64) (*Font, error) {
-	return NewFontFileStyled(path, FontStyle{Size: fontSize, DPI: 96, Hinting: xfont.HintingFull})
-}
-
-// NewFontFileStyled creates or reuses a styled font from a TTF/TTC file path.
-func NewFontFileStyled(path string, style FontStyle) (*Font, error) {
-	data, err := ReadFontFile(path)
-	if err != nil {
-		return nil, err
-	}
-	return NewFontStyled(data, style)
-}
-
-// ReadFontFile reads font bytes once per absolute path and reuses the data globally.
-func ReadFontFile(path string) ([]byte, error) {
-	if path == "" {
-		return nil, fmt.Errorf("font path is empty")
-	}
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		abs = path
-	}
-
-	globalFontCache.Lock()
-	if data := globalFontCache.files[abs]; data != nil {
-		globalFontCache.Unlock()
-		return data, nil
-	}
-	globalFontCache.Unlock()
-
-	data, err := os.ReadFile(abs)
-	if err != nil {
-		return nil, err
-	}
-
-	globalFontCache.Lock()
-	if cached := globalFontCache.files[abs]; cached != nil {
-		globalFontCache.Unlock()
-		return cached, nil
-	}
-	globalFontCache.files[abs] = data
-	globalFontCache.Unlock()
-	return data, nil
 }
 
 func normalizeFontStyle(style FontStyle) FontStyle {
@@ -503,74 +293,6 @@ func cacheKeyFor(ttfData []byte, style FontStyle) fontCacheKey {
 		italic:        style.Italic,
 		hinting:       style.Hinting,
 		letterSpacing: style.LetterSpacing,
-	}
-}
-
-func parseFontCached(ttfData []byte, hash [sha256.Size]byte) (*truetype.Font, error) {
-	globalFontCache.Lock()
-	if f := globalFontCache.parsed[hash]; f != nil {
-		globalFontCache.Unlock()
-		return f, nil
-	}
-	globalFontCache.Unlock()
-
-	f, err := freetype.ParseFont(ttfData)
-	if err != nil {
-		return nil, fmt.Errorf("parse freetype font: %w", err)
-	}
-
-	globalFontCache.Lock()
-	if cached := globalFontCache.parsed[hash]; cached != nil {
-		globalFontCache.Unlock()
-		return cached, nil
-	}
-	globalFontCache.parsed[hash] = f
-	globalFontCache.Unlock()
-	return f, nil
-}
-
-// preRasterize pre-rasterizes common characters
-func (f *Font) preRasterize() {
-	maxGlyphs := f.maxSlots()
-
-	// Characters to rasterize
-	chars := make([]rune, 0, 512)
-
-	// ASCII printable (32-126)
-	for c := rune(32); c <= 126; c++ {
-		chars = append(chars, c)
-	}
-
-	// Common CJK characters (subset for fast loading)
-	cjkCommon := []rune{
-		'你', '好', '世', '界', '测', '试', '输', '入', '文', '字',
-		'请', '在', '这', '里', '点', '击', '按', '钮', '标', '签',
-		'框', '窗', '口', '程', '序', '开', '发', '使', '用',
-		'中', '英', '大', '小', '多', '少', '上', '下', '左', '右',
-		'是', '的', '不', '了', '在', '人', '有', '我', '他', '这',
-		'个', '们', '中', '来', '到', '时', '大', '地', '为', '子',
-		'说', '生', '国', '年', '着', '就', '那', '和', '要', '她',
-		'出', '也', '得', '里', '后', '自', '会', '家', '可', '下',
-		'而', '过', '去', '天', '能', '对', '小', '多', '然', '于',
-		'心', '学', '么', '之', '都', '好', '看', '起', '发', '当',
-	}
-	chars = append(chars, cjkCommon...)
-
-	for _, r := range chars {
-		if f.nextSlot >= maxGlyphs {
-			break
-		}
-		if _, exists := f.glyphs[r]; exists {
-			continue
-		}
-
-		gInfo, _, ok := f.rasterizeGlyph(f.atlas, r, f.nextSlot)
-		if !ok {
-			continue
-		}
-
-		f.glyphs[r] = gInfo
-		f.nextSlot++
 	}
 }
 
@@ -602,10 +324,10 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 	if !ok {
 		if r == ' ' {
 			return &GlyphInfo{
-				U0:      float32(cellX) / float32(atlasSize),
-				V0:      float32(cellY) / float32(atlasSize),
-				U1:      float32(cellX) / float32(atlasSize),
-				V1:      float32(cellY) / float32(atlasSize),
+				U0:      float32(cellX) / float32(f.texWidth),
+				V0:      float32(cellY) / float32(f.texHeight),
+				U1:      float32(cellX) / float32(f.texWidth),
+				V1:      float32(cellY) / float32(f.texHeight),
 				Advance: fixed26_6ToFloat32(adv),
 			}, cellRect, true
 		}
@@ -617,10 +339,10 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 
 	if glyphW <= 0 || glyphH <= 0 {
 		return &GlyphInfo{
-			U0:      float32(cellX) / float32(atlasSize),
-			V0:      float32(cellY) / float32(atlasSize),
-			U1:      float32(cellX) / float32(atlasSize),
-			V1:      float32(cellY) / float32(atlasSize),
+			U0:      float32(cellX) / float32(f.texWidth),
+			V0:      float32(cellY) / float32(f.texHeight),
+			U1:      float32(cellX) / float32(f.texWidth),
+			V1:      float32(cellY) / float32(f.texHeight),
 			Advance: fixed26_6ToFloat32(adv),
 		}, cellRect, true
 	}
@@ -652,10 +374,10 @@ func (f *Font) rasterizeGlyph(atlas *image.RGBA, r rune, slot int) (*GlyphInfo, 
 	}
 
 	return &GlyphInfo{
-		U0:       float32(destX) / float32(atlasSize),
-		V0:       float32(destY) / float32(atlasSize),
-		U1:       float32(destX+glyphW) / float32(atlasSize),
-		V1:       float32(destY+glyphH) / float32(atlasSize),
+		U0:       float32(destX) / float32(f.texWidth),
+		V0:       float32(destY) / float32(f.texHeight),
+		U1:       float32(destX+glyphW) / float32(f.texWidth),
+		V1:       float32(destY+glyphH) / float32(f.texHeight),
 		Advance:  advance,
 		Width:    float32(glyphW),
 		Height:   float32(glyphH),
@@ -688,12 +410,42 @@ func (f *Font) uploadToGPU() error {
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
 
-	gl.TexImage2D(gl.GL_TEXTURE_2D, 0, int32(gl.GL_RGBA), int32(atlasSize), int32(atlasSize), 0,
+	gl.TexImage2D(gl.GL_TEXTURE_2D, 0, int32(gl.GL_RGBA), int32(f.texWidth), int32(f.texHeight), 0,
 		gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, unsafePtr(f.atlas.Pix))
 
 	f.texture = tex
+	f.gpuSlot = f.nextSlot
 
 	return nil
+}
+
+// SyncGPU ensures the GPU texture is up to date with the CPU atlas.
+// Must be called with a current GL context (e.g. inside Render/BeginFrame).
+func (f *Font) SyncGPU() {
+	if f == nil {
+		return
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.nextSlot == 0 || f.gpuSlot >= f.nextSlot {
+		return
+	}
+	if f.texture == 0 || f.gpuSlot == 0 {
+		// First upload or full re-upload
+		if f.texture != 0 {
+			gl.DeleteTextures(1, &f.texture)
+			f.texture = 0
+		}
+		_ = f.uploadToGPU()
+	} else {
+		// Incremental upload of the entire atlas
+		// (simpler than tracking per-glyph dirty rects)
+		if f.texture != 0 {
+			gl.DeleteTextures(1, &f.texture)
+			f.texture = 0
+		}
+		_ = f.uploadToGPU()
+	}
 }
 
 // Texture returns the font texture
@@ -718,6 +470,14 @@ func (f *Font) Ascent() float32 {
 		return 0
 	}
 	return f.ascent
+}
+
+// Descent returns the descent (positive value indicating pixels below baseline).
+func (f *Font) Descent() float32 {
+	if f == nil {
+		return 0
+	}
+	return f.descent
 }
 
 // LetterSpacing returns the extra spacing inserted after each glyph.
@@ -757,10 +517,11 @@ func (f *Font) Fallbacks() []*Font {
 
 // HasRune reports whether this font directly contains the rune.
 func (f *Font) HasRune(r rune) bool {
-	if f == nil || f.ttFont == nil {
+	if f == nil || f.sfntFont == nil {
 		return false
 	}
-	return f.ttFont.Index(r) != 0
+	idx, err := f.sfntFont.GlyphIndex(f.sfntBuf, r)
+	return err == nil && idx != 0
 }
 
 // GetGlyph returns glyph info for a rune
@@ -824,7 +585,7 @@ func (f *Font) RuneAdvance(r rune) float32 {
 	return g.Advance + f.letterGap
 }
 
-// addGlyph adds a glyph on demand
+// addGlyph adds a glyph on demand, growing the atlas if needed.
 func (f *Font) addGlyph(r rune) {
 	if f == nil {
 		return
@@ -838,11 +599,18 @@ func (f *Font) addGlyph(r rune) {
 		return
 	}
 
-	if f.face == nil || f.nextSlot >= f.maxSlots() {
+	if f.face == nil {
 		return
 	}
 
-	gInfo, dirtyRect, ok := f.rasterizeGlyph(f.atlas, r, f.nextSlot)
+	// Grow atlas if we've run out of slots
+	if f.nextSlot >= f.maxSlots() {
+		if !f.growAtlas() {
+			return
+		}
+	}
+
+	gInfo, _, ok := f.rasterizeGlyph(f.atlas, r, f.nextSlot)
 	if !ok {
 		return
 	}
@@ -850,18 +618,59 @@ func (f *Font) addGlyph(r rune) {
 	f.glyphs[r] = gInfo
 	f.nextSlot++
 
-	if f.texture == 0 {
-		_ = f.uploadToGPU()
-		return
+	// Note: GPU upload is deferred to SyncGPU(), called from DrawText
+	// during the render pass. This way addGlyph works correctly even when
+	// called during text layout (outside a GL context).
+}
+
+// growAtlas doubles the atlas height up to maxAtlasSize.
+// After growth, UV coordinates of all existing glyphs are recomputed
+// to account for the larger texture dimensions.
+func (f *Font) growAtlas() bool {
+	if f.texHeight >= maxAtlasSize {
+		return false
 	}
-	f.uploadRect(dirtyRect)
+	oldHeight := f.texHeight
+	newSize := f.texHeight * 2
+	if newSize > maxAtlasSize {
+		newSize = maxAtlasSize
+	}
+
+	newAtlas := image.NewRGBA(image.Rect(0, 0, f.texWidth, newSize))
+	draw.Draw(newAtlas, f.atlas.Bounds(), f.atlas, image.Point{}, draw.Src)
+	f.atlas = newAtlas
+	f.texHeight = newSize
+
+	// Recalculate cols based on new width
+	f.cols = f.texWidth / f.cellSize
+	if f.cols < 1 {
+		f.cols = 1
+	}
+
+	// Fix UV coordinates of all existing glyphs.
+	// UV is normalized (0-1). The pixel data was copied to the larger atlas
+	// at the same pixel positions, so V = pixelY / texHeight must be
+	// recomputed using the new texHeight.
+	ratio := float32(oldHeight) / float32(f.texHeight)
+	for _, g := range f.glyphs {
+		g.V0 *= ratio
+		g.V1 *= ratio
+	}
+
+	// Re-upload full atlas to GPU
+	if f.texture != 0 {
+		gl.DeleteTextures(1, &f.texture)
+		f.texture = 0
+	}
+	_ = f.uploadToGPU()
+	return true
 }
 
 func (f *Font) maxSlots() int {
 	if f.cellSize <= 0 || f.cols <= 0 {
 		return 0
 	}
-	rows := atlasSize / f.cellSize
+	rows := f.texHeight / f.cellSize
 	slots := f.cols * rows
 	if slots > maxGlyphs {
 		return maxGlyphs

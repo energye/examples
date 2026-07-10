@@ -179,8 +179,8 @@ const (
 	// VertexSize is the size of a vertex in bytes.
 	VertexSize = 8 * 4 // 8 floats * 4 bytes
 
-	defaultMaxVertices = 65536
-	defaultMaxIndices  = 65536
+	defaultMaxVertices = 16384
+	defaultMaxIndices  = 16384
 )
 
 // QuadVertices creates 4 vertices for a textured/solid rectangle

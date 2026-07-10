@@ -14,13 +14,18 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 		return
 	}
 
+	// Ensure the GPU texture is up to date with the CPU atlas.
+	// This handles glyphs that were rasterized during text layout
+	// (outside a GL context) and need to be uploaded before rendering.
+	f.SyncGPU()
+
 	shaderProg := r.shaderMgr.GetShader("text")
 	if shaderProg == nil {
 		shaderProg = r.shaderMgr.GetShader("texture")
 	}
 
-	cx := snapTextCoord(x)
-	topY := snapTextCoord(y)
+	cx := x
+	topY := y
 	ascent := f.Ascent()
 	for _, ch := range text {
 		glyphFont, g, ok := f.ResolveGlyph(ch)
@@ -29,8 +34,8 @@ func (r *Renderer) DrawText(text string, x, y float32, f *font.Font, color math.
 		}
 
 		if g.Width > 0 && g.Height > 0 {
-			gx := snapTextCoord(cx + g.BearingX)
-			gy := snapTextCoord(topY + ascent - g.BearingY)
+			gx := cx + g.BearingX
+			gy := topY + ascent - g.BearingY
 
 			src := math.NewRect(g.U0, g.V0, g.U1-g.U0, g.V1-g.V0)
 			dst := math.NewRect(gx, gy, g.Width, g.Height)
