@@ -1,0 +1,179 @@
+{
+  "name": "Form1",
+  "class_name": "TEngForm",
+  "mod": "",
+  "type": 0,
+  "properties": [
+    {
+      "name": "Caption",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Height",
+      "value": 400,
+      "type": 1
+    },
+    {
+      "name": "Left",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Name",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Top",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Width",
+      "value": 600,
+      "type": 1
+    }
+  ],
+  "child": [
+    {
+      "name": "Chromium1",
+      "class_name": "TChromium",
+      "mod": "cefEnergy",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Align",
+          "value": "AlLeft",
+          "type": 9
+        },
+        {
+          "name": "Caption",
+          "value": "Chromium1",
+          "type": 0
+        },
+        {
+          "name": "Height",
+          "value": 348,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 0,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "Chromium1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 0,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 300,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "Memo1",
+      "class_name": "TMemo",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Height",
+          "value": 90,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 359,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "Memo1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 44,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 150,
+          "type": 1
+        }
+      ]
+    },
+    {
+      "name": "OpenDialog1",
+      "class_name": "TOpenDialog",
+      "mod": "lcl",
+      "type": 1,
+      "properties": [
+        {
+          "name": "Left",
+          "value": 363,
+          "type": 1,
+          "no_code": true
+        },
+        {
+          "name": "Name",
+          "value": "OpenDialog1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 160,
+          "type": 1,
+          "no_code": true
+        }
+      ]
+    },
+    {
+      "name": "Button1",
+      "class_name": "TButton",
+      "mod": "lcl",
+      "type": 2,
+      "properties": [
+        {
+          "name": "Caption",
+          "value": "Button1",
+          "type": 0
+        },
+        {
+          "name": "Height",
+          "value": 25,
+          "type": 1
+        },
+        {
+          "name": "Left",
+          "value": 362,
+          "type": 1
+        },
+        {
+          "name": "Name",
+          "value": "Button1",
+          "type": 0
+        },
+        {
+          "name": "Top",
+          "value": 234,
+          "type": 1
+        },
+        {
+          "name": "Width",
+          "value": 75,
+          "type": 1
+        }
+      ]
+    }
+  ]
+}

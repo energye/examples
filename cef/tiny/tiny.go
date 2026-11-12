@@ -25,7 +25,6 @@ func init() {
 	libname.UseWS = "gtk3"
 }
 func main() {
-	libname.LibName = "/home/yanghy/app/workspace/gen/gout/libenergy-gtk3-147.so"
 	lcl.Init()
 	base.Init()
 	fmt.Println(cef.CEFVersion)
