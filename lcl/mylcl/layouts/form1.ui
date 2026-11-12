@@ -1,0 +1,38 @@
+{
+  "name": "Form1",
+  "class_name": "TEngForm",
+  "mod": "",
+  "type": 0,
+  "properties": [
+    {
+      "name": "Caption",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Height",
+      "value": 400,
+      "type": 1
+    },
+    {
+      "name": "Left",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Name",
+      "value": "Form1",
+      "type": 0
+    },
+    {
+      "name": "Top",
+      "value": 0,
+      "type": 1
+    },
+    {
+      "name": "Width",
+      "value": 600,
+      "type": 1
+    }
+  ]
+}

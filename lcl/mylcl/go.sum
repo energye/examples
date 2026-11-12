@@ -1,0 +1,5 @@
+github.com/energye/cef v1.0.5/go.mod h1:IRqPQq1y5LVBHmR8Jb/JnwslQH/0wbwVPtrPy60bJ7I=
+github.com/energye/energy/v3 v3.0.16/go.mod h1:UwgCRAJRVx5ffMAon0FcObir94WziqTofOFZxqnqQTw=
+github.com/energye/lcl v1.0.9 h1:OvBMuBVlNL6oK/8LYywGEVPW1DHNtoou2AdjdFH2Xto=
+github.com/energye/lcl v1.0.9/go.mod h1:k9apUIp1r1FMg1e+S3psbS4rQigEiyOmqxMsIOOz+Rs=
+github.com/energye/wv v1.0.10/go.mod h1:LgrCK8SWjTkXhTIe76fJLpM8ilp/3qfDUGIHSwA1+FE=
