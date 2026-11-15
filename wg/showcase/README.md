@@ -114,7 +114,9 @@ RESULT: PASS
 
 **16ms 内算好批量，到点才取渲染**：每个帧槽里，先用墙钟 `PhaseNow()` 定同一时刻的动画相位，把所有动态几何、文字、图层**一次性批量**光栅化到离屏 `Pf24bit` 帧缓冲；这一步用户完全看不见。然后在帧边界做唯一一次原子提交。两种帧源正是「有动态的场景」（连续 60Hz）与「要刷新场景」（一次性脏区帧），其余时间不绘制。
 
-**为什么不用 `TTimer`**：Windows `SetTimer` 被量化（本机实测 16ms→39 FPS、12ms→78 FPS、14ms 偶发 16 FPS），帧率会跟着量化档位跳。现在帧节拍由 Go 侧绝对时间轴控制，`next += 16.667ms` 不累积漂移；慢帧**跳槽不追帧**（`inflight` 上限 2 + 超时自恢复），所以不会出现补帧爆发。`timeBeginPeriod(1)` 用来抬高系统时钟精度。GDI 后端没有真正的 VSync，生产级 GPU 后端应把这条时间轴换成 `DwmFlush` / `IDXGIOutput::WaitForVBlank`。
+**为什么不用 `TTimer`**：Windows `SetTimer` 被量化（本机实测 16ms→39 FPS、12ms→78 FPS、14ms 偶发 16 FPS），帧率会跟着量化档位跳。现在帧节拍由 Go 侧绝对时间轴控制，`next += 16.667ms` 不累积漂移；帧泵是**单 outstanding 闭环**（`CAS(0,1)` 拒绝二次投递、等 `FrameDone` 再投下一槽，慢帧平移时槽而非丢整槽），所以不会出现补帧爆发；「3 槽没回就清零 `inflight`」的短超时看门狗已删除——它在静态重烘焙期间会把 post 队列灌满、饿死输入（见第九节）。`timeBeginPeriod(1)` 用来抬高系统时钟精度。
+
+**要不要接真 VSync**：当前**不需要**，也不该现在要。Windows 8+ 起 DWM 强制合成，GDI 的 BitBlt 只写进窗口 surface 由 DWM 在合成周期取用，**不会撕裂**；真 VSync 唯一能改善的是软件墙钟与合成点的相位漂移，而实测抖动还包含 goroutine 调度与消息排队。`IDXGIOutput::WaitForVBlank` 会阻塞线程，放进主线程绘制路径还可能把输入重新饿死；`DwmFlush()` 的官方语义是「等排队的 DirectX 表面更新绘制到屏幕」，并不是等下一个垂直空白，不能拿来冒充。只有在上 GPU 后端 / 120Hz+ 高刷 / 多显示器不同刷新率 / 连续高速动画时才该重新评估，届时首选 DirectComposition 的 Compositor clock API，且等待必须放在调度 goroutine 而非主线程。判断依据与触发条件见 `wg-canvas-arch/ARCHITECTURE.md` §4·二.5。
 
 **鼠标为什么不再抬升 FPS**：`dispatch()` 现在只更新 hover/拖动状态，动画运行期间**完全不请求帧**（帧泵已经在 60Hz 跑）；静止且状态真的变化时才合并脏区并请求恰好一帧；纯移动无状态变化则零帧。实测 `--mousetest` 注入 1330 条 `WM_MOUSEMOVE`：修复前 126 FPS，修复后 **60 FPS**、相位正常推进。
 
@@ -247,7 +249,7 @@ RESULT: PASS — 60Hz 锁帧 / 静止零帧 / 脏区单帧 全部成立
 >
 > 本表是「覆盖取 MAX」阶段的快照；之后第八节的四个回归修复又统一了 `lineCov`、补回 halo 像素并加入自适应布局，**最新数值见第八节末尾的实测表**。
 
-`--bench` 安静复测 **60.1 FPS**、widgets 6.20ms、PREPARE+PRESENT 9.95ms；`--schedtest`、`--mousetest`（1330 条鼠标消息下 60.1 FPS）、`--selftest`、`go test -count=1 ./wg/...`、`WG_AA=0` / `WG_FAST=1` / `WG_STATIC=0` 全 PASS。**残留抖动不是渲染成本**：帧间隔 p95 的波动明显大于 PREPARE 的波动，来自无真 VSync 的软件墙钟与系统调度；连续启动多个进程时首轮会偏高。生产级 GPU 后端应把时间轴换成 `DwmFlush` / `IDXGIOutput::WaitForVBlank`。
+`--bench` 安静复测 **60.1 FPS**、widgets 6.20ms、PREPARE+PRESENT 9.95ms；`--schedtest`、`--mousetest`（1330 条鼠标消息下 60.1 FPS）、`--selftest`、`go test -count=1 ./wg/...`、`WG_AA=0` / `WG_FAST=1` / `WG_STATIC=0` 全 PASS。**残留抖动不是渲染成本**：帧间隔 p95 的波动明显大于 PREPARE 的波动，来自软件墙钟与系统调度；连续启动多个进程时首轮会偏高。这不是缺陷：Windows 8+ DWM 已负责呈现同步，当前 GDI 方案不需要真 VSync（判断与触发条件见架构文档 §4·二.5）；`--schedtest` 因此改用帧间隔中位数判定，避免把外部负载顿挫误判成帧泵故障。
 
 **A/B 画面**：`aa_frame_zoom.png` 里曲线/圆点边缘有平滑中间色、下方填充是垂直渐变、曲线带柔光；`gdi_frame_zoom.png` 是明显阶梯 + 纯色填充。9 张卡片、全部图表、中文文字在两版里都完整无缺失。
 
@@ -400,4 +402,4 @@ PROBE max-held  NCHITTEST(caption) -> 2 (HTCAPTION)
 | `inputdiag.go` / `inputdiag_other.go` | `--inputdiag` 原生消息/capture 证据日志；`--inputtest` 的 22 项回归断言、真实 `SendInput` 拖拽、输入延迟 A/B / 非 Windows stub |
 | `inputguard_windows.go` / `inputguard_other.go` | `GetAsyncKeyState(VK_LBUTTON)` 读取真实按键状态，识别被模态循环吞掉的 `WM_LBUTTONUP` / 非 Windows stub |
 
-架构设计见 WorkBuddy 工作区 `wg-canvas-arch/ARCHITECTURE.md`；单画布 + 输入法的最小示例见 `../canvas_ime`。本示例使用 `examples` 模块已有依赖，未修改 `go.mod`。
+**本示例是可行性测试，不是产品代码**。实证结论已收口为正式架构：`C:/Users/Administrator/WorkBuddy/worksapce/wg-canvas-arch/ARCHITECTURE.md`（第 3 轮实证定稿：五层架构、POC 证伪清单、契约 ①–⑰），施工蓝图见同目录 `API.md`（包结构 / 接口 / 迁移映射 / 验收命令）。索引与 P1 抽取步骤见 `../README.md` 末节。单画布 + 输入法的最小示例见 `../canvas_ime`。本示例使用 `examples` 模块已有依赖，未修改 `go.mod`。

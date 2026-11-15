@@ -158,4 +158,4 @@ ENERGY_LIB=E:/app/workspace/lib/libenergy-x86_64-win64.dll go run ./wg/canvas_im
 | `keydiag_windows.go` / `keydiag_other.go` | `--keyselftest` 的 Win32 消息注入与断言 / 非 Windows stub |
 | `widgets_test.go` | 9 个编辑逻辑单测（rune 光标、控制字符、组合键、撤销、按词移动） |
 
-架构设计见 WorkBuddy 工作区 `wg-canvas-arch/ARCHITECTURE.md`，最小骨架见 `wg-canvas-arch/poc/`。本示例使用 `examples` 模块已有的依赖（`golang.org/x/sys v0.30.0`），无需修改 `examples/go.mod`。
+架构设计（第 3 轮实证定稿）见 `C:/Users/Administrator/WorkBuddy/worksapce/wg-canvas-arch/ARCHITECTURE.md`，施工蓝图见同目录 `API.md`，第 1 轮最小骨架见 `wg-canvas-arch/poc/`。本示例使用 `examples` 模块已有的依赖（`golang.org/x/sys v0.30.0`），无需修改 `examples/go.mod`。

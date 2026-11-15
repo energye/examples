@@ -1,0 +1,1033 @@
+{
+  "name": "电商系统 · 示例模型",
+  "dialect": "MySQL",
+  "seq": 97,
+  "tables": [
+    {
+      "id": "t1",
+      "name": "users",
+      "comment": "用户主表",
+      "x": 48,
+      "y": 478,
+      "collapsed": false,
+      "group": "core",
+      "columns": [
+        {
+          "id": "c2",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "用户 ID"
+        },
+        {
+          "id": "c3",
+          "name": "username",
+          "type": "VARCHAR",
+          "length": "64",
+          "pk": false,
+          "nn": true,
+          "uq": true,
+          "ai": false,
+          "comment": "登录名"
+        },
+        {
+          "id": "c4",
+          "name": "email",
+          "type": "VARCHAR",
+          "length": "128",
+          "pk": false,
+          "nn": false,
+          "uq": true,
+          "ai": false,
+          "comment": "邮箱"
+        },
+        {
+          "id": "c5",
+          "name": "password_hash",
+          "type": "VARCHAR",
+          "length": "128",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "密码哈希"
+        },
+        {
+          "id": "c6",
+          "name": "phone",
+          "type": "VARCHAR",
+          "length": "20",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "手机号"
+        },
+        {
+          "id": "c7",
+          "name": "status",
+          "type": "TINYINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "1",
+          "comment": "1 正常 0 禁用"
+        },
+        {
+          "id": "c8",
+          "name": "created_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "注册时间"
+        },
+        {
+          "id": "c9",
+          "name": "updated_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "更新时间"
+        }
+      ]
+    },
+    {
+      "id": "t10",
+      "name": "addresses",
+      "comment": "收货地址",
+      "x": 344,
+      "y": 48,
+      "collapsed": false,
+      "group": "core",
+      "columns": [
+        {
+          "id": "c11",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "地址 ID"
+        },
+        {
+          "id": "c12",
+          "name": "user_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "所属用户"
+        },
+        {
+          "id": "c13",
+          "name": "receiver",
+          "type": "VARCHAR",
+          "length": "64",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "收货人"
+        },
+        {
+          "id": "c14",
+          "name": "phone",
+          "type": "VARCHAR",
+          "length": "20",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "联系电话"
+        },
+        {
+          "id": "c15",
+          "name": "province",
+          "type": "VARCHAR",
+          "length": "32",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "省"
+        },
+        {
+          "id": "c16",
+          "name": "city",
+          "type": "VARCHAR",
+          "length": "32",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "市"
+        },
+        {
+          "id": "c17",
+          "name": "detail",
+          "type": "VARCHAR",
+          "length": "255",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "详细地址"
+        },
+        {
+          "id": "c18",
+          "name": "is_default",
+          "type": "BOOLEAN",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "默认地址"
+        }
+      ]
+    },
+    {
+      "id": "t19",
+      "name": "categories",
+      "comment": "商品分类（自引用）",
+      "x": 48,
+      "y": 48,
+      "collapsed": false,
+      "group": "catalog",
+      "columns": [
+        {
+          "id": "c20",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "分类 ID"
+        },
+        {
+          "id": "c21",
+          "name": "parent_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "父分类"
+        },
+        {
+          "id": "c22",
+          "name": "name",
+          "type": "VARCHAR",
+          "length": "64",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "分类名"
+        },
+        {
+          "id": "c23",
+          "name": "sort_order",
+          "type": "INT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "排序"
+        },
+        {
+          "id": "c24",
+          "name": "created_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "创建时间"
+        }
+      ]
+    },
+    {
+      "id": "t25",
+      "name": "products",
+      "comment": "商品 SPU",
+      "x": 344,
+      "y": 328,
+      "collapsed": false,
+      "group": "catalog",
+      "columns": [
+        {
+          "id": "c26",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "商品 ID"
+        },
+        {
+          "id": "c27",
+          "name": "category_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "所属分类"
+        },
+        {
+          "id": "c28",
+          "name": "name",
+          "type": "VARCHAR",
+          "length": "128",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "商品名"
+        },
+        {
+          "id": "c29",
+          "name": "sku",
+          "type": "VARCHAR",
+          "length": "64",
+          "pk": false,
+          "nn": true,
+          "uq": true,
+          "ai": false,
+          "comment": "SKU 编码"
+        },
+        {
+          "id": "c30",
+          "name": "price",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0.00",
+          "comment": "售价"
+        },
+        {
+          "id": "c31",
+          "name": "stock",
+          "type": "INT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "库存"
+        },
+        {
+          "id": "c32",
+          "name": "status",
+          "type": "TINYINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "1",
+          "comment": "1 上架 0 下架"
+        },
+        {
+          "id": "c33",
+          "name": "description",
+          "type": "TEXT",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "详情"
+        },
+        {
+          "id": "c34",
+          "name": "created_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "上架时间"
+        }
+      ]
+    },
+    {
+      "id": "t35",
+      "name": "product_images",
+      "comment": "商品图片",
+      "x": 640,
+      "y": 530,
+      "collapsed": false,
+      "group": "catalog",
+      "columns": [
+        {
+          "id": "c36",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "图片 ID"
+        },
+        {
+          "id": "c37",
+          "name": "product_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "所属商品"
+        },
+        {
+          "id": "c38",
+          "name": "url",
+          "type": "VARCHAR",
+          "length": "255",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "图片地址"
+        },
+        {
+          "id": "c39",
+          "name": "sort_order",
+          "type": "INT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "排序"
+        }
+      ]
+    },
+    {
+      "id": "t40",
+      "name": "cart_items",
+      "comment": "购物车明细",
+      "x": 640,
+      "y": 48,
+      "collapsed": false,
+      "group": "trade",
+      "columns": [
+        {
+          "id": "c41",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "明细 ID"
+        },
+        {
+          "id": "c42",
+          "name": "user_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "所属用户"
+        },
+        {
+          "id": "c43",
+          "name": "product_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "商品"
+        },
+        {
+          "id": "c44",
+          "name": "quantity",
+          "type": "INT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "1",
+          "comment": "数量"
+        },
+        {
+          "id": "c45",
+          "name": "added_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "加入时间"
+        }
+      ]
+    },
+    {
+      "id": "t46",
+      "name": "orders",
+      "comment": "订单主表",
+      "x": 640,
+      "y": 250,
+      "collapsed": false,
+      "group": "trade",
+      "columns": [
+        {
+          "id": "c47",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "订单 ID"
+        },
+        {
+          "id": "c48",
+          "name": "order_no",
+          "type": "VARCHAR",
+          "length": "32",
+          "pk": false,
+          "nn": true,
+          "uq": true,
+          "ai": false,
+          "comment": "订单号"
+        },
+        {
+          "id": "c49",
+          "name": "user_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "下单用户"
+        },
+        {
+          "id": "c50",
+          "name": "address_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "收货地址"
+        },
+        {
+          "id": "c51",
+          "name": "total_amount",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0.00",
+          "comment": "订单总额"
+        },
+        {
+          "id": "c52",
+          "name": "status",
+          "type": "TINYINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "0 待付 1 已付 2 发货 3 完成"
+        },
+        {
+          "id": "c53",
+          "name": "paid_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "支付时间"
+        },
+        {
+          "id": "c54",
+          "name": "created_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "下单时间"
+        }
+      ]
+    },
+    {
+      "id": "t55",
+      "name": "order_items",
+      "comment": "订单明细",
+      "x": 936,
+      "y": 48,
+      "collapsed": false,
+      "group": "trade",
+      "columns": [
+        {
+          "id": "c56",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "明细 ID"
+        },
+        {
+          "id": "c57",
+          "name": "order_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "所属订单"
+        },
+        {
+          "id": "c58",
+          "name": "product_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "商品快照"
+        },
+        {
+          "id": "c59",
+          "name": "product_name",
+          "type": "VARCHAR",
+          "length": "128",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "商品名快照"
+        },
+        {
+          "id": "c60",
+          "name": "unit_price",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "成交单价"
+        },
+        {
+          "id": "c61",
+          "name": "quantity",
+          "type": "INT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "1",
+          "comment": "数量"
+        },
+        {
+          "id": "c62",
+          "name": "subtotal",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "小计"
+        }
+      ]
+    },
+    {
+      "id": "t63",
+      "name": "payments",
+      "comment": "支付流水",
+      "x": 936,
+      "y": 302,
+      "collapsed": false,
+      "group": "trade",
+      "columns": [
+        {
+          "id": "c64",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "流水 ID"
+        },
+        {
+          "id": "c65",
+          "name": "order_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "关联订单"
+        },
+        {
+          "id": "c66",
+          "name": "channel",
+          "type": "VARCHAR",
+          "length": "32",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "支付渠道"
+        },
+        {
+          "id": "c67",
+          "name": "trade_no",
+          "type": "VARCHAR",
+          "length": "64",
+          "pk": false,
+          "nn": false,
+          "uq": true,
+          "ai": false,
+          "comment": "第三方交易号"
+        },
+        {
+          "id": "c68",
+          "name": "amount",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "支付金额"
+        },
+        {
+          "id": "c69",
+          "name": "status",
+          "type": "TINYINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0",
+          "comment": "0 待支付 1 成功 2 失败"
+        },
+        {
+          "id": "c70",
+          "name": "paid_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "回调时间"
+        }
+      ]
+    },
+    {
+      "id": "t71",
+      "name": "coupons",
+      "comment": "优惠券模板",
+      "x": 48,
+      "y": 250,
+      "collapsed": false,
+      "group": "promo",
+      "columns": [
+        {
+          "id": "c72",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "券 ID"
+        },
+        {
+          "id": "c73",
+          "name": "code",
+          "type": "VARCHAR",
+          "length": "32",
+          "pk": false,
+          "nn": true,
+          "uq": true,
+          "ai": false,
+          "comment": "券码"
+        },
+        {
+          "id": "c74",
+          "name": "discount",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "面额"
+        },
+        {
+          "id": "c75",
+          "name": "min_amount",
+          "type": "DECIMAL",
+          "length": "10,2",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "default": "0.00",
+          "comment": "使用门槛"
+        },
+        {
+          "id": "c76",
+          "name": "starts_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "生效时间"
+        },
+        {
+          "id": "c77",
+          "name": "ends_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "失效时间"
+        }
+      ]
+    },
+    {
+      "id": "t78",
+      "name": "user_coupons",
+      "comment": "用户领券记录",
+      "x": 936,
+      "y": 556,
+      "collapsed": false,
+      "group": "promo",
+      "columns": [
+        {
+          "id": "c79",
+          "name": "id",
+          "type": "BIGINT",
+          "pk": true,
+          "nn": true,
+          "uq": false,
+          "ai": true,
+          "comment": "记录 ID"
+        },
+        {
+          "id": "c80",
+          "name": "user_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "用户"
+        },
+        {
+          "id": "c81",
+          "name": "coupon_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": true,
+          "uq": false,
+          "ai": false,
+          "comment": "优惠券"
+        },
+        {
+          "id": "c82",
+          "name": "order_id",
+          "type": "BIGINT",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "使用的订单"
+        },
+        {
+          "id": "c83",
+          "name": "used_at",
+          "type": "DATETIME",
+          "pk": false,
+          "nn": false,
+          "uq": false,
+          "ai": false,
+          "comment": "使用时间"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "r84",
+      "name": "fk_addresses_user_id",
+      "fromTable": "t10",
+      "fromColumn": "c12",
+      "toTable": "t1",
+      "toColumn": "c2",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r85",
+      "name": "fk_categories_parent_id",
+      "fromTable": "t19",
+      "fromColumn": "c21",
+      "toTable": "t19",
+      "toColumn": "c20",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r86",
+      "name": "fk_products_category_id",
+      "fromTable": "t25",
+      "fromColumn": "c27",
+      "toTable": "t19",
+      "toColumn": "c20",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r87",
+      "name": "fk_product_images_product_id",
+      "fromTable": "t35",
+      "fromColumn": "c37",
+      "toTable": "t25",
+      "toColumn": "c26",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r88",
+      "name": "fk_cart_items_user_id",
+      "fromTable": "t40",
+      "fromColumn": "c42",
+      "toTable": "t1",
+      "toColumn": "c2",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r89",
+      "name": "fk_cart_items_product_id",
+      "fromTable": "t40",
+      "fromColumn": "c43",
+      "toTable": "t25",
+      "toColumn": "c26",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r90",
+      "name": "fk_orders_user_id",
+      "fromTable": "t46",
+      "fromColumn": "c49",
+      "toTable": "t1",
+      "toColumn": "c2",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r91",
+      "name": "fk_orders_address_id",
+      "fromTable": "t46",
+      "fromColumn": "c50",
+      "toTable": "t10",
+      "toColumn": "c11",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r92",
+      "name": "fk_order_items_order_id",
+      "fromTable": "t55",
+      "fromColumn": "c57",
+      "toTable": "t46",
+      "toColumn": "c47",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r93",
+      "name": "fk_order_items_product_id",
+      "fromTable": "t55",
+      "fromColumn": "c58",
+      "toTable": "t25",
+      "toColumn": "c26",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r94",
+      "name": "fk_payments_order_id",
+      "fromTable": "t63",
+      "fromColumn": "c65",
+      "toTable": "t46",
+      "toColumn": "c47",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r95",
+      "name": "fk_user_coupons_user_id",
+      "fromTable": "t78",
+      "fromColumn": "c80",
+      "toTable": "t1",
+      "toColumn": "c2",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r96",
+      "name": "fk_user_coupons_coupon_id",
+      "fromTable": "t78",
+      "fromColumn": "c81",
+      "toTable": "t71",
+      "toColumn": "c72",
+      "cardinality": "1:N",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "id": "r97",
+      "name": "fk_user_coupons_order_id",
+      "fromTable": "t78",
+      "fromColumn": "c82",
+      "toTable": "t46",
+      "toColumn": "c47",
+      "cardinality": "1:1",
+      "onDelete": "RESTRICT"
+    }
+  ]
+}

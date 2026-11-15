@@ -10,6 +10,7 @@
 |---|---|---|
 | [canvas_ime](./canvas_ime) | 单画布渲染（圆角/渐变/阴影/主题/进度条/状态面板）+ 输入法 IME 实测（预编辑串、候选框定位、UTF-8 上屏）+ 纯自绘输入框的完整键盘编辑（选区/剪贴板/撤销/按词移动）与控制字符过滤 | `go run ./wg/canvas_ime` |
 | [showcase](./showcase) | 1440×880 设计画布（随窗口等比自适应）：动态波形/折线/柱状/仪表/饼图、真·逐像素半透明玻璃卡片、异形花瓣与星形与贝塞尔、抗锯齿圆角；软件覆盖率抗锯齿 + 渐变/发光描边；静态层烘焙 + 失效驱动 60Hz 帧泵 + 脏区局部提交 + resize 去抖，稳定 60 FPS | `go run ./wg/showcase` |
+| [dbmodeler](./dbmodeler) | 数据库 ER 建模器（同为单画布纯自绘）：表 / 字段 / 关系 CRUD、拖拽建外键、属性检查器、分层自动布局、撤销重做、三方言 DDL、本地 JSON、电商模拟数据；输入框/滚动条/右键菜单/快捷键全部真交互，17 项逐控件断言 + 10 项真实窗口消息测试；**只有数据是模拟的，不连接数据库** | `go run ./wg/dbmodeler` |
 
 在 `E:/app/workspace/examples` 下执行，`go.work` 已 `use ./examples`，无需独立 go.mod。自检与回归：
 
@@ -25,8 +26,21 @@ go run ./wg/showcase --inputtest      # 最大化/还原/真实拖拽 + 输入�
 go run ./wg/showcase --inputdiag      # 记录原生消息与 capture 证据到 inputdiag.log
 go run ./wg/showcase --aaprobe        # 无窗口探测 LCL AA 能力与像素读写成本
 go run ./wg/showcase --screenshot aa_frame.png  # 从帧缓冲导出精确合成帧（含 GDI 文字）
-go test ./wg/...                      # 两个示例的纯逻辑单测
+go run ./wg/dbmodeler --selftest     # 13 项模型/渲染/交互自检（无窗口）
+go run ./wg/dbmodeler --uitest       # 17 项逐按钮/逐菜单/逐快捷键断言（无窗口）
+go run ./wg/dbmodeler --wintest out.png  # 真实窗口：投递鼠标/键盘/滚轮消息并抓像素，10 项断言
+go run ./wg/dbmodeler --smoke        # 真实窗口画 3 帧后自动退出
+go run ./wg/dbmodeler --screenshot out.png  # 离屏整帧渲染导出 PNG
+go test ./wg/...                      # 三个示例的纯逻辑单测
 ```
+
+> `dbmodeler` 是静态 UI 示例，沿用 `canvas_ime` 的事件驱动 OnPaint 直绘路径（无动画、无帧泵），
+> 但沿用了 ① 画刷顺序、⑥ 文本裁剪、⑪ 输入优先级里与静态界面相关的部分，以及 IME 客户区坐标定位契约。
+> 它额外引入「Painter 软裁剪 + 面板不透明覆盖」来做区域裁剪，使同一帧可离屏渲染成 PNG。
+> 它也补齐了两条实测坑：**滚轮消息要走 `host.SetOnMouseWheel`**（写在 `SetOnWndProc` 里收不到，
+> LCL 按光标位置派发给具体控件）；**菜单命令里持有切片元素指针时要先取 ID**（删除会就地压实切片，
+> 指针当场被覆写）。`--wintest` 用 `PostMessageW`/`SendMessageW` 往真实 HWND 投鼠标/键盘/滚轮，
+> 是发现这两类问题的唯一手段。详见 `dbmodeler/README.md`。
 
 > **渲染管线约束**（来自 showcase 的实测，做组件库时必须沿用）：① 画刷**先 `SetColor` 再 `SetStyle`**（LCL 的 `SetColor` 会重置 Style）；② 离屏帧缓冲用**不带 alpha 通道的 `Pf24bit`**，GDI 只写 RGB，用 `Pf32bit` 会让全部矢量图元在最终 Blit 时被当成全透明；③ 单画布整帧渲染必须**抑制 `WM_ERASEBKGND`**（首帧之后才接管，其余消息一律透传），否则渲染期里窗口一直是空底。详见 `showcase/README.md` 第六节。
 >
@@ -38,4 +52,18 @@ go test ./wg/...                      # 两个示例的纯逻辑单测
 
 > **输入契约（新增，做组件库时的硬约束）**：⑪ Win32 `GetMessage` 的取消息顺序是 **sent → posted → 硬件输入 → WM_PAINT → WM_TIMER**，所以用 `PostMessageW` 投递的帧消息**优先级高于一切鼠标/键盘/标题栏输入**。帧泵必须保持**最多 1 个 outstanding 帧消息**、等 `FrameDone` 再投下一槽；**禁止**「若干槽没回就判定消息丢失、清零 inflight」的看门狗（长帧与静态重烘焙不是丢包，它会把队列灌满）。单帧超过 16.67ms 预算时，必须在两帧之间留出 post 队列为空的窗口（showcase 用 1.5ms `inputBreath`），否则窗口越大越慢、输入被永久饿死——表现为「图形还在渲染，但标题栏/还原/鼠标全部失效，像卡死」。实测最大化 2880×1557 时点击派发延迟 382ms（帧泵开启）vs 14ms（帧泵关闭），修复后 16–32ms vs 3–4ms。**帧的计数单位必须是「帧槽」而不是 `WM_PAINT`**：LCL 的 `Repaint = Invalidate + Update` 会额外留下一条低优先级 `WM_PAINT`，闭环队列让它在暂停期到达，按 OnPaint 计数会破坏「静止零帧」；暂停后投递前必须再查一次 active。⑫ 模态 move/size 循环会吞掉 `WM_LBUTTONUP`，且 LCL 会**静默**释放自己的 `MouseCapture`（不保证有 `WM_CAPTURECHANGED`），因此自绘组件的捕获状态不能只靠 MouseUp 清除：要在 `WM_CANCELMODE` / `WM_ENTERSIZEMOVE` / `WM_EXITSIZEMOVE` / 失活时清捕获，并用 `GetAsyncKeyState(VK_LBUTTON)` 在鼠标移动时做硬件按键自愈（补发一次 MouseUp 结束滑块拖拽）。详见 `showcase/README.md` 第九节。
 
-后续可继续在此集合下补充组件示例（如 `tab`、`list`、`slider`），并复用 `canvas_ime` 里的 `Scene` / `Painter` 骨架；成熟后可上移到 `energy/lcl/wg`。
+## 架构定稿（可行性测试已收口）
+
+`canvas_ime` 与 `showcase` 是**可行性测试**，不是产品代码；它们把纸上设计里的渲染管线、帧调度、消息优先级、缓存生命周期等假设全部跑实，并证伪了其中 16 条（详见架构文档 §3）。正式架构定稿在：
+
+| 文档 | 路径 | 内容 |
+|---|---|---|
+| 架构设计（第 3 轮实证定稿） | `C:/Users/Administrator/WorkBuddy/worksapce/wg-canvas-arch/ARCHITECTURE.md` | 五层（⓪平台宿主 / ①渲染与合成 / ②帧调度 / ③场景 / ④组件）、POC 证伪清单、层间契约、风险与 P0–P4 路线 |
+| 施工蓝图 | `C:/Users/Administrator/WorkBuddy/worksapce/wg-canvas-arch/API.md` | 包结构、核心 Go 接口签名、showcase → 正式包迁移映射、契约断言清单、验收命令矩阵 |
+| 最小骨架（历史对照） | `C:/Users/Administrator/WorkBuddy/worksapce/wg-canvas-arch/poc/` | 第 1 轮 PoC |
+
+**横向契约**：本文件上方 ①–⑫ 为已编号契约；定稿追加 ⑬–⑰（帧=帧槽 / 静止零帧验收口径 / 墙钟相位 / 中位数判据 / 层间依赖单向）。迁移到 `energy/lcl/wg` 时应把全部 ⑰ 条写入 `contracts/` 包，并保证每条至少对应一个可执行断言（`API.md §4`）。
+
+**下一步是 P1 基座抽取**：按 `API.md §3` 的顺序把 showcase 拆成 `host/sched/render/scene/widgets` 五包 + `contracts/compat/diag` 横向包，行为零变化，逐条跑 `API.md §5` 的命令矩阵。当前性能基线（1440×880 / 21 组件 / AA on）：60.0 FPS、PREPARE+PRESENT 10.3–11.7ms，P1 不允许退化。
+
+后续可继续在此集合下补充组件示例（如 `tab`、`list`、`slider`），并复用 `canvas_ime` 里的 `Scene` / `Painter` 骨架；成熟后按蓝图上移到 `energy/lcl/wg`。

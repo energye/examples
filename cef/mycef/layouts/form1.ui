@@ -11,7 +11,7 @@
     },
     {
       "name": "Height",
-      "value": 400,
+      "value": 824,
       "type": 1
     },
     {
@@ -31,7 +31,7 @@
     },
     {
       "name": "Width",
-      "value": 600,
+      "value": 1216,
       "type": 1
     }
   ],
@@ -54,7 +54,7 @@
         },
         {
           "name": "Height",
-          "value": 348,
+          "value": 696,
           "type": 1
         },
         {
@@ -74,7 +74,7 @@
         },
         {
           "name": "Width",
-          "value": 300,
+          "value": 664,
           "type": 1
         }
       ]
@@ -87,12 +87,12 @@
       "properties": [
         {
           "name": "Height",
-          "value": 90,
+          "value": 190,
           "type": 1
         },
         {
           "name": "Left",
-          "value": 359,
+          "value": 886,
           "type": 1
         },
         {
@@ -102,12 +102,12 @@
         },
         {
           "name": "Top",
-          "value": 44,
+          "value": 32,
           "type": 1
         },
         {
           "name": "Width",
-          "value": 150,
+          "value": 200,
           "type": 1
         }
       ]
@@ -120,7 +120,7 @@
       "properties": [
         {
           "name": "Left",
-          "value": 363,
+          "value": 760,
           "type": 1,
           "no_code": true
         },
@@ -131,7 +131,7 @@
         },
         {
           "name": "Top",
-          "value": 160,
+          "value": 40,
           "type": 1,
           "no_code": true
         }
@@ -155,7 +155,7 @@
         },
         {
           "name": "Left",
-          "value": 362,
+          "value": 886,
           "type": 1
         },
         {
@@ -165,7 +165,7 @@
         },
         {
           "name": "Top",
-          "value": 234,
+          "value": 360,
           "type": 1
         },
         {
