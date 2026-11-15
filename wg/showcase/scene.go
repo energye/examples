@@ -111,6 +111,9 @@ type Scene struct {
 	dynamicWidgets []Widget
 	hover          Widget
 	capture        Widget
+	// staleCaptureFixes counts captures healed by the hardware-button guard
+	// (a WM_LBUTTONUP swallowed by Windows' modal move/size loop).
+	staleCaptureFixes int
 
 	// Frame pump: posts WM_APP frames to the main thread at an absolute 60Hz
 	// wall-clock cadence, or exactly one frame for an idle dirty region.
@@ -390,7 +393,32 @@ func (s *Scene) captureStatic() {
 // RenderFrame is invoked ONLY by the main thread, ONLY when FrameScheduler
 // posts a 60Hz frame slot (or a single idle dirty frame). Repaint() runs
 // OnPaint synchronously: PREPARE offscreen, then PRESENT atomically.
-func (s *Scene) RenderFrame() { s.host.Repaint() }
+// RenderFrame consumes ONE frame slot. LCL's TControl.Repaint is
+// Invalidate+Update, so a slot can produce a synchronous paint AND a later
+// low-priority WM_PAINT. A FRAME is the slot, not the paint: counting frames
+// here (instead of in OnPaint) is what keeps "idle = zero frames" exact even
+// when that redundant WM_PAINT arrives after the animation was paused.
+func (s *Scene) RenderFrame() {
+	s.host.Repaint()
+	s.Frame++
+	if s.sched.Active() {
+		s.fpsFrames++
+		now := time.Now()
+		if now.Sub(s.fpsWindow) >= time.Second {
+			inst := float64(s.fpsFrames) / now.Sub(s.fpsWindow).Seconds()
+			if s.FPS <= 0 {
+				s.FPS = inst
+			} else {
+				s.FPS = s.FPS*0.35 + inst*0.65
+			}
+			s.fpsFrames = 0
+			s.fpsWindow = now
+		}
+	}
+	if inputDiagMode && s.Frame%20 == 0 {
+		diagFrame(s)
+	}
+}
 
 func (s *Scene) bindCanvas() {
 	s.host.SetOnPaint(func(sender lcl.IObject) {
@@ -576,24 +604,8 @@ func (s *Scene) bindCanvas() {
 		s.forceFull = false
 		s.lastPaint = time.Now()
 
-		// FPS is measured on ACTUAL ANIMATION paints with a 1s window +
-		// light smoothing. Idle one-shot dirty frames are intentionally NOT
-		// counted: a frame rate is meaningless when no frames are scheduled.
-		s.Frame++
-		if s.sched.Active() {
-			s.fpsFrames++
-			now := time.Now()
-			if now.Sub(s.fpsWindow) >= time.Second {
-				inst := float64(s.fpsFrames) / now.Sub(s.fpsWindow).Seconds()
-				if s.FPS <= 0 {
-					s.FPS = inst
-				} else {
-					s.FPS = s.FPS*0.35 + inst*0.65
-				}
-				s.fpsFrames = 0
-				s.fpsWindow = now
-			}
-		}
+		// Frame accounting lives in RenderFrame(): one frame == one frame
+		// slot, not one WM_PAINT. OnPaint only does PREPARE + PRESENT.
 	})
 
 	s.host.SetOnMouseDown(func(sender lcl.IObject, button types.TMouseButton, shift types.TShiftState, x, y int32) {
@@ -742,7 +754,34 @@ func (s *Scene) hit(x, y int32) Widget {
 	return nil
 }
 
+// releaseStaleCapture heals a capture left behind when the button-up never
+// reached the canvas (Windows' modal move/size loop swallows WM_LBUTTONUP).
+// LCL silently drops its own MouseCapture in that case - the diagnostic log
+// showed osCapture=0 / lclCapture=false while s.capture was still set - so
+// WM_CAPTURECHANGED is NOT a reliable hook. Asking the OS for the real button
+// state on the next mouse move is. Widgets get a synthetic MouseUp so slider
+// drags end instead of following the pointer forever.
+func (s *Scene) releaseStaleCapture() {
+	if s.capture == nil {
+		return
+	}
+	w := s.capture
+	s.capture = nil
+	s.staleCaptureFixes++
+	w.Handle(&UIEvent{Kind: EvMouseUp}, s)
+	if !s.sched.Active() {
+		s.InvalidateRect(w.Rect())
+	}
+}
+
 func (s *Scene) dispatch(e *UIEvent) {
+	if e.Kind == EvMouseMove && s.capture != nil && !mouseLeftDown() {
+		s.releaseStaleCapture()
+	}
+	if inputDiagMode && e.Kind != EvMouseLeave && e.Kind != EvKeyDown {
+		diagDispatch(e, s, s.hit(e.X, e.Y))
+		defer diagDispatchResult(e, s)
+	}
 	var affected []types.TRect
 	changed := false
 	switch e.Kind {

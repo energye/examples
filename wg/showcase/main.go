@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 	"time"
 
 	"github.com/energye/lcl/api/libname"
@@ -70,6 +71,13 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--resizetest" {
 		resizeTestMode = true
 	}
+	if len(os.Args) > 1 && os.Args[1] == "--inputdiag" {
+		inputDiagMode = true
+	}
+	if len(os.Args) > 1 && os.Args[1] == "--inputtest" {
+		inputTestMode = true
+		inputDiagMode = true
+	}
 	if len(os.Args) > 1 && os.Args[1] == "--screenshot" {
 		screenshotPath = "screenshot.png"
 		if len(os.Args) > 2 {
@@ -77,6 +85,7 @@ func main() {
 		}
 	}
 
+	initInputDiag()
 	lcl.Init()
 	lcl.Application.Initialize()
 	lcl.Application.SetMainFormOnTaskBar(true)
@@ -146,13 +155,26 @@ func (m *TShowcaseForm) FormCreate(sender lcl.IObject) {
 	// WM_ERASEBKGND 必须透传（此前无条件吞掉会让窗口创建卡死）。所以只在
 	// 首帧成功绘制之后才接管；其余所有消息一律透传。
 	m.SetOnWndProc(func(msg *types.TLMessage) {
+		diagWndProc(msg)
+		// Native "input cancelled" notifications: Windows enters a modal
+		// move/size loop, opens a menu, or deactivates the window. The matching
+		// WM_LBUTTONUP may never reach the canvas, so drop any scene capture
+		// here instead of letting it swallow every later mouse move.
+		switch msg.Msg {
+		case messages.WM_CANCELMODE, messages.WM_ENTERSIZEMOVE, messages.WM_EXITSIZEMOVE:
+			s.releaseStaleCapture()
+		case messages.WM_ACTIVATE:
+			if uint32(msg.WParam)&0xffff == 0 { // WA_INACTIVE
+				s.releaseStaleCapture()
+			}
+		}
 		if msg.Msg == wmRequestFrame {
 			// A frame slot arrived on the display's 60Hz boundary. Only the
 			// main thread renders; Release inflight afterwards so the pump
 			// never queues catch-up frames.
 			m.InheritedWndProc(msg)
 			s.RenderFrame()
-			s.sched.FrameDone()
+			s.sched.FrameDone(s.PaintUs)
 			return
 		}
 		if !allowErase && msg.Msg == messages.WM_ERASEBKGND && s.Frame > 0 {
@@ -165,6 +187,7 @@ func (m *TShowcaseForm) FormCreate(sender lcl.IObject) {
 			s.resizeAt = time.Now()
 		}
 		m.InheritedWndProc(msg)
+		diagWndProcAfter(msg)
 	})
 
 	// The HWND only exists once the form has been created, so bind and start
@@ -247,6 +270,9 @@ func (m *TShowcaseForm) FormCreate(sender lcl.IObject) {
 	}
 	if resizeTestMode {
 		startResizeTest(s)
+	}
+	if inputTestMode {
+		startInputTest(s)
 	}
 	if screenshotPath != "" {
 		startScreenshot(s, screenshotPath)
@@ -350,6 +376,19 @@ func runRegressionChecks() bool {
 	check("offscreen GDI fill colour", wantOK,
 		fmt.Sprintf("R=%02x G=%02x B=%02x (want e6/28/3c)",
 			got.Red>>8, got.Green>>8, got.Blue>>8))
+
+	// (4) The frame pump must never queue a second frame message while one is
+	// outstanding. On Win32 posted messages outrank hardware input, so a
+	// permanently non-empty post queue starves the title bar and all mouse
+	// input once a frame costs more than 16.67ms (the resize/maximize hang).
+	f := NewFrameScheduler(0)
+	atomic.StoreInt32(&f.inflight, 1)
+	atomic.StoreInt64(&f.inflightAt, time.Now().UnixNano())
+	refused := !f.post()
+	f.FrameDone(20000)
+	closed := atomic.LoadInt32(&f.inflight) == 0 && atomic.LoadInt64(&f.frameCost) == 20000
+	check("frame pump: single outstanding slot", refused && closed,
+		fmt.Sprintf("second post refused=%v FrameDone cleared=%v", refused, closed))
 	return allOK
 }
 

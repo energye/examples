@@ -16,11 +16,13 @@
 ```bash
 go run ./wg/canvas_ime --selftest     # 依赖与 DLL 导出
 go run ./wg/canvas_ime --keyselftest  # 自动注入真实按键并断言编辑器状态
-go run ./wg/showcase --selftest       # RGBA 批量写 / 通道顺序 / 圆角覆盖率 / 4 项渲染回归
+go run ./wg/showcase --selftest       # RGBA 批量写 / 通道顺序 / 圆角覆盖率 / 渲染回归 / 帧泵单 outstanding
 go run ./wg/showcase --bench          # 真实窗口跑 3 秒打印 FPS 与帧耗时
 go run ./wg/showcase --mousetest      # 注入 WM_MOUSEMOVE 断言动画持续且 FPS 不被抬升
 go run ./wg/showcase --schedtest      # 断言 60Hz 锁帧 / 静止零帧 / 脏区单帧
 go run ./wg/showcase --resizetest     # 真实 WM_SIZE 连续切换 7 种尺寸，断言不崩不卡
+go run ./wg/showcase --inputtest      # 最大化/还原/真实拖拽 + 输入延迟，22 项断言
+go run ./wg/showcase --inputdiag      # 记录原生消息与 capture 证据到 inputdiag.log
 go run ./wg/showcase --aaprobe        # 无窗口探测 LCL AA 能力与像素读写成本
 go run ./wg/showcase --screenshot aa_frame.png  # 从帧缓冲导出精确合成帧（含 GDI 文字）
 go test ./wg/...                      # 两个示例的纯逻辑单测
@@ -33,5 +35,7 @@ go test ./wg/...                      # 两个示例的纯逻辑单测
 > **抗锯齿 / 文本约束**：⑥ 当前 GDI widgetset 的 `AntialiasingMode` 对图元**无效**，且额外叠一层 RGBA 做 alpha `Draw` 要 24.7ms/帧（击穿预算），所以 AA 必须**按覆盖率就地混合进不透明帧缓冲**：`CreateIntfImage().PixelData()` 批量读出静态快照 → Go 侧光栅化 → `LoadFromIntfImage` 批量写回 → 最后一次不透明提交。文字**不能**进软件光栅器（会丢 ClearType），须延迟到写回之后用 GDI `TextOut` 回放；`TextOut` 本身无裁剪，标签必须按 rect 宽度裁剪。折线/曲线是**一个图元**：密集顶点上的圆头端点若逐段 over 合成，会让边缘覆盖率非单调、出现周期性亮珠（肉眼即"锯齿"），必须先累积覆盖率取 MAX、最后逐像素混合一次。⑦ 不透明 `CopyRect` 整窗约 0.48ms，alpha `Draw` 约 24.7ms（50 倍差）；`Pf24bit` 帧缓冲的 `ScanLine` raw image 与 GDI HDC 不同步，不要拿它当帧缓冲。详见 `showcase/README.md` 第七节。
 >
 > **生命周期与布局约束**：⑧ 静态层**二次烘焙必须切回 GDI 后端**（临时 `painter.frame = nil`）——重烘焙可能发生在 OnPaint 内，此时 AA 表面要么属于上一帧、要么已被 resize 释放，写进去就是段错误，且延迟文字队列会被 `Reset()` 清空（表现为「拖滑条后某张卡片内容消失」）。释放顺序必须是 **先 `freeAASurface()` 再 `Free()` 旧位图**（`frameImg` 由位图 `CreateIntfImage` 得来），并给像素视图加空缓冲守卫。⑨ 布局用**设计画布 → 客户区等比缩放 + 居中**，坐标不能硬编码在窗口像素上；字号/行距/inset/子控件偏移要同步缩放。⑩ `WM_SIZE`/`WM_SIZING` 要**去抖**：一次 RGBA 静态烘焙约 85–100ms，拖动窗口时每个中间尺寸都烘焙会饿死消息循环；冷却期保留旧快照走轻量路径，稳定后烘焙一次，且 AA 判定必须校验快照尺寸与帧缓冲一致；`unsafe.Slice` 读回 DIB 的长度只能由**该位图自身尺寸**推导，不能用当前客户区尺寸（冷却期两者短暂不一致会偶发 SIGSEGV）。详见 `showcase/README.md` 第八节。
+
+> **输入契约（新增，做组件库时的硬约束）**：⑪ Win32 `GetMessage` 的取消息顺序是 **sent → posted → 硬件输入 → WM_PAINT → WM_TIMER**，所以用 `PostMessageW` 投递的帧消息**优先级高于一切鼠标/键盘/标题栏输入**。帧泵必须保持**最多 1 个 outstanding 帧消息**、等 `FrameDone` 再投下一槽；**禁止**「若干槽没回就判定消息丢失、清零 inflight」的看门狗（长帧与静态重烘焙不是丢包，它会把队列灌满）。单帧超过 16.67ms 预算时，必须在两帧之间留出 post 队列为空的窗口（showcase 用 1.5ms `inputBreath`），否则窗口越大越慢、输入被永久饿死——表现为「图形还在渲染，但标题栏/还原/鼠标全部失效，像卡死」。实测最大化 2880×1557 时点击派发延迟 382ms（帧泵开启）vs 14ms（帧泵关闭），修复后 16–32ms vs 3–4ms。**帧的计数单位必须是「帧槽」而不是 `WM_PAINT`**：LCL 的 `Repaint = Invalidate + Update` 会额外留下一条低优先级 `WM_PAINT`，闭环队列让它在暂停期到达，按 OnPaint 计数会破坏「静止零帧」；暂停后投递前必须再查一次 active。⑫ 模态 move/size 循环会吞掉 `WM_LBUTTONUP`，且 LCL 会**静默**释放自己的 `MouseCapture`（不保证有 `WM_CAPTURECHANGED`），因此自绘组件的捕获状态不能只靠 MouseUp 清除：要在 `WM_CANCELMODE` / `WM_ENTERSIZEMOVE` / `WM_EXITSIZEMOVE` / 失活时清捕获，并用 `GetAsyncKeyState(VK_LBUTTON)` 在鼠标移动时做硬件按键自愈（补发一次 MouseUp 结束滑块拖拽）。详见 `showcase/README.md` 第九节。
 
 后续可继续在此集合下补充组件示例（如 `tab`、`list`、`slider`），并复用 `canvas_ime` 里的 `Scene` / `Painter` 骨架；成熟后可上移到 `energy/lcl/wg`。

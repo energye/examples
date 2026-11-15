@@ -38,11 +38,13 @@
 ```bash
 cd E:/app/workspace/examples
 
-go run ./wg/showcase --selftest    # 不弹窗：通道/批量写/圆角 + 4 项渲染回归断言
+go run ./wg/showcase --selftest    # 不弹窗：通道/批量写/圆角 + 渲染回归 + 帧泵单 outstanding 断言
 go run ./wg/showcase --bench       # 真实窗口，帧泵启动后跑 3 秒，打印性能与分段剖析
 go run ./wg/showcase --mousetest   # 注入 1300+ WM_MOUSEMOVE，断言动画持续且 FPS 不被抬升
 go run ./wg/showcase --schedtest   # 断言 60Hz 锁帧 / 静止零帧 / 脏区单帧
 go run ./wg/showcase --resizetest  # 真实 WM_SIZE 连续切换 7 种尺寸，断言不崩不卡
+go run ./wg/showcase --inputtest   # 最大化/还原/真实拖拽 + 输入延迟，22 项断言（回归本节第九节）
+go run ./wg/showcase --inputdiag   # 只记录原生消息/capture 状态到 inputdiag.log，不跑脚本
 go run ./wg/showcase --aaprobe     # 无窗口能力探测：LCL AA 是否有效、ScanLine/IntfImage 读写成本
 go run ./wg/showcase --screenshot aa_frame.png   # 从帧缓冲导出精确合成帧 + 3x 局部放大图
 go run ./wg/showcase               # 打开窗口
@@ -92,6 +94,7 @@ go build -o wg/showcase/showcase.exe ./wg/showcase   # examples/.gitignore 已�
 [SELFTEST] Painter.brush keeps BsClear        PASS  style=1 (want BsClear=1)
 [SELFTEST] Painter.brush keeps BsSolid+colour PASS  style=0 color=0x3c28e6
 [SELFTEST] offscreen GDI fill colour          PASS  R=e6 G=28 B=3c (want e6/28/3c)
+[SELFTEST] frame pump: single outstanding slot PASS  second post refused=true FrameDone cleared=true
 RESULT: PASS
 ```
 
@@ -311,12 +314,73 @@ main.(*Scene).bindCanvas.func1   scene.go:382
 
 比上一轮多出的约 1ms 来自 `strokeBegin` 补回原本被 bbox 裁掉的 halo 像素（修复断开的必要成本），仍在 16.67ms 预算内。`go build ./wg/...`、`go test -count=1 ./wg/...`、`--selftest`、`--schedtest`、`--mousetest`、`--aaprobe`、`--resizetest`、`WG_AA=0` / `WG_FAST=1` / `WG_STATIC=0` / `WG_BAKE=1` / `WG_SIZE=...` 全 PASS。
 
-## 九、文件
+## 九、已修复：调整大小 / 最大化后标题栏、还原、鼠标全部失效（帧消息饿死输入）
+
+**现象**：拖动边框或最大化之后，画面还在动，但标题栏按钮、还原、窗口内所有鼠标操作都不响应——「像卡死，但没卡死，因为图形还在渲染」。
+
+### 先证伪「鼠标 capture 卡住」
+
+交接文档里怀疑 `WM_SIZING` 模态循环吞掉 `WM_LBUTTONUP` 导致 `s.capture` 永不清除。新增 `--inputdiag` 记录 `WM_SIZE` / `WM_SYSCOMMAND` / `WM_ENTERSIZEMOVE` / `WM_EXITSIZEMOVE` / `WM_CANCELMODE` / `WM_CAPTURECHANGED` / 鼠标按钮，并同时打印 `GetCapture()`、LCL `host.MouseCapture()`、`Scene.capture`、`WM_NCHITTEST` 结果，实测最大化后的状态是：
+
+```
+STATE max-held  client=2880x1557 zoomed=true osCapture=0x0 lclCapture=false sceneCapture=nil
+PROBE max-held  NCHITTEST(caption) -> 2 (HTCAPTION)
+```
+
+即 **OS 捕获、LCL 捕获、场景捕获全部为空，标题栏命中测试完全正常**；真实 `SendInput` 拖边框也能正常进出模态循环。capture 假设不成立。
+
+### 真正的根因：Win32 消息队列优先级
+
+`GetMessage` 取消息的顺序是：sent → **posted** → 硬件输入（鼠标/键盘/非客户区）→ `WM_PAINT` → `WM_TIMER`。我们的帧泵用 `PostMessageW(WM_APP+1)` 投递帧槽，属于 **posted 消息，优先级高于一切鼠标输入**。
+
+在 200% DPI 的屏幕上最大化后客户区是 **2880×1557**（约设计画布的 4 倍），单帧 PREPARE+PRESENT ≈ **30ms**，超过 16.67ms 预算。此时旧帧泵：
+
+1. 允许 **2 个 outstanding** 帧消息，且每 16.67ms 无条件再投一个 → post 队列永远不为空，`GetMessage` 永远取不到输入；
+2. 「3 个槽位没收到 `FrameDone` 就判定消息丢失、把 `inflight` 清零」的看门狗，在 ~190ms 的静态层重烘焙期间反复触发，**又往队列里灌进几十条帧消息**，形成长期积压；
+3. 结果窗口一路处理 `WM_APP+1`（图形继续渲染），而标题栏点击、`SC_RESTORE`、鼠标消息全部排队饿死。
+
+**决定性 A/B**（`--inputtest` Step 7，同为最大化状态）：注入一次无副作用的点击，测到派发延迟
+
+| | 帧泵开启 | 帧泵关闭 |
+|---|---|---|
+| 修复前 | **382 ms** | 14 ms |
+| 修复后 | **16–32 ms** | 3–4 ms |
+
+修复前最大化状态下点「切换主题」按钮 `light -> light` **FAIL**（点击根本没被派发）；标题栏 `WM_NCHITTEST` 用 `SendMessage` 却能立刻返回 `HTCAPTION`——这正是「sent 消息能过、posted/硬件输入过不去」的典型特征。
+
+### 修复（`framescheduler.go` / `main.go` / `scene.go`）
+
+| 改动 | 原因 |
+|---|---|
+| **最多 1 个 outstanding 帧消息**（`post()` 用 `CAS(0,1)` 拒绝第二次投递） | post 队列在两帧之间必然为空，输入才有机会被 `GetMessage` 取到 |
+| 删掉「3 槽没回就清零 `inflight`」的伪丢包看门狗，改成 3 秒病理超时 | 长帧/重烘焙不是丢消息；原逻辑正是积压来源 |
+| 泵在投递前 `waitConsumed()` 等上一帧 `FrameDone`，慢帧**平移时槽**而不是丢整槽 | 闭环调度；既无追赶帧爆发，也不会因一次慢帧连锁掉帧（`--schedtest` 曾误报 39 FPS） |
+| 超过预算的帧之后留 `inputBreath = 1.5ms` 空队列窗口 | 让主线程进入 `GetMessage` 时取走挂起的鼠标/键盘/NC 消息；只对慢帧收费，正常 60Hz 不变 |
+| `FrameDone(costUs)` 回报上一帧成本 | 让「是否让路给输入」由真实帧耗时决定，不靠猜 |
+| `WM_CANCELMODE` / `WM_ENTERSIZEMOVE` / `WM_EXITSIZEMOVE` / `WM_ACTIVATE(deactivate)` 清 `Scene.capture`；`EvMouseMove` 时用 `GetAsyncKeyState(VK_LBUTTON)` 判断真实按键，若已松开则补发 `EvMouseUp` | 修掉诊断顺带发现的次生问题：模态循环吞掉 `WM_LBUTTONUP` 后 LCL 会静默释放自己的 capture（日志里 `osCapture=0 / lclCapture=false / sceneCapture=控件`），场景里的滑块会永远跟着鼠标改不透明度。`WM_CAPTURECHANGED` 不可靠（它也会在正常 MouseUp 前到达，会破坏拖拽结束语义） |
+| **帧 = 一个帧槽**，计数与 FPS 统计移到 `RenderFrame()`；`SetActive(false)` 后投递前再查一次 active | LCL 的 `TControl.Repaint` = `Invalidate + Update`，一个帧槽会产生一次同步绘制 + 一条事后到达的低优先级 `WM_PAINT`。闭环泵让这条消息在暂停期间冒出来，旧代码把 `OnPaint` 当帧计数会误报「静止期 24 帧」；按帧槽计数后静止严格零帧，也杜绝了暂停后仍投递一帧/连锁 one-shot |
+| `--schedtest` 排除启动预热（先等 30 帧），动画段改 2s，判据改用**两段合并的帧间隔中位数**（14–20ms，≥100 样本） | 绝对帧数在 1–2s 窗口里会被外部 CPU/杀软顿挫吃掉几十帧，产生 12–39 FPS 的假 FAIL（`frameProfile.sample()` 已丢弃 >100ms 的空档）。中位数断言的是「帧泵锁 60Hz」这个真实契约；真坏到 30Hz 会让两段都变坏，依然 FAIL |
+
+### 复测
+
+`--inputtest` 固化了最大化 → 还原 → 丢失 MouseUp → 真实 `SendInput` 边框拖拽 → 标题栏双击 → 输入延迟 A/B 共 **22 项断言**，连跑 3 次全 PASS；其中「最大化后点击生效」修复前必 FAIL。性能不变：
+
+```
+--bench        60.0–60.4 FPS   PREPARE+PRESENT 10.3–11.7ms   PREPARE p50 12.5–13.5ms
+--schedtest    ×8 全 PASS（暂停 0 帧 / 脏区 1 帧 / 合并帧间隔中位数 16.5–17.1ms）
+--mousetest    ×3 全 PASS（1264–1268 条 WM_MOUSEMOVE，58.5–60.0 FPS）
+--resizetest   7 步每步 20 帧，PASS     --inputtest 22 项 ×3 全 PASS
+--selftest / go test ./wg/... / WG_AA=0 / WG_FAST=1 / WG_STATIC=0 / WG_BAKE=1 / WG_SIZE=... 全 PASS
+```
+
+**残留限制**：最大化瞬间仍需在主线程烘焙一次 2880×1557 的静态快照（~190ms），期间会有一次可感知的顿挫；但队列不再积压，输入在烘焙结束后立刻恢复。生产后端应把静态层按 DPI 降采样烘焙或改为 GPU 合成。
+
+## 十、文件
 
 | 文件 | 作用 |
 |---|---|
-| `main.go` | 1440×880 窗口、库探测、设计坐标布局、`WM_ERASEBKGND` 抑制、`WM_SIZE` 去抖时间戳、帧泵启动、全部命令行模式分派（`--selftest` / `--bench` / `--mousetest` / `--schedtest` / `--resizetest` / `--aaprobe` / `--screenshot`）、键盘绑定、主线程优雅退出 |
-| `framescheduler.go` | **帧泵核心**：绝对 60Hz 墙钟时间轴、被动 `WM_APP+1` 投递、动画/脏区双帧源、慢帧跳槽不追帧 |
+| `main.go` | 1440×880 窗口、库探测、设计坐标布局、`WM_ERASEBKGND` 抑制、`WM_SIZE` 去抖时间戳、取消类消息清 capture、帧泵启动、全部命令行模式分派（`--selftest` / `--bench` / `--mousetest` / `--schedtest` / `--resizetest` / `--inputtest` / `--inputdiag` / `--aaprobe` / `--screenshot`）、键盘绑定、主线程优雅退出 |
+| `framescheduler.go` | **帧泵核心**：绝对 60Hz 墙钟时间轴、被动 `WM_APP+1` 投递、动画/脏区双帧源、慢帧跳槽不追帧、**单 outstanding 闭环投递 + 慢帧后让路给输入**（见第九节） |
 | `framescheduler_windows.go` / `_other.go` | `PostMessageW` 把帧槽交给主线程 / 非 Windows stub |
 | `staticlayer.go` | **静态层**：把 9 卡片 + 2 光斑 + 图例一次性烘成不透明 `Pf24bit` 快照；重烘焙时强制切回 GDI 后端（见第八节 ②）；尺寸不匹配时拒绝 Blit |
 | `layout.go` | **自适应布局**：1440×880 设计画布 → 当前客户区的等比缩放 + 居中，内容块整体上提 16px |
@@ -327,11 +391,13 @@ main.(*Scene).bindCanvas.func1   scene.go:382
 | `layer.go` | `Theme`、`Surface`、`AlphaLayer`（批量 BGRA 写入）、`LayerCache`、`bakeGlass` / `bakeGlow`、圆角覆盖率 |
 | `raster.go` | **软件 AA 光栅器** `FramePixels`：直接绑定帧缓冲像素块，按覆盖率就地混色；距离场线段（两分支统一 `lineCov`）/ 活动边表多边形 / 椭圆 / 圆弧 / 扇区 / 圆角矩形 / 渐变填充 / 单遍发光 / 描线覆盖率取 MAX，全部零额外图层 |
 | `painter.go` | `Painter` —— 唯一接触 `lcl.ICanvas` 的封装；GDI 与软件 AA 双后端分派、状态合并、文本度量/裁剪缓存、延迟文字回放、`Scale` 自适应字号。**画刷先写颜色后写样式**（`SetColor` 会重置 Style） |
-| `scene.go` | 单画布宿主、`newBackBuffer(Pf24bit)`、AA 表面的创建/释放顺序与尺寸一致性校验、静态快照批量读 / 写、`relayout`、180ms resize 冷却、脏区合并与局部提交、事件分发（**输入不请求帧**） |
+| `scene.go` | 单画布宿主、`newBackBuffer(Pf24bit)`、AA 表面的创建/释放顺序与尺寸一致性校验、静态快照批量读 / 写、`relayout`、180ms resize 冷却、脏区合并与局部提交、事件分发（**输入不请求帧**）、`releaseStaleCapture` 硬件按键自愈 |
 | `widgets.go` | 波形/折线/仪表/花瓣/柱状/饼图/玻璃卡片/光斑/性能面板/控件/图例；`IsStatic()` 声明静态层归属；`SetRect` 支持子控件重映射；所有固定像素常量走 `Scene.S()` |
 | `aaprobe.go` | `--aaprobe` 无窗口能力探测：LCL AA 是否有效、`ScanLine` 与 `IntfImage` 读写语义、alpha Draw vs 不透明 CopyRect 成本 |
 | `screenshot.go` | `--screenshot` 从帧缓冲导出精确合成帧 PNG + 3x 局部放大图；支持 `WG_SIZE` 改尺寸、`WG_BAKE` 触发二次烘焙 |
 | `showcase_test.go` | 5 个纯逻辑单测，不需要 GUI |
 | `mousetest_windows.go` / `mousetest_other.go` | `--mousetest` 的 `WM_MOUSEMOVE` 注入与断言 / 非 Windows stub |
+| `inputdiag.go` / `inputdiag_other.go` | `--inputdiag` 原生消息/capture 证据日志；`--inputtest` 的 22 项回归断言、真实 `SendInput` 拖拽、输入延迟 A/B / 非 Windows stub |
+| `inputguard_windows.go` / `inputguard_other.go` | `GetAsyncKeyState(VK_LBUTTON)` 读取真实按键状态，识别被模态循环吞掉的 `WM_LBUTTONUP` / 非 Windows stub |
 
 架构设计见 WorkBuddy 工作区 `wg-canvas-arch/ARCHITECTURE.md`；单画布 + 输入法的最小示例见 `../canvas_ime`。本示例使用 `examples` 模块已有依赖，未修改 `go.mod`。
